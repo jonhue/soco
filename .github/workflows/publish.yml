@@ -1,0 +1,35 @@
+name: Publish
+
+on:
+  push:
+    branches:
+    - sources
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@master
+    - name: Prepare files
+      run: sh ./scripts/setup.sh
+    - name: Compile LaTeX sources
+      uses: xu-cheng/latex-action@v2
+      with:
+        pre_compile: tlmgr update --self && tlmgr update --all
+        root_file: |
+          example.tex
+    - name: Move PDFs
+      run: mv ./*.pdf ./dist
+    - name: Move readme
+      run: cp ./README.md ./dist/index.md
+    - name: Deploy
+      uses: peaceiris/actions-gh-pages@v3.8.0
+      with:
+        deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+        publish_branch: master
+        publish_dir: ./dist
+        allow_empty_commit: true
+        force_orphan: true
+        enable_jekyll: true
