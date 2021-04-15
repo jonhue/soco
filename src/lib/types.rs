@@ -11,10 +11,12 @@ pub struct Problem<T> {
     pub f: Box<dyn Fn(i32, T) -> Option<f64>>,
 }
 pub type DiscreteProblem = Problem<i32>;
+#[allow(dead_code)]
 pub type ContinuousProblem = Problem<f64>;
 
 // Result of the Homogeneous Data-Center Right-Sizing problem.
 // Number of active servers from time 1 to time T.
 pub type Schedule<T> = Vec<T>;
 pub type DiscreteSchedule = Schedule<i32>;
+#[allow(dead_code)]
 pub type ContinuousSchedule = Schedule<f64>;

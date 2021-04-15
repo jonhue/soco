@@ -4,6 +4,7 @@ use lib::types::{Problem, Schedule};
 use lib::verifiers::{verify_discrete_problem, verify_discrete_schedule};
 
 mod algorithms;
+#[allow(unused_imports)]
 use algorithms::alg1;
 
 fn f1(t: usize, x_t: i32) -> Option<f64> {
