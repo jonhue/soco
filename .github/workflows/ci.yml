@@ -12,9 +12,11 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-        components: rustfmt
     - name: Format
-      run: rustfmt --check --config-path .rustfmt.toml
+      uses: actions-rs/cargo@v1
+      with:
+        command: fmt
+        args: -- --check
     - name: Build
       uses: actions-rs/cargo@v1
       with:
