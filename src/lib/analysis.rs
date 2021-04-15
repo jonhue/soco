@@ -1,0 +1,21 @@
+#[path = "types.rs"]
+mod types;
+use types::{DiscreteProblem, DiscreteSchedule};
+
+fn discrete_pos(value: i32) -> f64 {
+    if value >= 0 {
+        return value as f64;
+    } else {
+        return 0.;
+    }
+}
+
+pub fn discrete_objective_function(p: &DiscreteProblem, xs: &DiscreteSchedule) -> f64 {
+    let mut cost = 0.;
+    for t in 0..p.t_end {
+        let prev_x = if t > 0 { xs[t - 1] } else { 0 };
+        cost += (p.f)(t, xs[t]).expect("f should be total on its domain")
+            + p.beta * discrete_pos(xs[t] - prev_x);
+    }
+    return cost;
+}
