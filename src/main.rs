@@ -3,8 +3,8 @@ use lib::analysis::discrete_objective_function;
 use lib::types::{Problem, Schedule};
 use lib::verifiers::{verify_discrete_problem, verify_discrete_schedule};
 
-mod alg1;
-use alg1::alg1;
+mod algorithms;
+use algorithms::alg1;
 
 fn f1(t: usize, x_t: i32) -> Option<f64> {
     return Some((t as f64) + 1.);

@@ -29,7 +29,7 @@ pub fn verify_discrete_schedule(p: &DiscreteProblem, xs: &DiscreteSchedule) {
         assert!(x >= &0, "values in schedule must be non-negative");
         assert!(
             x <= &p.m,
-            "values in schedule must not exceed number of servers"
+            "values in schedule must not exceed the number of servers"
         );
     }
 }
