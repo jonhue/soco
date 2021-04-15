@@ -21,7 +21,7 @@ pub fn verify_discrete_problem(p: &DiscreteProblem) {
 pub fn verify_discrete_schedule(p: &DiscreteProblem, xs: &DiscreteSchedule) {
     assert_eq!(
         xs.len(),
-        p.t_end,
+        p.t_end as usize,
         "schedule must have a value for each time step"
     );
 

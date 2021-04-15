@@ -2,7 +2,7 @@
 mod types;
 use types::{DiscreteProblem, DiscreteSchedule};
 
-#[path = "types.rs"]
+#[path = "utils.rs"]
 mod utils;
 use utils::discrete_pos;
 

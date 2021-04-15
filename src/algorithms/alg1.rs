@@ -4,7 +4,7 @@ use pathfinding::dijkstra;
 #[path = "../lib.rs"]
 mod lib;
 use lib::types::{DiscreteProblem, DiscreteSchedule, Problem};
-use lib::utils::{discrete_pos, log};
+use lib::utils::discrete_pos;
 
 // Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
 type Vertice = (i32, i32);
@@ -25,7 +25,7 @@ pub fn alg1(&p: &DiscreteProblem) -> DiscreteSchedule {
     let initial_neighbors = select_initial_neighbors(&p, neighbors);
     let xs = find_schedule(&p, initial_neighbors);
 
-    let k_init = log(p.m) - 3;
+    let k_init = (p.m as f64).log(2.).floor() as u32 - 3;
     for k in k_init..0 {
         let next_neighbors = select_next_neighbors(&p, &xs, neighbors, k);
         xs = find_schedule(&p, next_neighbors);
