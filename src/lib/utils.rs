@@ -1,5 +1,5 @@
 pub fn log(n: i32) -> u32 {
-    return (n as f64).log(2.).floor() as i32;
+    return (n as f64).log(2.).floor() as u32;
 }
 
 pub fn discrete_pos(value: i32) -> f64 {
