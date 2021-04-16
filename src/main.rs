@@ -1,23 +1,21 @@
+mod analysis;
+use analysis::discrete_objective_function;
+
 mod lib;
-use lib::analysis::discrete_objective_function;
-use lib::types::{Problem, Schedule};
+use lib::types::{HomProblem, Schedule};
 use lib::verifiers::{verify_discrete_problem, verify_discrete_schedule};
 
 mod algorithms;
 #[allow(unused_imports)]
 use algorithms::alg1;
 
-fn f1(t: usize, x_t: i32) -> Option<f64> {
-    return Some((t as f64) + 1.);
-}
-
 fn main() {
     println!("Hello, world!");
 
-    let instance = Problem {
+    let instance = HomProblem {
         m: 3,
         t_end: 3,
-        f: f1,
+        f: Box::new(|t, _x| Some((t as f64) + 1.)),
         beta: 0.4,
     };
     verify_discrete_problem(&instance);

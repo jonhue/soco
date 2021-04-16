@@ -1,13 +1,8 @@
-#[path = "types.rs"]
-mod types;
-use types::{DiscreteProblem, DiscreteSchedule};
-
-#[path = "utils.rs"]
-mod utils;
-use utils::discrete_pos;
+use crate::lib::types::{DiscreteHomProblem, DiscreteSchedule};
+use crate::lib::utils::discrete_pos;
 
 pub fn discrete_objective_function(
-    p: &DiscreteProblem,
+    p: &DiscreteHomProblem,
     xs: &DiscreteSchedule,
 ) -> f64 {
     let mut cost = 0.;

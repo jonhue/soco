@@ -1,8 +1,6 @@
-#[path = "types.rs"]
-mod types;
-use types::{DiscreteProblem, DiscreteSchedule};
+use crate::lib::types::{DiscreteHomProblem, DiscreteSchedule};
 
-pub fn verify_discrete_problem(p: &DiscreteProblem) {
+pub fn verify_discrete_problem(p: &DiscreteHomProblem) {
     assert!(p.m >= 0, "m must be non-negative");
     assert!(p.t_end > 0, "T must be positive");
     assert!(p.beta > 0., "beta must be positive");
@@ -18,7 +16,7 @@ pub fn verify_discrete_problem(p: &DiscreteProblem) {
     }
 }
 
-pub fn verify_discrete_schedule(p: &DiscreteProblem, xs: &DiscreteSchedule) {
+pub fn verify_discrete_schedule(p: &DiscreteHomProblem, xs: &DiscreteSchedule) {
     assert_eq!(
         xs.len(),
         p.t_end as usize,
