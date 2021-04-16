@@ -1,5 +1,5 @@
 use crate::lib::types::{DiscreteHomProblem, DiscreteSchedule};
-use crate::lib::utils::discrete_pos;
+use crate::lib::utils::ipos;
 
 pub fn discrete_objective_function(
     p: &DiscreteHomProblem,
@@ -10,7 +10,7 @@ pub fn discrete_objective_function(
         let prev_x = if t > 0 { xs[t - 1] } else { 0 };
         cost += (p.f)(t as i32, xs[t])
             .expect("f should be total on its domain")
-            + p.beta * discrete_pos(xs[t] - prev_x);
+            + p.beta * ipos(xs[t] - prev_x);
     }
     return cost;
 }

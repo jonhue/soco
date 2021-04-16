@@ -2,7 +2,7 @@ use ordered_float::OrderedFloat;
 use pathfinding::dijkstra;
 
 use crate::lib::types::{DiscreteHomProblem, DiscreteSchedule, HomProblem};
-use crate::lib::utils::discrete_pos;
+use crate::lib::utils::ipos;
 
 // Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
 type Vertice = (i32, i32);
@@ -13,7 +13,7 @@ type Neighbors = Box<dyn Fn(&Vertice) -> Vec<(Vertice, Cost)>>;
 
 static eps: f64 = 1.;
 
-pub fn alg1(mut p: &'static DiscreteHomProblem) -> DiscreteSchedule {
+pub fn alg1(mut p: &DiscreteHomProblem) -> DiscreteSchedule {
     if (p.m as f64).log(2.) % 1. == 0. {
         p = &transform_problem(p);
     }
@@ -31,7 +31,7 @@ pub fn alg1(mut p: &'static DiscreteHomProblem) -> DiscreteSchedule {
     return xs;
 }
 
-fn transform_problem(p: &'static DiscreteHomProblem) -> DiscreteHomProblem {
+fn transform_problem(p: &DiscreteHomProblem) -> DiscreteHomProblem {
     let m = (2 as i32).pow((p.m as f64).log(2.).ceil() as u32);
     let f = Box::new(move |t, x| {
         if x <= p.m {
@@ -53,7 +53,7 @@ fn transform_problem(p: &'static DiscreteHomProblem) -> DiscreteHomProblem {
     };
 }
 
-fn build_neighbors(p: &'static DiscreteHomProblem) -> Neighbors {
+fn build_neighbors(p: &DiscreteHomProblem) -> Neighbors {
     return Box::new(move |&(t, i): &Vertice| {
         if t == p.t_end {
             vec![((t + 1, 0), OrderedFloat(0.))]
@@ -71,7 +71,7 @@ fn build_neighbors(p: &'static DiscreteHomProblem) -> Neighbors {
 
 fn build_cost(p: &DiscreteHomProblem, t: i32, i: i32, j: i32) -> Cost {
     return OrderedFloat(
-        p.beta * discrete_pos(i - j)
+        p.beta * ipos(i - j)
             + (p.f)(t, i).expect("f should be total on its domain"),
     );
 }
