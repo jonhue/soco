@@ -102,7 +102,9 @@ fn select_next_neighbors(
         .collect();
     return select_neighbors(
         neighbors,
-        Box::new(move |&(t, j)| acceptable_successors[t as usize - 1].contains(&j)),
+        Box::new(move |&(t, j)| {
+            acceptable_successors[t as usize - 1].contains(&j)
+        }),
     );
 }
 
