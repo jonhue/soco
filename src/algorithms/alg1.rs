@@ -3,7 +3,7 @@ use pathfinding::dijkstra;
 use std::collections::HashMap;
 
 use crate::lib::types::{DiscreteHomProblem, DiscreteSchedule, HomProblem};
-use crate::lib::utils::ipos;
+use crate::lib::utils::{ipos, is_2pow};
 
 // Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
 type Vertice = (i32, i32);
@@ -17,11 +17,11 @@ static EPS: f64 = 1.;
 impl<'a> DiscreteHomProblem<'a> {
     pub fn alg1(&'a self) -> DiscreteSchedule {
         let transformed;
-        let p = if (self.m as f64).log(2.) % 1. != 0. {
+        let p = if is_2pow(self.m) {
+            self
+        } else {
             transformed = self.transform();
             &transformed
-        } else {
-            self
         };
 
         let neighbors = p.build_neighbors();
