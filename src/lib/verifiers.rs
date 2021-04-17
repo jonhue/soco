@@ -29,7 +29,6 @@ pub trait VerifiableSchedule {
 
 impl VerifiableSchedule for DiscreteSchedule {
     fn verify(&self, p: &DiscreteHomProblem) {
-        println!("{:?}", self);
         assert_eq!(
             self.len(),
             p.t_end as usize,
