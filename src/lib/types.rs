@@ -7,7 +7,7 @@ pub struct HomProblem<'a, T> {
     // Positive real constant resembling the switching cost.
     pub beta: f64,
     // Non-negative convex cost functions.
-    // Must be defined on 1<=t<=T, 0<=x_t<=m; may return `None` otherwise.
+    // Must be total on 1<=t<=T, 0<=x_t<=m; may return `None` otherwise.
     pub f: Box<dyn Fn(i32, T) -> Option<f64> + 'a>,
 }
 pub type DiscreteHomProblem<'a> = HomProblem<'a, i32>;

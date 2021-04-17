@@ -12,23 +12,27 @@ type Cost = OrderedFloat<f64>;
 // Maps a vertice to all its neighbors with some cost.
 type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
 
-static eps: f64 = 1.;
+static EPS: f64 = 1.;
 
 impl<'a> DiscreteHomProblem<'a> {
     pub fn alg1(&'a self) -> DiscreteSchedule {
-        // if (self.m as f64).log(2.) % 1. == 0. {
-        //     self = &mut self.transform();
-        // }
+        let transformed;
+        let p = if (self.m as f64).log(2.) % 1. == 0. {
+            transformed = self.transform();
+            &transformed
+        } else {
+            self
+        };
 
-        let neighbors = self.build_neighbors();
+        let neighbors = p.build_neighbors();
 
-        let initial_neighbors = self.select_initial_neighbors(&neighbors);
-        let mut xs = self.find_schedule(initial_neighbors);
+        let initial_neighbors = p.select_initial_neighbors(&neighbors);
+        let mut xs = p.find_schedule(initial_neighbors);
 
-        let k_init = (self.m as f64).log(2.).floor() as u32 - 3;
+        let k_init = (p.m as f64).log(2.).floor() as u32 - 3;
         for k in k_init..0 {
-            let next_neighbors = self.select_next_neighbors(&xs, &neighbors, k);
-            xs = self.find_schedule(next_neighbors);
+            let next_neighbors = p.select_next_neighbors(&xs, &neighbors, k);
+            xs = p.find_schedule(next_neighbors);
         }
         return xs;
     }
@@ -43,7 +47,7 @@ impl<'a> DiscreteHomProblem<'a> {
                     x as f64
                         * ((self.f)(t, self.m)
                             .expect("f should be total on its domain")
-                            + eps),
+                            + EPS),
                 )
             }
         });
@@ -136,7 +140,7 @@ fn select_neighbors<'a>(
     return move |&(t, i): &Vertice| {
         neighbors
             .get(&(t, i))
-            .expect("neighbors should have been cached")
+            .expect("neighbors should have been pre-cached")
             .into_iter()
             .map(|&x| x)
             .filter(|(v, _)| is_acceptable_successor(v))
