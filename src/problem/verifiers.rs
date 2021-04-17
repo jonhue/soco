@@ -1,4 +1,4 @@
-use crate::lib::types::{DiscreteHomProblem, DiscreteSchedule};
+use crate::problem::types::{DiscreteHomProblem, DiscreteSchedule};
 
 pub trait VerifiableProblem {
     fn verify(&self);
@@ -6,16 +6,17 @@ pub trait VerifiableProblem {
 
 impl<'a> VerifiableProblem for DiscreteHomProblem<'a> {
     fn verify(&self) {
-        assert!(self.m >= 0, "m must be non-negative");
+        assert!(self.m > 0, "m must be positive");
         assert!(self.t_end > 0, "T must be positive");
         assert!(self.beta > 0., "beta must be positive");
 
         for t in 1..=self.t_end {
             for j in 0..=self.m {
-                assert_ne!(
-                    (self.f)(t, j),
-                    None,
-                    "functions f must be total on their domain"
+                assert!(
+                    (self.f)(t, j)
+                        .expect("functions f must be total on their domain")
+                        >= 0.,
+                    "functions f must be non-negative"
                 );
             }
         }
@@ -30,7 +31,7 @@ impl VerifiableSchedule for DiscreteSchedule {
     fn verify(&self, p: &DiscreteHomProblem) {
         assert_eq!(
             self.len(),
-            p.t_end as usize + 1,
+            p.t_end as usize,
             "schedule must have a value for each time step"
         );
 
