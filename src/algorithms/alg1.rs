@@ -15,7 +15,7 @@ type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
 static EPS: f64 = 1.;
 
 impl<'a> DiscreteHomProblem<'a> {
-    pub fn alg1(&'a self) -> DiscreteSchedule {
+    pub fn alg1(&'a self) -> (DiscreteSchedule, Cost) {
         let transformed;
         let p = if is_2pow(self.m) {
             self
@@ -27,14 +27,15 @@ impl<'a> DiscreteHomProblem<'a> {
         let neighbors = p.build_neighbors();
 
         let initial_neighbors = p.select_initial_neighbors(&neighbors);
-        let mut xs = p.find_schedule(initial_neighbors);
+        let mut result = p.find_schedule(initial_neighbors);
 
         let k_init = (p.m as f64).log(2.).floor() as u32 - 3;
         for k in k_init..0 {
-            let next_neighbors = p.select_next_neighbors(&xs, &neighbors, k);
-            xs = p.find_schedule(next_neighbors);
+            let next_neighbors =
+                p.select_next_neighbors(&result.0, &neighbors, k);
+            result = p.find_schedule(next_neighbors);
         }
-        return xs;
+        return result;
     }
 
     fn transform(&'a self) -> DiscreteHomProblem<'a> {
@@ -95,12 +96,12 @@ impl<'a> DiscreteHomProblem<'a> {
     fn find_schedule(
         &self,
         neighbors: impl Fn(&Vertice) -> Vec<(Vertice, Cost)> + 'a,
-    ) -> DiscreteSchedule {
+    ) -> (DiscreteSchedule, Cost) {
         let result = dijkstra(&(0, 0), neighbors, |&(t, j): &Vertice| {
             (t, j) == (self.t_end, 0)
         });
-        let (xs, _) = result.expect("there should always be a path");
-        return xs.into_iter().map(|(_, j)| j).collect();
+        let (xs, cost) = result.expect("there should always be a path");
+        return (xs.into_iter().map(|(_, j)| j).collect(), cost);
     }
 
     fn select_initial_neighbors(
