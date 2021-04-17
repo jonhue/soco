@@ -6,16 +6,17 @@ pub trait VerifiableProblem {
 
 impl<'a> VerifiableProblem for DiscreteHomProblem<'a> {
     fn verify(&self) {
-        assert!(self.m >= 0, "m must be non-negative");
+        assert!(self.m > 0, "m must be positive");
         assert!(self.t_end > 0, "T must be positive");
         assert!(self.beta > 0., "beta must be positive");
 
         for t in 1..=self.t_end {
             for j in 0..=self.m {
-                assert_ne!(
-                    (self.f)(t, j),
-                    None,
-                    "functions f must be total on their domain"
+                assert!(
+                    (self.f)(t, j)
+                        .expect("functions f must be total on their domain")
+                        >= 0.,
+                    "functions f must be non-negative"
                 );
             }
         }
@@ -28,6 +29,7 @@ pub trait VerifiableSchedule {
 
 impl VerifiableSchedule for DiscreteSchedule {
     fn verify(&self, p: &DiscreteHomProblem) {
+        println!("{:?}", self);
         assert_eq!(
             self.len(),
             p.t_end as usize,

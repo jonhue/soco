@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 pathfinding = "0.1.13"
 ordered-float = "2.1.1"
+rand = "0.8.3"
+rand_pcg = "0.3.0"
