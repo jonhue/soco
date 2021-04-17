@@ -16,7 +16,9 @@ fn transform() {
         f: Box::new(|_, _| Some(1.)),
         beta: 1.,
     };
+    p.verify();
     let transformed_p = p.transform();
+    transformed_p.verify();
 
     assert_eq!(transformed_p.m, 128);
     assert_eq!(transformed_p.t_end, p.t_end);
@@ -26,11 +28,7 @@ fn transform() {
         for j in 0..=transformed_p.m {
             assert_eq!(
                 (transformed_p.f)(t, j).expect(""),
-                if j <= p.m {
-                    (p.f)(t, j).expect("")
-                } else {
-                    j as f64 * ((p.f)(t, p.m).expect("") + 1.)
-                },
+                if j <= p.m { 1. } else { j as f64 * 2. },
                 "f is wrongly defined for t={}, j={}",
                 t,
                 j
