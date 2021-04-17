@@ -6,8 +6,6 @@ use lib::types::{HomProblem, Schedule};
 use lib::verifiers::{verify_discrete_problem, verify_discrete_schedule};
 
 mod algorithms;
-#[allow(unused_imports)]
-use algorithms::alg1;
 
 fn main() {
     println!("Hello, world!");
