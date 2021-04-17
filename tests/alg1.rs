@@ -4,7 +4,9 @@ use rand_pcg::Pcg64;
 
 use bachelors_thesis::problem::analysis::ObjectiveFunction;
 use bachelors_thesis::problem::types::HomProblem;
-use bachelors_thesis::problem::verifiers::{VerifiableProblem, VerifiableSchedule};
+use bachelors_thesis::problem::verifiers::{
+    VerifiableProblem, VerifiableSchedule,
+};
 
 #[test]
 fn transform() {
