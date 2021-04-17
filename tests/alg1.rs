@@ -1,9 +1,10 @@
-use crate::lib::analysis::ObjectiveFunction;
-use crate::lib::types::HomProblem;
-use crate::lib::verifiers::{VerifiableProblem, VerifiableSchedule};
 use ordered_float::OrderedFloat;
 use rand::prelude::*;
 use rand_pcg::Pcg64;
+
+use bachelors_thesis::problem::analysis::ObjectiveFunction;
+use bachelors_thesis::problem::types::HomProblem;
+use bachelors_thesis::problem::verifiers::{VerifiableProblem, VerifiableSchedule};
 
 #[test]
 fn transform() {

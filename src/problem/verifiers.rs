@@ -1,4 +1,4 @@
-use crate::lib::types::{DiscreteHomProblem, DiscreteSchedule};
+use crate::problem::types::{DiscreteHomProblem, DiscreteSchedule};
 
 pub trait VerifiableProblem {
     fn verify(&self);

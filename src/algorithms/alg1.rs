@@ -2,8 +2,8 @@ use ordered_float::OrderedFloat;
 use pathfinding::dijkstra;
 use std::collections::HashMap;
 
-use crate::lib::types::{DiscreteHomProblem, DiscreteSchedule, HomProblem};
-use crate::lib::utils::{ipos, is_2pow};
+use crate::problem::types::{DiscreteHomProblem, DiscreteSchedule, HomProblem};
+use crate::problem::utils::{ipos, is_2pow};
 
 // Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
 type Vertice = (i32, i32);

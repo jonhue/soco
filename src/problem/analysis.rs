@@ -1,5 +1,5 @@
-use crate::lib::types::{DiscreteHomProblem, DiscreteSchedule};
-use crate::lib::utils::ipos;
+use crate::problem::types::{DiscreteHomProblem, DiscreteSchedule};
+use crate::problem::utils::ipos;
 
 pub trait ObjectiveFunction {
     fn objective_function(&self, xs: &DiscreteSchedule) -> f64;
