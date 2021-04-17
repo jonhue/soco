@@ -30,7 +30,7 @@ impl VerifiableSchedule for DiscreteSchedule {
     fn verify(&self, p: &DiscreteHomProblem) {
         assert_eq!(
             self.len(),
-            p.t_end as usize + 1,
+            p.t_end as usize,
             "schedule must have a value for each time step"
         );
 

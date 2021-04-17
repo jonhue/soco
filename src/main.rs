@@ -1,7 +1,7 @@
 mod algorithms;
 
 mod lib;
-use lib::analysis::discrete_objective_function;
+use lib::analysis::ObjectiveFunction;
 use lib::types::HomProblem;
 use lib::verifiers::{VerifiableProblem, VerifiableSchedule};
 
@@ -19,6 +19,6 @@ fn main() {
     println!("Cost: {:.1}", result.1);
     println!(
         "Calculated Cost: {:.1}",
-        discrete_objective_function(&instance, &result.0)
+        instance.objective_function(&result.0)
     );
 }
