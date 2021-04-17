@@ -2,7 +2,7 @@ mod analysis;
 use analysis::discrete_objective_function;
 
 mod lib;
-use lib::types::{HomProblem, Schedule};
+use lib::types::HomProblem;
 use lib::verifiers::{verify_discrete_problem, verify_discrete_schedule};
 
 mod algorithms;
@@ -14,12 +14,13 @@ fn main() {
         f: Box::new(|t, _x| Some((t as f64) + 1.)),
         beta: 0.4,
     };
-    instance.alg1();
     verify_discrete_problem(&instance);
-    let schedule: Schedule<i32> = vec![2, 3, 1];
-    verify_discrete_schedule(&instance, &schedule);
+    let result = instance.alg1();
+    verify_discrete_schedule(&instance, &result.0);
+    println!("Schedule: {:?}", result.0);
+    println!("Cost: {:.1}", result.1);
     println!(
-        "Cost: {:.1}",
-        discrete_objective_function(&instance, &schedule)
-    )
+        "Calculated Cost: {:.1}",
+        discrete_objective_function(&instance, &result.0)
+    );
 }
