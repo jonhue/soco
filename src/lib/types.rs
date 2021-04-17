@@ -1,5 +1,5 @@
 // Homogeneous Data-Center Right-Sizing problem.
-pub struct HomProblem<T> {
+pub struct HomProblem<'a, T> {
     // Number of servers.
     pub m: i32,
     // Finite time horizon.
@@ -8,11 +8,11 @@ pub struct HomProblem<T> {
     pub beta: f64,
     // Non-negative convex cost functions.
     // Must be defined on 1<=t<=T, 0<=x_t<=m; may return `None` otherwise.
-    pub f: Box<dyn Fn(i32, T) -> Option<f64>>,
+    pub f: &'a Box<dyn Fn(i32, T) -> Option<f64>>,
 }
-pub type DiscreteHomProblem = HomProblem<i32>;
+pub type DiscreteHomProblem<'a> = HomProblem<'a, i32>;
 #[allow(dead_code)]
-pub type ContinuousHomProblem = HomProblem<f64>;
+pub type ContinuousHomProblem<'a> = HomProblem<'a, f64>;
 
 // Result of the Homogeneous Data-Center Right-Sizing problem.
 // Number of active servers from time 1 to time T.

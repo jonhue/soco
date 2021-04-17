@@ -10,7 +10,7 @@ pub fn discrete_objective_function(
         let prev_x = if t > 0 { xs[t - 1] } else { 0 };
         cost += (p.f)(t as i32, xs[t])
             .expect("f should be total on its domain")
-            + p.beta * ipos(xs[t] - prev_x);
+            + p.beta * ipos(xs[t] - prev_x) as f64;
     }
     return cost;
 }

@@ -1,7 +1,7 @@
-pub fn ipos(value: i32) -> f64 {
+pub fn ipos(value: i32) -> i32 {
     if value >= 0 {
-        return value as f64;
+        return value;
     } else {
-        return 0.;
+        return 0;
     }
 }

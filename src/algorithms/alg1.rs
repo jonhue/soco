@@ -13,9 +13,33 @@ type Neighbors = Box<dyn Fn(&Vertice) -> Vec<(Vertice, Cost)>>;
 
 static eps: f64 = 1.;
 
-pub fn alg1(mut p: &DiscreteHomProblem) -> DiscreteSchedule {
+impl<'a> DiscreteHomProblem<'a> {
+    pub fn transform(&self) -> DiscreteHomProblem<'a> {
+        let m = (2 as i32).pow((self.m as f64).log(2.).ceil() as u32);
+        let f = Box::new(move |t, x| {
+            if x <= self.m {
+                (self.f)(t, x)
+            } else {
+                Some(
+                    x as f64
+                        * ((self.f)(t, self.m).expect("f should be total on its domain")
+                            + eps),
+                )
+            }
+        });
+
+        return HomProblem {
+            m: m,
+            t_end: self.t_end,
+            beta: self.beta,
+            f: &f,
+        };
+    }
+}
+
+pub fn alg1<'a>(mut p: &DiscreteHomProblem<'a>) -> DiscreteSchedule {
     if (p.m as f64).log(2.) % 1. == 0. {
-        p = &transform_problem(p);
+        p = &p.transform();
     }
 
     let neighbors = build_neighbors(p);
@@ -31,30 +55,8 @@ pub fn alg1(mut p: &DiscreteHomProblem) -> DiscreteSchedule {
     return xs;
 }
 
-fn transform_problem(p: &DiscreteHomProblem) -> DiscreteHomProblem {
-    let m = (2 as i32).pow((p.m as f64).log(2.).ceil() as u32);
-    let f = Box::new(move |t, x| {
-        if x <= p.m {
-            (p.f)(t, x)
-        } else {
-            Some(
-                x as f64
-                    * ((p.f)(t, p.m).expect("f should be total on its domain")
-                        + eps),
-            )
-        }
-    });
-
-    return HomProblem {
-        m: m,
-        t_end: p.t_end,
-        beta: p.beta,
-        f: f,
-    };
-}
-
-fn build_neighbors(p: &DiscreteHomProblem) -> Neighbors {
-    return Box::new(move |&(t, i): &Vertice| {
+fn build_neighbors<'a>(p: &'a DiscreteHomProblem) -> &'a Neighbors {
+    return &Box::new(move |&(t, i): &Vertice| {
         if t == p.t_end {
             vec![((t + 1, 0), OrderedFloat(0.))]
         } else {
@@ -71,15 +73,15 @@ fn build_neighbors(p: &DiscreteHomProblem) -> Neighbors {
 
 fn build_cost(p: &DiscreteHomProblem, t: i32, i: i32, j: i32) -> Cost {
     return OrderedFloat(
-        p.beta * ipos(i - j)
+        p.beta * ipos(i - j) as f64
             + (p.f)(t, i).expect("f should be total on its domain"),
     );
 }
 
-fn select_initial_neighbors(
+fn select_initial_neighbors<'a>(
     p: &DiscreteHomProblem,
-    neighbors: Neighbors,
-) -> Neighbors {
+    neighbors: &'a Neighbors,
+) -> &'a Neighbors {
     let acceptable_successors: Vec<i32> = (0..4).map(|e| e * p.m / 4).collect();
     return select_neighbors(
         neighbors,
@@ -87,12 +89,12 @@ fn select_initial_neighbors(
     );
 }
 
-fn select_next_neighbors(
+fn select_next_neighbors<'a>(
     p: &DiscreteHomProblem,
     xs: &DiscreteSchedule,
-    neighbors: Neighbors,
+    neighbors: &'a Neighbors,
     k: u32,
-) -> Neighbors {
+) -> &'a Neighbors {
     let acceptable_successors: Vec<Vec<i32>> = (1..p.t_end)
         .map(|t| {
             (-2..2)
@@ -108,11 +110,11 @@ fn select_next_neighbors(
     );
 }
 
-fn select_neighbors(
-    neighbors: Neighbors,
+fn select_neighbors<'a>(
+    neighbors: &'a Neighbors,
     is_acceptable_successor: Box<dyn Fn(&Vertice) -> bool>,
-) -> Neighbors {
-    return Box::new(move |&(t, i): &Vertice| {
+) -> &'a Neighbors {
+    return &Box::new(move |&(t, i): &Vertice| {
         neighbors(&(t, i))
             .iter()
             .map(|&x| x) // TODO: why is this necessary?
@@ -123,7 +125,7 @@ fn select_neighbors(
 
 fn find_schedule(
     p: &DiscreteHomProblem,
-    neighbors: Neighbors,
+    neighbors: &Neighbors,
 ) -> DiscreteSchedule {
     let result = dijkstra(&(0, 0), neighbors, |&(t, j): &Vertice| {
         t == p.t_end && j == 0
