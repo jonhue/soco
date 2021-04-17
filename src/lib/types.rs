@@ -8,7 +8,7 @@ pub struct HomProblem<'a, T> {
     pub beta: f64,
     // Non-negative convex cost functions.
     // Must be defined on 1<=t<=T, 0<=x_t<=m; may return `None` otherwise.
-    pub f: &'a Box<dyn Fn(i32, T) -> Option<f64>>,
+    pub f: Box<dyn Fn(i32, T) -> Option<f64> + 'a>,
 }
 pub type DiscreteHomProblem<'a> = HomProblem<'a, i32>;
 #[allow(dead_code)]
