@@ -26,15 +26,19 @@ impl<'a> DiscreteHomProblem<'a> {
 
         let neighbors = p.build_neighbors();
 
+        let k_init = (p.m as f64).log(2.).floor() as u32 - 2;
+
         let initial_neighbors = p.select_initial_neighbors(&neighbors);
         let mut result = p.find_schedule(initial_neighbors);
 
-        let k_init = (p.m as f64).log(2.).floor() as u32 - 3;
-        for k in k_init..0 {
-            let next_neighbors =
-                p.select_next_neighbors(&result.0, &neighbors, k);
-            result = p.find_schedule(next_neighbors);
+        if k_init > 0 {
+            for k in k_init - 1..=0 {
+                let next_neighbors =
+                    p.select_next_neighbors(&result.0, &neighbors, k);
+                result = p.find_schedule(next_neighbors);
+            }
         }
+
         return result;
     }
 
@@ -63,18 +67,17 @@ impl<'a> DiscreteHomProblem<'a> {
 
     fn build_neighbors(&self) -> Neighbors {
         let mut neighbors = HashMap::new();
-        for t in 0..self.t_end - 1 {
-            for i in 0..self.m {
+        for t in 0..=self.t_end {
+            for i in 0..=self.m {
                 neighbors.insert((t, i), self.build_edges(t, i));
             }
         }
-        neighbors.insert((self.t_end, 0), self.build_edges(1, 0));
         return neighbors;
     }
 
     fn build_edges(&self, t: i32, i: i32) -> Vec<(Vertice, Cost)> {
         if t == self.t_end {
-            return vec![((self.t_end, 0), OrderedFloat(0.))];
+            return vec![((self.t_end + 1, 0), OrderedFloat(0.))];
         } else {
             return vec![0; self.m as usize]
                 .iter()
@@ -109,7 +112,7 @@ impl<'a> DiscreteHomProblem<'a> {
         neighbors: &'a Neighbors,
     ) -> impl Fn(&Vertice) -> Vec<(Vertice, Cost)> + 'a {
         let acceptable_successors: Vec<i32> =
-            (0..4).map(|e| e * self.m / 4).collect();
+            (0..=4).map(|e| e * self.m / 4).collect();
         return select_neighbors(neighbors, move |&(_, j)| {
             acceptable_successors.contains(&j)
         });
@@ -121,9 +124,9 @@ impl<'a> DiscreteHomProblem<'a> {
         neighbors: &'a Neighbors,
         k: u32,
     ) -> impl Fn(&Vertice) -> Vec<(Vertice, Cost)> + 'a {
-        let acceptable_successors: Vec<Vec<i32>> = (1..self.t_end)
+        let acceptable_successors: Vec<Vec<i32>> = (1..=self.t_end)
             .map(|t| {
-                (-2..2)
+                (-2..=2)
                     .map(|e| xs[t as usize - 1] + e * (2 as i32).pow(k))
                     .collect()
             })
