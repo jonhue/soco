@@ -97,7 +97,7 @@ impl<'a> DiscreteHomProblem<'a> {
         neighbors: impl Fn(&Vertice) -> Vec<(Vertice, Cost)> + 'a,
     ) -> DiscreteSchedule {
         let result = dijkstra(&(0, 0), neighbors, |&(t, j): &Vertice| {
-            t == self.t_end && j == 0
+            (t, j) == (self.t_end, 0)
         });
         let (xs, _) = result.expect("there should always be a path");
         return xs.into_iter().map(|(_, j)| j).collect();
