@@ -8,8 +8,6 @@ use lib::verifiers::{verify_discrete_problem, verify_discrete_schedule};
 mod algorithms;
 
 fn main() {
-    println!("Hello, world!");
-
     let instance = HomProblem {
         m: 3,
         t_end: 3,

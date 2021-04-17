@@ -17,7 +17,7 @@ static EPS: f64 = 1.;
 impl<'a> DiscreteHomProblem<'a> {
     pub fn alg1(&'a self) -> DiscreteSchedule {
         let transformed;
-        let p = if (self.m as f64).log(2.) % 1. == 0. {
+        let p = if (self.m as f64).log(2.) % 1. != 0. {
             transformed = self.transform();
             &transformed
         } else {
