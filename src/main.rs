@@ -1,11 +1,9 @@
-mod analysis;
-use analysis::discrete_objective_function;
+mod algorithms;
 
 mod lib;
+use lib::analysis::discrete_objective_function;
 use lib::types::HomProblem;
-use lib::verifiers::{verify_discrete_problem, verify_discrete_schedule};
-
-mod algorithms;
+use lib::verifiers::{VerifiableProblem, VerifiableSchedule};
 
 fn main() {
     let instance = HomProblem {
@@ -14,9 +12,9 @@ fn main() {
         f: Box::new(|t, _x| Some((t as f64) + 1.)),
         beta: 0.4,
     };
-    verify_discrete_problem(&instance);
+    instance.verify();
     let result = instance.alg1();
-    verify_discrete_schedule(&instance, &result.0);
+    result.0.verify(&instance);
     println!("Schedule: {:?}", result.0);
     println!("Cost: {:.1}", result.1);
     println!(
