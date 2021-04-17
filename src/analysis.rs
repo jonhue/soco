@@ -7,10 +7,10 @@ pub fn discrete_objective_function(
 ) -> f64 {
     let mut cost = 0.;
     for t in 0..p.t_end as usize {
-        let prev_x = if t > 0 { xs[t - 1] } else { 0 };
-        cost += (p.f)(t as i32, xs[t])
+        let prev_x = if t > 1 { xs[t - 2] } else { 0 };
+        cost += (p.f)(t as i32, xs[t - 1])
             .expect("f should be total on its domain")
-            + p.beta * ipos(xs[t] - prev_x) as f64;
+            + p.beta * ipos(xs[t - 1] - prev_x) as f64;
     }
     return cost;
 }

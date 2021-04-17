@@ -123,7 +123,7 @@ impl<'a> DiscreteHomProblem<'a> {
         let acceptable_successors: Vec<Vec<i32>> = (1..self.t_end)
             .map(|t| {
                 (-2..2)
-                    .map(|e| xs[t as usize] + e * (2 as i32).pow(k))
+                    .map(|e| xs[t as usize - 1] + e * (2 as i32).pow(k))
                     .collect()
             })
             .collect();
