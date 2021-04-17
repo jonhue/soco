@@ -16,9 +16,9 @@ static eps: f64 = 1.;
 
 impl<'a> DiscreteHomProblem<'a> {
     pub fn alg1(&'a self) -> DiscreteSchedule {
-        if (self.m as f64).log(2.) % 1. == 0. {
-            self = &self.transform();
-        }
+        // if (self.m as f64).log(2.) % 1. == 0. {
+        //     self = &mut self.transform();
+        // }
 
         let neighbors = self.build_neighbors();
 
@@ -138,7 +138,7 @@ fn select_neighbors<'a>(
             .get(&(t, i))
             .expect("neighbors should have been cached")
             .into_iter()
-            .map(|&x| x) // TODO: why is this necessary?
+            .map(|&x| x)
             .filter(|(v, _)| is_acceptable_successor(v))
             .collect()
     };

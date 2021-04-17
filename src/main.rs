@@ -13,7 +13,7 @@ fn main() {
     println!("Hello, world!");
 
     let instance = HomProblem {
-        m: 3,
+        m: 2,
         t_end: 3,
         f: Box::new(|t, _x| Some((t as f64) + 1.)),
         beta: 0.4,
