@@ -8,7 +8,7 @@ impl<'a> DiscreteHomProblem<'a> {
         alg: impl Fn(&DiscreteHomProblem<'a>, i32) -> i32,
         next: impl Fn(
             &DiscreteHomProblem<'a>,
-            i32,
+            &DiscreteSchedule,
         ) -> Option<DiscreteHomProblem<'a>>,
     ) -> DiscreteSchedule {
         self._stream(alg, 0, next)
@@ -23,7 +23,7 @@ where
         &self,
         alg: impl Fn(&HomProblem<'a, T>, T) -> T,
         initial: T,
-        next: impl Fn(&HomProblem<'a, T>, T) -> Option<HomProblem<'a, T>>,
+        next: impl Fn(&HomProblem<'a, T>, &Schedule<T>) -> Option<HomProblem<'a, T>>,
     ) -> Schedule<T> {
         let mut i = initial;
         let mut xs = vec![];
@@ -35,7 +35,7 @@ where
 
             i = alg(p, i);
             xs.push(i);
-            p = match next(p, i) {
+            p = match next(p, &xs) {
                 None => break,
                 Some(p) => {
                     tmp = p;
