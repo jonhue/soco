@@ -5,9 +5,7 @@ use rand::prelude::*;
 use rand_pcg::Pcg64;
 
 use rsdc::problem::types::HomProblem;
-use rsdc::problem::verifiers::{
-    VerifiableProblem, VerifiableSchedule,
-};
+use rsdc::problem::verifiers::{VerifiableProblem, VerifiableSchedule};
 
 #[test]
 fn transform() {
