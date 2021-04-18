@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)]
+
 use ordered_float::OrderedFloat;
 use rand::prelude::*;
 use rand_pcg::Pcg64;

@@ -20,7 +20,8 @@ jobs:
     - name: Check
       uses: actions-rs/cargo@v1
       with:
-        command: check
+        command: clippy
+        args: --all-targets --all-features -- -D warnings
     - name: Test
       uses: actions-rs/cargo@v1
       with:
