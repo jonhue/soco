@@ -26,7 +26,7 @@ where
         next: impl Fn(&HomProblem<'a, T>, T) -> Option<HomProblem<'a, T>>,
     ) -> Schedule<T> {
         let mut i = initial;
-        let mut xs = vec![i];
+        let mut xs = vec![];
         let mut p = self;
 
         let mut tmp;
