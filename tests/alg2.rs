@@ -1,6 +1,6 @@
 #![allow(clippy::float_cmp)]
 
-use rsdc::problem::types::{HomProblem, Online};
+use rsdc::problem::{HomProblem, Online};
 
 #[test]
 fn case1() {

@@ -1,7 +1,7 @@
-use crate::problem::types::{
+use crate::problem::{
     DiscreteHomProblem, DiscreteSchedule, Online, OnlineSolution,
 };
-use crate::problem::utils::project;
+use crate::utils::project;
 
 /// Lower and upper bound at some time t.
 type Memory = (i32, i32);

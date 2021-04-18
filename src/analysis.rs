@@ -1,7 +1,7 @@
 //! Analysis functions.
 
-use crate::problem::types::{DiscreteHomProblem, DiscreteSchedule};
-use crate::problem::utils::ipos;
+use crate::problem::{DiscreteHomProblem, DiscreteSchedule};
+use crate::utils::ipos;
 
 impl<'a> DiscreteHomProblem<'a> {
     /// Objective Function. Calculates the cost of a schedule.

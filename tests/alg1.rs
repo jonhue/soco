@@ -4,8 +4,8 @@ use ordered_float::OrderedFloat;
 use rand::prelude::*;
 use rand_pcg::Pcg64;
 
-use rsdc::problem::types::HomProblem;
-use rsdc::problem::verifiers::{VerifiableProblem, VerifiableSchedule};
+use rsdc::problem::HomProblem;
+use rsdc::verifiers::{VerifiableProblem, VerifiableSchedule};
 
 #[test]
 fn transform() {

@@ -1,6 +1,6 @@
 //! Helper functions for simulating online problems.
 
-use crate::problem::types::{HomProblem, Online, OnlineSolution, Schedule};
+use crate::problem::{HomProblem, Online, OnlineSolution, Schedule};
 
 impl<'a, T> Online<HomProblem<'a, T>>
 where

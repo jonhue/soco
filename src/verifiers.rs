@@ -1,6 +1,6 @@
 //! Functions to check that values satisfy the imposed constraints.
 
-use crate::problem::types::{DiscreteHomProblem, DiscreteSchedule, Online};
+use crate::problem::{DiscreteHomProblem, DiscreteSchedule, Online};
 
 pub trait VerifiableProblem {
     fn verify(&self);
