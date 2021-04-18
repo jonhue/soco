@@ -7,17 +7,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 
 [[package]]
-name = "bachelors-thesis"
-version = "0.1.0"
-dependencies = [
- "good_lp",
- "ordered-float",
- "pathfinding",
- "rand",
- "rand_pcg",
-]
-
-[[package]]
 name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -220,6 +209,17 @@ name = "rawpointer"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebac11a9d2e11f2af219b8b8d833b76b1ea0e054aa0e8d8e9e4cbde353bdf019"
+
+[[package]]
+name = "rsdc"
+version = "0.1.0"
+dependencies = [
+ "good_lp",
+ "ordered-float",
+ "pathfinding",
+ "rand",
+ "rand_pcg",
+]
 
 [[package]]
 name = "wasi"

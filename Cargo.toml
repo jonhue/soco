@@ -1,8 +1,12 @@
 [package]
-name = "bachelors-thesis"
+name = "rsdc"
+description = "Implementation of Algorithms for Right-Sizing Data Centers"
 version = "0.1.0"
 authors = ["Jonas Hübotter <jonas.huebotter@gmail.com>"]
 edition = "2018"
+license = "MIT"
+homepage = "https://jonhue.github.io/bachelors-thesis/"
+repository = "https://github.com/jonhue/bachelors-thesis"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

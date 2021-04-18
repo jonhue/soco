@@ -5,16 +5,17 @@ use std::collections::HashMap;
 use crate::problem::types::{DiscreteHomProblem, DiscreteSchedule, HomProblem};
 use crate::problem::utils::{ipos, is_2pow};
 
-// Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
+/// Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
 type Vertice = (i32, i32);
-// Represents the length (cost) of an edge
+/// Represents the length (cost) of an edge
 type Cost = OrderedFloat<f64>;
-// Maps a vertice to all its neighbors with some cost.
+/// Maps a vertice to all its neighbors with some cost.
 type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
 
 static EPS: f64 = 1.;
 
 impl<'a> DiscreteHomProblem<'a> {
+    /// Optimal Polynomial-Time Offline Algorithm computing an Integral Solution.
     pub fn dopt(&'a self) -> (DiscreteSchedule, Cost) {
         assert!(is_2pow(self.m), "#servers must be a power of 2, use transform() to generate a new problem instance");
 
@@ -40,6 +41,7 @@ impl<'a> DiscreteHomProblem<'a> {
         result
     }
 
+    /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `dopt`.
     pub fn transform(&'a self) -> DiscreteHomProblem<'a> {
         let m = 2_i32.pow((self.m as f64).log(2.).ceil() as u32);
         let f = Box::new(move |t, x| {

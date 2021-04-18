@@ -1,5 +1,5 @@
 pub mod analysis;
-pub mod online;
+pub mod sim;
 pub mod types;
 pub mod utils;
 pub mod verifiers;
