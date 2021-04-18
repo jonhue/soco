@@ -1,4 +1,3 @@
-// use num::Num;
 use crate::problem::types::{
     DiscreteHomProblem, DiscreteSchedule, HomProblem, Schedule,
 };
