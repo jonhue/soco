@@ -10,7 +10,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
     /// Discrete Lazy Capacity Provisioning.
     pub fn lcp(
         &self,
-        xs: DiscreteSchedule,
+        xs: &DiscreteSchedule,
         _: &Vec<Memory>,
     ) -> OnlineSolution<i32, Memory> {
         assert_eq!(self.w, 0);

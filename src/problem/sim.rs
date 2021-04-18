@@ -25,7 +25,7 @@ where
             &Schedule<T>,
             &Vec<U>,
         ) -> Option<Online<HomProblem<'a, T>>>,
-    ) -> Schedule<T> {
+    ) -> (Schedule<T>, Vec<U>) {
         let mut xs = vec![];
         let mut ms = vec![];
         let mut o = self;
@@ -49,6 +49,6 @@ where
             };
         }
 
-        xs
+        (xs, ms)
     }
 }
