@@ -3,7 +3,7 @@
 use crate::problem::{
     DiscreteHomProblem, DiscreteSchedule, Online, OnlineSolution,
 };
-use crate::utils::project;
+use crate::utils::iproject;
 
 /// Lower and upper bound at some time t.
 type Memory = (i32, i32);
@@ -19,7 +19,8 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
         let i = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
         let l = self.lower_bound();
         let u = self.upper_bound();
-        (project(i, l, u), (l, u))
+        let j = iproject(i, l, u);
+        (j, (l, u))
     }
 
     fn lower_bound(&self) -> i32 {

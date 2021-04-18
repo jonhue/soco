@@ -8,7 +8,7 @@ pub fn ipos(x: i32) -> i32 {
 }
 
 /// max{a, min{b, x}}
-pub fn project(x: i32, a: i32, b: i32) -> i32 {
+pub fn iproject(x: i32, a: i32, b: i32) -> i32 {
     max(a, min(b, x))
 }
 
