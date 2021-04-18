@@ -1,3 +1,5 @@
+//! Type definitions and utilities.
+
 pub mod analysis;
 pub mod sim;
 pub mod types;

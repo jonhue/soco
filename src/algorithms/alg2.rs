@@ -11,8 +11,10 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
     pub fn lcp(
         &self,
         xs: DiscreteSchedule,
-        _ms: &Vec<Memory>,
+        _: &Vec<Memory>,
     ) -> OnlineSolution<i32, Memory> {
+        assert_eq!(self.w, 0);
+
         let i = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
         let l = self.lower_bound();
         let u = self.upper_bound();
