@@ -1,6 +1,6 @@
 # List of Algorithms
 
-1. [Optimal Polynomial-Time Offline Algorithm computing an Integral Solution](alg1.rs) [1]
+1. [Optimal Discrete Deterministic Polynomial-Time Offline Algorithm](alg1.rs) [1]
 2. [Discrete Lazy Capacity Provisioning](alg2.rs) [1]
 
 Overview:

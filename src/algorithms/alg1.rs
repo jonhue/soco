@@ -1,3 +1,5 @@
+//! Optimal Discrete Deterministic Polynomial-Time Offline Algorithm
+
 use ordered_float::OrderedFloat;
 use pathfinding::dijkstra;
 use std::collections::HashMap;
@@ -7,15 +9,15 @@ use crate::utils::{ipos, is_2pow};
 
 /// Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
 type Vertice = (i32, i32);
-/// Represents the length (cost) of an edge
+/// Represents the length (cost) of an edge.
 type Cost = OrderedFloat<f64>;
 /// Maps a vertice to all its neighbors with some cost.
 type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
 
+/// Epsilon.
 static EPS: f64 = 1.;
 
 impl<'a> DiscreteHomProblem<'a> {
-    /// Optimal Polynomial-Time Offline Algorithm computing an Integral Solution.
     pub fn dopt(&'a self) -> (DiscreteSchedule, Cost) {
         assert!(is_2pow(self.m), "#servers must be a power of 2, use transform() to generate a new problem instance");
 

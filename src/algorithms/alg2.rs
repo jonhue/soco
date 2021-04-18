@@ -1,3 +1,5 @@
+//! Discrete Lazy Capacity Provisioning
+
 use crate::problem::{
     DiscreteHomProblem, DiscreteSchedule, Online, OnlineSolution,
 };
@@ -7,7 +9,6 @@ use crate::utils::project;
 type Memory = (i32, i32);
 
 impl<'a> Online<DiscreteHomProblem<'a>> {
-    /// Discrete Lazy Capacity Provisioning.
     pub fn lcp(
         &self,
         xs: &DiscreteSchedule,
