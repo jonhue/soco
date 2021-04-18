@@ -19,7 +19,7 @@ jobs:
       with:
         pre_compile: tlmgr update --self && tlmgr update --all
         root_file: |
-          example.tex
+          docs/thesis.tex
     - name: Move PDFs
       run: mv ./*.pdf ./dist
     - name: Move readme
