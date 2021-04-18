@@ -5,10 +5,10 @@
 
 Overview:
 
-| Algorithm | Online? | Competitiveness   | Complexity |
-| --------- | ------- | ----------------- | ---------- |
-| 1         | ❌      | optimal           | O(T log m) |
-| 2         | ✅      | 3-competitive (?) | ?          |
+| No. | Name   | Discrete? | Online? | Competitiveness | Complexity |
+| --- | ------ | --------- | ------- | --------------- | ---------- |
+| 1   | `dopt` | ✅        | ❌      | optimal         | O(T log m) |
+| 2   | `lcp`  | ✅        | ✅      | 3-competitive   | ?          |
 
 References:
 

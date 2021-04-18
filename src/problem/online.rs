@@ -1,19 +1,6 @@
 use crate::problem::types::{
-    DiscreteHomProblem, DiscreteSchedule, HomProblem, Schedule,
+    HomProblem, Schedule,
 };
-
-impl<'a> DiscreteHomProblem<'a> {
-    pub fn stream(
-        &self,
-        alg: impl Fn(&DiscreteHomProblem<'a>, i32) -> i32,
-        next: impl Fn(
-            &DiscreteHomProblem<'a>,
-            &DiscreteSchedule,
-        ) -> Option<DiscreteHomProblem<'a>>,
-    ) -> DiscreteSchedule {
-        self._stream(alg, 0, next)
-    }
-}
 
 impl<'a, T> HomProblem<'a, T>
 where
@@ -21,20 +8,21 @@ where
 {
     fn _stream(
         &self,
-        alg: impl Fn(&HomProblem<'a, T>, T) -> T,
-        initial: T,
+        w: i32,
+        alg: impl Fn(&HomProblem<'a, T>, i32, &Schedule<T>) -> T,
         next: impl Fn(&HomProblem<'a, T>, &Schedule<T>) -> Option<HomProblem<'a, T>>,
     ) -> Schedule<T> {
-        let mut i = initial;
         let mut xs = vec![];
         let mut p = self;
 
         let mut tmp;
         loop {
-            assert!(p.t_end > xs.len() as i32, "online problem must contain information for the next iteration");
+            assert!(
+                p.t_end > w + xs.len() as i32,
+                "online problem must contain information for the next iteration"
+            );
 
-            i = alg(p, i);
-            xs.push(i);
+            xs.push(alg(p, w, &xs));
             p = match next(p, &xs) {
                 None => break,
                 Some(p) => {

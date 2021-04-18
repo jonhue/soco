@@ -49,7 +49,7 @@ fn case1() {
     };
     p.verify();
 
-    let result = p.iopt();
+    let result = p.dopt();
     result.0.verify(&p);
 
     assert_eq!(result, (vec![1, 1], OrderedFloat(1.)));
@@ -70,7 +70,7 @@ fn case2() {
     };
     p.verify();
 
-    let result = p.iopt();
+    let result = p.dopt();
     result.0.verify(&p);
 
     assert_eq!(result.1, p.objective_function(&result.0));
@@ -91,7 +91,7 @@ fn case3() {
     p.verify();
 
     let transformed_p = p.transform();
-    let result = transformed_p.iopt();
+    let result = transformed_p.dopt();
     result.0.verify(&transformed_p);
 
     assert_eq!(result.1, transformed_p.objective_function(&result.0));
