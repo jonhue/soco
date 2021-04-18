@@ -14,8 +14,14 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
-    - name: Build
+    - name: Login
       uses: actions-rs/cargo@v1
       with:
-        command: build
-        args: --release --all-features
+        command: login
+        args: ${CRATES_API_TOKEN}
+      env:
+        CRATES_API_TOKEN: ${{secrets.CRATES_API_TOKEN}}
+    - name: Publish
+      uses: actions-rs/cargo@v1
+      with:
+        command: publish
