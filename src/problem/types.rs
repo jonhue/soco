@@ -1,8 +1,12 @@
+pub enum Problem<'a, T> {
+    Hom(HomProblem<'a, T>),
+}
+
 // Homogeneous Data-Center Right-Sizing problem.
 pub struct HomProblem<'a, T> {
     // Number of servers.
     pub m: i32,
-    // Finite time horizon.
+    // Finite, positive time horizon.
     pub t_end: i32,
     // Positive real constant resembling the switching cost.
     pub beta: f64,
@@ -11,6 +15,14 @@ pub struct HomProblem<'a, T> {
     pub f: Box<dyn Fn(i32, T) -> Option<f64> + 'a>,
 }
 pub type DiscreteHomProblem<'a> = HomProblem<'a, i32>;
+
+// Online instance of a problem.
+pub struct Online<T> {
+    // Problem.
+    pub p: T,
+    // Finite, non-negative prediction window.
+    pub w: i32,
+}
 
 // Result of the Homogeneous Data-Center Right-Sizing problem.
 // Number of active servers from time 1 to time T.
