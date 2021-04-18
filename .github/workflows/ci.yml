@@ -17,11 +17,10 @@ jobs:
       with:
         command: fmt
         args: -- --check
-    - name: Build
+    - name: Check
       uses: actions-rs/cargo@v1
       with:
-        command: build
-        args: --release --all-features
+        command: check
     - name: Test
       uses: actions-rs/cargo@v1
       with:

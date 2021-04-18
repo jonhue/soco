@@ -14,6 +14,6 @@ impl<'a> ObjectiveFunction for DiscreteHomProblem<'a> {
             cost += (self.f)(t, x).expect("f should be total on its domain")
                 + self.beta * ipos(x - prev_x) as f64;
         }
-        return cost;
+        cost
     }
 }
