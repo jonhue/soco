@@ -13,7 +13,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
         xs: DiscreteSchedule,
         _ms: &Vec<Memory>,
     ) -> OnlineSolution<i32, Memory> {
-        let i = if xs.len() > 0 { xs[xs.len() - 1] } else { 0 };
+        let i = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
         let l = self.lower_bound();
         let u = self.upper_bound();
         (project(i, l, u), (l, u))
