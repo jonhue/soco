@@ -41,10 +41,15 @@ impl<'a> DiscreteHomProblem<'a> {
             }
         }
 
-        result
+        let x = result.0[result.0.len() - 1];
+        let cost = result.1
+            + self.beta * x as f64
+            + (self.f)(self.t_end, 0).expect("f should be total on its domain");
+
+        (result.0, cost)
     }
 
-    /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `dopt`.
+    /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `iopt`.
     pub fn transform(&'a self) -> DiscreteHomProblem<'a> {
         let m = 2_i32.pow((self.m as f64).log(2.).ceil() as u32);
         let f = Box::new(move |t, x| {

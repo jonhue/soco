@@ -1,6 +1,9 @@
 //! Functions to check that values satisfy the imposed constraints.
 
-use crate::problem::{ContinuousHomProblem, ContinuousSchedule, DiscreteHomProblem, DiscreteSchedule, HomProblem, Online};
+use crate::problem::{
+    ContinuousHomProblem, ContinuousSchedule, DiscreteHomProblem,
+    DiscreteSchedule, Online,
+};
 
 pub trait VerifiableProblem {
     fn verify(&self);
@@ -56,21 +59,21 @@ where
 }
 
 pub trait VerifiableSchedule<'a, T> {
-    fn verify(&self, p: &HomProblem<'a, T>);
+    fn verify(&self, m: i32, t_end: i32);
 }
 
 impl<'a> VerifiableSchedule<'a, i32> for DiscreteSchedule {
-    fn verify(&self, p: &HomProblem<'a, i32>) {
+    fn verify(&self, m: i32, t_end: i32) {
         assert_eq!(
             self.len(),
-            p.t_end as usize,
+            t_end as usize,
             "schedule must have a value for each time step"
         );
 
         for &x in self {
             assert!(x >= 0, "values in schedule must be non-negative");
             assert!(
-                x <= p.m,
+                x <= m,
                 "values in schedule must not exceed the number of servers"
             );
         }
@@ -78,17 +81,17 @@ impl<'a> VerifiableSchedule<'a, i32> for DiscreteSchedule {
 }
 
 impl<'a> VerifiableSchedule<'a, f64> for ContinuousSchedule {
-    fn verify(&self, p: &HomProblem<'a, f64>) {
+    fn verify(&self, m: i32, t_end: i32) {
         assert_eq!(
             self.len(),
-            p.t_end as usize,
+            t_end as usize,
             "schedule must have a value for each time step"
         );
 
         for &x in self {
             assert!(x >= 0., "values in schedule must be non-negative");
             assert!(
-                x <= p.m as f64,
+                x <= m as f64,
                 "values in schedule must not exceed the number of servers"
             );
         }

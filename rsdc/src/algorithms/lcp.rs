@@ -17,12 +17,14 @@ type Memory<T> = (T, T);
 
 impl<'a, T> Online<HomProblem<'a, T>> {
     /// Convex (continuous) cost optimization.
-    fn opt<'b>(
+    fn past_opt<'b>(
         &'b self,
         objective_function: impl ObjFn<&'b HomProblem<'a, T>>,
     ) -> Vec<f64> {
         let n = self.p.t_end as usize - 1;
-        if n == 0 { return vec![0.] }
+        if n == 0 {
+            return vec![0.];
+        }
 
         let mut xs = vec![0.0; n];
         let mut opt = Nlopt::new(
@@ -34,10 +36,9 @@ impl<'a, T> Online<HomProblem<'a, T>> {
         );
         opt.set_lower_bound(0.).unwrap();
         opt.set_upper_bound(self.p.m as f64).unwrap();
-        opt.set_xtol_abs1(1e-6).unwrap();
+        opt.set_xtol_rel(1e-6).unwrap();
 
         opt.optimize(&mut xs).unwrap();
-        println!("{:?}", xs);
         xs
     }
 }
@@ -65,7 +66,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
              p: &mut &ContinuousHomProblem<'a>|
              -> f64 { p.objective_function(&to_vec(xs)) };
 
-        let xs = self.opt(objective_function);
+        let xs = self.past_opt(objective_function);
         xs[xs.len() - 1]
     }
 
@@ -76,7 +77,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
              p: &mut &ContinuousHomProblem<'a>|
              -> f64 { p.inverted_objective_function(&to_vec(xs)) };
 
-        let xs = self.opt(objective_function);
+        let xs = self.past_opt(objective_function);
         xs[xs.len() - 1]
     }
 }
@@ -104,18 +105,19 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
              p: &mut &DiscreteHomProblem<'a>|
              -> f64 { p.objective_function(&to_vec(xs).to_i()) };
 
-        let xs = self.opt(objective_function);
+        let xs = self.past_opt(objective_function);
         xs[xs.len() - 1].ceil() as i32
     }
 
     fn upper_bound(&self) -> i32 {
-        let objective_function =
-            |xs: &[f64],
-             _gradient: Option<&mut [f64]>,
-             p: &mut &DiscreteHomProblem<'a>|
-             -> f64 { p.inverted_objective_function(&to_vec(xs).to_i()) };
+        let objective_function = |xs: &[f64],
+                                  _gradient: Option<&mut [f64]>,
+                                  p: &mut &DiscreteHomProblem<'a>|
+         -> f64 {
+            p.inverted_objective_function(&to_vec(xs).to_i())
+        };
 
-        let xs = self.opt(objective_function);
+        let xs = self.past_opt(objective_function);
         xs[xs.len() - 1].ceil() as i32
     }
 }
