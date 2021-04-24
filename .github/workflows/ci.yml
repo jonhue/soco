@@ -14,23 +14,19 @@ jobs:
         toolchain: stable
     - name: Format
       uses: actions-rs/cargo@v1
-      working-directory: rsdc
       with:
         command: fmt
         args: -- --check
     - name: Check
       uses: actions-rs/cargo@v1
-      working-directory: rsdc
       with:
         command: clippy
         args: --all-targets --all-features -- -D warnings
     - name: Test
       uses: actions-rs/cargo@v1
-      working-directory: rsdc
       with:
         command: test
     - name: Package
       uses: actions-rs/cargo@v1
-      working-directory: rsdc
       with:
         command: package
