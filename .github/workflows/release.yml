@@ -4,6 +4,10 @@ on:
   release:
     types: [published]
 
+defaults:
+  run:
+    working-directory: rsdc
+
 jobs:
   build:
 
