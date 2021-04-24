@@ -18,6 +18,7 @@ pub struct HomProblem<'a, T> {
     pub f: Box<dyn Fn(i32, T) -> Option<f64> + 'a>,
 }
 pub type DiscreteHomProblem<'a> = HomProblem<'a, i32>;
+pub type ContinuousHomProblem<'a> = HomProblem<'a, f64>;
 
 /// Online instance of a problem.
 pub struct Online<T> {
@@ -37,3 +38,4 @@ pub type OnlineSolution<T, U> = (T, U);
 /// Number of active servers from time 1 to time T.
 pub type Schedule<T> = Vec<T>;
 pub type DiscreteSchedule = Schedule<i32>;
+pub type ContinuousSchedule = Schedule<f64>;

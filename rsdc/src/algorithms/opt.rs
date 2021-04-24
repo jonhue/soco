@@ -1,4 +1,4 @@
-//! Optimal Discrete Deterministic Polynomial-Time Offline Algorithm
+//! Optimal Offline Algorithms
 
 use ordered_float::OrderedFloat;
 use pathfinding::directed::dijkstra::dijkstra;
@@ -18,6 +18,7 @@ type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
 static EPS: f64 = 1.;
 
 impl<'a> DiscreteHomProblem<'a> {
+    /// Optimal Discrete Deterministic Polynomial-Time Offline Algorithm
     pub fn opt(&'a self) -> (DiscreteSchedule, Cost) {
         assert!(is_2pow(self.m), "#servers must be a power of 2, use transform() to generate a new problem instance");
 

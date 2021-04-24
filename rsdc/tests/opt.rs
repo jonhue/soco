@@ -8,7 +8,7 @@ use rsdc::problem::HomProblem;
 use rsdc::verifiers::{VerifiableProblem, VerifiableSchedule};
 
 #[test]
-fn transform() {
+fn transform1() {
     let p = HomProblem {
         m: 103,
         t_end: 1_000,
@@ -37,7 +37,7 @@ fn transform() {
 }
 
 #[test]
-fn case1() {
+fn opt1() {
     let p = HomProblem {
         m: 2,
         t_end: 2,
@@ -54,7 +54,7 @@ fn case1() {
 }
 
 #[test]
-fn case2() {
+fn opt2() {
     let p = HomProblem {
         m: 8,
         t_end: 100,
@@ -74,7 +74,7 @@ fn case2() {
 }
 
 #[test]
-fn case3() {
+fn opt3() {
     let p = HomProblem {
         m: 9,
         t_end: 1_000,

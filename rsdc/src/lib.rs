@@ -2,7 +2,8 @@
 
 pub mod algorithms;
 pub mod analysis;
+pub mod online;
 pub mod problem;
-pub mod sim;
+pub mod schedule;
 pub mod utils;
 pub mod verifiers;
