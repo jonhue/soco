@@ -1,4 +1,4 @@
-//! Discrete Lazy Capacity Provisioning
+//! Lazy Capacity Provisioning
 
 use nlopt::Algorithm;
 use nlopt::Nlopt;
@@ -6,19 +6,89 @@ use nlopt::ObjFn;
 use nlopt::Target;
 
 use crate::problem::{
-    DiscreteHomProblem, DiscreteSchedule, Online, OnlineSolution,
+    ContinuousHomProblem, ContinuousSchedule, DiscreteHomProblem,
+    DiscreteSchedule, HomProblem, Online, OnlineSolution,
 };
-use crate::utils::iproject;
+use crate::schedule::DiscretizableSchedule;
+use crate::utils::{fproject, iproject};
 
 /// Lower and upper bound at some time t.
-type Memory = (i32, i32);
+type Memory<T> = (T, T);
 
-impl<'a> Online<DiscreteHomProblem<'a>> {
+impl<'a, T> Online<HomProblem<'a, T>> {
+    /// Convex (continuous) cost optimization.
+    fn past_opt<'b>(
+        &'b self,
+        objective_function: impl ObjFn<&'b HomProblem<'a, T>>,
+    ) -> Vec<f64> {
+        let n = self.p.t_end as usize - 1;
+        if n == 0 {
+            return vec![0.];
+        }
+
+        let mut xs = vec![0.0; n];
+        let mut opt = Nlopt::new(
+            Algorithm::Bobyqa,
+            n,
+            objective_function,
+            Target::Minimize,
+            &self.p,
+        );
+        opt.set_lower_bound(0.).unwrap();
+        opt.set_upper_bound(self.p.m as f64).unwrap();
+        opt.set_xtol_rel(1e-6).unwrap();
+
+        opt.optimize(&mut xs).unwrap();
+        xs
+    }
+}
+
+impl<'a> Online<ContinuousHomProblem<'a>> {
+    /// (Continuous) Lazy Capacity Provisioning
     pub fn lcp(
         &self,
+        xs: &ContinuousSchedule,
+        _: &Vec<Memory<f64>>,
+    ) -> OnlineSolution<f64, Memory<f64>> {
+        assert_eq!(self.w, 0);
+
+        let i = if xs.is_empty() { 0. } else { xs[xs.len() - 1] };
+        let l = self.lower_bound();
+        let u = self.upper_bound();
+        let j = fproject(i, l, u);
+        (j, (l, u))
+    }
+
+    fn lower_bound(&self) -> f64 {
+        let objective_function =
+            |xs: &[f64],
+             _gradient: Option<&mut [f64]>,
+             p: &mut &ContinuousHomProblem<'a>|
+             -> f64 { p.objective_function(&xs.to_vec()) };
+
+        let xs = self.past_opt(objective_function);
+        xs[xs.len() - 1]
+    }
+
+    fn upper_bound(&self) -> f64 {
+        let objective_function =
+            |xs: &[f64],
+             _gradient: Option<&mut [f64]>,
+             p: &mut &ContinuousHomProblem<'a>|
+             -> f64 { p.inverted_objective_function(&xs.to_vec()) };
+
+        let xs = self.past_opt(objective_function);
+        xs[xs.len() - 1]
+    }
+}
+
+impl<'a> Online<DiscreteHomProblem<'a>> {
+    /// Integer Lazy Capacity Provisioning
+    pub fn ilcp(
+        &self,
         xs: &DiscreteSchedule,
-        _: &Vec<Memory>,
-    ) -> OnlineSolution<i32, Memory> {
+        _: &Vec<Memory<i32>>,
+    ) -> OnlineSolution<i32, Memory<i32>> {
         assert_eq!(self.w, 0);
 
         let i = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
@@ -33,45 +103,21 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
             |xs: &[f64],
              _gradient: Option<&mut [f64]>,
              p: &mut &DiscreteHomProblem<'a>|
-             -> f64 { p.objective_function(&tighten(xs)) };
+             -> f64 { p.objective_function(&xs.to_vec().to_i()) };
 
-        let xs = self.opt(objective_function);
-        xs[self.p.t_end as usize - 1].ceil() as i32
+        let xs = self.past_opt(objective_function);
+        xs[xs.len() - 1].ceil() as i32
     }
 
     fn upper_bound(&self) -> i32 {
-        let objective_function =
-            |xs: &[f64],
-             _gradient: Option<&mut [f64]>,
-             p: &mut &DiscreteHomProblem<'a>|
-             -> f64 { p.inverted_objective_function(&tighten(xs)) };
+        let objective_function = |xs: &[f64],
+                                  _gradient: Option<&mut [f64]>,
+                                  p: &mut &DiscreteHomProblem<'a>|
+         -> f64 {
+            p.inverted_objective_function(&xs.to_vec().to_i())
+        };
 
-        let xs = self.opt(objective_function);
-        xs[self.p.t_end as usize - 1].ceil() as i32
+        let xs = self.past_opt(objective_function);
+        xs[xs.len() - 1].ceil() as i32
     }
-
-    /// Use a relaxed convex optimization.
-    fn opt<'b>(
-        &'b self,
-        objective_function: impl ObjFn<&'b DiscreteHomProblem<'a>>,
-    ) -> Vec<f64> {
-        let mut xs = vec![0.0; self.p.t_end as usize];
-        let mut opt = Nlopt::new(
-            Algorithm::Bobyqa,
-            self.p.t_end as usize,
-            objective_function,
-            Target::Minimize,
-            &self.p,
-        );
-        opt.set_lower_bound(0.).unwrap();
-        opt.set_upper_bound(self.p.m as f64).unwrap();
-        opt.set_xtol_abs1(1.).unwrap();
-
-        opt.optimize(&mut xs).unwrap();
-        xs
-    }
-}
-
-fn tighten(xs: &[f64]) -> DiscreteSchedule {
-    xs.iter().map(|&x| x.ceil() as i32).collect()
 }
