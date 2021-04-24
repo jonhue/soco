@@ -33,7 +33,7 @@ where
         let mut tmp;
         loop {
             assert!(
-                o.p.t_end > o.w + xs.len() as i32,
+                o.p.t_end == o.w + xs.len() as i32 + 1,
                 "online problem must contain information for the next iteration"
             );
 
