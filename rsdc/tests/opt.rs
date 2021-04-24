@@ -37,7 +37,7 @@ fn transform1() {
 }
 
 #[test]
-fn opt1() {
+fn iopt1() {
     let p = HomProblem {
         m: 2,
         t_end: 2,
@@ -46,7 +46,7 @@ fn opt1() {
     };
     p.verify();
 
-    let result = p.opt();
+    let result = p.iopt();
     result.0.verify(&p);
 
     assert_eq!(result, (vec![1, 1], OrderedFloat(1.)));
@@ -54,7 +54,7 @@ fn opt1() {
 }
 
 #[test]
-fn opt2() {
+fn iopt2() {
     let p = HomProblem {
         m: 8,
         t_end: 100,
@@ -67,14 +67,14 @@ fn opt2() {
     };
     p.verify();
 
-    let result = p.opt();
+    let result = p.iopt();
     result.0.verify(&p);
 
     assert_eq!(result.1, p.objective_function(&result.0));
 }
 
 #[test]
-fn opt3() {
+fn iopt3() {
     let p = HomProblem {
         m: 9,
         t_end: 1_000,
@@ -88,7 +88,7 @@ fn opt3() {
     p.verify();
 
     let transformed_p = p.transform();
-    let result = transformed_p.opt();
+    let result = transformed_p.iopt();
     result.0.verify(&transformed_p);
 
     assert_eq!(result.1, transformed_p.objective_function(&result.0));
