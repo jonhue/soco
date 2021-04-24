@@ -18,7 +18,7 @@ fn lcp1() {
     let result = o.stream(Online::lcp, |_, _, _| None);
     result.0.verify(&o.p);
 
-    assert_eq!(result.0.to_i(), vec![1]);
+    assert_eq!(result.0.to_i(), vec![0]);
 }
 
 #[test]
@@ -35,5 +35,5 @@ fn ilcp1() {
     let result = o.stream(Online::ilcp, |_, _, _| None);
     result.0.verify(&o.p);
 
-    assert_eq!(result.0, vec![1]);
+    assert_eq!(result.0, vec![0]);
 }

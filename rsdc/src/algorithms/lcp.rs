@@ -21,19 +21,23 @@ impl<'a, T> Online<HomProblem<'a, T>> {
         &'b self,
         objective_function: impl ObjFn<&'b HomProblem<'a, T>>,
     ) -> Vec<f64> {
-        let mut xs = vec![0.0; self.p.t_end as usize];
+        let n = self.p.t_end as usize - 1;
+        if n == 0 { return vec![0.] }
+
+        let mut xs = vec![0.0; n];
         let mut opt = Nlopt::new(
             Algorithm::Bobyqa,
-            self.p.t_end as usize,
+            n,
             objective_function,
             Target::Minimize,
             &self.p,
         );
         opt.set_lower_bound(0.).unwrap();
         opt.set_upper_bound(self.p.m as f64).unwrap();
-        opt.set_xtol_abs1(1.).unwrap();
+        opt.set_xtol_abs1(1e-6).unwrap();
 
         opt.optimize(&mut xs).unwrap();
+        println!("{:?}", xs);
         xs
     }
 }
@@ -62,7 +66,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
              -> f64 { p.objective_function(&to_vec(xs)) };
 
         let xs = self.opt(objective_function);
-        xs[self.p.t_end as usize - 1]
+        xs[xs.len() - 1]
     }
 
     fn upper_bound(&self) -> f64 {
@@ -73,7 +77,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
              -> f64 { p.inverted_objective_function(&to_vec(xs)) };
 
         let xs = self.opt(objective_function);
-        xs[self.p.t_end as usize - 1]
+        xs[xs.len() - 1]
     }
 }
 
@@ -101,7 +105,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
              -> f64 { p.objective_function(&to_vec(xs).to_i()) };
 
         let xs = self.opt(objective_function);
-        xs[self.p.t_end as usize - 1].ceil() as i32
+        xs[xs.len() - 1].ceil() as i32
     }
 
     fn upper_bound(&self) -> i32 {
@@ -112,6 +116,6 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
              -> f64 { p.inverted_objective_function(&to_vec(xs).to_i()) };
 
         let xs = self.opt(objective_function);
-        xs[self.p.t_end as usize - 1].ceil() as i32
+        xs[xs.len() - 1].ceil() as i32
     }
 }
