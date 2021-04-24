@@ -1,4 +1,6 @@
-use crate::problem::types::{DiscreteHomProblem, DiscreteSchedule};
+//! Functions to check that values satisfy the imposed constraints.
+
+use crate::problem::{DiscreteHomProblem, DiscreteSchedule, Online};
 
 pub trait VerifiableProblem {
     fn verify(&self);
@@ -20,6 +22,17 @@ impl<'a> VerifiableProblem for DiscreteHomProblem<'a> {
                 );
             }
         }
+    }
+}
+
+impl<T> Online<T>
+where
+    T: VerifiableProblem,
+{
+    pub fn verify(&self) {
+        assert!(self.w >= 0, "w must be non-negative");
+
+        self.p.verify();
     }
 }
 

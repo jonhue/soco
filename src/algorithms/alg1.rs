@@ -1,21 +1,24 @@
+//! Optimal Discrete Deterministic Polynomial-Time Offline Algorithm
+
 use ordered_float::OrderedFloat;
 use pathfinding::dijkstra;
 use std::collections::HashMap;
 
-use crate::problem::types::{DiscreteHomProblem, DiscreteSchedule, HomProblem};
-use crate::problem::utils::{ipos, is_2pow};
+use crate::problem::{DiscreteHomProblem, DiscreteSchedule, HomProblem};
+use crate::utils::{ipos, is_2pow};
 
-// Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
+/// Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
 type Vertice = (i32, i32);
-// Represents the length (cost) of an edge
+/// Represents the length (cost) of an edge.
 type Cost = OrderedFloat<f64>;
-// Maps a vertice to all its neighbors with some cost.
+/// Maps a vertice to all its neighbors with some cost.
 type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
 
+/// Epsilon.
 static EPS: f64 = 1.;
 
 impl<'a> DiscreteHomProblem<'a> {
-    pub fn alg1(&'a self) -> (DiscreteSchedule, Cost) {
+    pub fn dopt(&'a self) -> (DiscreteSchedule, Cost) {
         assert!(is_2pow(self.m), "#servers must be a power of 2, use transform() to generate a new problem instance");
 
         let neighbors = self.build_neighbors();
@@ -37,11 +40,12 @@ impl<'a> DiscreteHomProblem<'a> {
             }
         }
 
-        return result;
+        result
     }
 
+    /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `dopt`.
     pub fn transform(&'a self) -> DiscreteHomProblem<'a> {
-        let m = (2 as i32).pow((self.m as f64).log(2.).ceil() as u32);
+        let m = 2_i32.pow((self.m as f64).log(2.).ceil() as u32);
         let f = Box::new(move |t, x| {
             if x <= self.m {
                 (self.f)(t, x)
@@ -55,12 +59,12 @@ impl<'a> DiscreteHomProblem<'a> {
             }
         });
 
-        return HomProblem {
-            m: m,
+        HomProblem {
+            m,
             t_end: self.t_end,
             beta: self.beta,
-            f: f,
-        };
+            f,
+        }
     }
 
     fn build_neighbors(&self) -> Neighbors {
@@ -71,28 +75,28 @@ impl<'a> DiscreteHomProblem<'a> {
                 neighbors.insert((t, i), self.build_edges(t, i));
             }
         }
-        return neighbors;
+        neighbors
     }
 
     fn build_edges(&self, t: i32, i: i32) -> Vec<(Vertice, Cost)> {
         if t == self.t_end {
-            return vec![((self.t_end + 1, 0), OrderedFloat(0.))];
+            vec![((self.t_end + 1, 0), OrderedFloat(0.))]
         } else {
-            return vec![0; self.m as usize]
+            vec![0; self.m as usize]
                 .iter()
                 .enumerate()
                 .map(|(j, _)| {
                     ((t + 1, j as i32), self.build_cost(t + 1, i, j as i32))
                 })
-                .collect();
+                .collect()
         }
     }
 
     fn build_cost(&self, t: i32, i: i32, j: i32) -> Cost {
-        return OrderedFloat(
+        OrderedFloat(
             self.beta * ipos(j - i) as f64
                 + (self.f)(t, j).expect("f should be total on its domain"),
-        );
+        )
     }
 
     fn find_schedule(
@@ -105,7 +109,7 @@ impl<'a> DiscreteHomProblem<'a> {
         let (mut xs, cost) = result.expect("there should always be a path");
         xs.remove(0);
         xs.remove(xs.len() - 1);
-        return (xs.into_iter().map(|(_, j)| j).collect(), cost);
+        (xs.into_iter().map(|(_, j)| j).collect(), cost)
     }
 
     fn select_initial_neighbors(
@@ -114,9 +118,9 @@ impl<'a> DiscreteHomProblem<'a> {
     ) -> impl Fn(&Vertice) -> Vec<(Vertice, Cost)> + 'a {
         let acceptable_successors: Vec<i32> =
             (0..=4).map(|e| e * self.m / 4).collect();
-        return select_neighbors(neighbors, move |&(_, j)| {
+        select_neighbors(neighbors, move |&(_, j)| {
             acceptable_successors.contains(&j)
-        });
+        })
     }
 
     fn select_next_neighbors(
@@ -128,14 +132,14 @@ impl<'a> DiscreteHomProblem<'a> {
         let acceptable_successors: Vec<Vec<i32>> = (1..=self.t_end)
             .map(|t| {
                 (-2..=2)
-                    .map(|e| xs[t as usize - 1] + e * (2 as i32).pow(k))
+                    .map(|e| xs[t as usize - 1] + e * 2_i32.pow(k))
                     .collect()
             })
             .collect();
-        return select_neighbors(neighbors, move |&(t, j)| {
+        select_neighbors(neighbors, move |&(t, j)| {
             t == self.t_end + 1
                 || acceptable_successors[t as usize - 1].contains(&j)
-        });
+        })
     }
 }
 
@@ -143,13 +147,13 @@ fn select_neighbors<'a>(
     neighbors: &'a Neighbors,
     is_acceptable_successor: impl Fn(&Vertice) -> bool + 'a,
 ) -> impl Fn(&Vertice) -> Vec<(Vertice, Cost)> + 'a {
-    return move |&(t, i): &Vertice| {
+    move |&(t, i): &Vertice| {
         neighbors
             .get(&(t, i))
             .expect("neighbors should have been pre-cached")
-            .into_iter()
-            .map(|&x| x)
+            .iter()
+            .copied()
             .filter(|(v, _)| is_acceptable_successor(v))
             .collect()
-    };
+    }
 }

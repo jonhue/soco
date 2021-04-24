@@ -17,12 +17,16 @@ jobs:
       with:
         command: fmt
         args: -- --check
-    - name: Build
+    - name: Check
       uses: actions-rs/cargo@v1
       with:
-        command: build
-        args: --release --all-features
+        command: clippy
+        args: --all-targets --all-features -- -D warnings
     - name: Test
       uses: actions-rs/cargo@v1
       with:
         command: test
+    - name: Package
+      uses: actions-rs/cargo@v1
+      with:
+        command: package

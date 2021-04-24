@@ -1,12 +1,11 @@
+#![allow(clippy::float_cmp)]
+
 use ordered_float::OrderedFloat;
 use rand::prelude::*;
 use rand_pcg::Pcg64;
 
-use bachelors_thesis::problem::analysis::ObjectiveFunction;
-use bachelors_thesis::problem::types::HomProblem;
-use bachelors_thesis::problem::verifiers::{
-    VerifiableProblem, VerifiableSchedule,
-};
+use rsdc::problem::HomProblem;
+use rsdc::verifiers::{VerifiableProblem, VerifiableSchedule};
 
 #[test]
 fn transform() {
@@ -47,7 +46,7 @@ fn case1() {
     };
     p.verify();
 
-    let result = p.alg1();
+    let result = p.dopt();
     result.0.verify(&p);
 
     assert_eq!(result, (vec![1, 1], OrderedFloat(1.)));
@@ -68,7 +67,7 @@ fn case2() {
     };
     p.verify();
 
-    let result = p.alg1();
+    let result = p.dopt();
     result.0.verify(&p);
 
     assert_eq!(result.1, p.objective_function(&result.0));
@@ -89,7 +88,7 @@ fn case3() {
     p.verify();
 
     let transformed_p = p.transform();
-    let result = transformed_p.alg1();
+    let result = transformed_p.dopt();
     result.0.verify(&transformed_p);
 
     assert_eq!(result.1, transformed_p.objective_function(&result.0));
