@@ -1,7 +1,7 @@
 //! Optimal Discrete Deterministic Polynomial-Time Offline Algorithm
 
 use ordered_float::OrderedFloat;
-use pathfinding::dijkstra;
+use pathfinding::directed::dijkstra::dijkstra;
 use std::collections::HashMap;
 
 use crate::problem::{DiscreteHomProblem, DiscreteSchedule, HomProblem};
