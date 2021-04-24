@@ -41,6 +41,7 @@ impl<'a> DiscreteHomProblem<'a> {
             }
         }
 
+        // Calculate cost of shutting down.
         let x = result.0[result.0.len() - 1];
         let cost = result.1
             + self.beta * x as f64

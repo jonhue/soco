@@ -75,7 +75,7 @@ where
                     p: HomProblem {
                         m: o.p.m,
                         t_end: o.p.t_end + 1,
-                        f: Box::new(|_, _| Some(1.)),
+                        f: Box::new(|_, _| Some(1.)), // TODO: copy f
                         beta: o.p.beta,
                     },
                 })
