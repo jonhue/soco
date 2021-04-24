@@ -4,10 +4,6 @@ on:
   release:
     types: [published]
 
-defaults:
-  run:
-    working-directory: rsdc
-
 jobs:
   build:
 
@@ -29,3 +25,4 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: publish
+        args: --manifest-path=rsdc/Cargo.toml

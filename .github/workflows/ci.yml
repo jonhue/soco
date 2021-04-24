@@ -2,10 +2,6 @@ name: CI
 
 on: [push]
 
-defaults:
-  run:
-    working-directory: rsdc
-
 jobs:
   build:
 
@@ -20,17 +16,19 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: fmt
-        args: -- --check
+        args: --manifest-path=rsdc/Cargo.toml -- --check
     - name: Check
       uses: actions-rs/cargo@v1
       with:
         command: clippy
-        args: --all-targets --all-features -- -D warnings
+        args: --manifest-path=rsdc/Cargo.toml --all-targets --all-features -- -D warnings
     - name: Test
       uses: actions-rs/cargo@v1
       with:
         command: test
+        args: --manifest-path=rsdc/Cargo.toml
     - name: Package
       uses: actions-rs/cargo@v1
       with:
         command: package
+        args: --manifest-path=rsdc/Cargo.toml
