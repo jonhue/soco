@@ -1,14 +1,12 @@
 # List of Algorithms
 
-1. [Optimal Discrete Deterministic Polynomial-Time Offline Algorithm](alg1.rs) [1]
-2. [Discrete Lazy Capacity Provisioning](alg2.rs) [1]
-
-Overview:
-
 | No. | Name   | Discrete? | Online? | Competitiveness | Complexity (per iteration) |
 | --- | ------ | --------- | ------- | --------------- | -------------------------- |
-| 1   | `dopt` | ✅        | ❌      | optimal         | O(T log m)                 |
+| 1   | `opt`  | ✅        | ❌      | optimal         | O(T log m)                 |
 | 2   | `lcp`  | ✅        | ✅      | 3-competitive   | ?                          |
+
+1. [Optimal Discrete Deterministic Polynomial-Time Offline Algorithm](opt.rs) [1]
+2. [Discrete Lazy Capacity Provisioning](lcp.rs) [1]
 
 References:
 
