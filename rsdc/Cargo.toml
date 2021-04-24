@@ -18,6 +18,7 @@ exclude = [
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+nlopt = "0.5.4"
 pathfinding = "2.1.2"
 ordered-float = "2.1.1"
 rand = "0.8.3"
