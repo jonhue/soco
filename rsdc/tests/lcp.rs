@@ -9,9 +9,7 @@ fn lcp1() {
     let p = HomProblem {
         m: 2,
         t_end: 1,
-        f: Box::new(|t, j| {
-            Some(t as f64 * (if j == 0. { 1. } else { 0. }))
-        }),
+        f: Box::new(|t, j| Some(t as f64 * (if j == 0. { 1. } else { 0. }))),
         beta: 1.,
     };
     let o = Online { p, w: 0 };
@@ -28,9 +26,7 @@ fn lcp2() {
     let p = HomProblem {
         m: 2,
         t_end: 1,
-        f: Box::new(|t, j| {
-            Some(t as f64 * (if j == 0. { 1. } else { 0. }))
-        }),
+        f: Box::new(|t, j| Some(t as f64 * (if j == 0. { 1. } else { 0. }))),
         beta: 1.,
     };
     let o = Online { p, w: 0 };
@@ -65,9 +61,7 @@ fn ilcp2() {
     let p = HomProblem {
         m: 2,
         t_end: 1,
-        f: Box::new(|t, j| {
-            Some(t as f64 * (if j == 0 { 1. } else { 0. }))
-        }),
+        f: Box::new(|t, j| Some(t as f64 * (if j == 0 { 1. } else { 0. }))),
         beta: 1.,
     };
     let o = Online { p, w: 0 };
