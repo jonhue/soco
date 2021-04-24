@@ -3,7 +3,7 @@ name: Publish
 on:
   push:
     branches:
-    - sources
+    - main
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@master
+    - uses: actions/checkout@main
     - name: Prepare files
       run: sh ./scripts/setup.sh
     - name: Compile LaTeX sources
@@ -28,8 +28,8 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3.8.0
       with:
         deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-        publish_branch: master
-        publish_dir: ./dist
+        publish_branch: gh-pages
+        publish_dir: .
         allow_empty_commit: true
         force_orphan: true
         enable_jekyll: true
