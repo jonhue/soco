@@ -10,7 +10,7 @@ use crate::problem::{
     DiscreteSchedule, HomProblem, Online, OnlineSolution,
 };
 use crate::schedule::DiscretizableSchedule;
-use crate::utils::{fproject, iproject, to_vec};
+use crate::utils::{fproject, iproject};
 
 /// Lower and upper bound at some time t.
 type Memory<T> = (T, T);
@@ -64,7 +64,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
             |xs: &[f64],
              _gradient: Option<&mut [f64]>,
              p: &mut &ContinuousHomProblem<'a>|
-             -> f64 { p.objective_function(&to_vec(xs)) };
+             -> f64 { p.objective_function(&xs.to_vec()) };
 
         let xs = self.past_opt(objective_function);
         xs[xs.len() - 1]
@@ -75,7 +75,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
             |xs: &[f64],
              _gradient: Option<&mut [f64]>,
              p: &mut &ContinuousHomProblem<'a>|
-             -> f64 { p.inverted_objective_function(&to_vec(xs)) };
+             -> f64 { p.inverted_objective_function(&xs.to_vec()) };
 
         let xs = self.past_opt(objective_function);
         xs[xs.len() - 1]
@@ -103,7 +103,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
             |xs: &[f64],
              _gradient: Option<&mut [f64]>,
              p: &mut &DiscreteHomProblem<'a>|
-             -> f64 { p.objective_function(&to_vec(xs).to_i()) };
+             -> f64 { p.objective_function(&xs.to_vec().to_i()) };
 
         let xs = self.past_opt(objective_function);
         xs[xs.len() - 1].ceil() as i32
@@ -114,7 +114,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
                                   _gradient: Option<&mut [f64]>,
                                   p: &mut &DiscreteHomProblem<'a>|
          -> f64 {
-            p.inverted_objective_function(&to_vec(xs).to_i())
+            p.inverted_objective_function(&xs.to_vec().to_i())
         };
 
         let xs = self.past_opt(objective_function);
