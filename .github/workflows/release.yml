@@ -23,5 +23,6 @@ jobs:
         CRATES_API_TOKEN: ${{secrets.CRATES_API_TOKEN}}
     - name: Publish
       uses: actions-rs/cargo@v1
+      working-directory: rsdc
       with:
         command: publish
