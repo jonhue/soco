@@ -36,7 +36,7 @@ pub fn is_2pow(x: i32) -> bool {
     x != 0 && x & (x - 1) == 0
 }
 
-/// Determines whether `x` is a power of `2`.
+/// Transforms array into a vector.
 pub fn to_vec<T: Clone>(xs: &[T]) -> Vec<T> {
     xs.iter().cloned().collect()
 }
