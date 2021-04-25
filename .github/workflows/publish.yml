@@ -28,8 +28,6 @@ jobs:
       uses: peaceiris/actions-gh-pages@v3.8.0
       with:
         deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-        publish_branch: gh-pages
-        publish_dir: .
         allow_empty_commit: true
         force_orphan: true
         enable_jekyll: true
