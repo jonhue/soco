@@ -41,13 +41,7 @@ impl<'a> DiscreteHomProblem<'a> {
             }
         }
 
-        // Calculate cost of shutting down.
-        let x = result.0[result.0.len() - 1];
-        let cost = result.1
-            + self.beta * x as f64
-            + (self.f)(self.t_end, 0).expect("f should be total on its domain");
-
-        (result.0, cost)
+        result
     }
 
     /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `iopt`.

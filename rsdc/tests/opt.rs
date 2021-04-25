@@ -49,7 +49,7 @@ fn iopt1() {
     let result = p.iopt();
     result.0.verify(p.m, p.t_end);
 
-    assert_eq!(result, (vec![1, 1], OrderedFloat(4.)));
+    assert_eq!(result, (vec![1, 1], OrderedFloat(1.)));
     assert_eq!(result.1, p.objective_function(&result.0));
 }
 
