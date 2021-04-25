@@ -35,3 +35,21 @@ pub fn fproject(x: f64, a: f64, b: f64) -> f64 {
 pub fn is_2pow(x: i32) -> bool {
     x != 0 && x & (x - 1) == 0
 }
+
+/// Returns the `i`-th element of vector `xs` if present; `0.` otherwise.
+pub fn faccess(xs: &Vec<f64>, i: i32) -> f64 {
+    if i >= 0 && i < xs.len() as i32 {
+        xs[i as usize]
+    } else {
+        0.
+    }
+}
+
+/// Returns the `i`-th element of vector `xs` if present; `0` otherwise.
+pub fn iaccess(xs: &Vec<i32>, i: i32) -> i32 {
+    if i >= 0 && i < xs.len() as i32 {
+        xs[i as usize]
+    } else {
+        0
+    }
+}

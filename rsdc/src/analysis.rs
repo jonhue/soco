@@ -4,7 +4,7 @@ use crate::problem::{
     ContinuousHomProblem, ContinuousSchedule, DiscreteHomProblem,
     DiscreteSchedule,
 };
-use crate::utils::{fpos, ipos};
+use crate::utils::{faccess, fpos, iaccess, ipos};
 
 impl<'a> ContinuousHomProblem<'a> {
     /// Objective Function. Calculates the cost of a schedule.
@@ -24,17 +24,9 @@ impl<'a> ContinuousHomProblem<'a> {
         inverted: bool,
     ) -> f64 {
         let mut cost = 0.;
-        for t in 1..=self.t_end + 1 {
-            let prev_x = if t > 1 && t as usize <= xs.len() + 1 {
-                xs[t as usize - 2]
-            } else {
-                0.
-            };
-            let x = if t as usize <= xs.len() {
-                xs[t as usize - 1]
-            } else {
-                0.
-            };
+        for t in 1..=self.t_end {
+            let prev_x = faccess(xs, t - 2);
+            let x = faccess(xs, t - 1);
             cost += (self.f)(t, x).expect("f should be total on its domain")
                 + self.beta
                     * fpos(if inverted { prev_x - x } else { x - prev_x })
@@ -62,17 +54,9 @@ impl<'a> DiscreteHomProblem<'a> {
         inverted: bool,
     ) -> f64 {
         let mut cost = 0.;
-        for t in 1..=self.t_end + 1 {
-            let prev_x = if t > 1 && t as usize <= xs.len() + 1 {
-                xs[t as usize - 2]
-            } else {
-                0
-            };
-            let x = if t as usize <= xs.len() {
-                xs[t as usize - 1]
-            } else {
-                0
-            };
+        for t in 1..=self.t_end {
+            let prev_x = iaccess(xs, t - 2);
+            let x = iaccess(xs, t - 1);
             cost += (self.f)(t, x).expect("f should be total on its domain")
                 + self.beta
                     * ipos(if inverted { prev_x - x } else { x - prev_x })

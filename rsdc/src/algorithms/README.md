@@ -1,10 +1,10 @@
 # List of Algorithms
 
-| Name                                                                           | Abbrev. | Discrete? | Online? | Competitiveness | Complexity* |
-| ------------------------------------------------------------------------------ | -------- | --------- | ------- | --------------- | ----------- |
-| [Optimal Discrete Deterministic Polynomial-Time Offline Algorithm](opt.rs) [1] | `iopt`   | ✅        | ❌      | optimal         | O(T log m)  |
-| [Discrete Lazy Capacity Provisioning](lcp.rs) [1]                              | `ilcp`   | ✅        | ✅      | 3-competitive   | ?           |
-| [Lazy Capacity Provisioning](lcp.rs) [2]                                       | `lcp`    | ❌        | ✅      | 3-competitive   | ?           |
+| Name                                                                           | Abbrev. | Heterogeneous? | Discrete? | Online? | Competitiveness | Complexity* |
+| ------------------------------------------------------------------------------ | ------- | -------------- | --------- | ------- | --------------- | ----------- |
+| [Optimal Discrete Deterministic Polynomial-Time Offline Algorithm](opt.rs) [1] | `iopt`  | ❌             | ✅        | ❌      | optimal         | O(T log m)  |
+| [Discrete Lazy Capacity Provisioning](lcp.rs) [1]                              | `ilcp`  | ❌             | ✅        | ✅      | 3-competitive   | ?           |
+| [Lazy Capacity Provisioning](lcp.rs) [2]                                       | `lcp`   | ❌             | ❌        | ✅      | 3-competitive   | ?           |
 
 \* If online, complexity is with respect to one iteration of the algorithm.
 
