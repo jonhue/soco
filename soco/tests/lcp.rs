@@ -1,8 +1,8 @@
 #![allow(clippy::float_cmp)]
 
-use rsdc::problem::{HomProblem, Online};
-use rsdc::schedule::DiscretizableSchedule;
-use rsdc::verifiers::VerifiableSchedule;
+use soco::problem::{HomProblem, Online};
+use soco::schedule::DiscretizableSchedule;
+use soco::verifiers::VerifiableSchedule;
 
 #[test]
 fn elcp1() {

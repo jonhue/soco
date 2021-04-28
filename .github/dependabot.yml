@@ -10,6 +10,6 @@ updates:
     schedule:
       interval: "daily"
   - package-ecosystem: "cargo"
-    directory: "/rsdc"
+    directory: "/soco"
     schedule:
       interval: "daily"
