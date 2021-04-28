@@ -1,3 +1,5 @@
+//! Randomized Algorithms
+
 use rand::{thread_rng, Rng};
 
 use crate::algorithms::bansal::Memory as BansalMemory;

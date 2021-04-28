@@ -1,3 +1,5 @@
+//! Algorithms by Bansal et al.
+
 use crate::problem::{
     ContinuousHomProblem, ContinuousSchedule, Online, OnlineSolution,
 };
