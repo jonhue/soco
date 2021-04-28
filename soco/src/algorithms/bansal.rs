@@ -66,13 +66,26 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         opt.set_xtol_rel(PRECISION).unwrap();
         opt.add_equality_constraint(
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-                integrate(x_m, xs[0], |j: f64| {
-                    second_derivative(|j: f64| (self.p.f)(t, j).unwrap(), j, STEP_SIZE)
-                }, PRECISION).unwrap() - integrate(xs[0], INFINITY, |j: f64| prev_p(j), PRECISION).unwrap()
+                integrate(
+                    x_m,
+                    xs[0],
+                    |j: f64| {
+                        second_derivative(
+                            |j: f64| (self.p.f)(t, j).unwrap(),
+                            j,
+                            STEP_SIZE,
+                        )
+                    },
+                    PRECISION,
+                )
+                .unwrap()
+                    - integrate(xs[0], INFINITY, |j: f64| prev_p(j), PRECISION)
+                        .unwrap()
             },
             (),
             PRECISION,
-        ).unwrap();
+        )
+        .unwrap();
         opt.optimize(&mut xs).unwrap();
         let x_m = xs[0];
 
