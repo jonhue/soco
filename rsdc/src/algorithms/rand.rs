@@ -22,13 +22,14 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
         let bansal_ms = ms.iter().map(|&m| m.1).collect();
         let (y, bansal_m) = self.to_f().bansal(&xs.to_f(), &bansal_ms);
 
-        let prev_x = if xs.len() == 0 { 0 } else { xs[xs.len() - 1] };
-        let prev_y = if ms.len() == 0 {
+        let prev_x = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
+        let prev_y = if ms.is_empty() {
             0.
         } else {
             ms[ms.len() - 1].0
         };
 
+        #[allow(clippy::collapsible_else_if)]
         // Number of active servers increases (or remains the same).
         let x = if prev_y <= y {
             if prev_x == y.ceil() as i32 {
