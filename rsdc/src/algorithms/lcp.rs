@@ -11,6 +11,7 @@ use crate::problem::{
 };
 use crate::schedule::DiscretizableSchedule;
 use crate::utils::{fproject, iproject};
+use crate::PRECISION;
 
 /// Lower and upper bound at some time t.
 type Memory<T> = (T, T);
@@ -36,7 +37,7 @@ impl<'a, T> Online<HomProblem<'a, T>> {
         );
         opt.set_lower_bound(0.).unwrap();
         opt.set_upper_bound(self.p.m as f64).unwrap();
-        opt.set_xtol_rel(1e-6).unwrap();
+        opt.set_xtol_rel(PRECISION).unwrap();
 
         opt.optimize(&mut xs).unwrap();
         xs
@@ -62,7 +63,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
     fn lower_bound(&self) -> f64 {
         let objective_function =
             |xs: &[f64],
-             _gradient: Option<&mut [f64]>,
+             _: Option<&mut [f64]>,
              p: &mut &ContinuousHomProblem<'a>|
              -> f64 { p.objective_function(&xs.to_vec()) };
 
@@ -73,7 +74,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
     fn upper_bound(&self) -> f64 {
         let objective_function =
             |xs: &[f64],
-             _gradient: Option<&mut [f64]>,
+             _: Option<&mut [f64]>,
              p: &mut &ContinuousHomProblem<'a>|
              -> f64 { p.inverted_objective_function(&xs.to_vec()) };
 
@@ -101,7 +102,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
     fn lower_bound(&self) -> i32 {
         let objective_function =
             |xs: &[f64],
-             _gradient: Option<&mut [f64]>,
+             _: Option<&mut [f64]>,
              p: &mut &DiscreteHomProblem<'a>|
              -> f64 { p.objective_function(&xs.to_vec().to_i()) };
 
@@ -111,7 +112,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
 
     fn upper_bound(&self) -> i32 {
         let objective_function = |xs: &[f64],
-                                  _gradient: Option<&mut [f64]>,
+                                  _: Option<&mut [f64]>,
                                   p: &mut &DiscreteHomProblem<'a>|
          -> f64 {
             p.inverted_objective_function(&xs.to_vec().to_i())
