@@ -24,8 +24,8 @@
 | Variant | Heterogeneous? | Discrete? | Deterministic? | Memoryless? | Optimal Competitiveness |
 | ------- | -------------- | --------- | -------------- | ----------- | ----------------------- |
 | 1       | ❌             | ❌        | ✅             | ✅          | 3-competitive           |
-| 1/2/3   | ❌             | ❌        | ✅             | ❌          | 2-competitive           |
-| 1/2/3   | ❌             | ✅        | ✅             | ❌          | 3-competitive           |
+| 1, 2, 3 | ❌             | ❌        | ✅             | ❌          | 2-competitive           |
+| 1, 2, 3 | ❌             | ✅        | ✅             | ❌          | 3-competitive           |
 
 ### References
 
