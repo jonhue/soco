@@ -10,8 +10,9 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
     /// Deterministic Online Algorithm
     pub fn bansal(
         &self,
-        xs: &ContinuousSchedule,
+        _: &ContinuousSchedule,
         _: &Vec<Memory>,
     ) -> OnlineSolution<f64, Memory> {
+        (0., ())
     }
 }
