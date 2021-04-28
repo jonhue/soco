@@ -27,7 +27,7 @@ impl<'a> ContinuousHomProblem<'a> {
         for t in 1..=self.t_end {
             let prev_x = faccess(xs, t - 2);
             let x = faccess(xs, t - 1);
-            cost += (self.f)(t, x).expect("f should be total on its domain")
+            cost += (self.f)(t, x).unwrap()
                 + self.beta
                     * fpos(if inverted { prev_x - x } else { x - prev_x })
                         as f64;
@@ -57,7 +57,7 @@ impl<'a> DiscreteHomProblem<'a> {
         for t in 1..=self.t_end {
             let prev_x = iaccess(xs, t - 2);
             let x = iaccess(xs, t - 1);
-            cost += (self.f)(t, x).expect("f should be total on its domain")
+            cost += (self.f)(t, x).unwrap()
                 + self.beta
                     * ipos(if inverted { prev_x - x } else { x - prev_x })
                         as f64;

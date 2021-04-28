@@ -50,9 +50,7 @@ impl<'a> DiscreteHomProblem<'a> {
             } else {
                 Some(
                     x as f64
-                        * ((self.f)(t, self.m)
-                            .expect("f should be total on its domain")
-                            + std::f64::EPSILON),
+                        * ((self.f)(t, self.m).unwrap() + std::f64::EPSILON),
                 )
             }
         });
@@ -91,10 +89,7 @@ impl<'a> DiscreteHomProblem<'a> {
     }
 
     fn build_cost(&self, t: i32, i: i32, j: i32) -> Cost {
-        OrderedFloat(
-            self.beta * ipos(j - i) as f64
-                + (self.f)(t, j).expect("f should be total on its domain"),
-        )
+        OrderedFloat(self.beta * ipos(j - i) as f64 + (self.f)(t, j).unwrap())
     }
 
     fn find_schedule(

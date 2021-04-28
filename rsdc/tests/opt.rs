@@ -26,7 +26,7 @@ fn transform1() {
     for t in 1..=transformed_p.t_end {
         for j in 0..=transformed_p.m {
             assert_eq!(
-                (transformed_p.f)(t, j).expect(""),
+                (transformed_p.f)(t, j).unwrap(),
                 if j <= p.m {
                     1.
                 } else {
