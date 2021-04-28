@@ -44,8 +44,8 @@ impl<'a, T> Online<HomProblem<'a, T>> {
 }
 
 impl<'a> Online<ContinuousHomProblem<'a>> {
-    /// (Continuous) Lazy Capacity Provisioning
-    pub fn lcp(
+    /// (Continuous) Extended Lazy Capacity Provisioning
+    pub fn elcp(
         &self,
         xs: &ContinuousSchedule,
         _: &Vec<Memory<f64>>,
