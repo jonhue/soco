@@ -27,7 +27,11 @@ fn transform1() {
         for j in 0..=transformed_p.m {
             assert_eq!(
                 (transformed_p.f)(t, j).expect(""),
-                if j <= p.m { 1. } else { j as f64 * 2. },
+                if j <= p.m {
+                    1.
+                } else {
+                    j as f64 * (1. + std::f64::EPSILON)
+                },
                 "f is wrongly defined for t={}, j={}",
                 t,
                 j
