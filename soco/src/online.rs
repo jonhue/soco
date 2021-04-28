@@ -60,7 +60,7 @@ where
     /// * `alg` - Online algorithm to stream.
     /// * `t_end` - Finite time horizon.
     pub fn offline_stream<U>(
-        &self,
+        &'a self,
         alg: impl Fn(
             &Online<HomProblem<'a, T>>,
             &Schedule<T>,
@@ -75,7 +75,7 @@ where
                     p: HomProblem {
                         m: o.p.m,
                         t_end: o.p.t_end + 1,
-                        f: Box::new(|_, _| Some(1.)), // TODO: copy f
+                        f: Box::new(|t, j| (self.p.f)(t, j)),
                         beta: o.p.beta,
                     },
                 })
