@@ -176,7 +176,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "rsdc"
+name = "soco"
 version = "0.1.0"
 dependencies = [
  "nlopt",

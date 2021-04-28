@@ -1,19 +1,12 @@
 [package]
-name = "rsdc"
-description = "Implementation of Algorithms for Right-Sizing Data Centers"
+name = "soco"
+description = "Algorithms for Smoothed Online Convex Optimization"
 version = "0.1.0"
 authors = ["Jonas Hübotter <jonas.huebotter@gmail.com>"]
 edition = "2018"
 license = "MIT"
 homepage = "https://jonhue.github.io/bachelors-thesis"
 repository = "https://github.com/jonhue/bachelors-thesis"
-exclude = [
-    ".github/*",
-    "dist/*",
-    "scripts/*",
-    "*.bib",
-    "*.tex",
-]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
