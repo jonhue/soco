@@ -10,15 +10,15 @@ use crate::schedule::ExtendedSchedule;
 use crate::utils::{fproject, frac};
 
 /// Continuous number of servers as determined by `bansal`; memory of `bansal`.
-type Memory = (f64, BansalMemory);
+type Memory<'a> = (f64, BansalMemory<'a>);
 
 impl<'a> Online<DiscreteHomProblem<'a>> {
     /// Discrete Randomized Online Algorithm
     pub fn irand(
         &self,
         xs: &DiscreteSchedule,
-        ms: &Vec<Memory>,
-    ) -> OnlineSolution<i32, Memory> {
+        ms: &Vec<Memory<'a>>,
+    ) -> OnlineSolution<i32, Memory<'a>> {
         let bansal_ms = ms.iter().map(|&m| m.1).collect();
         let (y, bansal_m) = self.to_f().bansal(&xs.to_f(), &bansal_ms);
 

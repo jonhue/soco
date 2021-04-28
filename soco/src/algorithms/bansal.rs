@@ -12,20 +12,21 @@ use crate::problem::{
 };
 use crate::PRECISION;
 
+/// Probability distribution over the number of servers.
+pub type Memory<'a> = Box<dyn Fn(f64) -> f64 + 'a>;
+
 static STEP_SIZE: f64 = 1e-16;
 
 impl<'a> Online<ContinuousHomProblem<'a>> {
     /// Deterministic Online Algorithm
-    ///
-    /// * `ps` - Sequence of probability distributions over the number of servers for each time t.
     pub fn bansal(
         &self,
         xs: &ContinuousSchedule,
-        ps: &Vec<impl Fn(f64) -> f64>,
-    ) -> OnlineSolution<f64, impl Fn(f64) -> f64> {
+        ps: &Vec<Memory<'a>>,
+    ) -> OnlineSolution<f64, Memory<'a>> {
         let t = xs.len() as i32 + 1;
         let prev_p = if ps.is_empty() {
-            |j: f64| if j == 0. { 1. } else { 0. }
+            Box::new(|j: f64| if j == 0. { 1. } else { 0. })
         } else {
             ps[ps.len() - 1]
         };
@@ -75,7 +76,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         opt.optimize(&mut xs).unwrap();
         let x_m = xs[0];
 
-        (1., prev_p.unwrap())
+        // (1., prev_p)
     }
 
     /// Memoryless Deterministic Online Algorithm
