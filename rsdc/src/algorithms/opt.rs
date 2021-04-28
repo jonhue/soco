@@ -14,9 +14,6 @@ type Cost = OrderedFloat<f64>;
 /// Maps a vertice to all its neighbors with some cost.
 type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
 
-/// Epsilon.
-static EPS: f64 = 1.;
-
 impl<'a> DiscreteHomProblem<'a> {
     /// Optimal Discrete Deterministic Polynomial-Time Offline Algorithm
     pub fn iopt(&'a self) -> (DiscreteSchedule, Cost) {
@@ -55,7 +52,7 @@ impl<'a> DiscreteHomProblem<'a> {
                     x as f64
                         * ((self.f)(t, self.m)
                             .expect("f should be total on its domain")
-                            + EPS),
+                            + std::f64::EPSILON),
                 )
             }
         });
