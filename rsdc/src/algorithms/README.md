@@ -9,7 +9,7 @@
 | [Deterministic Online Algorithm](bansal.rs) [2]             | `bansal`  | 1       | ❌             | ❌        | ✅      | ✅      | 2-competitive    | ?            |
 | [Discrete Randomized Online Algorithm](rand.rs) [3]         | `irand`   | 1       | ❌             | ✅        | ✅      | ✅      | 2-competitive    | ?            |
 
-\* If online, the competitive ratio describes how much worse the algorithm performs to an optimal offline algorithm in the worst case.
+\* If online, the competitive ratio describes how much worse the algorithm performs compared to an optimal offline algorithm in the worst case.
 
 \*\* If online, complexity is with respect to one iteration of the algorithm.
 
