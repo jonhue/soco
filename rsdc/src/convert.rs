@@ -1,6 +1,8 @@
 //! Functions to convert between problem instances.
 
-use crate::problem::{ContinuousHomProblem, DiscreteHomProblem, HomProblem};
+use crate::problem::{
+    ContinuousHomProblem, DiscreteHomProblem, HomProblem, Online,
+};
 
 impl<'a> ContinuousHomProblem<'a> {
     /// Converts a continuous problem instance to a discrete one.
@@ -37,6 +39,26 @@ impl<'a> DiscreteHomProblem<'a> {
                     )
                 }
             }),
+        }
+    }
+}
+
+impl<'a> Online<ContinuousHomProblem<'a>> {
+    /// Converts a continuous online problem instance to a discrete one.
+    pub fn to_i(&'a self) -> Online<DiscreteHomProblem<'a>> {
+        Online {
+            w: self.w,
+            p: self.p.to_i(),
+        }
+    }
+}
+
+impl<'a> Online<DiscreteHomProblem<'a>> {
+    /// Converts a discrete online problem instance to a continuous one.
+    pub fn to_f(&'a self) -> Online<ContinuousHomProblem<'a>> {
+        Online {
+            w: self.w,
+            p: self.p.to_f(),
         }
     }
 }

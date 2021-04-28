@@ -2,6 +2,11 @@
 
 use std::cmp::{max, min};
 
+/// Returns the fractional part of a float.
+pub fn frac(x: f64) -> f64 {
+    x - x.floor()
+}
+
 /// max{0, x}
 pub fn ipos(x: i32) -> i32 {
     max(0, x)

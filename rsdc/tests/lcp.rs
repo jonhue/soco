@@ -5,7 +5,7 @@ use rsdc::schedule::DiscretizableSchedule;
 use rsdc::verifiers::VerifiableSchedule;
 
 #[test]
-fn lcp1() {
+fn elcp1() {
     let p = HomProblem {
         m: 2,
         t_end: 1,
@@ -15,14 +15,14 @@ fn lcp1() {
     let o = Online { p, w: 0 };
     o.verify();
 
-    let result = o.stream(Online::lcp, |_, _, _| None);
+    let result = o.stream(Online::elcp, |_, _, _| None);
     result.0.verify(o.p.m, o.p.t_end);
 
     assert_eq!(result.0.to_i(), vec![0]);
 }
 
 #[test]
-fn lcp2() {
+fn elcp2() {
     let p = HomProblem {
         m: 2,
         t_end: 1,
@@ -33,7 +33,7 @@ fn lcp2() {
     o.verify();
 
     let t_end = 2;
-    let result = o.offline_stream(Online::lcp, t_end);
+    let result = o.offline_stream(Online::elcp, t_end);
     result.0.verify(o.p.m, t_end);
 
     assert_eq!(result.0.to_i(), vec![0, 0]);
