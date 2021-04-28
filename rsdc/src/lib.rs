@@ -1,5 +1,7 @@
 #![allow(clippy::ptr_arg)]
 
+pub static PRECISION: f64 = 1e-6;
+
 pub mod algorithms;
 pub mod analysis;
 pub mod convert;
