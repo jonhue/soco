@@ -29,7 +29,14 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
             ps[ps.len() - 1]
         };
 
-        // Determine minimizer of `f` with a convex optimization.
+        let x_m = self.find_minimizer(t);
+        let x_r = self.find_right_bound(t, prev_p, x_m);
+
+        // (1., prev_p)
+    }
+
+    /// Determines minimizer of `f` with a convex optimization.
+    fn find_minimizer(&self, t: i32) -> f64 {
         let objective_function =
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
                 (self.p.f)(t, xs[0]).unwrap()
@@ -46,9 +53,11 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         opt.set_upper_bound(self.p.m as f64).unwrap();
         opt.set_xtol_rel(PRECISION).unwrap();
         opt.optimize(&mut xs).unwrap();
-        let x_m = xs[0];
+        xs[0]
+    }
 
-        // Determine `x_r` with a convex optimization.
+    /// Determines `x_r` with a convex optimization.
+    fn find_right_bound(&self, t: i32, prev_p: Memory<'a>, x_m: f64) -> f64 {
         let objective_function =
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 { xs[0] };
         let mut xs = [x_m];
@@ -85,8 +94,6 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         )
         .unwrap();
         opt.optimize(&mut xs).unwrap();
-        let x_m = xs[0];
-
-        // (1., prev_p)
+        xs[0]
     }
 }
