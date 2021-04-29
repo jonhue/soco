@@ -1,10 +1,10 @@
 use rand::{thread_rng, Rng};
 
 use crate::algorithms::bansal::det::Memory as RandMemory;
-use crate::problem::{
-    ContinuousHomProblem, DiscreteSchedule, Online, OnlineSolution,
-};
-use crate::schedule::ExtendedSchedule;
+use crate::online::{Online, OnlineSolution};
+use crate::problem::ContinuousHomProblem;
+use crate::result::Result;
+use crate::schedule::{DiscreteSchedule, ExtendedSchedule};
 use crate::utils::{fproject, frac};
 
 /// Continuous number of servers as determined by `bansal`; memory of `bansal`.
@@ -18,9 +18,9 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         &'a self,
         xs: &DiscreteSchedule,
         ms: &Vec<Memory<'a>>,
-    ) -> OnlineSolution<i32, Memory<'a>> {
+    ) -> Result<OnlineSolution<i32, Memory<'a>>> {
         let det_ms = ms.iter().map(|m| m.1.clone()).collect();
-        let (y, det_m) = self.det(&xs.to_f(), &det_ms);
+        let (y, det_m) = self.det(&xs.to_f(), &det_ms)?;
 
         let prev_x = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
         let prev_y = if ms.is_empty() {
@@ -31,7 +31,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
 
         let x = next(prev_x, prev_y, y);
 
-        (x, (y, det_m))
+        Ok((x, (y, det_m)))
     }
 }
 

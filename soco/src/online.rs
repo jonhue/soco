@@ -1,6 +1,22 @@
 //! Helper functions for simulating online problems.
 
-use crate::problem::{HomProblem, Online, OnlineSolution, Schedule};
+use crate::problem::HomProblem;
+use crate::result::Result;
+use crate::schedule::Schedule;
+
+/// Online instance of a problem.
+pub struct Online<T> {
+    /// Problem.
+    pub p: T,
+    /// Finite, non-negative prediction window.
+    pub w: i32,
+}
+
+/// Solution fragment at some time t to an online problem.
+///
+/// * `T` - Number of servers at time t.
+/// * `U` - Memory.
+pub type OnlineSolution<T, U> = (T, U);
 
 impl<'a, T> Online<HomProblem<'a, T>>
 where
@@ -19,9 +35,9 @@ where
             &Online<HomProblem<'a, T>>,
             &Schedule<V>,
             &Vec<U>,
-        ) -> OnlineSolution<V, U>,
+        ) -> Result<OnlineSolution<V, U>>,
         next: impl Fn(&mut Online<HomProblem<'a, T>>, &Schedule<V>, &Vec<U>) -> bool,
-    ) -> (Schedule<V>, Vec<U>) {
+    ) -> Result<(Schedule<V>, Vec<U>)> {
         let mut xs = vec![];
         let mut ms = vec![];
 
@@ -31,7 +47,7 @@ where
                 "online problem must contain precisely the information for the next iteration"
             );
 
-            let (i, m) = alg(self, &xs, &ms);
+            let (i, m) = alg(self, &xs, &ms)?;
             xs.push(i);
             ms.push(m);
             if !next(self, &xs, &ms) {
@@ -39,7 +55,7 @@ where
             };
         }
 
-        (xs, ms)
+        Ok((xs, ms))
     }
 
     /// Utility to stream an online algorithm with a constant cost function.
@@ -55,9 +71,9 @@ where
             &Online<HomProblem<'a, T>>,
             &Schedule<V>,
             &Vec<U>,
-        ) -> OnlineSolution<V, U>,
+        ) -> Result<OnlineSolution<V, U>>,
         t_end: i32,
-    ) -> (Schedule<V>, Vec<U>) {
+    ) -> Result<(Schedule<V>, Vec<U>)> {
         self.stream(alg, |o, _, _| {
             if o.p.t_end < t_end as i32 {
                 o.p.t_end += 1;

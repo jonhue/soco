@@ -1,9 +1,8 @@
 //! Functions to check that values satisfy the imposed constraints.
 
-use crate::problem::{
-    ContinuousHomProblem, ContinuousSchedule, DiscreteHomProblem,
-    DiscreteSchedule, Online,
-};
+use crate::online::Online;
+use crate::problem::{ContinuousHomProblem, DiscreteHomProblem};
+use crate::schedule::{ContinuousSchedule, DiscreteSchedule};
 
 pub trait VerifiableProblem {
     fn verify(&self);
