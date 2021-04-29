@@ -13,12 +13,12 @@ type Memory<'a> = (f64, BansalMemory<'a>);
 impl<'a> Online<DiscreteHomProblem<'a>> {
     /// Discrete Randomized Online Algorithm
     pub fn irand(
-        &self,
+        &'a self,
         xs: &DiscreteSchedule,
         ms: &Vec<Memory<'a>>,
     ) -> OnlineSolution<i32, Memory<'a>> {
         let bansal_ms = ms.iter().map(|&m| m.1).collect();
-        let (y, bansal_m) = self.to_f().bansal(&xs.to_f(), &bansal_ms);
+        let (y, bansal_m) = self.to_f().rand(&xs.to_f(), &bansal_ms);
 
         let prev_x = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
         let prev_y = if ms.is_empty() {

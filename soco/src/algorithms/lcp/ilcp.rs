@@ -1,8 +1,7 @@
 //! Lazy Capacity Provisioning
 
 use crate::problem::{
-    DiscreteHomProblem,
-    DiscreteSchedule, Online, OnlineSolution,
+    DiscreteHomProblem, DiscreteSchedule, Online, OnlineSolution,
 };
 use crate::schedule::DiscretizableSchedule;
 use crate::utils::iproject;

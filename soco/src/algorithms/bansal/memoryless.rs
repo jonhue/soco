@@ -9,7 +9,7 @@ use crate::PRECISION;
 
 impl<'a> Online<ContinuousHomProblem<'a>> {
     /// Memoryless Deterministic Online Algorithm
-    pub fn mbansal(
+    pub fn memoryless(
         &self,
         xs: &ContinuousSchedule,
         _: &Vec<()>,
@@ -17,7 +17,12 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         let t = xs.len() as i32 + 1;
         let prev_x = if xs.is_empty() { 0. } else { xs[xs.len() - 1] };
 
-        // Determine `x` with a convex optimization.
+        let x = self.next(t, prev_x);
+        (x, ())
+    }
+
+    /// Determines next `x` with a convex optimization.
+    fn next(&self, t: i32, prev_x: f64) -> f64 {
         let objective_function =
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
                 (self.p.f)(t, xs[0]).unwrap()
@@ -42,8 +47,6 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         )
         .unwrap();
         opt.optimize(&mut xs).unwrap();
-        let x = xs[0];
-
-        (x, ())
+        xs[0]
     }
 }

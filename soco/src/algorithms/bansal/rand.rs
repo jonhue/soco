@@ -17,7 +17,7 @@ static STEP_SIZE: f64 = 1e-16;
 
 impl<'a> Online<ContinuousHomProblem<'a>> {
     /// Randomized Online Algorithm
-    pub fn bansal(
+    pub fn rand(
         &self,
         xs: &ContinuousSchedule,
         ps: &Vec<Memory<'a>>,
