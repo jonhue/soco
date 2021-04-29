@@ -3,6 +3,7 @@
 use ordered_float::OrderedFloat;
 use pathfinding::directed::dijkstra::dijkstra;
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use crate::problem::{DiscreteHomProblem, DiscreteSchedule, HomProblem};
 use crate::utils::{ipos, is_2pow};
@@ -44,7 +45,7 @@ impl<'a> DiscreteHomProblem<'a> {
     /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `iopt`.
     pub fn transform(&'a self) -> DiscreteHomProblem<'a> {
         let m = 2_i32.pow((self.m as f64).log(2.).ceil() as u32);
-        let f = Box::new(move |t, x| {
+        let f = Arc::new(move |t, x| {
             if x <= self.m {
                 (self.f)(t, x)
             } else {

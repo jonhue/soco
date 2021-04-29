@@ -1,5 +1,7 @@
 //! Functions to convert between problem instances.
 
+use std::sync::Arc;
+
 use crate::problem::{
     ContinuousHomProblem, DiscreteHomProblem, HomProblem, Online,
 };
@@ -11,7 +13,7 @@ impl<'a> ContinuousHomProblem<'a> {
             m: self.m,
             t_end: self.t_end,
             beta: self.beta,
-            f: Box::new(move |t, j: i32| (self.f)(t, j as f64)),
+            f: Arc::new(move |t, j: i32| (self.f)(t, j as f64)),
         }
     }
 }
@@ -23,7 +25,7 @@ impl<'a> DiscreteHomProblem<'a> {
             m: self.m,
             t_end: self.t_end,
             beta: self.beta,
-            f: Box::new(move |t, j: f64| {
+            f: Arc::new(move |t, j: f64| {
                 if j.fract() == 0. {
                     (self.f)(t, j as i32)
                 } else {
