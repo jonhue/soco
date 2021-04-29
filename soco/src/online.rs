@@ -13,15 +13,15 @@ where
     /// * `U` - Memory.
     /// * `alg` - Online algorithm to stream.
     /// * `next` - Callback that in each iteration updates the problem instance. Return `true` to continue stream, `false` to end stream.
-    pub fn stream<U>(
+    pub fn stream<U, V>(
         &mut self,
         alg: impl Fn(
             &Online<HomProblem<'a, T>>,
-            &Schedule<T>,
+            &Schedule<V>,
             &Vec<U>,
-        ) -> OnlineSolution<T, U>,
-        next: impl Fn(&mut Online<HomProblem<'a, T>>, &Schedule<T>, &Vec<U>) -> bool,
-    ) -> (Schedule<T>, Vec<U>) {
+        ) -> OnlineSolution<V, U>,
+        next: impl Fn(&mut Online<HomProblem<'a, T>>, &Schedule<V>, &Vec<U>) -> bool,
+    ) -> (Schedule<V>, Vec<U>) {
         let mut xs = vec![];
         let mut ms = vec![];
 
@@ -49,15 +49,15 @@ where
     /// * `U` - Memory.
     /// * `alg` - Online algorithm to stream.
     /// * `t_end` - Finite time horizon.
-    pub fn offline_stream<U>(
+    pub fn offline_stream<U, V>(
         &mut self,
         alg: impl Fn(
             &Online<HomProblem<'a, T>>,
-            &Schedule<T>,
+            &Schedule<V>,
             &Vec<U>,
-        ) -> OnlineSolution<T, U>,
+        ) -> OnlineSolution<V, U>,
         t_end: i32,
-    ) -> (Schedule<T>, Vec<U>) {
+    ) -> (Schedule<V>, Vec<U>) {
         self.stream(alg, |o, _, _| {
             if o.p.t_end < t_end as i32 {
                 o.p.t_end += 1;
