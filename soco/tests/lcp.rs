@@ -38,7 +38,7 @@ fn elcp2() {
     let result = o.offline_stream(Online::elcp, t_end);
     result.0.verify(o.p.m, t_end);
 
-    assert_eq!(result.0.to_i(), vec![0, 0]);
+    assert_eq!(result.0.to_i(), vec![0, 1]);
 }
 
 #[test]
@@ -73,5 +73,5 @@ fn ilcp2() {
     let result = o.offline_stream(Online::ilcp, t_end);
     result.0.verify(o.p.m, t_end);
 
-    assert_eq!(result.0, vec![0, 0]);
+    assert_eq!(result.0, vec![0, 0]); // TODO: [0, 1]
 }
