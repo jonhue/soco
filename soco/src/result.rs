@@ -3,7 +3,7 @@
 #[derive(Debug)]
 pub enum Error {
     CostFnMustBeTotal,
-    NLOpt(nlopt::FailState),
+    NlOpt(nlopt::FailState),
     Other(String),
 }
 
@@ -15,13 +15,13 @@ impl From<String> for Error {
 
 impl From<nlopt::FailState> for Error {
     fn from(error: nlopt::FailState) -> Self {
-        Error::NLOpt(error)
+        Error::NlOpt(error)
     }
 }
 
 impl From<(nlopt::FailState, f64)> for Error {
     fn from(error: (nlopt::FailState, f64)) -> Self {
-        Error::NLOpt(error.0)
+        Error::NlOpt(error.0)
     }
 }
 
