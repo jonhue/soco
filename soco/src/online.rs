@@ -60,8 +60,7 @@ where
     ) -> (Schedule<T>, Vec<U>) {
         self.stream(alg, |o, _, _| {
             if o.p.t_end < t_end as i32 {
-                let t = o.p.t_end + 1;
-                o.p.t_end = t;
+                o.p.t_end = o.p.t_end + 1;
                 true
             } else {
                 false
