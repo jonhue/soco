@@ -4,7 +4,7 @@
 | ------------------------------------------------ | ------- | -------------- | --------- | ------- | ---------------- | ------------ |
 | [`offline::iopt`](offline/iopt.rs) [3]           | 1       | ❌             | ✅        | ❌      |                  | O(T log m)   |
 | [`lcp::ilcp`](lcp/ilcp.rs) [3]                   | 1       | ❌             | ✅        | ✅      | 3-competitive    | ?            |
-| [`lcp::elcp`](lcp/elcp.rs) [*]                   | 1       | ❌             | ❌        | ✅      | 3-competitive    | ?            |
+| [`lcp::elcp`](lcp/elcp.rs) [3]                   | 1       | ❌             | ❌        | ✅      | 3-competitive    | ?            |
 | [`bansal::memoryless`](bansal/memoryless.rs) [2] | 1       | ❌             | ❌        | ✅      | 3-competitive    | ?            |
 | [`bansal::det`](bansal/det.rs) [2]               | 1       | ❌             | ❌        | ✅      | 2-competitive    | ?            |
 | [`bansal::irand`](bansal/irand.rs) [3]           | 1       | ❌             | ✅        | ✅      | 2-competitive    | ?            |
@@ -17,7 +17,7 @@
 
 1. The most relaxed version of the problem as used by [2] and [3]. Here, the convex cost functions `f_t` arrive over time.
 2. A more restricted version of the problem used by [1] where workloads arrive over time and the convex cost function `f` remains fixed.
-3. Adding a prediction window of length `w` where `w` is constant in independent of `T`. Described by [1] and [3].
+3. Adding a prediction window of length `w` where `w` is constant and independent of `T`. Described by [1] and [3].
 
 ### Optimal Competitiveness
 
