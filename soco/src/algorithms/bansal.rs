@@ -28,8 +28,9 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         xs: &ContinuousSchedule,
         _: &Vec<()>,
     ) -> OnlineSolution<f64, ()> {
+        let t = xs.len() as i32 + 1;
         let prev_x = if xs.is_empty() { 0. } else { xs[xs.len() - 1] };
-        let f = |j: f64| (self.p.f)(xs.len() as i32 + 1, j).unwrap();
+        let f = |j: f64| (self.p.f)(t, j).unwrap();
         let constraint =
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
                 (xs[0] - prev_x).abs() - f(xs[0]) / 2.

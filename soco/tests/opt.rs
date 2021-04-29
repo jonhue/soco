@@ -3,6 +3,7 @@
 use ordered_float::OrderedFloat;
 use rand::prelude::*;
 use rand_pcg::Pcg64;
+use std::sync::Arc;
 
 use soco::problem::HomProblem;
 use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
@@ -12,7 +13,7 @@ fn transform1() {
     let p = HomProblem {
         m: 103,
         t_end: 1_000,
-        f: Box::new(|_, _| Some(1.)),
+        f: Arc::new(|_, _| Some(1.)),
         beta: 1.,
     };
     p.verify();
@@ -45,7 +46,7 @@ fn iopt1() {
     let p = HomProblem {
         m: 2,
         t_end: 2,
-        f: Box::new(|t, j| Some(t as f64 * (if j == 0 { 1. } else { 0. }))),
+        f: Arc::new(|t, j| Some(t as f64 * (if j == 0 { 1. } else { 0. }))),
         beta: 1.,
     };
     p.verify();
@@ -62,7 +63,7 @@ fn iopt2() {
     let p = HomProblem {
         m: 8,
         t_end: 100,
-        f: Box::new(|t, j| {
+        f: Arc::new(|t, j| {
             Some(
                 Pcg64::seed_from_u64((t * j) as u64).gen_range(0.0..1_000_000.),
             )
@@ -82,7 +83,7 @@ fn iopt3() {
     let p = HomProblem {
         m: 9,
         t_end: 1_000,
-        f: Box::new(|t, j| {
+        f: Arc::new(|t, j| {
             Some(
                 Pcg64::seed_from_u64((t * j) as u64).gen_range(0.0..1_000_000.),
             )

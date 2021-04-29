@@ -12,47 +12,37 @@ where
     ///
     /// * `U` - Memory.
     /// * `alg` - Online algorithm to stream.
-    /// * `next` - Callback that in each iteration returns the next problem instance. Return `None` to end stream.
+    /// * `next` - Callback that in each iteration updates the problem instance. Return `true` to continue stream, `false` to end stream.
     pub fn stream<U>(
-        &self,
+        &mut self,
         alg: impl Fn(
             &Online<HomProblem<'a, T>>,
             &Schedule<T>,
             &Vec<U>,
         ) -> OnlineSolution<T, U>,
-        next: impl Fn(
-            &Online<HomProblem<'a, T>>,
-            &Schedule<T>,
-            &Vec<U>,
-        ) -> Option<Online<HomProblem<'a, T>>>,
+        next: impl Fn(&mut Online<HomProblem<'a, T>>, &Schedule<T>, &Vec<U>) -> bool,
     ) -> (Schedule<T>, Vec<U>) {
         let mut xs = vec![];
         let mut ms = vec![];
-        let mut o = self;
 
-        let mut tmp;
         loop {
             assert!(
-                o.p.t_end == o.w + xs.len() as i32 + 1,
+                self.p.t_end == self.w + xs.len() as i32 + 1,
                 "online problem must contain precisely the information for the next iteration"
             );
 
-            let (i, m) = alg(o, &xs, &ms);
+            let (i, m) = alg(self, &xs, &ms);
             xs.push(i);
             ms.push(m);
-            o = match next(o, &xs, &ms) {
-                None => break,
-                Some(o) => {
-                    tmp = o;
-                    &tmp
-                }
+            if !next(self, &xs, &ms) {
+                break;
             };
         }
 
         (xs, ms)
     }
 
-    /// Utility to stream an online algorithm with a predefined cost function.
+    /// Utility to stream an online algorithm with a constant cost function.
     ///
     /// Returns resulting schedule, memory of the algorithm.
     ///
@@ -60,7 +50,7 @@ where
     /// * `alg` - Online algorithm to stream.
     /// * `t_end` - Finite time horizon.
     pub fn offline_stream<U>(
-        &'a self,
+        &mut self,
         alg: impl Fn(
             &Online<HomProblem<'a, T>>,
             &Schedule<T>,
@@ -68,19 +58,13 @@ where
         ) -> OnlineSolution<T, U>,
         t_end: i32,
     ) -> (Schedule<T>, Vec<U>) {
-        self.stream(alg, |o, xs, _| {
-            if xs.len() < t_end as usize {
-                Some(Online {
-                    w: o.w,
-                    p: HomProblem {
-                        m: o.p.m,
-                        t_end: o.p.t_end + 1,
-                        f: Box::new(|t, j| (self.p.f)(t, j)),
-                        beta: o.p.beta,
-                    },
-                })
+        self.stream(alg, |o, _, _| {
+            if o.p.t_end < t_end as i32 {
+                let t = o.p.t_end + 1;
+                o.p.t_end = t;
+                true
             } else {
-                None
+                false
             }
         })
     }
