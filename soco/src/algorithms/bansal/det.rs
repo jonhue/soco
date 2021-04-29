@@ -171,6 +171,6 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
     }
 }
 
-fn expected_value<'a>(p: &Memory<'a>, a: f64, b: f64) -> f64 {
+fn expected_value(p: &Memory, a: f64, b: f64) -> f64 {
     integrate(a, b, |j: f64| j * p(j), PRECISION).unwrap()
 }
