@@ -27,8 +27,8 @@ jobs:
       with:
         command: test
         args: --manifest-path=soco/Cargo.toml
-    - name: Package
-      uses: actions-rs/cargo@v1
-      with:
-        command: package
-        args: --manifest-path=soco/Cargo.toml
+    # - name: Package
+    #   uses: actions-rs/cargo@v1
+    #   with:
+    #     command: package
+    #     args: --manifest-path=soco/Cargo.toml
