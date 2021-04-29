@@ -3,7 +3,9 @@ use pathfinding::directed::dijkstra::dijkstra;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::problem::{DiscreteHomProblem, DiscreteSchedule, HomProblem};
+use crate::problem::{DiscreteHomProblem, HomProblem};
+use crate::result::{Error, Result};
+use crate::schedule::DiscreteSchedule;
 use crate::utils::{ipos, is_2pow};
 
 /// Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
@@ -15,10 +17,10 @@ type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
 
 impl<'a> DiscreteHomProblem<'a> {
     /// Discrete Deterministic Offline Algorithm
-    pub fn iopt(&'a self) -> (DiscreteSchedule, Cost) {
+    pub fn iopt(&'a self) -> Result<(DiscreteSchedule, Cost)> {
         assert!(is_2pow(self.m), "#servers must be a power of 2, use transform() to generate a new problem instance");
 
-        let neighbors = self.build_neighbors();
+        let neighbors = self.build_neighbors()?;
 
         let k_init = if self.m > 2 {
             (self.m as f64).log(2.).floor() as u32 - 2
@@ -37,7 +39,7 @@ impl<'a> DiscreteHomProblem<'a> {
             }
         }
 
-        result
+        Ok(result)
     }
 
     /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `iopt`.
@@ -62,33 +64,39 @@ impl<'a> DiscreteHomProblem<'a> {
         }
     }
 
-    fn build_neighbors(&self) -> Neighbors {
+    fn build_neighbors(&self) -> Result<Neighbors> {
         let mut neighbors = HashMap::new();
-        neighbors.insert((0, 0), self.build_edges(0, 0));
+        neighbors.insert((0, 0), self.build_edges(0, 0)?);
         for t in 1..=self.t_end {
             for i in 0..self.m {
-                neighbors.insert((t, i), self.build_edges(t, i));
+                neighbors.insert((t, i), self.build_edges(t, i)?);
             }
         }
-        neighbors
+        Ok(neighbors)
     }
 
-    fn build_edges(&self, t: i32, i: i32) -> Vec<(Vertice, Cost)> {
+    fn build_edges(&self, t: i32, i: i32) -> Result<Vec<(Vertice, Cost)>> {
         if t == self.t_end {
-            vec![((self.t_end + 1, 0), OrderedFloat(0.))]
+            Ok(vec![((self.t_end + 1, 0), OrderedFloat(0.))])
         } else {
             vec![0; self.m as usize]
                 .iter()
                 .enumerate()
                 .map(|(j, _)| {
-                    ((t + 1, j as i32), self.build_cost(t + 1, i, j as i32))
+                    Ok((
+                        (t + 1, j as i32),
+                        self.build_cost(t + 1, i, j as i32)?,
+                    ))
                 })
                 .collect()
         }
     }
 
-    fn build_cost(&self, t: i32, i: i32, j: i32) -> Cost {
-        OrderedFloat(self.beta * ipos(j - i) as f64 + (self.f)(t, j).unwrap())
+    fn build_cost(&self, t: i32, i: i32, j: i32) -> Result<Cost> {
+        Ok(OrderedFloat(
+            self.beta * ipos(j - i) as f64
+                + (self.f)(t, j).ok_or(Error::CostFnMustBeTotal)?,
+        ))
     }
 
     fn find_schedule(

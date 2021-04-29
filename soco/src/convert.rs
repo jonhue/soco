@@ -2,9 +2,8 @@
 
 use std::sync::Arc;
 
-use crate::problem::{
-    ContinuousHomProblem, DiscreteHomProblem, HomProblem, Online,
-};
+use crate::online::Online;
+use crate::problem::{ContinuousHomProblem, DiscreteHomProblem, HomProblem};
 
 impl<'a> ContinuousHomProblem<'a> {
     /// Converts a continuous problem instance to a discrete one.

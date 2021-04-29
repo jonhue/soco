@@ -1,8 +1,9 @@
 //! Lazy Capacity Provisioning
 
-use crate::problem::{
-    ContinuousHomProblem, ContinuousSchedule, Online, OnlineSolution,
-};
+use crate::online::{Online, OnlineSolution};
+use crate::problem::ContinuousHomProblem;
+use crate::result::Result;
+use crate::schedule::ContinuousSchedule;
 use crate::utils::fproject;
 
 /// Lower and upper bound at some time t.
@@ -14,35 +15,36 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         &self,
         xs: &ContinuousSchedule,
         _: &Vec<Memory<f64>>,
-    ) -> OnlineSolution<f64, Memory<f64>> {
+    ) -> Result<OnlineSolution<f64, Memory<f64>>> {
         assert_eq!(self.w, 0);
 
         let i = if xs.is_empty() { 0. } else { xs[xs.len() - 1] };
-        let l = self.lower_bound();
-        let u = self.upper_bound();
+        let l = self.lower_bound()?;
+        let u = self.upper_bound()?;
         let j = fproject(i, l, u);
-        (j, (l, u))
+        Ok((j, (l, u)))
     }
 
-    fn lower_bound(&self) -> f64 {
+    fn lower_bound(&self) -> Result<f64> {
         let objective_function =
             |xs: &[f64],
              _: Option<&mut [f64]>,
              p: &mut &ContinuousHomProblem<'a>|
-             -> f64 { p.objective_function(&xs.to_vec()) };
+             -> f64 { p.objective_function(&xs.to_vec()).unwrap() };
 
-        let xs = self.past_opt(objective_function);
-        xs[xs.len() - 1]
+        let xs = self.past_opt(objective_function)?;
+        Ok(xs[xs.len() - 1])
     }
 
-    fn upper_bound(&self) -> f64 {
-        let objective_function =
-            |xs: &[f64],
-             _: Option<&mut [f64]>,
-             p: &mut &ContinuousHomProblem<'a>|
-             -> f64 { p.inverted_objective_function(&xs.to_vec()) };
+    fn upper_bound(&self) -> Result<f64> {
+        let objective_function = |xs: &[f64],
+                                  _: Option<&mut [f64]>,
+                                  p: &mut &ContinuousHomProblem<'a>|
+         -> f64 {
+            p.inverted_objective_function(&xs.to_vec()).unwrap()
+        };
 
-        let xs = self.past_opt(objective_function);
-        xs[xs.len() - 1]
+        let xs = self.past_opt(objective_function)?;
+        Ok(xs[xs.len() - 1])
     }
 }

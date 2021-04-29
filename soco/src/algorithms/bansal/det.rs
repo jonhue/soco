@@ -6,9 +6,10 @@ use nlopt::Target;
 use std::f64::{INFINITY, NEG_INFINITY};
 use std::sync::Arc;
 
-use crate::problem::{
-    ContinuousHomProblem, ContinuousSchedule, Online, OnlineSolution,
-};
+use crate::online::{Online, OnlineSolution};
+use crate::problem::ContinuousHomProblem;
+use crate::result::Result;
+use crate::schedule::ContinuousSchedule;
 use crate::PRECISION;
 
 /// Probability distribution over the number of servers.
@@ -22,7 +23,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         &'a self,
         xs: &ContinuousSchedule,
         ps: &Vec<Memory<'a>>,
-    ) -> OnlineSolution<f64, Memory<'a>> {
+    ) -> Result<OnlineSolution<f64, Memory<'a>>> {
         let t = xs.len() as i32 + 1;
         let prev_p = if ps.is_empty() {
             Arc::new(|j| if j == 0. { 1. } else { 0. })
@@ -30,9 +31,9 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
             ps[ps.len() - 1].clone()
         };
 
-        let x_m = self.find_minimizer(t);
-        let x_r = self.find_right_bound(t, &prev_p, x_m);
-        let x_l = self.find_left_bound(t, &prev_p, x_m);
+        let x_m = self.find_minimizer(t)?;
+        let x_r = self.find_right_bound(t, &prev_p, x_m)?;
+        let x_l = self.find_left_bound(t, &prev_p, x_m)?;
 
         let p: Arc<dyn Fn(f64) -> f64> = Arc::new(move |j| {
             if j >= x_l && j <= x_r {
@@ -47,12 +48,12 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
             }
         });
 
-        let x = expected_value(&p, x_l, x_r);
-        (x, p)
+        let x = expected_value(&p, x_l, x_r)?;
+        Ok((x, p))
     }
 
     /// Determines minimizer of `f` with a convex optimization.
-    fn find_minimizer(&self, t: i32) -> f64 {
+    fn find_minimizer(&self, t: i32) -> Result<f64> {
         let objective_function =
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
                 (self.p.f)(t, xs[0]).unwrap()
@@ -66,16 +67,21 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
             Target::Minimize,
             (),
         );
-        opt.set_lower_bound(0.).unwrap();
-        opt.set_upper_bound(self.p.m as f64).unwrap();
-        opt.set_xtol_rel(PRECISION).unwrap();
+        opt.set_lower_bound(0.)?;
+        opt.set_upper_bound(self.p.m as f64)?;
+        opt.set_xtol_rel(PRECISION)?;
 
-        opt.optimize(&mut xs).unwrap();
-        xs[0]
+        opt.optimize(&mut xs)?;
+        Ok(xs[0])
     }
 
     /// Determines `x_r` with a convex optimization.
-    fn find_right_bound(&self, t: i32, prev_p: &Memory<'a>, x_m: f64) -> f64 {
+    fn find_right_bound(
+        &self,
+        t: i32,
+        prev_p: &Memory<'a>,
+        x_m: f64,
+    ) -> Result<f64> {
         let objective_function =
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 { xs[0] };
         let mut xs = [x_m];
@@ -87,9 +93,9 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
             Target::Maximize,
             (),
         );
-        opt.set_lower_bound(0.).unwrap();
-        opt.set_upper_bound(self.p.m as f64).unwrap();
-        opt.set_xtol_rel(PRECISION).unwrap();
+        opt.set_lower_bound(0.)?;
+        opt.set_upper_bound(self.p.m as f64)?;
+        opt.set_xtol_rel(PRECISION)?;
 
         opt.add_equality_constraint(
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
@@ -113,15 +119,19 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
             },
             (),
             PRECISION,
-        )
-        .unwrap();
+        )?;
 
-        opt.optimize(&mut xs).unwrap();
-        xs[0]
+        opt.optimize(&mut xs)?;
+        Ok(xs[0])
     }
 
     /// Determines `x_l` with a convex optimization.
-    fn find_left_bound(&self, t: i32, prev_p: &Memory<'a>, x_m: f64) -> f64 {
+    fn find_left_bound(
+        &self,
+        t: i32,
+        prev_p: &Memory<'a>,
+        x_m: f64,
+    ) -> Result<f64> {
         let objective_function =
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 { xs[0] };
         let mut xs = [x_m];
@@ -133,9 +143,9 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
             Target::Minimize,
             (),
         );
-        opt.set_lower_bound(0.).unwrap();
-        opt.set_upper_bound(self.p.m as f64).unwrap();
-        opt.set_xtol_rel(PRECISION).unwrap();
+        opt.set_lower_bound(0.)?;
+        opt.set_upper_bound(self.p.m as f64)?;
+        opt.set_xtol_rel(PRECISION)?;
 
         opt.add_equality_constraint(
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
@@ -163,14 +173,13 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
             },
             (),
             PRECISION,
-        )
-        .unwrap();
+        )?;
 
-        opt.optimize(&mut xs).unwrap();
-        xs[0]
+        opt.optimize(&mut xs)?;
+        Ok(xs[0])
     }
 }
 
-fn expected_value(p: &Memory, a: f64, b: f64) -> f64 {
-    integrate(a, b, |j: f64| j * p(j), PRECISION).unwrap()
+fn expected_value(p: &Memory, a: f64, b: f64) -> Result<f64> {
+    Ok(integrate(a, b, |j: f64| j * p(j), PRECISION)?)
 }

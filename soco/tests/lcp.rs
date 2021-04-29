@@ -2,7 +2,8 @@
 
 use std::sync::Arc;
 
-use soco::problem::{HomProblem, Online};
+use soco::online::Online;
+use soco::problem::HomProblem;
 use soco::schedule::DiscretizableSchedule;
 use soco::verifiers::VerifiableSchedule;
 
@@ -17,7 +18,7 @@ fn elcp1() {
     let mut o = Online { p, w: 0 };
     o.verify();
 
-    let result = o.stream(Online::elcp, |_, _, _| false);
+    let result = o.stream(Online::elcp, |_, _, _| false).unwrap();
     result.0.verify(o.p.m, o.p.t_end);
 
     assert_eq!(result.0.to_i(), vec![0]);
@@ -35,7 +36,7 @@ fn elcp2() {
     o.verify();
 
     let t_end = 2;
-    let result = o.offline_stream(Online::elcp, t_end);
+    let result = o.offline_stream(Online::elcp, t_end).unwrap();
     result.0.verify(o.p.m, t_end);
 
     assert_eq!(result.0.to_i(), vec![0, 1]);
@@ -52,7 +53,7 @@ fn ilcp1() {
     let mut o = Online { p, w: 0 };
     o.verify();
 
-    let result = o.stream(Online::ilcp, |_, _, _| false);
+    let result = o.stream(Online::ilcp, |_, _, _| false).unwrap();
     result.0.verify(o.p.m, o.p.t_end);
 
     assert_eq!(result.0, vec![0]);
@@ -70,7 +71,7 @@ fn ilcp2() {
     o.verify();
 
     let t_end = 2;
-    let result = o.offline_stream(Online::ilcp, t_end);
+    let result = o.offline_stream(Online::ilcp, t_end).unwrap();
     result.0.verify(o.p.m, t_end);
 
     assert_eq!(result.0, vec![0, 0]); // TODO: [0, 1]

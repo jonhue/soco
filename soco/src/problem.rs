@@ -24,23 +24,3 @@ pub struct HomProblem<'a, T> {
 }
 pub type DiscreteHomProblem<'a> = HomProblem<'a, i32>;
 pub type ContinuousHomProblem<'a> = HomProblem<'a, f64>;
-
-/// Online instance of a problem.
-pub struct Online<T> {
-    /// Problem.
-    pub p: T,
-    /// Finite, non-negative prediction window.
-    pub w: i32,
-}
-
-/// Solution fragment at some time t to an online problem.
-///
-/// * `T` - Number of servers at time t.
-/// * `U` - Memory.
-pub type OnlineSolution<T, U> = (T, U);
-
-/// Result of the Homogeneous Data-Center Right-Sizing problem.
-/// Number of active servers from time 1 to time T.
-pub type Schedule<T> = Vec<T>;
-pub type DiscreteSchedule = Schedule<i32>;
-pub type ContinuousSchedule = Schedule<f64>;
