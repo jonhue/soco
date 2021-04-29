@@ -1,6 +1,6 @@
 use rand::{thread_rng, Rng};
 
-use crate::algorithms::bansal::rand::Memory as RandMemory;
+use crate::algorithms::bansal::det::Memory as RandMemory;
 use crate::problem::{
     DiscreteHomProblem, DiscreteSchedule, Online, OnlineSolution,
 };
@@ -17,8 +17,8 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
         xs: &DiscreteSchedule,
         ms: &Vec<Memory<'a>>,
     ) -> OnlineSolution<i32, Memory<'a>> {
-        let rand_ms = ms.iter().map(|m| m.clone().1).collect();
-        let (y, rand_m) = self.to_f().rand(&xs.to_f(), &rand_ms);
+        let det_ms = ms.iter().map(|m| m.clone().1).collect();
+        let (y, det_m) = self.to_f().det(&xs.to_f(), &det_ms);
 
         let prev_x = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
         let prev_y = if ms.is_empty() {
@@ -61,7 +61,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
             }
         };
 
-        (x, (y, rand_m))
+        (x, (y, det_m))
     }
 }
 

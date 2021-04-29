@@ -6,7 +6,7 @@
 | [`lcp::ilcp`](lcp/ilcp.rs) [3]                   | 1       | ❌             | ✅        | ✅      | 3-competitive    | ?            |
 | [`lcp::elcp`](lcp/elcp.rs) [*]                   | 1       | ❌             | ❌        | ✅      | 3-competitive    | ?            |
 | [`bansal::memoryless`](bansal/memoryless.rs) [2] | 1       | ❌             | ❌        | ✅      | 3-competitive    | ?            |
-| [`bansal::rand`](bansal/rand.rs) [2]             | 1       | ❌             | ❌        | ✅      | 2-competitive    | ?            |
+| [`bansal::det`](bansal/det.rs) [2]               | 1       | ❌             | ❌        | ✅      | 2-competitive    | ?            |
 | [`bansal::irand`](bansal/irand.rs) [3]           | 1       | ❌             | ✅        | ✅      | 2-competitive    | ?            |
 
 \* If online, the competitive ratio describes how much worse the algorithm performs compared to an optimal offline algorithm in the worst case.
