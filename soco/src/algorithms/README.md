@@ -1,13 +1,13 @@
 # List of Algorithms
 
-| Name                                                       | Abbrev.   | Variant | Heterogeneous? | Discrete? | Online? | Optimal? | Competitiveness* | Complexity** |
-| ---------------------------------------------------------- | --------- | ------- | -------------- | --------- | ------- | ------- | ---------------- | ------------ |
-| [Discrete Deterministic Offline Algorithm](opt.rs) [3]     | `iopt`    | 1       | ❌             | ✅        | ❌      | ✅      |                  | O(T log m)   |
-| [Discrete Lazy Capacity Provisioning](lcp.rs) [3]          | `ilcp`    | 1       | ❌             | ✅        | ✅      | ✅      | 3-competitive    | ?            |
-| [Extended Lazy Capacity Provisioning](lcp.rs) [3]          | `elcp`    | 1       | ❌             | ❌        | ✅      | ❌      | 3-competitive    | ?            |
-| [Memoryless Deterministic Online Algorithm](bansal.rs) [2] | `mbansal` | 1       | ❌             | ❌        | ✅      | ✅      | 3-competitive    | ?            |
-| [Deterministic Online Algorithm](bansal.rs) [2]            | `bansal`  | 1       | ❌             | ❌        | ✅      | ✅      | 2-competitive    | ?            |
-| [Discrete Randomized Online Algorithm](rand.rs) [3]        | `irand`   | 1       | ❌             | ✅        | ✅      | ✅      | 2-competitive    | ?            |
+| Name                                             | Variant | Heterogeneous? | Discrete? | Online? | Competitiveness* | Complexity** |
+| ------------------------------------------------ | ------- | -------------- | --------- | ------- | ---------------- | ------------ |
+| [`offline::iopt`](offline/iopt.rs) [3]           | 1       | ❌             | ✅        | ❌      |                  | O(T log m)   |
+| [`lcp::ilcp`](lcp/ilcp.rs) [3]                   | 1       | ❌             | ✅        | ✅      | 3-competitive    | ?            |
+| [`lcp::elcp`](lcp/elcp.rs) [*]                   | 1       | ❌             | ❌        | ✅      | 3-competitive    | ?            |
+| [`bansal::memoryless`](bansal/memoryless.rs) [2] | 1       | ❌             | ❌        | ✅      | 3-competitive    | ?            |
+| [`bansal::rand`](bansal/rand.rs) [2]             | 1       | ❌             | ❌        | ✅      | 2-competitive    | ?            |
+| [`bansal::irand`](bansal/irand.rs) [3]           | 1       | ❌             | ✅        | ✅      | 2-competitive    | ?            |
 
 \* If online, the competitive ratio describes how much worse the algorithm performs compared to an optimal offline algorithm in the worst case.
 

@@ -1,8 +1,6 @@
-//! Randomized Algorithms
-
 use rand::{thread_rng, Rng};
 
-use crate::algorithms::bansal::Memory as BansalMemory;
+use crate::algorithms::bansal::rand::Memory as BansalMemory;
 use crate::problem::{
     DiscreteHomProblem, DiscreteSchedule, Online, OnlineSolution,
 };

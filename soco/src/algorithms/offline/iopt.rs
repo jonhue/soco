@@ -1,5 +1,3 @@
-//! Optimal Offline Algorithms
-
 use ordered_float::OrderedFloat;
 use pathfinding::directed::dijkstra::dijkstra;
 use std::collections::HashMap;
