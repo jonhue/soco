@@ -1,6 +1,6 @@
 use rand::{thread_rng, Rng};
 
-use crate::algorithms::bansal::rand::Memory as BansalMemory;
+use crate::algorithms::bansal::rand::Memory as RandMemory;
 use crate::problem::{
     DiscreteHomProblem, DiscreteSchedule, Online, OnlineSolution,
 };
@@ -8,7 +8,7 @@ use crate::schedule::ExtendedSchedule;
 use crate::utils::{fproject, frac};
 
 /// Continuous number of servers as determined by `bansal`; memory of `bansal`.
-type Memory<'a> = (f64, BansalMemory<'a>);
+type Memory<'a> = (f64, RandMemory<'a>);
 
 impl<'a> Online<DiscreteHomProblem<'a>> {
     /// Discrete Randomized Online Algorithm
@@ -17,8 +17,8 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
         xs: &DiscreteSchedule,
         ms: &Vec<Memory<'a>>,
     ) -> OnlineSolution<i32, Memory<'a>> {
-        let bansal_ms = ms.iter().map(|&m| m.1).collect();
-        let (y, bansal_m) = self.to_f().rand(&xs.to_f(), &bansal_ms);
+        let rand_ms = ms.iter().map(|m| m.clone().1).collect();
+        let (y, rand_m) = self.to_f().rand(&xs.to_f(), &rand_ms);
 
         let prev_x = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
         let prev_y = if ms.is_empty() {
@@ -61,7 +61,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
             }
         };
 
-        (x, (y, bansal_m))
+        (x, (y, rand_m))
     }
 }
 

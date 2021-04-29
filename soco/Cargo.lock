@@ -18,8 +18,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "bacon-sci"
 version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5d568d86ec0ca7d24caa67afff9605bc5bc3cae2642d6670ea5924b839ccabc"
+source = "git+https://github.com/jonhue/bacon?branch=allow-closures-in-differentiation#200c6763b1e1ce5fe41c9886db304eb0edce0712"
 dependencies = [
  "nalgebra",
  "num-complex",
