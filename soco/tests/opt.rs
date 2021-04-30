@@ -94,7 +94,10 @@ fn iopt3() {
 
     let transformed_p = p.transform();
     let result = transformed_p.iopt().unwrap();
-    result.0.verify(transformed_p.m, transformed_p.t_end).unwrap();
+    result
+        .0
+        .verify(transformed_p.m, transformed_p.t_end)
+        .unwrap();
 
     assert_eq!(
         result.1,

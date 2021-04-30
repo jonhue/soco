@@ -19,9 +19,9 @@ impl<'a> VerifiableProblem for DiscreteHomProblem<'a> {
         for t in 1..=self.t_end {
             for j in 0..=self.m {
                 assert_validity(
-                    (self.f)(t, j).ok_or_else(|| invalid(
-                        "functions f must be total on their domain",
-                    ))? >= 0.,
+                    (self.f)(t, j).ok_or_else(|| {
+                        invalid("functions f must be total on their domain")
+                    })? >= 0.,
                     "functions f must be non-negative",
                 )?;
             }
@@ -40,9 +40,9 @@ impl<'a> VerifiableProblem for ContinuousHomProblem<'a> {
         for t in 1..=self.t_end {
             for j in 0..=self.m {
                 assert_validity(
-                    (self.f)(t, j as f64).ok_or_else(|| invalid(
-                        "functions f must be total on their domain",
-                    ))? >= 0.,
+                    (self.f)(t, j as f64).ok_or_else(|| {
+                        invalid("functions f must be total on their domain")
+                    })? >= 0.,
                     "functions f must be non-negative",
                 )?;
             }
