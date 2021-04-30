@@ -4,8 +4,9 @@ use nlopt::Target;
 
 use crate::online::{Online, OnlineSolution};
 use crate::problem::ContinuousHomProblem;
-use crate::result::Result;
+use crate::result::{Error, Result};
 use crate::schedule::ContinuousSchedule;
+use crate::utils::assert;
 use crate::PRECISION;
 
 impl<'a> Online<ContinuousHomProblem<'a>> {
@@ -15,6 +16,8 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         xs: &ContinuousSchedule,
         _: &Vec<()>,
     ) -> Result<OnlineSolution<f64, ()>> {
+        assert(self.w == 0, Error::UnsupportedPredictionWindow)?;
+
         let t = xs.len() as i32 + 1;
         let prev_x = if xs.is_empty() { 0. } else { xs[xs.len() - 1] };
 

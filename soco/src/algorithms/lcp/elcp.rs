@@ -2,9 +2,9 @@
 
 use crate::online::{Online, OnlineSolution};
 use crate::problem::ContinuousHomProblem;
-use crate::result::Result;
+use crate::result::{Error, Result};
 use crate::schedule::ContinuousSchedule;
-use crate::utils::fproject;
+use crate::utils::{assert, fproject};
 
 /// Lower and upper bound at some time t.
 type Memory<T> = (T, T);
@@ -16,7 +16,7 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         xs: &ContinuousSchedule,
         _: &Vec<Memory<f64>>,
     ) -> Result<OnlineSolution<f64, Memory<f64>>> {
-        assert_eq!(self.w, 0);
+        assert(self.w == 0, Error::UnsupportedPredictionWindow)?;
 
         let i = if xs.is_empty() { 0. } else { xs[xs.len() - 1] };
         let l = self.lower_bound()?;

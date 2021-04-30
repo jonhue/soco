@@ -3,8 +3,12 @@
 #[derive(Debug)]
 pub enum Error {
     CostFnMustBeTotal,
+    Invalid(String),
+    MustBePowOf2,
     NlOpt(nlopt::FailState),
+    OnlineInsufficientInformation,
     Other(String),
+    UnsupportedPredictionWindow,
 }
 
 impl From<String> for Error {

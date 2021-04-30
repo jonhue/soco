@@ -16,9 +16,9 @@ fn transform1() {
         f: Arc::new(|_, _| Some(1.)),
         beta: 1.,
     };
-    p.verify();
+    p.verify().unwrap();
     let transformed_p = p.transform();
-    transformed_p.verify();
+    transformed_p.verify().unwrap();
 
     assert_eq!(transformed_p.m, 128);
     assert_eq!(transformed_p.t_end, p.t_end);
@@ -49,10 +49,10 @@ fn iopt1() {
         f: Arc::new(|t, j| Some(t as f64 * (if j == 0 { 1. } else { 0. }))),
         beta: 1.,
     };
-    p.verify();
+    p.verify().unwrap();
 
     let result = p.iopt().unwrap();
-    result.0.verify(p.m, p.t_end);
+    result.0.verify(p.m, p.t_end).unwrap();
 
     assert_eq!(result, (vec![1, 1], OrderedFloat(1.)));
     assert_eq!(result.1, p.objective_function(&result.0).unwrap());
@@ -70,10 +70,10 @@ fn iopt2() {
         }),
         beta: 1.,
     };
-    p.verify();
+    p.verify().unwrap();
 
     let result = p.iopt().unwrap();
-    result.0.verify(p.m, p.t_end);
+    result.0.verify(p.m, p.t_end).unwrap();
 
     assert_eq!(result.1, p.objective_function(&result.0).unwrap());
 }
@@ -90,11 +90,14 @@ fn iopt3() {
         }),
         beta: 1.,
     };
-    p.verify();
+    p.verify().unwrap();
 
     let transformed_p = p.transform();
     let result = transformed_p.iopt().unwrap();
-    result.0.verify(transformed_p.m, transformed_p.t_end);
+    result
+        .0
+        .verify(transformed_p.m, transformed_p.t_end)
+        .unwrap();
 
     assert_eq!(
         result.1,

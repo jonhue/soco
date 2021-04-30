@@ -2,6 +2,17 @@
 
 use std::cmp::{max, min};
 
+use crate::result::{Error, Result};
+
+/// Safely asserts `pred`.
+pub fn assert(pred: bool, error: Error) -> Result<()> {
+    if pred {
+        Ok(())
+    } else {
+        Err(error)
+    }
+}
+
 /// Returns the fractional part of a float.
 pub fn frac(x: f64) -> f64 {
     x - x.floor()
