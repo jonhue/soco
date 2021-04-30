@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)]
+
 mod opt {
     use std::sync::Arc;
 
