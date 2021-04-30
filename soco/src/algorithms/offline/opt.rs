@@ -2,7 +2,6 @@ use crate::problem::ContinuousHomProblem;
 use crate::result::{Error, Result};
 use crate::schedule::ContinuousSchedule;
 use crate::utils::{assert, fproject};
-use crate::PRECISION;
 
 impl<'a> ContinuousHomProblem<'a> {
     /// Deterministic Offline Algorithm
@@ -15,10 +14,8 @@ impl<'a> ContinuousHomProblem<'a> {
             let l = self.find_lower_bound(t)?;
             let u = self.find_upper_bound(t)?;
             if t == self.t_end {
-                assert(
-                    (l - u).abs() < PRECISION,
-                    Error::LcpBoundMismatch(l, u),
-                )?;
+                #[allow(clippy::float_cmp)]
+                assert(l == u, Error::LcpBoundMismatch(l, u))?;
                 cost = l;
             };
 
