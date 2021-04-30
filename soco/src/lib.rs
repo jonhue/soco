@@ -1,3 +1,4 @@
+#![allow(clippy::module_inception)]
 #![allow(clippy::ptr_arg)]
 
 /// Precision used for numeric computations.

@@ -17,10 +17,19 @@ type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
 
 impl<'a> DiscreteHomProblem<'a> {
     /// Discrete Deterministic Offline Algorithm
-    pub fn iopt(&'a self) -> Result<(DiscreteSchedule, Cost)> {
+    pub fn iopt(&'a self) -> Result<(DiscreteSchedule, f64)> {
+        self._iopt(false)
+    }
+
+    /// Inverted Discrete Deterministic Offline Algorithm
+    pub fn inverted_iopt(&'a self) -> Result<(DiscreteSchedule, f64)> {
+        self._iopt(true)
+    }
+
+    fn _iopt(&'a self, inverted: bool) -> Result<(DiscreteSchedule, f64)> {
         assert(is_pow_of_2(self.m), Error::MustBePowOf2)?;
 
-        let neighbors = self.build_neighbors()?;
+        let neighbors = self.build_neighbors(inverted)?;
 
         let k_init = if self.m > 2 {
             (self.m as f64).log(2.).floor() as u32 - 2
@@ -43,7 +52,7 @@ impl<'a> DiscreteHomProblem<'a> {
     }
 
     /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `iopt`.
-    pub fn transform(&'a self) -> DiscreteHomProblem<'a> {
+    pub fn make_pow_of_2(&'a self) -> DiscreteHomProblem<'a> {
         let m = 2_i32.pow((self.m as f64).log(2.).ceil() as u32);
         let f = Arc::new(move |t, x| {
             if x <= self.m {
@@ -64,18 +73,23 @@ impl<'a> DiscreteHomProblem<'a> {
         }
     }
 
-    fn build_neighbors(&self) -> Result<Neighbors> {
+    fn build_neighbors(&self, inverted: bool) -> Result<Neighbors> {
         let mut neighbors = HashMap::new();
-        neighbors.insert((0, 0), self.build_edges(0, 0)?);
+        neighbors.insert((0, 0), self.build_edges(0, 0, inverted)?);
         for t in 1..=self.t_end {
             for i in 0..self.m {
-                neighbors.insert((t, i), self.build_edges(t, i)?);
+                neighbors.insert((t, i), self.build_edges(t, i, inverted)?);
             }
         }
         Ok(neighbors)
     }
 
-    fn build_edges(&self, t: i32, i: i32) -> Result<Vec<(Vertice, Cost)>> {
+    fn build_edges(
+        &self,
+        t: i32,
+        i: i32,
+        inverted: bool,
+    ) -> Result<Vec<(Vertice, Cost)>> {
         if t == self.t_end {
             Ok(vec![((self.t_end + 1, 0), OrderedFloat(0.))])
         } else {
@@ -85,16 +99,22 @@ impl<'a> DiscreteHomProblem<'a> {
                 .map(|(j, _)| {
                     Ok((
                         (t + 1, j as i32),
-                        self.build_cost(t + 1, i, j as i32)?,
+                        self.build_cost(t + 1, i, j as i32, inverted)?,
                     ))
                 })
                 .collect()
         }
     }
 
-    fn build_cost(&self, t: i32, i: i32, j: i32) -> Result<Cost> {
+    fn build_cost(
+        &self,
+        t: i32,
+        i: i32,
+        j: i32,
+        inverted: bool,
+    ) -> Result<Cost> {
         Ok(OrderedFloat(
-            self.beta * ipos(j - i) as f64
+            self.beta * ipos(if inverted { i - j } else { j - i }) as f64
                 + (self.f)(t, j).ok_or(Error::CostFnMustBeTotal)?,
         ))
     }
@@ -102,14 +122,14 @@ impl<'a> DiscreteHomProblem<'a> {
     fn find_schedule(
         &self,
         neighbors: impl Fn(&Vertice) -> Vec<(Vertice, Cost)> + 'a,
-    ) -> (DiscreteSchedule, Cost) {
+    ) -> (DiscreteSchedule, f64) {
         let result = dijkstra(&(0, 0), neighbors, |&(t, j): &Vertice| {
             (t, j) == (self.t_end + 1, 0)
         });
         let (mut xs, cost) = result.expect("there should always be a path");
         xs.remove(0);
         xs.remove(xs.len() - 1);
-        (xs.into_iter().map(|(_, j)| j).collect(), cost)
+        (xs.into_iter().map(|(_, j)| j).collect(), cost.into_inner())
     }
 
     fn select_initial_neighbors(
