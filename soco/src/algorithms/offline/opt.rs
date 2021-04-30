@@ -1,8 +1,8 @@
-use crate::PRECISION;
 use crate::problem::ContinuousHomProblem;
 use crate::result::{Error, Result};
 use crate::schedule::ContinuousSchedule;
 use crate::utils::{assert, fproject};
+use crate::PRECISION;
 
 impl<'a> ContinuousHomProblem<'a> {
     /// Deterministic Offline Algorithm
