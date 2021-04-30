@@ -5,7 +5,7 @@ pub enum Error {
     CostFnMustBeTotal,
     Invalid(String),
     LcpBoundComputationExceedsDomain,
-    LcpBoundMismatch,
+    LcpBoundMismatch(f64, f64),
     MustBePowOf2,
     NlOpt(nlopt::FailState),
     OnlineInsufficientInformation,

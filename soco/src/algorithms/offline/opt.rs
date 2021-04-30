@@ -15,7 +15,10 @@ impl<'a> ContinuousHomProblem<'a> {
             let l = self.find_lower_bound(t)?;
             let u = self.find_upper_bound(t)?;
             if t == self.t_end {
-                assert((l - u).abs() < PRECISION, Error::LcpBoundMismatch)?;
+                assert(
+                    (l - u).abs() < PRECISION,
+                    Error::LcpBoundMismatch(l, u),
+                )?;
                 cost = l;
             };
 
