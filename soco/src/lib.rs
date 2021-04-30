@@ -1,5 +1,6 @@
 #![allow(clippy::ptr_arg)]
 
+/// Precision used for numeric computations.
 static PRECISION: f64 = 1e-6;
 
 pub mod algorithms;

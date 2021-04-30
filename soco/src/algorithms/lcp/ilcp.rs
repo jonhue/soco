@@ -1,9 +1,10 @@
 //! Lazy Capacity Provisioning
 
+use crate::convert::DiscretizableSchedule;
 use crate::online::{Online, OnlineSolution};
 use crate::problem::DiscreteHomProblem;
 use crate::result::Result;
-use crate::schedule::{DiscreteSchedule, DiscretizableSchedule};
+use crate::schedule::DiscreteSchedule;
 use crate::utils::iproject;
 
 /// Lower and upper bound at some time t.
