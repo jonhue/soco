@@ -1,3 +1,4 @@
+#[allow(clippy::module_inception)]
 mod lcp {
     use std::sync::Arc;
 
