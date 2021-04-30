@@ -1,6 +1,5 @@
 #![allow(clippy::float_cmp)]
 
-use ordered_float::OrderedFloat;
 use rand::prelude::*;
 use rand_pcg::Pcg64;
 use std::sync::Arc;
@@ -9,7 +8,7 @@ use soco::problem::HomProblem;
 use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
 
 #[test]
-fn transform1() {
+fn make_pow_of_2_1() {
     let p = HomProblem {
         m: 103,
         t_end: 1_000,
@@ -17,7 +16,7 @@ fn transform1() {
         beta: 1.,
     };
     p.verify().unwrap();
-    let transformed_p = p.transform();
+    let transformed_p = p.make_pow_of_2();
     transformed_p.verify().unwrap();
 
     assert_eq!(transformed_p.m, 128);
@@ -42,7 +41,7 @@ fn transform1() {
 }
 
 #[test]
-fn iopt1() {
+fn iopt_1() {
     let p = HomProblem {
         m: 2,
         t_end: 2,
@@ -54,12 +53,12 @@ fn iopt1() {
     let result = p.iopt().unwrap();
     result.0.verify(p.m, p.t_end).unwrap();
 
-    assert_eq!(result, (vec![1, 1], OrderedFloat(1.)));
+    assert_eq!(result, (vec![1, 1], 1.));
     assert_eq!(result.1, p.objective_function(&result.0).unwrap());
 }
 
 #[test]
-fn iopt2() {
+fn iopt_2() {
     let p = HomProblem {
         m: 8,
         t_end: 100,
@@ -79,7 +78,7 @@ fn iopt2() {
 }
 
 #[test]
-fn iopt3() {
+fn iopt_3() {
     let p = HomProblem {
         m: 9,
         t_end: 1_000,
@@ -92,7 +91,7 @@ fn iopt3() {
     };
     p.verify().unwrap();
 
-    let transformed_p = p.transform();
+    let transformed_p = p.make_pow_of_2();
     let result = transformed_p.iopt().unwrap();
     result
         .0

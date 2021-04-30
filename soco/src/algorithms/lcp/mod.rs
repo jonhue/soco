@@ -1,5 +1,5 @@
 //! Lazy Capacity Provisioning
 
-pub mod elcp;
+pub mod bounds;
 pub mod ilcp;
-mod past_opt;
+pub mod lcp;

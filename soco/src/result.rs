@@ -4,6 +4,8 @@
 pub enum Error {
     CostFnMustBeTotal,
     Invalid(String),
+    LcpBoundComputationExceedsDomain,
+    LcpBoundMismatch,
     MustBePowOf2,
     NlOpt(nlopt::FailState),
     OnlineInsufficientInformation,

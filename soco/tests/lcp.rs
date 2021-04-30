@@ -8,7 +8,7 @@ use soco::problem::HomProblem;
 use soco::verifiers::VerifiableSchedule;
 
 #[test]
-fn elcp1() {
+fn lcp_1() {
     let p = HomProblem {
         m: 2,
         t_end: 1,
@@ -18,14 +18,14 @@ fn elcp1() {
     let mut o = Online { p, w: 0 };
     o.verify().unwrap();
 
-    let result = o.stream(Online::elcp, |_, _, _| false).unwrap();
+    let result = o.stream(Online::lcp, |_, _, _| false).unwrap();
     result.0.verify(o.p.m, o.p.t_end).unwrap();
 
     assert_eq!(result.0.to_i(), vec![0]);
 }
 
 #[test]
-fn elcp2() {
+fn lcp_2() {
     let p = HomProblem {
         m: 2,
         t_end: 1,
@@ -36,14 +36,14 @@ fn elcp2() {
     o.verify().unwrap();
 
     let t_end = 2;
-    let result = o.offline_stream(Online::elcp, t_end).unwrap();
+    let result = o.offline_stream(Online::lcp, t_end).unwrap();
     result.0.verify(o.p.m, t_end).unwrap();
 
     assert_eq!(result.0.to_i(), vec![0, 1]);
 }
 
 #[test]
-fn ilcp1() {
+fn ilcp_1() {
     let p = HomProblem {
         m: 2,
         t_end: 1,
@@ -60,7 +60,7 @@ fn ilcp1() {
 }
 
 #[test]
-fn ilcp2() {
+fn ilcp_2() {
     let p = HomProblem {
         m: 2,
         t_end: 1,
@@ -74,5 +74,5 @@ fn ilcp2() {
     let result = o.offline_stream(Online::ilcp, t_end).unwrap();
     result.0.verify(o.p.m, t_end).unwrap();
 
-    assert_eq!(result.0, vec![0, 0]); // TODO: [0, 1]
+    assert_eq!(result.0, vec![0, 1]);
 }
