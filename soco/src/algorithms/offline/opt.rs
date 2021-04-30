@@ -1,3 +1,4 @@
+use crate::PRECISION;
 use crate::problem::ContinuousHomProblem;
 use crate::result::{Error, Result};
 use crate::schedule::ContinuousSchedule;
@@ -14,7 +15,7 @@ impl<'a> ContinuousHomProblem<'a> {
             let l = self.find_lower_bound(t)?;
             let u = self.find_upper_bound(t)?;
             if t == self.t_end {
-                assert(l == u, Error::LcpBoundMismatch)?;
+                assert((l - u).abs() < PRECISION, Error::LcpBoundMismatch)?;
                 cost = l;
             };
 
