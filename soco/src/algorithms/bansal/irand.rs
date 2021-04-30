@@ -1,10 +1,11 @@
 use rand::{thread_rng, Rng};
 
 use crate::algorithms::bansal::det::Memory as RandMemory;
+use crate::convert::ExtendedSchedule;
 use crate::online::{Online, OnlineSolution};
 use crate::problem::ContinuousHomProblem;
 use crate::result::Result;
-use crate::schedule::{DiscreteSchedule, ExtendedSchedule};
+use crate::schedule::DiscreteSchedule;
 use crate::utils::{fproject, frac};
 
 /// Continuous number of servers as determined by `bansal`; memory of `bansal`.

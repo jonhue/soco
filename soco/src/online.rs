@@ -1,4 +1,4 @@
-//! Helper functions for simulating online problems.
+//! Online problems.
 
 use crate::problem::HomProblem;
 use crate::result::Result;

@@ -37,7 +37,7 @@ pub fn fproject(x: f64, a: f64, b: f64) -> f64 {
 }
 
 /// Determines whether `x` is a power of `2`.
-pub fn is_2pow(x: i32) -> bool {
+pub fn is_pow_of_2(x: i32) -> bool {
     x != 0 && x & (x - 1) == 0
 }
 

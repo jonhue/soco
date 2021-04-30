@@ -6,7 +6,7 @@ use std::sync::Arc;
 use crate::problem::{DiscreteHomProblem, HomProblem};
 use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
-use crate::utils::{ipos, is_2pow};
+use crate::utils::{ipos, is_pow_of_2};
 
 /// Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
 type Vertice = (i32, i32);
@@ -18,7 +18,7 @@ type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
 impl<'a> DiscreteHomProblem<'a> {
     /// Discrete Deterministic Offline Algorithm
     pub fn iopt(&'a self) -> Result<(DiscreteSchedule, Cost)> {
-        assert!(is_2pow(self.m), "#servers must be a power of 2, use transform() to generate a new problem instance");
+        assert!(is_pow_of_2(self.m), "#servers must be a power of 2, use transform() to generate a new problem instance");
 
         let neighbors = self.build_neighbors()?;
 

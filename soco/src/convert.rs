@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use crate::online::Online;
 use crate::problem::{ContinuousHomProblem, DiscreteHomProblem, HomProblem};
+use crate::schedule::{ContinuousSchedule, DiscreteSchedule};
 
 impl<'a> ContinuousHomProblem<'a> {
     /// Converts a continuous problem instance to a discrete one.
@@ -61,5 +62,25 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
             w: self.w,
             p: self.p.to_f(),
         }
+    }
+}
+
+pub trait DiscretizableSchedule {
+    fn to_i(&self) -> DiscreteSchedule;
+}
+
+impl DiscretizableSchedule for ContinuousSchedule {
+    fn to_i(&self) -> DiscreteSchedule {
+        self.iter().map(|&x| x.ceil() as i32).collect()
+    }
+}
+
+pub trait ExtendedSchedule {
+    fn to_f(&self) -> ContinuousSchedule;
+}
+
+impl ExtendedSchedule for DiscreteSchedule {
+    fn to_f(&self) -> ContinuousSchedule {
+        self.iter().map(|&x| x as f64).collect()
     }
 }

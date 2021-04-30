@@ -2,9 +2,9 @@
 
 use std::sync::Arc;
 
+use soco::convert::DiscretizableSchedule;
 use soco::online::Online;
 use soco::problem::HomProblem;
-use soco::schedule::DiscretizableSchedule;
 use soco::verifiers::VerifiableSchedule;
 
 #[test]
