@@ -16,10 +16,10 @@ fn elcp1() {
         beta: 1.,
     };
     let mut o = Online { p, w: 0 };
-    o.verify();
+    o.verify().unwrap();
 
     let result = o.stream(Online::elcp, |_, _, _| false).unwrap();
-    result.0.verify(o.p.m, o.p.t_end);
+    result.0.verify(o.p.m, o.p.t_end).unwrap();
 
     assert_eq!(result.0.to_i(), vec![0]);
 }
@@ -33,11 +33,11 @@ fn elcp2() {
         beta: 1.,
     };
     let mut o = Online { p, w: 0 };
-    o.verify();
+    o.verify().unwrap();
 
     let t_end = 2;
     let result = o.offline_stream(Online::elcp, t_end).unwrap();
-    result.0.verify(o.p.m, t_end);
+    result.0.verify(o.p.m, t_end).unwrap();
 
     assert_eq!(result.0.to_i(), vec![0, 1]);
 }
@@ -51,10 +51,10 @@ fn ilcp1() {
         beta: 1.,
     };
     let mut o = Online { p, w: 0 };
-    o.verify();
+    o.verify().unwrap();
 
     let result = o.stream(Online::ilcp, |_, _, _| false).unwrap();
-    result.0.verify(o.p.m, o.p.t_end);
+    result.0.verify(o.p.m, o.p.t_end).unwrap();
 
     assert_eq!(result.0, vec![0]);
 }
@@ -68,11 +68,11 @@ fn ilcp2() {
         beta: 1.,
     };
     let mut o = Online { p, w: 0 };
-    o.verify();
+    o.verify().unwrap();
 
     let t_end = 2;
     let result = o.offline_stream(Online::ilcp, t_end).unwrap();
-    result.0.verify(o.p.m, t_end);
+    result.0.verify(o.p.m, t_end).unwrap();
 
     assert_eq!(result.0, vec![0, 0]); // TODO: [0, 1]
 }

@@ -3,9 +3,9 @@
 use crate::convert::DiscretizableSchedule;
 use crate::online::{Online, OnlineSolution};
 use crate::problem::DiscreteHomProblem;
-use crate::result::Result;
+use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
-use crate::utils::iproject;
+use crate::utils::{assert, iproject};
 
 /// Lower and upper bound at some time t.
 type Memory<T> = (T, T);
@@ -17,7 +17,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
         xs: &DiscreteSchedule,
         _: &Vec<Memory<i32>>,
     ) -> Result<OnlineSolution<i32, Memory<i32>>> {
-        assert_eq!(self.w, 0);
+        assert(self.w == 0, Error::UnsupportedPredictionWindow)?;
 
         let i = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
         let l = self.lower_bound()?;

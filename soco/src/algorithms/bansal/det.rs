@@ -8,8 +8,9 @@ use std::sync::Arc;
 
 use crate::online::{Online, OnlineSolution};
 use crate::problem::ContinuousHomProblem;
-use crate::result::Result;
+use crate::result::{Error, Result};
 use crate::schedule::ContinuousSchedule;
+use crate::utils::assert;
 use crate::PRECISION;
 
 /// Probability distribution over the number of servers.
@@ -24,6 +25,8 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
         xs: &ContinuousSchedule,
         ps: &Vec<Memory<'a>>,
     ) -> Result<OnlineSolution<f64, Memory<'a>>> {
+        assert(self.w == 0, Error::UnsupportedPredictionWindow)?;
+
         let t = xs.len() as i32 + 1;
         let prev_p = if ps.is_empty() {
             Arc::new(|j| if j == 0. { 1. } else { 0. })

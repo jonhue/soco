@@ -1,8 +1,9 @@
 //! Online problems.
 
 use crate::problem::HomProblem;
-use crate::result::Result;
+use crate::result::{Error, Result};
 use crate::schedule::Schedule;
+use crate::utils::assert;
 
 /// Online instance of a problem.
 pub struct Online<T> {
@@ -42,10 +43,11 @@ where
         let mut ms = vec![];
 
         loop {
-            assert!(
-                self.p.t_end == self.w + xs.len() as i32 + 1,
-                "online problem must contain precisely the information for the next iteration"
-            );
+            let t = xs.len() as i32 + 1;
+            assert(
+                self.p.t_end == t + self.w,
+                Error::OnlineInsufficientInformation,
+            )?;
 
             let (i, m) = alg(self, &xs, &ms)?;
             xs.push(i);
@@ -75,7 +77,7 @@ where
         t_end: i32,
     ) -> Result<(Schedule<V>, Vec<U>)> {
         self.stream(alg, |o, _, _| {
-            if o.p.t_end < t_end as i32 {
+            if o.p.t_end < t_end - o.w {
                 o.p.t_end += 1;
                 true
             } else {
