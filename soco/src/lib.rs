@@ -7,6 +7,7 @@ static PRECISION: f64 = 1e-6;
 pub mod algorithms;
 pub mod analysis;
 pub mod convert;
+pub mod cost;
 pub mod online;
 pub mod problem;
 pub mod result;

@@ -1,9 +1,6 @@
 //! Problem definitions.
 
-use std::sync::Arc;
-
-/// Cost function. Must be total on 1<=t<=T, 0<=j<=m. May return `None` otherwise.
-pub type CostFn<'a, T> = Arc<dyn Fn(i32, T) -> Option<f64> + 'a>;
+use crate::cost::CostFn;
 
 /// Data-Center Right-Sizing problem.
 pub enum Problem<'a, T> {

@@ -4,7 +4,6 @@ mod make_pow_of_2 {
     use std::sync::Arc;
 
     use soco::problem::HomProblem;
-    use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
@@ -46,7 +45,7 @@ mod iopt {
     use std::sync::Arc;
 
     use soco::problem::HomProblem;
-    use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
+    use soco::verifiers::VerifiableSchedule;
 
     #[test]
     fn _1() {
