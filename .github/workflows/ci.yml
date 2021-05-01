@@ -12,6 +12,13 @@ jobs:
     - uses: actions-rs/toolchain@v1
       with:
         toolchain: stable
+    - name: Build documentation
+      uses: actions-rs/cargo@v1
+      with:
+        command: doc
+        args: --manifest-path=soco/Cargo.toml
+    - name: Move documentation
+      run: mv ./soco/target/doc ./dist/doc
     - name: Format
       uses: actions-rs/cargo@v1
       with:
