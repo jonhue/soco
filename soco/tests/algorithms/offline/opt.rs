@@ -5,7 +5,7 @@ mod opt {
 
     use soco::convert::DiscretizableSchedule;
     use soco::problem::HomProblem;
-    use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
+    use soco::verifiers::VerifiableSchedule;
 
     #[test]
     fn _1() {
