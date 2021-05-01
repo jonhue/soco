@@ -3,6 +3,7 @@
 mod make_pow_of_2 {
     use std::sync::Arc;
 
+    use soco::algorithms::offline::iopt::make_pow_of_2;
     use soco::problem::HomProblem;
 
     #[test]
@@ -14,7 +15,7 @@ mod make_pow_of_2 {
             beta: 1.,
         };
         p.verify().unwrap();
-        let transformed_p = p.make_pow_of_2();
+        let transformed_p = make_pow_of_2(&p);
         transformed_p.verify().unwrap();
 
         assert_eq!(transformed_p.m, 128);
@@ -44,6 +45,8 @@ mod iopt {
     use rand_pcg::Pcg64;
     use std::sync::Arc;
 
+    use soco::algorithms::offline::iopt::{iopt, make_pow_of_2};
+    use soco::objective::Objective;
     use soco::problem::HomProblem;
     use soco::verifiers::VerifiableSchedule;
 
@@ -57,7 +60,7 @@ mod iopt {
         };
         p.verify().unwrap();
 
-        let result = p.iopt().unwrap();
+        let result = iopt(&p).unwrap();
         result.0.verify(p.m, p.t_end).unwrap();
 
         assert_eq!(result, (vec![1, 1], 1.));
@@ -79,7 +82,7 @@ mod iopt {
         };
         p.verify().unwrap();
 
-        let result = p.iopt().unwrap();
+        let result = iopt(&p).unwrap();
         result.0.verify(p.m, p.t_end).unwrap();
 
         assert_eq!(result.1, p.objective_function(&result.0).unwrap());
@@ -100,8 +103,8 @@ mod iopt {
         };
         p.verify().unwrap();
 
-        let transformed_p = p.make_pow_of_2();
-        let result = transformed_p.iopt().unwrap();
+        let transformed_p = make_pow_of_2(&p);
+        let result = iopt(&transformed_p).unwrap();
         result
             .0
             .verify(transformed_p.m, transformed_p.t_end)

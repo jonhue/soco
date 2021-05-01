@@ -1,6 +1,7 @@
 mod lcp {
     use std::sync::Arc;
 
+    use soco::algorithms::lcp::lcp::lcp;
     use soco::convert::DiscretizableSchedule;
     use soco::online::Online;
     use soco::problem::HomProblem;
@@ -19,7 +20,7 @@ mod lcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.stream(Online::lcp, |_, _, _| false).unwrap();
+        let result = o.stream(lcp, |_, _, _| false).unwrap();
         result.0.verify(o.p.m, o.p.t_end).unwrap();
 
         assert_eq!(result.0.to_i(), vec![0]);
@@ -39,7 +40,7 @@ mod lcp {
         o.verify().unwrap();
 
         let t_end = 2;
-        let result = o.offline_stream(Online::lcp, t_end).unwrap();
+        let result = o.offline_stream(lcp, t_end).unwrap();
         result.0.verify(o.p.m, t_end).unwrap();
 
         assert_eq!(result.0.to_i(), vec![0, 1]);

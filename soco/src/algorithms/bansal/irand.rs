@@ -1,7 +1,7 @@
 use rand::{thread_rng, Rng};
 
-use crate::algorithms::bansal::det::Memory as RandMemory;
-use crate::convert::ExtendedSchedule;
+use crate::algorithms::bansal::det::{det, Memory as DetMemory};
+use crate::convert::ExtendableSchedule;
 use crate::online::{Online, OnlineSolution};
 use crate::problem::ContinuousHomProblem;
 use crate::result::Result;
@@ -9,31 +9,29 @@ use crate::schedule::DiscreteSchedule;
 use crate::utils::{frac, project};
 
 /// Continuous number of servers as determined by `bansal`; memory of `bansal`.
-type Memory<'a> = (f64, RandMemory<'a>);
+pub type Memory<'a> = (f64, DetMemory<'a>);
 
-impl<'a> Online<ContinuousHomProblem<'a>> {
-    /// Discrete Randomized Online Algorithm
-    ///
-    /// Note: Relax discrete problem to continuous problem before use!
-    pub fn irand(
-        &'a self,
-        xs: &DiscreteSchedule,
-        ms: &Vec<Memory<'a>>,
-    ) -> Result<OnlineSolution<i32, Memory<'a>>> {
-        let det_ms = ms.iter().map(|m| m.1.clone()).collect();
-        let (y, det_m) = self.det(&xs.to_f(), &det_ms)?;
+/// Discrete Randomized Online Algorithm
+///
+/// Note: Relax discrete problem to continuous problem before use!
+pub fn irand<'a>(
+    o: &'a Online<ContinuousHomProblem<'a>>,
+    xs: &DiscreteSchedule,
+    ms: &Vec<Memory<'a>>,
+) -> Result<OnlineSolution<i32, Memory<'a>>> {
+    let det_ms = ms.iter().map(|m| m.1.clone()).collect();
+    let (y, det_m) = det(o, &xs.to_f(), &det_ms)?;
 
-        let prev_x = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
-        let prev_y = if ms.is_empty() {
-            0.
-        } else {
-            ms[ms.len() - 1].0
-        };
+    let prev_x = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
+    let prev_y = if ms.is_empty() {
+        0.
+    } else {
+        ms[ms.len() - 1].0
+    };
 
-        let x = next(prev_x, prev_y, y);
+    let x = next(prev_x, prev_y, y);
 
-        Ok((x, (y, det_m)))
-    }
+    Ok((x, (y, det_m)))
 }
 
 fn next(prev_x: i32, prev_y: f64, y: f64) -> i32 {

@@ -3,7 +3,9 @@
 mod opt {
     use std::sync::Arc;
 
+    use soco::algorithms::offline::opt::opt;
     use soco::convert::DiscretizableSchedule;
+    use soco::objective::Objective;
     use soco::problem::HomProblem;
     use soco::verifiers::VerifiableSchedule;
 
@@ -19,7 +21,7 @@ mod opt {
         };
         p.verify().unwrap();
 
-        let result = p.opt().unwrap();
+        let result = opt(&p).unwrap();
         result.0.verify(p.m, p.t_end).unwrap();
 
         assert_eq!(result.0.to_i(), vec![1, 1]);
