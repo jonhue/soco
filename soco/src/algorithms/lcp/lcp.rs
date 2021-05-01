@@ -6,7 +6,7 @@ use crate::schedule::ContinuousSchedule;
 use crate::utils::{assert, project};
 
 /// Lower and upper bound at some time t.
-type Memory<T> = (T, T);
+pub type Memory<T> = (T, T);
 
 /// (Continuous) Lazy Capacity Provisioning
 pub fn lcp(
