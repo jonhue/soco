@@ -10,6 +10,7 @@ pub enum Error {
     NlOpt(nlopt::FailState),
     OnlineInsufficientInformation,
     Other(String),
+    UnsupportedBoundsCalculation,
     UnsupportedPredictionWindow,
 }
 

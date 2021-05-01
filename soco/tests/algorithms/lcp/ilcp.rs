@@ -1,6 +1,7 @@
 mod ilcp {
     use std::sync::Arc;
 
+    use soco::algorithms::lcp::ilcp::ilcp;
     use soco::online::Online;
     use soco::problem::HomProblem;
     use soco::verifiers::VerifiableSchedule;
@@ -16,7 +17,7 @@ mod ilcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.stream(Online::ilcp, |_, _, _| false).unwrap();
+        let result = o.stream(ilcp, |_, _, _| false).unwrap();
         result.0.verify(o.p.m, o.p.t_end).unwrap();
 
         assert_eq!(result.0, vec![0]);
@@ -34,7 +35,7 @@ mod ilcp {
         o.verify().unwrap();
 
         let t_end = 2;
-        let result = o.offline_stream(Online::ilcp, t_end).unwrap();
+        let result = o.offline_stream(ilcp, t_end).unwrap();
         result.0.verify(o.p.m, t_end).unwrap();
 
         assert_eq!(result.0, vec![0, 1]);

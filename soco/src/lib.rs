@@ -1,3 +1,4 @@
+#![allow(clippy::many_single_char_names)]
 #![allow(clippy::module_inception)]
 #![allow(clippy::ptr_arg)]
 
@@ -5,9 +6,9 @@
 static PRECISION: f64 = 1e-6;
 
 pub mod algorithms;
-pub mod analysis;
 pub mod convert;
 pub mod cost;
+pub mod objective;
 pub mod online;
 pub mod problem;
 pub mod result;
