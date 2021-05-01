@@ -1,7 +1,7 @@
 //! Utilities to build cost functions for right-sizing data centers.
 
-use std::sync::Arc;
 use num::ToPrimitive;
+use std::sync::Arc;
 
 use crate::cost::LazyCostFn;
 
@@ -15,7 +15,12 @@ pub mod load;
 ///
 /// This behavior models the optimal dispatching rule of workload to all active servers.
 pub fn load_balance<'a, T: ToPrimitive>(f: &'a LoadFn) -> LazyCostFn<'a, T> {
-  Arc::new(move |l| Arc::new(move |x| {
-    Some(ToPrimitive::to_f64(&x).unwrap() * f(l / ToPrimitive::to_f64(&x).unwrap()))
-  }))
+    Arc::new(move |l| {
+        Arc::new(move |x| {
+            Some(
+                ToPrimitive::to_f64(&x).unwrap()
+                    * f(l / ToPrimitive::to_f64(&x).unwrap()),
+            )
+        })
+    })
 }

@@ -18,16 +18,24 @@ pub type LazyCostFn<'a, T> = Arc<dyn Fn(f64) -> SingleCostFn<'a, T> + 'a>;
 /// * `f` - Lazy cost function.
 /// * `l` - Vector of loads for `0<=t<=T-1`. This vector can be updated online as `T` grows.
 pub fn lazy<'a, T>(f: &'a LazyCostFn<'a, T>, l: &'a [f64]) -> CostFn<'a, T> {
-  Arc::new(move |t, j| {
-    let i = t as usize - 1;
-    if i <= l.len() { f(l[i])(j) } else {None}
-  })
+    Arc::new(move |t, j| {
+        let i = t as usize - 1;
+        if i <= l.len() {
+            f(l[i])(j)
+        } else {
+            None
+        }
+    })
 }
 
 /// Unifies a sequence of cost functions for different times `t` to a single cost function.
 pub fn chain<'a, T>(fs: &'a Vec<SingleCostFn<'a, T>>) -> CostFn<'a, T> {
-  Arc::new(move |t, j| {
-    let i = t as usize - 1;
-    if i <= fs.len() { fs[i](j) } else {None}
-  })
+    Arc::new(move |t, j| {
+        let i = t as usize - 1;
+        if i <= fs.len() {
+            fs[i](j)
+        } else {
+            None
+        }
+    })
 }
