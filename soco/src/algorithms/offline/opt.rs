@@ -1,7 +1,7 @@
 use crate::problem::ContinuousHomProblem;
 use crate::result::{Error, Result};
 use crate::schedule::ContinuousSchedule;
-use crate::utils::{assert, fproject};
+use crate::utils::{assert, project};
 
 impl<'a> ContinuousHomProblem<'a> {
     /// Deterministic Offline Algorithm
@@ -19,7 +19,7 @@ impl<'a> ContinuousHomProblem<'a> {
                 cost = l;
             };
 
-            x = fproject(x, l, u);
+            x = project(x, l, u);
             xs.insert(0, x);
         }
 

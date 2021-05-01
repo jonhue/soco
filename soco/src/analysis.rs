@@ -26,7 +26,7 @@ mod private {
     use crate::problem::{ContinuousHomProblem, DiscreteHomProblem};
     use crate::result::{Error, Result};
     use crate::schedule::{ContinuousSchedule, DiscreteSchedule, Schedule};
-    use crate::utils::{faccess, fpos, iaccess, ipos};
+    use crate::utils::{access, pos};
 
     pub trait Objective<T> {
         fn _objective_function(
@@ -44,11 +44,11 @@ mod private {
         ) -> Result<f64> {
             let mut cost = 0.;
             for t in 1..=self.t_end {
-                let prev_x = faccess(xs, t - 2);
-                let x = faccess(xs, t - 1);
+                let prev_x = access(xs, t - 2);
+                let x = access(xs, t - 1);
                 cost += (self.f)(t, x).ok_or(Error::CostFnMustBeTotal)?
                     + self.beta
-                        * fpos(if inverted { prev_x - x } else { x - prev_x })
+                        * pos(if inverted { prev_x - x } else { x - prev_x })
                             as f64;
             }
             Ok(cost)
@@ -63,11 +63,11 @@ mod private {
         ) -> Result<f64> {
             let mut cost = 0.;
             for t in 1..=self.t_end {
-                let prev_x = iaccess(xs, t - 2);
-                let x = iaccess(xs, t - 1);
+                let prev_x = access(xs, t - 2);
+                let x = access(xs, t - 1);
                 cost += (self.f)(t, x).ok_or(Error::CostFnMustBeTotal)?
                     + self.beta
-                        * ipos(if inverted { prev_x - x } else { x - prev_x })
+                        * pos(if inverted { prev_x - x } else { x - prev_x })
                             as f64;
             }
             Ok(cost)

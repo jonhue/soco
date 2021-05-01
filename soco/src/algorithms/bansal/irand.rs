@@ -6,7 +6,7 @@ use crate::online::{Online, OnlineSolution};
 use crate::problem::ContinuousHomProblem;
 use crate::result::Result;
 use crate::schedule::DiscreteSchedule;
-use crate::utils::{fproject, frac};
+use crate::utils::{frac, project};
 
 /// Continuous number of servers as determined by `bansal`; memory of `bansal`.
 type Memory<'a> = (f64, RandMemory<'a>);
@@ -43,7 +43,7 @@ fn next(prev_x: i32, prev_y: f64, y: f64) -> i32 {
         if prev_x == y.ceil() as i32 {
             prev_x
         } else {
-            let prev_y_proj = fproject(prev_y, y.floor(), y.ceil());
+            let prev_y_proj = project(prev_y, y.floor(), y.ceil());
             let p = (y - prev_y_proj) / (1. - frac(prev_y_proj));
 
             let r = sample_uniform();
@@ -59,7 +59,7 @@ fn next(prev_x: i32, prev_y: f64, y: f64) -> i32 {
         if prev_x == y.floor() as i32 {
             prev_x
         } else {
-            let prev_y_proj = fproject(prev_y, y.floor(), y.ceil());
+            let prev_y_proj = project(prev_y, y.floor(), y.ceil());
             let p = (prev_y_proj - y) / frac(prev_y_proj);
 
             let r = sample_uniform();

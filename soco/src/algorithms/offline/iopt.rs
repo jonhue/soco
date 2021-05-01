@@ -6,7 +6,7 @@ use std::sync::Arc;
 use crate::problem::{DiscreteHomProblem, HomProblem};
 use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
-use crate::utils::{assert, ipos, is_pow_of_2};
+use crate::utils::{assert, is_pow_of_2, pos};
 
 /// Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
 type Vertice = (i32, i32);
@@ -114,7 +114,7 @@ impl<'a> DiscreteHomProblem<'a> {
         inverted: bool,
     ) -> Result<Cost> {
         Ok(OrderedFloat(
-            self.beta * ipos(if inverted { i - j } else { j - i }) as f64
+            self.beta * pos(if inverted { i - j } else { j - i }) as f64
                 + (self.f)(t, j).ok_or(Error::CostFnMustBeTotal)?,
         ))
     }
