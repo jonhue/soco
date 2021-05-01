@@ -1,6 +1,6 @@
 //! Utilities.
 
-use std::cmp::{max, min};
+use num::NumCast;
 
 use crate::result::{Error, Result};
 
@@ -19,26 +19,17 @@ pub fn frac(x: f64) -> f64 {
 }
 
 /// max{0, x}
-pub fn ipos(x: i32) -> i32 {
-    max(0, x)
-}
-
-/// max{0., x}
-pub fn fpos(x: f64) -> f64 {
-    if x > 0. {
+pub fn pos<T: NumCast + PartialOrd>(x: T) -> T {
+    let l = NumCast::from(0).unwrap();
+    if x > l {
         x
     } else {
-        0.
+        l
     }
 }
 
 /// max{a, min{b, x}}
-pub fn iproject(x: i32, a: i32, b: i32) -> i32 {
-    max(a, min(b, x))
-}
-
-/// max{a, min{b, x}}
-pub fn fproject(x: f64, a: f64, b: f64) -> f64 {
+pub fn project<T: NumCast + PartialOrd>(x: T, a: T, b: T) -> T {
     let tmp = if b < x { b } else { x };
     if a > tmp {
         a
@@ -52,20 +43,11 @@ pub fn is_pow_of_2(x: i32) -> bool {
     x != 0 && x & (x - 1) == 0
 }
 
-/// Returns the `i`-th element of vector `xs` if present; `0.` otherwise.
-pub fn faccess(xs: &Vec<f64>, i: i32) -> f64 {
-    if i >= 0 && i < xs.len() as i32 {
-        xs[i as usize]
-    } else {
-        0.
-    }
-}
-
 /// Returns the `i`-th element of vector `xs` if present; `0` otherwise.
-pub fn iaccess(xs: &Vec<i32>, i: i32) -> i32 {
+pub fn access<T: Copy + NumCast>(xs: &Vec<T>, i: i32) -> T {
     if i >= 0 && i < xs.len() as i32 {
         xs[i as usize]
     } else {
-        0
+        NumCast::from(0).unwrap()
     }
 }

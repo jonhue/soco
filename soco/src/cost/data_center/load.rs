@@ -29,7 +29,7 @@ pub mod lin {
     use std::sync::Arc;
 
     use crate::cost::data_center::load::LoadFn;
-    use crate::utils::fpos;
+    use crate::utils::pos;
 
     /// Returns the power consumed by a server as a function of load `l`
     /// according to the formula `e_0 + e_1 * l` where `e_1 * l` models the dynamic power
@@ -45,7 +45,7 @@ pub mod lin {
         d_0: f64,
         d_1: f64,
     ) -> Arc<dyn Fn(f64) -> LoadFn<'a>> {
-        Arc::new(move |d| Arc::new(move |l| d_1 * l * fpos(d - d_0)))
+        Arc::new(move |d| Arc::new(move |l| d_1 * l * pos(d - d_0)))
     }
 
     /// Returns the average delay of a server modeled by an M/GI/1 Processor Sharing queue

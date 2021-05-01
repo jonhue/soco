@@ -2,7 +2,7 @@ use crate::online::{Online, OnlineSolution};
 use crate::problem::DiscreteHomProblem;
 use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
-use crate::utils::{assert, iproject};
+use crate::utils::{assert, project};
 
 /// Lower and upper bound at some time t.
 type Memory<T> = (T, T);
@@ -19,7 +19,7 @@ impl<'a> Online<DiscreteHomProblem<'a>> {
         let i = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
         let l = self.p.find_lower_bound()?;
         let u = self.p.find_upper_bound()?;
-        let j = iproject(i, l, u);
+        let j = project(i, l, u);
         Ok((j, (l, u)))
     }
 }
