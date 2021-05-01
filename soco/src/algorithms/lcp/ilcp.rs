@@ -6,7 +6,7 @@ use crate::schedule::DiscreteSchedule;
 use crate::utils::{assert, project};
 
 /// Lower and upper bound at some time t.
-type Memory<T> = (T, T);
+pub type Memory<T> = (T, T);
 
 /// Integer Lazy Capacity Provisioning
 pub fn ilcp(
