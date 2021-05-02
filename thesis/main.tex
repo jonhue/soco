@@ -1,0 +1,51 @@
+\RequirePackage[l2tabu,orthodox]{nag}
+
+% two-sided
+\documentclass[headsepline,footsepline,footinclude=false,fontsize=11pt,paper=a4,listof=totoc,bibliography=totoc,BCOR=12mm,DIV=12]{scrbook} % two-sided
+% \documentclass[headsepline,footsepline,footinclude=false,oneside,fontsize=11pt,paper=a4,listof=totoc,bibliography=totoc]{scrbook} % one-sided
+
+\input{settings}
+
+% thesis information
+\newcommand*{\getUniversity}{Technical University of Munich}
+\newcommand*{\getFaculty}{Department of Informatics}
+\newcommand*{\getTitle}{Implementation of Algorithms for Right-Sizing Data Centers}
+\newcommand*{\getTitleGer}{Implementierung von Algorithmen für die Größenanpassung von Rechenzentren}
+\newcommand*{\getAuthor}{Jonas Hübotter}
+\newcommand*{\getDoctype}{Bachelor's Thesis in Informatics}
+\newcommand*{\getSupervisor}{Prof. Dr. Susanne Albers}
+\newcommand*{\getAdvisor}{Jens Quedenfeld}
+\newcommand*{\getSubmissionDate}{July 31, 2021}
+\newcommand*{\getSubmissionLocation}{Munich}
+
+\begin{document}
+
+% Set page numbering to avoid "destination with the same identifier has been already used" warning for cover page.
+% (see https://en.wikibooks.org/wiki/LaTeX/Hyperlinks#Problems_with_Links_and_Pages).
+\pagenumbering{alph}
+\input{pages/cover}
+
+\frontmatter{}
+
+\input{pages/title}
+\input{pages/disclaimer}
+\input{pages/acknowledgments}
+\input{pages/abstract}
+\microtypesetup{protrusion=false}
+\tableofcontents{}
+\microtypesetup{protrusion=true}
+
+\mainmatter{}
+
+\input{chapters/01_introduction}
+% TODO: add more chapters here
+
+\appendix{}
+
+\microtypesetup{protrusion=false}
+\listoffigures{}
+\listoftables{}
+\microtypesetup{protrusion=true}
+\printbibliography{}
+
+\end{document}
