@@ -3,7 +3,6 @@ use bacon_sci::integrate::integrate;
 use nlopt::Algorithm;
 use nlopt::Nlopt;
 use nlopt::Target;
-use std::f64::{INFINITY, NEG_INFINITY};
 use std::sync::Arc;
 
 use crate::online::{Online, OnlineSolution};
@@ -114,8 +113,9 @@ fn find_right_bound(
                 PRECISION,
             )
             .unwrap();
-            let r = integrate(xs[0], INFINITY, |j: f64| prev_p(j), PRECISION)
-                .unwrap();
+            let r =
+                integrate(xs[0], f64::INFINITY, |j: f64| prev_p(j), PRECISION)
+                    .unwrap();
             l / 2. - r
         },
         (),
@@ -163,9 +163,13 @@ fn find_left_bound(
                 PRECISION,
             )
             .unwrap();
-            let r =
-                integrate(NEG_INFINITY, xs[0], |j: f64| prev_p(j), PRECISION)
-                    .unwrap();
+            let r = integrate(
+                f64::NEG_INFINITY,
+                xs[0],
+                |j: f64| prev_p(j),
+                PRECISION,
+            )
+            .unwrap();
             l / 2. - r
         },
         (),

@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::f64::INFINITY;
 use std::sync::Arc;
 
 use crate::problem::{DiscreteHomProblem, HomProblem};
@@ -119,7 +118,7 @@ fn find_schedule(
         prev_rows = rows;
     }
 
-    let mut result = &(vec![], INFINITY);
+    let mut result = &(vec![], f64::INFINITY);
     for i in prev_rows {
         let path =
             paths.get(&(p.t_end, i)).ok_or(Error::PathsShouldBeCached)?;
