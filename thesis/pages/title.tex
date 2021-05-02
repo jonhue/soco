@@ -7,7 +7,7 @@
     \vspace*{20mm}
   }
 
-  \vspace{5mm}
+  \vspace{10mm}
   {\huge\MakeUppercase{\getFaculty{}}}\\
 
   \vspace{5mm}
@@ -17,10 +17,10 @@
   {\Large \getDoctype{}}
 
   \vspace{15mm}
-  {\huge\bfseries \getTitle{} \par}
+  {\huge\bfseries \getTitle{}}
 
   \vspace{10mm}
-  {\huge\bfseries \foreignlanguage{ngerman}{\getTitleGer{}} \par}
+  {\huge\bfseries \foreignlanguage{ngerman}{\getTitleGer{}}}
 
   \vspace{15mm}
   \begin{tabular}{l l}
@@ -30,8 +30,10 @@
     Submission Date: & \getSubmissionDate{} \\
   \end{tabular}
 
+  \vspace{6mm}
   \IfFileExists{thesis/logos/faculty.pdf}{%
     \vfill{}
     \includegraphics[height=20mm]{thesis/logos/faculty.pdf}
   }{}
 \end{titlepage}
+\cleardoublepage{}
