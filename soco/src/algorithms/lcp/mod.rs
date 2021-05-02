@@ -17,6 +17,7 @@ pub fn find_initial_time<T: PartialOrd>(
     0
 }
 
+/// Returns `true` if the time `t` with current bounds `m` and previous bounds (at `t - 1`) `prev_m` may be used as reference time.
 fn is_valid_initial_time<T: PartialOrd>(
     m: &Memory<T>,
     prev_m: &Memory<T>,
