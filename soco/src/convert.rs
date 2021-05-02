@@ -40,7 +40,7 @@ impl<'a> ExtendableCostFn<'a> for CostFn<'a, i32> {
 }
 
 impl<'a> ContinuousHomProblem<'a> {
-    fn to_i(&'a self) -> DiscreteHomProblem<'a> {
+    pub fn to_i(&'a self) -> DiscreteHomProblem<'a> {
         HomProblem {
             m: self.m,
             t_end: self.t_end,
@@ -51,7 +51,7 @@ impl<'a> ContinuousHomProblem<'a> {
 }
 
 impl<'a> DiscreteHomProblem<'a> {
-    fn to_f(&'a self) -> ContinuousHomProblem<'a> {
+    pub fn to_f(&'a self) -> ContinuousHomProblem<'a> {
         HomProblem {
             m: self.m,
             t_end: self.t_end,
@@ -96,5 +96,26 @@ pub trait ExtendableSchedule {
 impl ExtendableSchedule for DiscreteSchedule {
     fn to_f(&self) -> ContinuousSchedule {
         self.iter().map(|&x| x as f64).collect()
+    }
+}
+
+pub trait ResettableCostFn<'a, T> {
+    fn reset(&'a self, t_start: i32) -> CostFn<'a, T>;
+}
+
+impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T> {
+    fn reset(&'a self, t_start: i32) -> CostFn<'a, T> {
+        Arc::new(move |t, j| self(t + t_start, j))
+    }
+}
+
+impl<'a, T> HomProblem<'a, T> {
+    pub fn reset(&'a self, t_start: i32) -> HomProblem<'a, T> {
+        HomProblem {
+            m: self.m,
+            t_end: self.t_end - t_start,
+            beta: self.beta,
+            f: self.f.reset(t_start),
+        }
     }
 }

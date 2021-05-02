@@ -10,6 +10,8 @@ pub struct Online<T> {
     /// Problem.
     pub p: T,
     /// Finite, non-negative prediction window.
+    ///
+    /// This prediction window is included in the time bound of the problem instance.
     pub w: i32,
 }
 
