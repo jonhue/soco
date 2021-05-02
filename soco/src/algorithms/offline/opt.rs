@@ -39,8 +39,8 @@ fn opt(
 }
 
 fn next(p: &ContinuousHomProblem<'_>, t: i32, x: f64) -> Result<f64> {
-    let l = p.find_lower_bound(t, t)?;
-    let u = p.find_upper_bound(t, t)?;
+    let l = p.find_lower_bound(t, 0)?;
+    let u = p.find_upper_bound(t, 0)?;
 
     Ok(project(x, l, u))
 }
