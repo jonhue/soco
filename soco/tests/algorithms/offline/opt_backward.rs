@@ -5,7 +5,6 @@ mod opt_backward {
 
     use soco::algorithms::offline::opt_backward::opt_backward;
     use soco::convert::DiscretizableSchedule;
-    use soco::objective::Objective;
     use soco::problem::HomProblem;
     use soco::verifiers::VerifiableSchedule;
 
@@ -22,9 +21,8 @@ mod opt_backward {
         p.verify().unwrap();
 
         let result = opt_backward(&p).unwrap();
-        result.0.verify(p.m, p.t_end).unwrap();
+        result.verify(p.m, p.t_end).unwrap();
 
-        assert_eq!(result.0.to_i(), vec![1, 1]);
-        assert_eq!(result.1, p.objective_function(&result.0).unwrap());
+        assert_eq!(result.to_i(), vec![1, 1]);
     }
 }

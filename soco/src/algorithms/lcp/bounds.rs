@@ -47,13 +47,16 @@ fn find_bound<'a>(
     t: i32,
     t_end: i32,
 ) -> Result<f64> {
-    assert(t <= t_end && t_end <= p.t_end, Error::LcpBoundComputationExceedsDomain)?;
+    assert(
+        t <= t_end && t_end <= p.t_end,
+        Error::LcpBoundComputationExceedsDomain,
+    )?;
 
-    if t <= 1 {
+    if t <= 0 {
         return Ok(0.);
     }
 
-    let n = p.t_end as usize - 1;
+    let n = p.t_end as usize;
     let mut xs = vec![0.0; n];
     let mut opt = Nlopt::new(
         Algorithm::Bobyqa,
@@ -67,8 +70,7 @@ fn find_bound<'a>(
     opt.set_xtol_rel(PRECISION)?;
 
     opt.optimize(&mut xs)?;
-    println!("{};{}", t, t_end);
-    Ok(xs[t as usize - 2])
+    Ok(xs[t as usize - 1])
 }
 
 impl Bounded<i32> for DiscreteHomProblem<'_> {

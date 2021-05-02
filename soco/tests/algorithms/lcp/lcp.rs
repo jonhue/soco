@@ -23,7 +23,7 @@ mod lcp {
         let result = o.stream(lcp, |_, _, _| false).unwrap();
         result.0.verify(o.p.m, o.p.t_end).unwrap();
 
-        assert_eq!(result.0.to_i(), vec![0]);
+        assert_eq!(result.0.to_i(), vec![1]);
     }
 
     #[test]
@@ -43,6 +43,6 @@ mod lcp {
         let result = o.offline_stream(lcp, t_end).unwrap();
         result.0.verify(o.p.m, t_end).unwrap();
 
-        assert_eq!(result.0.to_i(), vec![0, 1]);
+        assert_eq!(result.0.to_i(), vec![1, 1]);
     }
 }
