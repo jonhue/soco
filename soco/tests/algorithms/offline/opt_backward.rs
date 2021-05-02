@@ -1,9 +1,9 @@
 #![allow(clippy::float_cmp)]
 
-mod opt {
+mod opt_backward {
     use std::sync::Arc;
 
-    use soco::algorithms::offline::opt::opt;
+    use soco::algorithms::offline::opt_backward::opt_backward;
     use soco::convert::DiscretizableSchedule;
     use soco::objective::Objective;
     use soco::problem::HomProblem;
@@ -21,7 +21,7 @@ mod opt {
         };
         p.verify().unwrap();
 
-        let result = opt(&p).unwrap();
+        let result = opt_backward(&p).unwrap();
         result.0.verify(p.m, p.t_end).unwrap();
 
         assert_eq!(result.0.to_i(), vec![1, 1]);
