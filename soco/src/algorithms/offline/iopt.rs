@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::f64::INFINITY;
 use std::sync::Arc;
 
 use crate::problem::{DiscreteHomProblem, HomProblem};
@@ -71,13 +72,7 @@ pub fn make_pow_of_2<'a>(
 fn select_initial_rows<'a>(
     p: &'a DiscreteHomProblem<'a>,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
-    move |t| {
-        if t <= p.t_end {
-            (0..=4).map(|e| e * p.m / 4).collect()
-        } else {
-            vec![0]
-        }
-    }
+    move |_| (0..=4).map(|e| e * p.m / 4).collect()
 }
 
 fn select_next_rows<'a>(
@@ -86,14 +81,10 @@ fn select_next_rows<'a>(
     k: u32,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
     move |t| {
-        if t <= p.t_end {
-            (-2..=2)
-                .map(|e| xs[t as usize - 1] + e * 2_i32.pow(k))
-                .filter(|&j| 0 <= j && j <= p.m)
-                .collect()
-        } else {
-            vec![0]
-        }
+        (-2..=2)
+            .map(|e| xs[t as usize - 1] + e * 2_i32.pow(k))
+            .filter(|&j| 0 <= j && j <= p.m)
+            .collect()
     }
 }
 
@@ -106,7 +97,7 @@ fn find_schedule(
     paths.insert((0, 0), (vec![], 0.));
 
     let mut prev_rows = vec![0];
-    for t in 1..=p.t_end + 1 {
+    for t in 1..=p.t_end {
         let rows = select_rows(t);
 
         for &j in &rows {
@@ -114,11 +105,11 @@ fn find_schedule(
                 let c = build_cost(p, t, i, j, inverted)?;
                 match paths.get(&(t, j)) {
                     None => {
-                        update_paths(&mut paths, t, p.t_end, i, j, c)?;
+                        update_paths(&mut paths, t, i, j, c)?;
                     }
                     Some(&(_, prev_c)) => {
                         if c < prev_c {
-                            update_paths(&mut paths, t, p.t_end, i, j, c)?;
+                            update_paths(&mut paths, t, i, j, c)?;
                         };
                     }
                 };
@@ -128,10 +119,16 @@ fn find_schedule(
         prev_rows = rows;
     }
 
-    let path = paths
-        .get(&(p.t_end + 1, 0))
-        .ok_or(Error::PathsShouldBeCached)?;
-    Ok(path.clone())
+    let mut result = &(vec![], INFINITY);
+    for i in prev_rows {
+        let path =
+            paths.get(&(p.t_end, i)).ok_or(Error::PathsShouldBeCached)?;
+        if path.1 < result.1 {
+            result = path;
+        }
+    }
+
+    Ok(result.clone())
 }
 
 fn build_cost(
@@ -148,7 +145,6 @@ fn build_cost(
 fn update_paths(
     paths: &mut Paths,
     t: i32,
-    t_end: i32,
     i: i32,
     j: i32,
     c: f64,
@@ -156,11 +152,7 @@ fn update_paths(
     let u = (t - 1, i);
     let v = (t, j);
     let prev_xs = &paths.get(&u).ok_or(Error::PathsShouldBeCached)?.0;
-    let xs = if t <= t_end {
-        [&prev_xs[..], &[j]].concat()
-    } else {
-        prev_xs.clone()
-    };
+    let xs = [&prev_xs[..], &[j]].concat();
 
     paths.insert(v, (xs, c));
     Ok(())
