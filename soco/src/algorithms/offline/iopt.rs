@@ -138,8 +138,10 @@ fn build_cost(
     j: i32,
     inverted: bool,
 ) -> Result<f64> {
-    Ok(p.beta * pos(if inverted { i - j } else { j - i }) as f64
-        + (p.f)(t, j).ok_or(Error::CostFnMustBeTotal)?)
+    let hitting_cost = (p.f)(t, j).ok_or(Error::CostFnMustBeTotal)?;
+    let switching_cost =
+        p.beta * pos(if inverted { i - j } else { j - i }) as f64;
+    Ok(hitting_cost + switching_cost)
 }
 
 fn update_paths(
