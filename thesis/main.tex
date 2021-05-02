@@ -4,7 +4,7 @@
 \documentclass[headsepline,footsepline,footinclude=false,fontsize=11pt,paper=a4,listof=totoc,bibliography=totoc,BCOR=12mm,DIV=12]{scrbook} % two-sided
 % \documentclass[headsepline,footsepline,footinclude=false,oneside,fontsize=11pt,paper=a4,listof=totoc,bibliography=totoc]{scrbook} % one-sided
 
-\input{settings}
+\input{thesis/settings}
 
 % thesis information
 \newcommand*{\getUniversity}{Technical University of Munich}
@@ -23,21 +23,21 @@
 % Set page numbering to avoid "destination with the same identifier has been already used" warning for cover page.
 % (see https://en.wikibooks.org/wiki/LaTeX/Hyperlinks#Problems_with_Links_and_Pages).
 \pagenumbering{alph}
-\input{pages/cover}
+\input{thesis/pages/cover}
 
 \frontmatter{}
 
-\input{pages/title}
-\input{pages/disclaimer}
-\input{pages/acknowledgments}
-\input{pages/abstract}
+\input{thesis/pages/title}
+\input{thesis/pages/disclaimer}
+\input{thesis/pages/acknowledgments}
+\input{thesis/pages/abstract}
 \microtypesetup{protrusion=false}
 \tableofcontents{}
 \microtypesetup{protrusion=true}
 
 \mainmatter{}
 
-\input{chapters/01_introduction}
+\input{thesis/chapters/01_introduction}
 % TODO: add more chapters here
 
 \appendix{}
