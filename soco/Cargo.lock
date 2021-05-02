@@ -272,15 +272,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ordered-float"
-version = "2.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "766f840da25490628d8e63e529cd21c014f6600c6b8517add12a6fa6167a6218"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
 name = "paste"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -484,7 +475,6 @@ dependencies = [
  "itertools 0.10.0",
  "nlopt",
  "num",
- "ordered-float",
  "pathfinding",
  "rand 0.8.3",
  "rand_pcg 0.3.0",

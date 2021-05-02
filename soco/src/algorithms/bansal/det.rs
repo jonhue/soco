@@ -177,5 +177,5 @@ fn find_left_bound(
 }
 
 fn expected_value(p: &Memory, a: f64, b: f64) -> Result<f64> {
-    Ok(integrate(a, b, |j: f64| j * p(j), PRECISION)?)
+    integrate(a, b, |j: f64| j * p(j), PRECISION).map_err(Error::Integration)
 }

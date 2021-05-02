@@ -3,21 +3,16 @@
 #[derive(Debug)]
 pub enum Error {
     CostFnMustBeTotal,
+    Integration(String),
     Invalid(String),
     LcpBoundComputationExceedsDomain,
     LcpBoundMismatch(f64, f64),
     MustBePowOf2,
     NlOpt(nlopt::FailState),
     OnlineInsufficientInformation,
-    Other(String),
+    PathsShouldBeCached,
     UnsupportedBoundsCalculation,
     UnsupportedPredictionWindow,
-}
-
-impl From<String> for Error {
-    fn from(error: String) -> Self {
-        Error::Other(error)
-    }
 }
 
 impl From<nlopt::FailState> for Error {
