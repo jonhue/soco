@@ -12,6 +12,7 @@ repository = "https://github.com/jonhue/bachelors-thesis"
 
 [dependencies]
 bacon-sci = { git = "https://github.com/jonhue/bacon", branch = "allow-closures-in-differentiation" }
+itertools = "0.10.0"
 nlopt = "0.5.4"
 pathfinding = "2.1.4"
 num = "0.4.0"
