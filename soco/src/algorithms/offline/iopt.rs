@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::problem::{DiscreteHomProblem, HomProblem};
+use crate::problem::{DiscreteProblem, Problem};
 use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
 use crate::utils::{assert, is_pow_of_2, pos};
@@ -12,20 +12,21 @@ type Path = (DiscreteSchedule, f64);
 type Paths = HashMap<(i32, i32), Path>;
 
 /// Optimal Discrete Deterministic Offline Algorithm
-pub fn iopt(p: &'_ DiscreteHomProblem<'_>) -> Result<Path> {
+pub fn iopt(p: &'_ DiscreteProblem<'_>) -> Result<Path> {
     _iopt(p, false)
 }
 
 /// Inverted Optimal Discrete Deterministic Offline Algorithm
-pub fn inverted_iopt(p: &'_ DiscreteHomProblem<'_>) -> Result<Path> {
+pub fn inverted_iopt(p: &'_ DiscreteProblem<'_>) -> Result<Path> {
     _iopt(p, true)
 }
 
-fn _iopt<'a>(p: &'a DiscreteHomProblem<'a>, inverted: bool) -> Result<Path> {
-    assert(is_pow_of_2(p.m), Error::MustBePowOf2)?;
+fn _iopt<'a>(p: &'a DiscreteProblem<'a>, inverted: bool) -> Result<Path> {
+    assert(p.d == 1, Error::UnsupportedProblemDimension)?;
+    assert(is_pow_of_2(p.bounds[0]), Error::MustBePowOf2)?;
 
-    let k_init = if p.m > 2 {
-        (p.m as f64).log(2.).floor() as u32 - 2
+    let k_init = if p.bounds[0] > 2 {
+        (p.bounds[0] as f64).log(2.).floor() as u32 - 2
     } else {
         0
     };
@@ -44,46 +45,52 @@ fn _iopt<'a>(p: &'a DiscreteHomProblem<'a>, inverted: bool) -> Result<Path> {
 
 /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `iopt`.
 pub fn make_pow_of_2<'a>(
-    p: &'a DiscreteHomProblem<'a>,
-) -> DiscreteHomProblem<'a> {
-    let m = 2_i32.pow((p.m as f64).log(2.).ceil() as u32);
-    let f = Arc::new(move |t, x| {
-        if x <= p.m {
-            (p.f)(t, x)
+    p: &'a DiscreteProblem<'a>,
+) -> Result<DiscreteProblem<'a>> {
+    assert(p.d == 1, Error::UnsupportedProblemDimension)?;
+
+    let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);
+    let f = Arc::new(move |t, xs: &Vec<i32>| {
+        if xs[0] <= p.bounds[0] {
+            (p.f)(t, xs)
         } else {
-            Some(x as f64 * ((p.f)(t, p.m).unwrap() + std::f64::EPSILON))
+            Some(
+                xs[0] as f64
+                    * ((p.f)(t, &p.bounds).unwrap() + std::f64::EPSILON),
+            )
         }
     });
 
-    HomProblem {
-        m,
+    Ok(Problem {
+        d: p.d,
         t_end: p.t_end,
-        beta: p.beta,
+        bounds: vec![m],
+        betas: p.betas.clone(),
         f,
-    }
+    })
 }
 
 fn select_initial_rows<'a>(
-    p: &'a DiscreteHomProblem<'a>,
+    p: &'a DiscreteProblem<'a>,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
-    move |_| (0..=4).map(|e| e * p.m / 4).collect()
+    move |_| (0..=4).map(|e| e * p.bounds[0] / 4).collect()
 }
 
 fn select_next_rows<'a>(
-    p: &'a DiscreteHomProblem<'a>,
+    p: &'a DiscreteProblem<'a>,
     xs: &'a DiscreteSchedule,
     k: u32,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
     move |t| {
         (-2..=2)
-            .map(|e| xs[t as usize - 1] + e * 2_i32.pow(k))
-            .filter(|&j| 0 <= j && j <= p.m)
+            .map(|e| xs[t as usize - 1][0] + e * 2_i32.pow(k))
+            .filter(|&j| 0 <= j && j <= p.bounds[0])
             .collect()
     }
 }
 
 fn find_schedule(
-    p: &DiscreteHomProblem<'_>,
+    p: &DiscreteProblem<'_>,
     select_rows: impl Fn(i32) -> Vec<i32>,
     inverted: bool,
 ) -> Result<Path> {
@@ -112,7 +119,7 @@ fn find_schedule(
 }
 
 fn find_shortest_path(
-    p: &DiscreteHomProblem<'_>,
+    p: &DiscreteProblem<'_>,
     paths: &mut Paths,
     t: i32,
     from: &Vec<i32>,
@@ -137,15 +144,15 @@ fn find_shortest_path(
 }
 
 fn build_cost(
-    p: &DiscreteHomProblem<'_>,
+    p: &DiscreteProblem<'_>,
     t: i32,
     i: i32,
     j: i32,
     inverted: bool,
 ) -> Result<f64> {
-    let hitting_cost = (p.f)(t, j).ok_or(Error::CostFnMustBeTotal)?;
+    let hitting_cost = (p.f)(t, &vec![j]).ok_or(Error::CostFnMustBeTotal)?;
     let switching_cost =
-        p.beta * pos(if inverted { i - j } else { j - i }) as f64;
+        p.betas[0] * pos(if inverted { i - j } else { j - i }) as f64;
     Ok(hitting_cost + switching_cost)
 }
 
@@ -159,7 +166,7 @@ fn update_paths(
     let u = (t - 1, i);
     let v = (t, j);
     let prev_xs = &paths.get(&u).ok_or(Error::PathsShouldBeCached)?.0;
-    let xs = [&prev_xs[..], &[j]].concat();
+    let xs = [&prev_xs[..], &[vec![j]]].concat();
 
     paths.insert(v, (xs, c));
     Ok(())

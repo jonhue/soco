@@ -4,31 +4,59 @@ use std::sync::Arc;
 
 use crate::cost::CostFn;
 use crate::online::Online;
-use crate::problem::{ContinuousHomProblem, DiscreteHomProblem, HomProblem};
+use crate::problem::{ContinuousProblem, DiscreteProblem, Problem};
 use crate::schedule::{ContinuousSchedule, DiscreteSchedule};
 
-pub trait DiscretizableCostFn<'a> {
-    fn to_i(&'a self) -> CostFn<'a, i32>;
+pub trait DiscretizableVector {
+    fn ceil(&self) -> Vec<i32>;
+    fn floor(&self) -> Vec<i32>;
 }
 
-impl<'a> DiscretizableCostFn<'a> for CostFn<'a, f64> {
-    fn to_i(&'a self) -> CostFn<'a, i32> {
-        Arc::new(move |t, j: i32| self(t, j as f64))
+impl DiscretizableVector for Vec<f64> {
+    fn ceil(&self) -> Vec<i32> {
+        self.iter().map(|&x| x.ceil() as i32).collect()
+    }
+
+    fn floor(&self) -> Vec<i32> {
+        self.iter().map(|&x| x.floor() as i32).collect()
     }
 }
 
-pub trait ExtendableCostFn<'a> {
-    fn to_f(&'a self) -> CostFn<'a, f64>;
+pub trait RelaxableVector {
+    fn to_f(&self) -> Vec<f64>;
 }
 
-impl<'a> ExtendableCostFn<'a> for CostFn<'a, i32> {
-    fn to_f(&'a self) -> CostFn<'a, f64> {
-        Arc::new(move |t, j: f64| {
+impl RelaxableVector for Vec<i32> {
+    fn to_f(&self) -> Vec<f64> {
+        self.iter().map(|&x| x as f64).collect()
+    }
+}
+
+pub trait DiscretizableCostFn<'a> {
+    fn to_i(&'a self) -> CostFn<'a, Vec<i32>>;
+}
+
+impl<'a> DiscretizableCostFn<'a> for CostFn<'a, Vec<f64>> {
+    fn to_i(&'a self) -> CostFn<'a, Vec<i32>> {
+        Arc::new(move |t, x| self(t, &x.to_f()))
+    }
+}
+
+pub trait RelaxableCostFn<'a> {
+    fn to_f(&'a self) -> CostFn<'a, Vec<f64>>;
+}
+
+impl<'a> RelaxableCostFn<'a> for CostFn<'a, Vec<i32>> {
+    fn to_f(&'a self) -> CostFn<'a, Vec<f64>> {
+        Arc::new(move |t, x| {
+            assert!(x.len() == 1, "cannot relax multidimensional problems");
+
+            let j = x[0];
             if j.fract() == 0. {
-                self(t, j as i32)
+                self(t, &vec![j as i32])
             } else {
-                let l = self(t, j.floor() as i32);
-                let u = self(t, j.ceil() as i32);
+                let l = self(t, &vec![j.floor() as i32]);
+                let u = self(t, &vec![j.ceil() as i32]);
                 if l.is_none() || u.is_none() {
                     return None;
                 }
@@ -39,30 +67,32 @@ impl<'a> ExtendableCostFn<'a> for CostFn<'a, i32> {
     }
 }
 
-impl<'a> ContinuousHomProblem<'a> {
-    pub fn to_i(&'a self) -> DiscreteHomProblem<'a> {
-        HomProblem {
-            m: self.m,
+impl<'a> ContinuousProblem<'a> {
+    pub fn to_i(&'a self) -> DiscreteProblem<'a> {
+        Problem {
+            d: self.d,
             t_end: self.t_end,
-            beta: self.beta,
+            bounds: self.bounds.floor(),
+            betas: self.betas.clone(),
             f: self.f.to_i(),
         }
     }
 }
 
-impl<'a> DiscreteHomProblem<'a> {
-    pub fn to_f(&'a self) -> ContinuousHomProblem<'a> {
-        HomProblem {
-            m: self.m,
+impl<'a> DiscreteProblem<'a> {
+    pub fn to_f(&'a self) -> ContinuousProblem<'a> {
+        Problem {
+            d: self.d,
             t_end: self.t_end,
-            beta: self.beta,
+            bounds: self.bounds.to_f(),
+            betas: self.betas.clone(),
             f: self.f.to_f(),
         }
     }
 }
 
-impl<'a> Online<ContinuousHomProblem<'a>> {
-    pub fn to_i(&'a self) -> Online<DiscreteHomProblem<'a>> {
+impl<'a> Online<ContinuousProblem<'a>> {
+    pub fn to_i(&'a self) -> Online<DiscreteProblem<'a>> {
         Online {
             w: self.w,
             p: self.p.to_i(),
@@ -70,8 +100,8 @@ impl<'a> Online<ContinuousHomProblem<'a>> {
     }
 }
 
-impl<'a> Online<DiscreteHomProblem<'a>> {
-    pub fn to_f(&'a self) -> Online<ContinuousHomProblem<'a>> {
+impl<'a> Online<DiscreteProblem<'a>> {
+    pub fn to_f(&'a self) -> Online<ContinuousProblem<'a>> {
         Online {
             w: self.w,
             p: self.p.to_f(),
@@ -85,17 +115,17 @@ pub trait DiscretizableSchedule {
 
 impl DiscretizableSchedule for ContinuousSchedule {
     fn to_i(&self) -> DiscreteSchedule {
-        self.iter().map(|&x| x.ceil() as i32).collect()
+        self.iter().map(|x| x.ceil()).collect()
     }
 }
 
-pub trait ExtendableSchedule {
+pub trait RelaxableSchedule {
     fn to_f(&self) -> ContinuousSchedule;
 }
 
-impl ExtendableSchedule for DiscreteSchedule {
+impl RelaxableSchedule for DiscreteSchedule {
     fn to_f(&self) -> ContinuousSchedule {
-        self.iter().map(|&x| x as f64).collect()
+        self.iter().map(|x| x.to_f()).collect()
     }
 }
 
@@ -109,12 +139,16 @@ impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T> {
     }
 }
 
-impl<'a, T> HomProblem<'a, T> {
-    pub fn reset(&'a self, t_start: i32) -> HomProblem<'a, T> {
-        HomProblem {
-            m: self.m,
+impl<'a, T> Problem<'a, T>
+where
+    T: Clone,
+{
+    pub fn reset(&'a self, t_start: i32) -> Problem<'a, T> {
+        Problem {
+            d: self.d,
             t_end: self.t_end - t_start,
-            beta: self.beta,
+            bounds: self.bounds.clone(),
+            betas: self.betas.clone(),
             f: self.f.reset(t_start),
         }
     }

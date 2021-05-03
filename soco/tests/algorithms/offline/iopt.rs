@@ -4,29 +4,30 @@ mod make_pow_of_2 {
     use std::sync::Arc;
 
     use soco::algorithms::offline::iopt::make_pow_of_2;
-    use soco::problem::HomProblem;
+    use soco::problem::Problem;
 
     #[test]
     fn _1() {
-        let p = HomProblem {
-            m: 103,
+        let p = Problem {
+            d: 1,
             t_end: 1_000,
+            bounds: vec![103],
+            betas: vec![1.],
             f: Arc::new(|_, _| Some(1.)),
-            beta: 1.,
         };
         p.verify().unwrap();
-        let transformed_p = make_pow_of_2(&p);
+        let transformed_p = make_pow_of_2(&p).unwrap();
         transformed_p.verify().unwrap();
 
-        assert_eq!(transformed_p.m, 128);
         assert_eq!(transformed_p.t_end, p.t_end);
-        assert_eq!(transformed_p.beta, p.beta);
+        assert_eq!(transformed_p.bounds[0], 128);
+        assert_eq!(transformed_p.betas[0], p.betas[0]);
 
         for t in 1..=transformed_p.t_end {
-            for j in 0..=transformed_p.m {
+            for j in 0..=transformed_p.bounds[0] {
                 assert_eq!(
-                    (transformed_p.f)(t, j).unwrap(),
-                    if j <= p.m {
+                    (transformed_p.f)(t, &vec![j]).unwrap(),
+                    if j <= p.bounds[0] {
                         1.
                     } else {
                         j as f64 * (1. + std::f64::EPSILON)
@@ -47,67 +48,72 @@ mod iopt {
 
     use soco::algorithms::offline::iopt::{iopt, make_pow_of_2};
     use soco::objective::Objective;
-    use soco::problem::HomProblem;
+    use soco::problem::Problem;
     use soco::verifiers::VerifiableSchedule;
 
     #[test]
     fn _1() {
-        let p = HomProblem {
-            m: 2,
+        let p = Problem {
+            d: 1,
             t_end: 2,
-            f: Arc::new(|t, j| Some(t as f64 * (if j == 0 { 1. } else { 0. }))),
-            beta: 1.,
+            bounds: vec![2],
+            betas: vec![1.],
+            f: Arc::new(|t, j| {
+                Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
+            }),
         };
         p.verify().unwrap();
 
         let result = iopt(&p).unwrap();
-        result.0.verify(p.m, p.t_end).unwrap();
+        result.0.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result, (vec![1, 1], 1.));
+        assert_eq!(result, (vec![vec![1], vec![1]], 1.));
         assert_eq!(result.1, p.objective_function(&result.0).unwrap());
     }
 
     #[test]
     fn _2() {
-        let p = HomProblem {
-            m: 8,
+        let p = Problem {
+            d: 1,
             t_end: 100,
+            bounds: vec![8],
+            betas: vec![1.],
             f: Arc::new(|t, j| {
                 Some(
-                    Pcg64::seed_from_u64((t * j) as u64)
+                    Pcg64::seed_from_u64((t * j[0]) as u64)
                         .gen_range(0.0..1_000_000.),
                 )
             }),
-            beta: 1.,
         };
         p.verify().unwrap();
 
         let result = iopt(&p).unwrap();
-        result.0.verify(p.m, p.t_end).unwrap();
+        result.0.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.1, p.objective_function(&result.0).unwrap());
     }
 
     #[test]
     fn _3() {
-        let p = HomProblem {
-            m: 9,
+        let p = Problem {
+            d: 1,
             t_end: 1_000,
+            bounds: vec![9],
+            betas: vec![1.],
             f: Arc::new(|t, j| {
                 Some(
-                    Pcg64::seed_from_u64((t * j) as u64)
+                    Pcg64::seed_from_u64((t * j[0]) as u64)
                         .gen_range(0.0..1_000_000.),
                 )
             }),
-            beta: 1.,
         };
         p.verify().unwrap();
 
-        let transformed_p = make_pow_of_2(&p);
+        let transformed_p = make_pow_of_2(&p).unwrap();
         let result = iopt(&transformed_p).unwrap();
         result
             .0
-            .verify(transformed_p.m, transformed_p.t_end)
+            .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
 
         assert_eq!(

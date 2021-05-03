@@ -18,8 +18,8 @@ pub fn load_balance<'a, T: ToPrimitive>(f: &'a LoadFn) -> LazyCostFn<'a, T> {
     Arc::new(move |l| {
         Arc::new(move |x| {
             Some(
-                ToPrimitive::to_f64(&x).unwrap()
-                    * f(l / ToPrimitive::to_f64(&x).unwrap()),
+                ToPrimitive::to_f64(x).unwrap()
+                    * f(l / ToPrimitive::to_f64(x).unwrap()),
             )
         })
     })

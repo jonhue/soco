@@ -2,7 +2,7 @@
 
 use num::{Num, NumCast, ToPrimitive};
 
-use crate::problem::HomProblem;
+use crate::problem::Problem;
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::{access, pos};
@@ -26,7 +26,7 @@ pub trait Objective<T> {
     ) -> Result<f64>;
 }
 
-impl<'a, T> Objective<T> for HomProblem<'a, T>
+impl<'a, T> Objective<T> for Problem<'a, T>
 where
     T: Copy + Num + NumCast + PartialOrd,
 {
@@ -37,16 +37,22 @@ where
     ) -> Result<f64> {
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = access(xs, t - 2);
-            let x = access(xs, t - 1);
-            cost += (self.f)(t, x).ok_or(Error::CostFnMustBeTotal)?
-                + self.beta
-                    * ToPrimitive::to_f64(&pos(if inverted {
-                        prev_x - x
-                    } else {
-                        x - prev_x
-                    }))
-                    .unwrap();
+            let prev_x = access(
+                xs,
+                t - 2,
+                vec![NumCast::from(0).unwrap(); self.d as usize],
+            );
+            let x = &xs[t as usize - 1];
+            cost += (self.f)(t as i32, x).ok_or(Error::CostFnMustBeTotal)?;
+            for k in 0..self.d as usize {
+                let delta = ToPrimitive::to_f64(&pos(if inverted {
+                    prev_x[k] - x[k]
+                } else {
+                    x[k] - prev_x[k]
+                }))
+                .unwrap();
+                cost += self.betas[k] * delta;
+            }
         }
         Ok(cost)
     }

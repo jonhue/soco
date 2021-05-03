@@ -43,11 +43,11 @@ pub fn is_pow_of_2(x: i32) -> bool {
     x != 0 && x & (x - 1) == 0
 }
 
-/// Returns the `i`-th element of vector `xs` if present; `0` otherwise.
-pub fn access<T: Copy + NumCast>(xs: &Vec<T>, i: i32) -> T {
+/// Returns the `i`-th element of vector `xs` if present; `def` otherwise.
+pub fn access<T: Clone>(xs: &Vec<T>, i: i32, def: T) -> T {
     if i >= 0 && i < xs.len() as i32 {
-        xs[i as usize]
+        xs[i as usize].clone()
     } else {
-        NumCast::from(0).unwrap()
+        def
     }
 }

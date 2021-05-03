@@ -1,22 +1,19 @@
-//! Problem definitions.
+//! Problem definition.
 
 use crate::cost::CostFn;
 
-/// Data-Center Right-Sizing problem.
-pub enum Problem<'a, T> {
-    Hom(HomProblem<'a, T>),
-}
-
-/// Homogeneous Data-Center Right-Sizing problem.
-pub struct HomProblem<'a, T> {
-    /// Number of servers.
-    pub m: i32,
+/// Multi-Dimensional Smoothed Convex Optimization.
+pub struct Problem<'a, T> {
+    /// Number of dimensions.
+    pub d: i32,
     /// Finite, positive time horizon.
     pub t_end: i32,
-    /// Positive real constant resembling the switching cost.
-    pub beta: f64,
+    /// Vector of upper bounds of each dimension.
+    pub bounds: Vec<T>,
+    /// Vector of positive real constants resembling the switching cost of each dimension.
+    pub betas: Vec<f64>,
     /// Non-negative convex cost functions.
-    pub f: CostFn<'a, T>,
+    pub f: CostFn<'a, Vec<T>>,
 }
-pub type DiscreteHomProblem<'a> = HomProblem<'a, i32>;
-pub type ContinuousHomProblem<'a> = HomProblem<'a, f64>;
+pub type DiscreteProblem<'a> = Problem<'a, i32>;
+pub type ContinuousProblem<'a> = Problem<'a, f64>;

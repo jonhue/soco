@@ -13,6 +13,7 @@ pub enum Error {
     PathsShouldBeCached,
     UnsupportedBoundsCalculation,
     UnsupportedPredictionWindow,
+    UnsupportedProblemDimension,
 }
 
 impl From<nlopt::FailState> for Error {
