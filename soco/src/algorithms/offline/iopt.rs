@@ -12,21 +12,16 @@ type Path = (DiscreteSchedule, f64);
 type Paths = HashMap<(i32, i32), Path>;
 
 /// Optimal Discrete Deterministic Offline Algorithm
-pub fn iopt(p: &'_ DiscreteHomProblem<'_>) -> Result<(DiscreteSchedule, f64)> {
+pub fn iopt(p: &'_ DiscreteHomProblem<'_>) -> Result<Path> {
     _iopt(p, false)
 }
 
 /// Inverted Optimal Discrete Deterministic Offline Algorithm
-pub fn inverted_iopt(
-    p: &'_ DiscreteHomProblem<'_>,
-) -> Result<(DiscreteSchedule, f64)> {
+pub fn inverted_iopt(p: &'_ DiscreteHomProblem<'_>) -> Result<Path> {
     _iopt(p, true)
 }
 
-fn _iopt<'a>(
-    p: &'a DiscreteHomProblem<'a>,
-    inverted: bool,
-) -> Result<(DiscreteSchedule, f64)> {
+fn _iopt<'a>(p: &'a DiscreteHomProblem<'a>, inverted: bool) -> Result<Path> {
     assert(is_pow_of_2(p.m), Error::MustBePowOf2)?;
 
     let k_init = if p.m > 2 {
@@ -91,7 +86,7 @@ fn find_schedule(
     p: &DiscreteHomProblem<'_>,
     select_rows: impl Fn(i32) -> Vec<i32>,
     inverted: bool,
-) -> Result<(DiscreteSchedule, f64)> {
+) -> Result<Path> {
     let mut paths: Paths = HashMap::new();
     paths.insert((0, 0), (vec![], 0.));
 
@@ -127,11 +122,11 @@ fn find_shortest_path(
     let mut picked_source = 0;
     let mut picked_cost = f64::INFINITY;
     for &source in from {
-        let cost = build_cost(p, t, source, to, inverted)?;
         let prev_cost = paths
             .get(&(t - 1, source))
             .ok_or(Error::PathsShouldBeCached)?
             .1;
+        let cost = build_cost(p, t, source, to, inverted)?;
         let new_cost = prev_cost + cost;
         if new_cost < picked_cost {
             picked_source = source;
