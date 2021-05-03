@@ -36,13 +36,13 @@ where
         inverted: bool,
     ) -> Result<f64> {
         let mut cost = 0.;
-        for t in 0..self.t_end {
+        for t in 1..=self.t_end {
             let prev_x = access(
                 xs,
-                t - 1,
+                t - 2,
                 vec![NumCast::from(0).unwrap(); self.d as usize],
             );
-            let x = &xs[t as usize];
+            let x = &xs[t as usize - 1];
             cost += (self.f)(t as i32, x).ok_or(Error::CostFnMustBeTotal)?;
             for k in 0..self.d as usize {
                 let delta = ToPrimitive::to_f64(&pos(if inverted {
