@@ -1,5 +1,3 @@
-use ordered_float::OrderedFloat;
-use pathfinding::directed::dijkstra::dijkstra;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -8,32 +6,23 @@ use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
 use crate::utils::{assert, is_pow_of_2, pos};
 
-/// Represents a vertice `v_{t, j}` where the `t ~ time` and `j ~ #servers`.
-type Vertice = (i32, i32);
-/// Represents the length (cost) of an edge.
-type Cost = OrderedFloat<f64>;
-/// Maps a vertice to all its neighbors with some cost.
-type Neighbors = HashMap<Vertice, Vec<(Vertice, Cost)>>;
+/// The minimal cost from some initial vertice alongside the shortest path to the final vertice.
+type Path = (DiscreteSchedule, f64);
+/// Maps a vertice to its minimal cost from some initial vertice alongside the shortest path.
+type Paths = HashMap<(i32, i32), Path>;
 
-/// Discrete Deterministic Offline Algorithm
-pub fn iopt(p: &'_ DiscreteHomProblem<'_>) -> Result<(DiscreteSchedule, f64)> {
+/// Optimal Discrete Deterministic Offline Algorithm
+pub fn iopt(p: &'_ DiscreteHomProblem<'_>) -> Result<Path> {
     _iopt(p, false)
 }
 
-/// Inverted Discrete Deterministic Offline Algorithm
-pub fn inverted_iopt(
-    p: &'_ DiscreteHomProblem<'_>,
-) -> Result<(DiscreteSchedule, f64)> {
+/// Inverted Optimal Discrete Deterministic Offline Algorithm
+pub fn inverted_iopt(p: &'_ DiscreteHomProblem<'_>) -> Result<Path> {
     _iopt(p, true)
 }
 
-fn _iopt<'a>(
-    p: &'a DiscreteHomProblem<'a>,
-    inverted: bool,
-) -> Result<(DiscreteSchedule, f64)> {
+fn _iopt<'a>(p: &'a DiscreteHomProblem<'a>, inverted: bool) -> Result<Path> {
     assert(is_pow_of_2(p.m), Error::MustBePowOf2)?;
-
-    let neighbors = build_neighbors(p, inverted)?;
 
     let k_init = if p.m > 2 {
         (p.m as f64).log(2.).floor() as u32 - 2
@@ -41,14 +30,12 @@ fn _iopt<'a>(
         0
     };
 
-    let initial_neighbors = select_initial_neighbors(p, &neighbors);
-    let mut result = find_schedule(p, initial_neighbors);
+    let mut result = find_schedule(p, select_initial_rows(p), inverted)?;
 
     if k_init > 0 {
         for k in k_init - 1..=0 {
-            let next_neighbors =
-                select_next_neighbors(p, &result.0, &neighbors, k);
-            result = find_schedule(p, next_neighbors);
+            result =
+                find_schedule(p, select_next_rows(p, &result.0, k), inverted)?;
         }
     }
 
@@ -76,40 +63,77 @@ pub fn make_pow_of_2<'a>(
     }
 }
 
-fn build_neighbors(
-    p: &DiscreteHomProblem<'_>,
-    inverted: bool,
-) -> Result<Neighbors> {
-    let mut neighbors = HashMap::new();
-    neighbors.insert((0, 0), build_edges(p, 0, 0, inverted)?);
-    for t in 1..=p.t_end {
-        for i in 0..p.m {
-            neighbors.insert((t, i), build_edges(p, t, i, inverted)?);
-        }
-    }
-    Ok(neighbors)
+fn select_initial_rows<'a>(
+    p: &'a DiscreteHomProblem<'a>,
+) -> impl Fn(i32) -> Vec<i32> + 'a {
+    move |_| (0..=4).map(|e| e * p.m / 4).collect()
 }
 
-fn build_edges(
-    p: &DiscreteHomProblem<'_>,
-    t: i32,
-    i: i32,
-    inverted: bool,
-) -> Result<Vec<(Vertice, Cost)>> {
-    if t == p.t_end {
-        Ok(vec![((p.t_end + 1, 0), OrderedFloat(0.))])
-    } else {
-        vec![0; p.m as usize]
-            .iter()
-            .enumerate()
-            .map(|(j, _)| {
-                Ok((
-                    (t + 1, j as i32),
-                    build_cost(p, t + 1, i, j as i32, inverted)?,
-                ))
-            })
+fn select_next_rows<'a>(
+    p: &'a DiscreteHomProblem<'a>,
+    xs: &'a DiscreteSchedule,
+    k: u32,
+) -> impl Fn(i32) -> Vec<i32> + 'a {
+    move |t| {
+        (-2..=2)
+            .map(|e| xs[t as usize - 1] + e * 2_i32.pow(k))
+            .filter(|&j| 0 <= j && j <= p.m)
             .collect()
     }
+}
+
+fn find_schedule(
+    p: &DiscreteHomProblem<'_>,
+    select_rows: impl Fn(i32) -> Vec<i32>,
+    inverted: bool,
+) -> Result<Path> {
+    let mut paths: Paths = HashMap::new();
+    paths.insert((0, 0), (vec![], 0.));
+
+    let mut prev_rows = vec![0];
+    for t in 1..=p.t_end {
+        let rows = select_rows(t);
+        for &j in &rows {
+            find_shortest_path(p, &mut paths, t, &prev_rows, j, inverted)?;
+        }
+        prev_rows = rows;
+    }
+
+    let mut result = &(vec![], f64::INFINITY);
+    for i in prev_rows {
+        let path =
+            paths.get(&(p.t_end, i)).ok_or(Error::PathsShouldBeCached)?;
+        if path.1 < result.1 {
+            result = path;
+        }
+    }
+
+    Ok(result.clone())
+}
+
+fn find_shortest_path(
+    p: &DiscreteHomProblem<'_>,
+    paths: &mut Paths,
+    t: i32,
+    from: &Vec<i32>,
+    to: i32,
+    inverted: bool,
+) -> Result<()> {
+    let mut picked_source = 0;
+    let mut picked_cost = f64::INFINITY;
+    for &source in from {
+        let prev_cost = paths
+            .get(&(t - 1, source))
+            .ok_or(Error::PathsShouldBeCached)?
+            .1;
+        let cost = build_cost(p, t, source, to, inverted)?;
+        let new_cost = prev_cost + cost;
+        if new_cost < picked_cost {
+            picked_source = source;
+            picked_cost = new_cost;
+        };
+    }
+    update_paths(paths, t, picked_source, to, picked_cost)
 }
 
 fn build_cost(
@@ -118,66 +142,25 @@ fn build_cost(
     i: i32,
     j: i32,
     inverted: bool,
-) -> Result<Cost> {
-    Ok(OrderedFloat(
-        p.beta * pos(if inverted { i - j } else { j - i }) as f64
-            + (p.f)(t, j).ok_or(Error::CostFnMustBeTotal)?,
-    ))
+) -> Result<f64> {
+    let hitting_cost = (p.f)(t, j).ok_or(Error::CostFnMustBeTotal)?;
+    let switching_cost =
+        p.beta * pos(if inverted { i - j } else { j - i }) as f64;
+    Ok(hitting_cost + switching_cost)
 }
 
-fn find_schedule(
-    p: &DiscreteHomProblem<'_>,
-    neighbors: impl Fn(&Vertice) -> Vec<(Vertice, Cost)>,
-) -> (DiscreteSchedule, f64) {
-    let result = dijkstra(&(0, 0), neighbors, |&(t, j): &Vertice| {
-        (t, j) == (p.t_end + 1, 0)
-    });
-    let (mut xs, cost) = result.expect("there should always be a path");
-    xs.remove(0);
-    xs.remove(xs.len() - 1);
-    (xs.into_iter().map(|(_, j)| j).collect(), cost.into_inner())
-}
+fn update_paths(
+    paths: &mut Paths,
+    t: i32,
+    i: i32,
+    j: i32,
+    c: f64,
+) -> Result<()> {
+    let u = (t - 1, i);
+    let v = (t, j);
+    let prev_xs = &paths.get(&u).ok_or(Error::PathsShouldBeCached)?.0;
+    let xs = [&prev_xs[..], &[j]].concat();
 
-fn select_initial_neighbors<'a>(
-    p: &DiscreteHomProblem<'a>,
-    neighbors: &'a Neighbors,
-) -> impl Fn(&Vertice) -> Vec<(Vertice, Cost)> + 'a {
-    let acceptable_successors: Vec<i32> =
-        (0..=4).map(|e| e * p.m / 4).collect();
-    select_neighbors(neighbors, move |&(_, j)| {
-        acceptable_successors.contains(&j)
-    })
-}
-
-fn select_next_neighbors<'a>(
-    p: &'a DiscreteHomProblem<'a>,
-    xs: &DiscreteSchedule,
-    neighbors: &'a Neighbors,
-    k: u32,
-) -> impl Fn(&Vertice) -> Vec<(Vertice, Cost)> + 'a {
-    let acceptable_successors: Vec<Vec<i32>> = (1..=p.t_end)
-        .map(|t| {
-            (-2..=2)
-                .map(|e| xs[t as usize - 1] + e * 2_i32.pow(k))
-                .collect()
-        })
-        .collect();
-    select_neighbors(neighbors, move |&(t, j)| {
-        t == p.t_end + 1 || acceptable_successors[t as usize - 1].contains(&j)
-    })
-}
-
-fn select_neighbors<'a>(
-    neighbors: &'a Neighbors,
-    is_acceptable_successor: impl Fn(&Vertice) -> bool + 'a,
-) -> impl Fn(&Vertice) -> Vec<(Vertice, Cost)> + 'a {
-    move |&(t, i): &Vertice| {
-        neighbors
-            .get(&(t, i))
-            .expect("neighbors should have been pre-cached")
-            .iter()
-            .copied()
-            .filter(|(v, _)| is_acceptable_successor(v))
-            .collect()
-    }
+    paths.insert(v, (xs, c));
+    Ok(())
 }

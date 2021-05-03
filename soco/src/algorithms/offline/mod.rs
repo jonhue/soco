@@ -1,4 +1,4 @@
-//! Optimal Offline Algorithms
+//! Offline Algorithms
 
 pub mod iopt;
 pub mod opt;
