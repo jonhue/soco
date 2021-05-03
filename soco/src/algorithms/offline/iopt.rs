@@ -11,12 +11,12 @@ type Path = (DiscreteSchedule, f64);
 /// Maps a vertice to its minimal cost from some initial vertice alongside the shortest path.
 type Paths = HashMap<(i32, i32), Path>;
 
-/// Discrete Deterministic Offline Algorithm
+/// Optimal Discrete Deterministic Offline Algorithm
 pub fn iopt(p: &'_ DiscreteHomProblem<'_>) -> Result<(DiscreteSchedule, f64)> {
     _iopt(p, false)
 }
 
-/// Inverted Discrete Deterministic Offline Algorithm
+/// Inverted Optimal Discrete Deterministic Offline Algorithm
 pub fn inverted_iopt(
     p: &'_ DiscreteHomProblem<'_>,
 ) -> Result<(DiscreteSchedule, f64)> {
@@ -98,23 +98,9 @@ fn find_schedule(
     let mut prev_rows = vec![0];
     for t in 1..=p.t_end {
         let rows = select_rows(t);
-
         for &j in &rows {
-            for &i in &prev_rows {
-                let c = build_cost(p, t, i, j, inverted)?;
-                match paths.get(&(t, j)) {
-                    None => {
-                        update_paths(&mut paths, t, i, j, c)?;
-                    }
-                    Some(&(_, prev_c)) => {
-                        if c < prev_c {
-                            update_paths(&mut paths, t, i, j, c)?;
-                        };
-                    }
-                };
-            }
+            find_shortest_path(p, &mut paths, t, &prev_rows, j, inverted)?;
         }
-
         prev_rows = rows;
     }
 
@@ -128,6 +114,31 @@ fn find_schedule(
     }
 
     Ok(result.clone())
+}
+
+fn find_shortest_path(
+    p: &DiscreteHomProblem<'_>,
+    paths: &mut Paths,
+    t: i32,
+    from: &Vec<i32>,
+    to: i32,
+    inverted: bool,
+) -> Result<()> {
+    let mut picked_source = 0;
+    let mut picked_cost = f64::INFINITY;
+    for &source in from {
+        let cost = build_cost(p, t, source, to, inverted)?;
+        let prev_cost = paths
+            .get(&(t - 1, source))
+            .ok_or(Error::PathsShouldBeCached)?
+            .1;
+        let new_cost = prev_cost + cost;
+        if new_cost < picked_cost {
+            picked_source = source;
+            picked_cost = new_cost;
+        };
+    }
+    update_paths(paths, t, picked_source, to, picked_cost)
 }
 
 fn build_cost(
