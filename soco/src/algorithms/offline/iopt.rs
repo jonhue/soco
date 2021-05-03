@@ -65,7 +65,7 @@ pub fn make_pow_of_2<'a>(
         d: p.d,
         t_end: p.t_end,
         bounds: vec![m],
-        betas: p.betas.clone(),
+        switching_costs: p.switching_costs.clone(),
         f,
     })
 }
@@ -152,7 +152,7 @@ fn build_cost(
 ) -> Result<f64> {
     let hitting_cost = (p.f)(t, &vec![j]).ok_or(Error::CostFnMustBeTotal)?;
     let switching_cost =
-        p.betas[0] * pos(if inverted { i - j } else { j - i }) as f64;
+        p.switching_costs[0] * pos(if inverted { i - j } else { j - i }) as f64;
     Ok(hitting_cost + switching_cost)
 }
 

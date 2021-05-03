@@ -45,8 +45,8 @@ where
             format!("length of vector of upper bounds must equal dimension, {} != {}", self.bounds.len(), self.d),
         )?;
         assert_validity(
-            self.betas.len() == self.d as usize,
-            format!("length of vector of switching cost factors must equal dimension, {} != {}", self.betas.len(), self.d),
+            self.switching_costs.len() == self.d as usize,
+            format!("length of vector of switching cost factors must equal dimension, {} != {}", self.switching_costs.len(), self.d),
         )?;
 
         for k in 0..self.d as usize {
@@ -55,7 +55,7 @@ where
                 format!("upper bound of dimension {} must be positive", k + 1),
             )?;
             assert_validity(
-                self.betas[k] > 0.,
+                self.switching_costs[k] > 0.,
                 format!(
                     "switching cost factor of dimension {} must be positive",
                     k + 1

@@ -13,7 +13,7 @@ mod lcp {
             d: 1,
             t_end: 1,
             bounds: vec![2.],
-            betas: vec![1.],
+            switching_costs: vec![1.],
             f: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0. { 1. } else { 0. }))
             }),
@@ -22,7 +22,7 @@ mod lcp {
         o.verify().unwrap();
 
         let result = o.stream(lcp, |_, _, _| false).unwrap();
-        result.0.verify(o.p.t_end, &o.p.betas).unwrap();
+        result.0.verify(o.p.t_end, &o.p.switching_costs).unwrap();
 
         assert_eq!(result.0.to_i(), vec![vec![1]]);
     }
@@ -33,7 +33,7 @@ mod lcp {
             d: 1,
             t_end: 1,
             bounds: vec![2.],
-            betas: vec![1.],
+            switching_costs: vec![1.],
             f: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0. { 1. } else { 0. }))
             }),

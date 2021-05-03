@@ -73,7 +73,7 @@ impl<'a> ContinuousProblem<'a> {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.floor(),
-            betas: self.betas.clone(),
+            switching_costs: self.switching_costs.clone(),
             f: self.f.to_i(),
         }
     }
@@ -85,7 +85,7 @@ impl<'a> DiscreteProblem<'a> {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.to_f(),
-            betas: self.betas.clone(),
+            switching_costs: self.switching_costs.clone(),
             f: self.f.to_f(),
         }
     }
@@ -148,7 +148,7 @@ where
             d: self.d,
             t_end: self.t_end - t_start,
             bounds: self.bounds.clone(),
-            betas: self.betas.clone(),
+            switching_costs: self.switching_costs.clone(),
             f: self.f.reset(t_start),
         }
     }
