@@ -14,7 +14,7 @@ mod opt_backward {
             d: 1,
             t_end: 2,
             bounds: vec![2.],
-            betas: vec![1.],
+            switching_costs: vec![1.],
             f: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0. { 1. } else { 0. }))
             }),
@@ -42,7 +42,7 @@ mod opt_forward {
             d: 1,
             t_end: 2,
             bounds: vec![2.],
-            betas: vec![1.],
+            switching_costs: vec![1.],
             f: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0. { 1. } else { 0. }))
             }),

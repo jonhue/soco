@@ -51,7 +51,7 @@ where
                     x[k] - prev_x[k]
                 }))
                 .unwrap();
-                cost += self.betas[k] * delta;
+                cost += self.switching_costs[k] * delta;
             }
         }
         Ok(cost)

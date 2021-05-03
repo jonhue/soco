@@ -11,7 +11,7 @@ pub struct Problem<'a, T> {
     /// Vector of upper bounds of each dimension.
     pub bounds: Vec<T>,
     /// Vector of positive real constants resembling the switching cost of each dimension.
-    pub betas: Vec<f64>,
+    pub switching_costs: Vec<f64>,
     /// Non-negative convex cost functions.
     pub f: CostFn<'a, Vec<T>>,
 }
