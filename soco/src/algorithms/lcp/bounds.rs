@@ -5,7 +5,7 @@ use nlopt::Target;
 
 use crate::algorithms::offline::iopt::{inverted_iopt, iopt, make_pow_of_2};
 use crate::objective::Objective;
-use crate::problem::{ContinuousHomProblem, DiscreteHomProblem};
+use crate::problem::{ContinuousProblem, DiscreteProblem};
 use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
 use crate::utils::{assert, is_pow_of_2};
@@ -19,13 +19,15 @@ pub trait Bounded<T> {
     fn find_upper_bound(&self, t: i32, t_start: i32) -> Result<T>;
 }
 
-impl Bounded<f64> for ContinuousHomProblem<'_> {
+impl Bounded<f64> for ContinuousProblem<'_> {
     fn find_lower_bound(&self, t: i32, t_start: i32) -> Result<f64> {
-        let objective_function =
-            |xs: &[f64],
-             _: Option<&mut [f64]>,
-             p: &mut &ContinuousHomProblem<'_>|
-             -> f64 { p.objective_function(&xs.to_vec()).unwrap() };
+        let objective_function = |xs: &[f64],
+                                  _: Option<&mut [f64]>,
+                                  p: &mut &ContinuousProblem<'_>|
+         -> f64 {
+            p.objective_function(&xs.iter().map(|&x| vec![x]).collect())
+                .unwrap()
+        };
 
         self.find_bound(objective_function, t, t_start)
     }
@@ -33,22 +35,26 @@ impl Bounded<f64> for ContinuousHomProblem<'_> {
     fn find_upper_bound(&self, t: i32, t_start: i32) -> Result<f64> {
         let objective_function = |xs: &[f64],
                                   _: Option<&mut [f64]>,
-                                  p: &mut &ContinuousHomProblem<'_>|
+                                  p: &mut &ContinuousProblem<'_>|
          -> f64 {
-            p.inverted_objective_function(&xs.to_vec()).unwrap()
+            p.inverted_objective_function(
+                &xs.iter().map(|&x| vec![x]).collect(),
+            )
+            .unwrap()
         };
 
         self.find_bound(objective_function, t, t_start)
     }
 }
 
-impl ContinuousHomProblem<'_> {
+impl ContinuousProblem<'_> {
     fn find_bound<'a>(
         &'a self,
-        objective_function: impl ObjFn<&'a ContinuousHomProblem<'a>>,
+        objective_function: impl ObjFn<&'a ContinuousProblem<'a>>,
         t: i32,
         t_start: i32,
     ) -> Result<f64> {
+        assert(self.d == 1, Error::UnsupportedProblemDimension)?;
         assert(t <= self.t_end, Error::LcpBoundComputationExceedsDomain)?;
 
         if t <= 0 {
@@ -65,7 +71,7 @@ impl ContinuousHomProblem<'_> {
             self,
         );
         opt.set_lower_bound(0.)?;
-        opt.set_upper_bound(self.m as f64)?;
+        opt.set_upper_bound(self.bounds[0])?;
         opt.set_xtol_rel(PRECISION)?;
 
         opt.optimize(&mut xs)?;
@@ -73,7 +79,7 @@ impl ContinuousHomProblem<'_> {
     }
 }
 
-impl Bounded<i32> for DiscreteHomProblem<'_> {
+impl Bounded<i32> for DiscreteProblem<'_> {
     fn find_lower_bound(&self, t: i32, t_start: i32) -> Result<i32> {
         self.find_bound(iopt, t, t_start)
     }
@@ -83,13 +89,14 @@ impl Bounded<i32> for DiscreteHomProblem<'_> {
     }
 }
 
-impl DiscreteHomProblem<'_> {
+impl DiscreteProblem<'_> {
     fn find_bound(
         &self,
-        alg: impl Fn(&'_ DiscreteHomProblem<'_>) -> Result<(DiscreteSchedule, f64)>,
+        alg: impl Fn(&'_ DiscreteProblem<'_>) -> Result<(DiscreteSchedule, f64)>,
         t: i32,
         t_start: i32,
     ) -> Result<i32> {
+        assert(self.d == 1, Error::UnsupportedProblemDimension)?;
         assert(t <= self.t_end, Error::LcpBoundComputationExceedsDomain)?;
 
         if t <= 0 {
@@ -97,15 +104,15 @@ impl DiscreteHomProblem<'_> {
         }
 
         let tmp;
-        let p = if is_pow_of_2(self.m) {
+        let p = if is_pow_of_2(self.bounds[0]) {
             self
         } else {
-            tmp = make_pow_of_2(self);
+            tmp = make_pow_of_2(self)?;
             &tmp
         };
         let reset_p = p.reset(t_start);
 
         let (xs, _) = alg(&reset_p)?;
-        Ok(xs[(t - t_start) as usize - 1])
+        Ok(xs[(t - t_start) as usize - 1][0])
     }
 }

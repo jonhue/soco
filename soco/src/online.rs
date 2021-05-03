@@ -1,8 +1,8 @@
 //! Online problems.
 
-use crate::problem::HomProblem;
+use crate::problem::Problem;
 use crate::result::{Error, Result};
-use crate::schedule::Schedule;
+use crate::schedule::{Schedule, Step};
 use crate::utils::assert;
 
 /// Online instance of a problem.
@@ -21,7 +21,7 @@ pub struct Online<T> {
 /// * `U` - Memory.
 pub type OnlineSolution<T, U> = (T, U);
 
-impl<'a, T> Online<HomProblem<'a, T>>
+impl<'a, T> Online<Problem<'a, T>>
 where
     T: Copy,
 {
@@ -35,11 +35,11 @@ where
     pub fn stream<U, V>(
         &mut self,
         alg: impl Fn(
-            &Online<HomProblem<'a, T>>,
+            &Online<Problem<'a, T>>,
             &Schedule<V>,
             &Vec<U>,
-        ) -> Result<OnlineSolution<V, U>>,
-        next: impl Fn(&mut Online<HomProblem<'a, T>>, &Schedule<V>, &Vec<U>) -> bool,
+        ) -> Result<OnlineSolution<Step<V>, U>>,
+        next: impl Fn(&mut Online<Problem<'a, T>>, &Schedule<V>, &Vec<U>) -> bool,
     ) -> Result<(Schedule<V>, Vec<U>)> {
         let mut xs = vec![];
         let mut ms = vec![];
@@ -72,10 +72,10 @@ where
     pub fn offline_stream<U, V>(
         &mut self,
         alg: impl Fn(
-            &Online<HomProblem<'a, T>>,
+            &Online<Problem<'a, T>>,
             &Schedule<V>,
             &Vec<U>,
-        ) -> Result<OnlineSolution<V, U>>,
+        ) -> Result<OnlineSolution<Step<V>, U>>,
         t_end: i32,
     ) -> Result<(Schedule<V>, Vec<U>)> {
         self.stream(alg, |o, _, _| {

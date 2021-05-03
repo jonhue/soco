@@ -2,25 +2,110 @@
 
 use num::NumCast;
 
+use crate::cost::CostFn;
 use crate::online::Online;
-use crate::problem::HomProblem;
+use crate::problem::Problem;
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
 
-impl<'a, T: NumCast> HomProblem<'a, T> {
-    pub fn verify(&self) -> Result<()> {
-        assert_validity(self.m > 0, "m must be positive")?;
-        assert_validity(self.t_end > 0, "T must be positive")?;
-        assert_validity(self.beta > 0., "beta must be positive")?;
+pub trait VerifiableCostFn<'a, T> {
+    fn verify(&self, t: i32, x: &T) -> Result<()>;
+}
 
-        for t in 1..=self.t_end {
-            for j in 0..=self.m {
+impl<'a, T> VerifiableCostFn<'a, T> for CostFn<'a, T> {
+    fn verify(&self, t: i32, x: &T) -> Result<()> {
+        assert_validity(
+            self(t, x).ok_or_else(|| {
+                invalid(format!("cost function must be total on its domain"))
+            })? >= 0.,
+            format!("cost function must be non-negative"),
+        )
+    }
+}
+
+impl<'a, T> Problem<'a, T>
+where
+    T: Clone + NumCast + PartialOrd,
+{
+    pub fn verify(&self) -> Result<()> {
+        assert_validity(
+            self.d > 0,
+            format!("number of dimensions must be positive"),
+        )?;
+        assert_validity(
+            self.t_end > 0,
+            format!("time horizon must be positive"),
+        )?;
+        assert_validity(
+            self.bounds.len() == self.d as usize,
+            format!("length of vector of upper bounds must equal dimension"),
+        )?;
+        assert_validity(
+            self.betas.len() == self.d as usize,
+            format!("length of vector of switching cost factors must equal dimension"),
+        )?;
+
+        for k in 0..self.d as usize {
+            assert_validity(
+                self.bounds[k] > NumCast::from(0).unwrap(),
+                format!("upper bound of dimension {} must be positive", k + 1),
+            )?;
+            assert_validity(
+                self.betas[k] > 0.,
+                format!(
+                    "switching cost factor of dimension {} must be positive",
+                    k + 1
+                ),
+            )?;
+
+            for t in 1..=self.t_end {
+                self.f.verify(
+                    t,
+                    &vec![NumCast::from(0).unwrap(); self.d as usize],
+                )?;
+                self.f.verify(t, &self.bounds)?;
+            }
+        }
+
+        Ok(())
+    }
+}
+
+impl<'a, T> Online<Problem<'a, T>>
+where
+    T: Clone + NumCast + PartialOrd,
+{
+    pub fn verify(&self) -> Result<()> {
+        assert_validity(self.w >= 0, format!("w must be non-negative"))?;
+
+        self.p.verify()
+    }
+}
+
+pub trait VerifiableSchedule<'a, T> {
+    fn verify(&self, t_end: i32, bounds: &Vec<T>) -> Result<()>;
+}
+
+impl<'a, T> VerifiableSchedule<'a, T> for Schedule<T>
+where
+    T: Copy + NumCast + PartialOrd,
+{
+    fn verify(&self, t_end: i32, bounds: &Vec<T>) -> Result<()> {
+        assert_validity(
+            self.len() == t_end as usize,
+            format!("schedule must have a value for each time step"),
+        )?;
+
+        for t in 0..self.len() {
+            for k in 0..bounds.len() {
                 assert_validity(
-                    (self.f)(t, NumCast::from(j).unwrap()).ok_or_else(
-                        || invalid("functions f must be total on their domain"),
-                    )? >= 0.,
-                    "functions f must be non-negative",
+                    self[t][k] >= NumCast::from(0).unwrap(),
+                    format!("value at time {} for dimension {} must be non-negative", t + 1, k + 1),
+                )?;
+                assert_validity(
+                    self[t][k] <= bounds[k],
+                    format!("value at time {} for dimension {} must not exceed its upper bound", t + 1, k + 1),
                 )?;
             }
         }
@@ -29,49 +114,10 @@ impl<'a, T: NumCast> HomProblem<'a, T> {
     }
 }
 
-impl<'a, T> Online<HomProblem<'a, T>>
-where
-    T: NumCast,
-{
-    pub fn verify(&self) -> Result<()> {
-        assert_validity(self.w >= 0, "w must be non-negative")?;
-
-        self.p.verify()
-    }
-}
-
-pub trait VerifiableSchedule<'a, T> {
-    fn verify(&self, m: i32, t_end: i32) -> Result<()>;
-}
-
-impl<'a, T: Copy + NumCast + PartialOrd> VerifiableSchedule<'a, T>
-    for Schedule<T>
-{
-    fn verify(&self, m: i32, t_end: i32) -> Result<()> {
-        assert_validity(
-            self.len() == t_end as usize,
-            "schedule must have a value for each time step",
-        )?;
-
-        for &x in self {
-            assert_validity(
-                x >= NumCast::from(0).unwrap(),
-                "values in schedule must be non-negative",
-            )?;
-            assert_validity(
-                x <= NumCast::from(m).unwrap(),
-                "values in schedule must not exceed the number of servers",
-            )?;
-        }
-
-        Ok(())
-    }
-}
-
-fn assert_validity(pred: bool, message: &str) -> Result<()> {
+fn assert_validity(pred: bool, message: String) -> Result<()> {
     assert(pred, invalid(message))
 }
 
-fn invalid(message: &str) -> Error {
-    Error::Invalid(message.to_string())
+fn invalid(message: String) -> Error {
+    Error::Invalid(message)
 }

@@ -5,10 +5,10 @@ use std::sync::Arc;
 pub mod data_center;
 
 /// Cost function over time `t`. Must be total on `1<=t<=T`, `0<=j<=m`. May return `None` otherwise.
-pub type CostFn<'a, T> = Arc<dyn Fn(i32, T) -> Option<f64> + 'a>;
+pub type CostFn<'a, T> = Arc<dyn Fn(i32, &T) -> Option<f64> + 'a>;
 
 /// Cost function (at time `t`). Must be total on `0<=j<=m`. May return `None` otherwise.
-pub type SingleCostFn<'a, T> = Arc<dyn Fn(T) -> Option<f64> + 'a>;
+pub type SingleCostFn<'a, T> = Arc<dyn Fn(&T) -> Option<f64> + 'a>;
 
 /// Collection of cost functions for some load.
 pub type LazyCostFn<'a, T> = Arc<dyn Fn(f64) -> SingleCostFn<'a, T> + 'a>;

@@ -1,22 +1,28 @@
 use crate::algorithms::lcp::bounds::Bounded;
 use crate::algorithms::lcp::{find_initial_time, Memory};
 use crate::online::{Online, OnlineSolution};
-use crate::problem::DiscreteHomProblem;
-use crate::result::Result;
-use crate::schedule::DiscreteSchedule;
-use crate::utils::project;
+use crate::problem::DiscreteProblem;
+use crate::result::{Error, Result};
+use crate::schedule::{DiscreteSchedule, Step};
+use crate::utils::{assert, project};
 
 /// Integer Lazy Capacity Provisioning
 pub fn ilcp(
-    o: &Online<DiscreteHomProblem<'_>>,
+    o: &Online<DiscreteProblem<'_>>,
     xs: &DiscreteSchedule,
     ms: &Vec<Memory<i32>>,
-) -> Result<OnlineSolution<i32, Memory<i32>>> {
+) -> Result<OnlineSolution<Step<i32>, Memory<i32>>> {
+    assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
+
     let t_start = find_initial_time(o.p.t_end, ms);
 
-    let i = if xs.is_empty() { 0 } else { xs[xs.len() - 1] };
+    let i = if xs.is_empty() {
+        0
+    } else {
+        xs[xs.len() - 1][0]
+    };
     let l = o.p.find_lower_bound(o.p.t_end, t_start)?;
     let u = o.p.find_upper_bound(o.p.t_end, t_start)?;
     let j = project(i, l, u);
-    Ok((j, (l, u)))
+    Ok((vec![j], (l, u)))
 }
