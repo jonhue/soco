@@ -6,7 +6,7 @@ use nlopt::Target;
 use std::sync::Arc;
 
 use crate::online::{Online, OnlineSolution};
-use crate::problem::ContinuousProblem;
+use crate::problem::ContinuousSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::{ContinuousSchedule, Step};
 use crate::utils::assert;
@@ -19,7 +19,7 @@ static STEP_SIZE: f64 = 1e-16;
 
 /// Deterministic Online Algorithm
 pub fn det<'a>(
-    o: &'a Online<ContinuousProblem<'a>>,
+    o: &'a Online<ContinuousSmoothedConvexOptimization<'a>>,
     xs: &ContinuousSchedule,
     ps: &Vec<Memory<'a>>,
 ) -> Result<OnlineSolution<Step<f64>, Memory<'a>>> {
@@ -41,7 +41,7 @@ pub fn det<'a>(
         if j >= x_l && j <= x_r {
             prev_p(j)
                 + second_derivative(
-                    |j: f64| (o.p.f)(t, &vec![j]).unwrap(),
+                    |j: f64| (o.p.cost)(t, &vec![j]).unwrap(),
                     j,
                     STEP_SIZE,
                 ) / 2.
@@ -55,11 +55,14 @@ pub fn det<'a>(
 }
 
 /// Determines minimizer of `f` with a convex optimization.
-fn find_minimizer(o: &Online<ContinuousProblem<'_>>, t: i32) -> Result<f64> {
-    let objective_function = |xs: &[f64],
-                              _: Option<&mut [f64]>,
-                              _: &mut ()|
-     -> f64 { (o.p.f)(t, &xs.to_vec()).unwrap() };
+fn find_minimizer(
+    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
+    t: i32,
+) -> Result<f64> {
+    let objective_function =
+        |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
+            (o.p.cost)(t, &xs.to_vec()).unwrap()
+        };
     let mut xs = [0.0];
 
     let mut opt = Nlopt::new(
@@ -79,7 +82,7 @@ fn find_minimizer(o: &Online<ContinuousProblem<'_>>, t: i32) -> Result<f64> {
 
 /// Determines `x_r` with a convex optimization.
 fn find_right_bound(
-    o: &Online<ContinuousProblem<'_>>,
+    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
     t: i32,
     prev_p: &Memory<'_>,
     x_m: f64,
@@ -106,7 +109,7 @@ fn find_right_bound(
                 xs[0],
                 |j: f64| {
                     second_derivative(
-                        |j: f64| (o.p.f)(t, &vec![j]).unwrap(),
+                        |j: f64| (o.p.cost)(t, &vec![j]).unwrap(),
                         j,
                         STEP_SIZE,
                     )
@@ -129,7 +132,7 @@ fn find_right_bound(
 
 /// Determines `x_l` with a convex optimization.
 fn find_left_bound(
-    o: &Online<ContinuousProblem<'_>>,
+    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
     t: i32,
     prev_p: &Memory<'_>,
     x_m: f64,
@@ -156,7 +159,7 @@ fn find_left_bound(
                 x_m,
                 |j: f64| {
                     second_derivative(
-                        |j: f64| (o.p.f)(t, &vec![j]).unwrap(),
+                        |j: f64| (o.p.cost)(t, &vec![j]).unwrap(),
                         j,
                         STEP_SIZE,
                     )

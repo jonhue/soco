@@ -4,7 +4,10 @@ use std::sync::Arc;
 
 use crate::cost::CostFn;
 use crate::online::Online;
-use crate::problem::{ContinuousProblem, DiscreteProblem, Problem};
+use crate::problem::{
+    ContinuousSmoothedConvexOptimization, DiscreteSmoothedConvexOptimization,
+    SmoothedConvexOptimization,
+};
 use crate::schedule::{ContinuousSchedule, DiscreteSchedule};
 
 pub trait DiscretizableVector {
@@ -67,32 +70,32 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, Vec<i32>> {
     }
 }
 
-impl<'a> ContinuousProblem<'a> {
-    pub fn to_i(&'a self) -> DiscreteProblem<'a> {
-        Problem {
+impl<'a> ContinuousSmoothedConvexOptimization<'a> {
+    pub fn to_i(&'a self) -> DiscreteSmoothedConvexOptimization<'a> {
+        SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.floor(),
             switching_costs: self.switching_costs.clone(),
-            f: self.f.to_i(),
+            cost: self.cost.to_i(),
         }
     }
 }
 
-impl<'a> DiscreteProblem<'a> {
-    pub fn to_f(&'a self) -> ContinuousProblem<'a> {
-        Problem {
+impl<'a> DiscreteSmoothedConvexOptimization<'a> {
+    pub fn to_f(&'a self) -> ContinuousSmoothedConvexOptimization<'a> {
+        SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.to_f(),
             switching_costs: self.switching_costs.clone(),
-            f: self.f.to_f(),
+            cost: self.cost.to_f(),
         }
     }
 }
 
-impl<'a> Online<ContinuousProblem<'a>> {
-    pub fn to_i(&'a self) -> Online<DiscreteProblem<'a>> {
+impl<'a> Online<ContinuousSmoothedConvexOptimization<'a>> {
+    pub fn to_i(&'a self) -> Online<DiscreteSmoothedConvexOptimization<'a>> {
         Online {
             w: self.w,
             p: self.p.to_i(),
@@ -100,8 +103,8 @@ impl<'a> Online<ContinuousProblem<'a>> {
     }
 }
 
-impl<'a> Online<DiscreteProblem<'a>> {
-    pub fn to_f(&'a self) -> Online<ContinuousProblem<'a>> {
+impl<'a> Online<DiscreteSmoothedConvexOptimization<'a>> {
+    pub fn to_f(&'a self) -> Online<ContinuousSmoothedConvexOptimization<'a>> {
         Online {
             w: self.w,
             p: self.p.to_f(),
@@ -139,17 +142,17 @@ impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T> {
     }
 }
 
-impl<'a, T> Problem<'a, T>
+impl<'a, T> SmoothedConvexOptimization<'a, T>
 where
     T: Clone,
 {
-    pub fn reset(&'a self, t_start: i32) -> Problem<'a, T> {
-        Problem {
+    pub fn reset(&'a self, t_start: i32) -> SmoothedConvexOptimization<'a, T> {
+        SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end - t_start,
             bounds: self.bounds.clone(),
             switching_costs: self.switching_costs.clone(),
-            f: self.f.reset(t_start),
+            cost: self.cost.reset(t_start),
         }
     }
 }

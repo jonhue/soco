@@ -1,14 +1,14 @@
 use crate::algorithms::lcp::bounds::Bounded;
 use crate::algorithms::lcp::{find_initial_time, Memory};
 use crate::online::{Online, OnlineSolution};
-use crate::problem::ContinuousProblem;
+use crate::problem::ContinuousSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::{ContinuousSchedule, Step};
 use crate::utils::{assert, project};
 
 /// (Continuous) Lazy Capacity Provisioning
 pub fn lcp(
-    o: &Online<ContinuousProblem<'_>>,
+    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
     xs: &ContinuousSchedule,
     ms: &Vec<Memory<f64>>,
 ) -> Result<OnlineSolution<Step<f64>, Memory<f64>>> {

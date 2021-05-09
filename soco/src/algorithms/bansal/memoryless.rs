@@ -3,7 +3,7 @@ use nlopt::Nlopt;
 use nlopt::Target;
 
 use crate::online::{Online, OnlineSolution};
-use crate::problem::ContinuousProblem;
+use crate::problem::ContinuousSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::{ContinuousSchedule, Step};
 use crate::utils::assert;
@@ -11,7 +11,7 @@ use crate::PRECISION;
 
 /// Memoryless Deterministic Online Algorithm
 pub fn memoryless(
-    o: &Online<ContinuousProblem<'_>>,
+    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
     xs: &ContinuousSchedule,
     _: &Vec<()>,
 ) -> Result<OnlineSolution<Step<f64>, ()>> {
@@ -30,11 +30,15 @@ pub fn memoryless(
 }
 
 /// Determines next `x` with a convex optimization.
-fn next(o: &Online<ContinuousProblem<'_>>, t: i32, prev_x: f64) -> Result<f64> {
-    let objective_function = |xs: &[f64],
-                              _: Option<&mut [f64]>,
-                              _: &mut ()|
-     -> f64 { (o.p.f)(t, &xs.to_vec()).unwrap() };
+fn next(
+    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
+    t: i32,
+    prev_x: f64,
+) -> Result<f64> {
+    let objective_function =
+        |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
+            (o.p.cost)(t, &xs.to_vec()).unwrap()
+        };
     let mut xs = [0.0];
     let mut opt = Nlopt::new(
         Algorithm::Bobyqa,
@@ -48,7 +52,7 @@ fn next(o: &Online<ContinuousProblem<'_>>, t: i32, prev_x: f64) -> Result<f64> {
     opt.set_xtol_rel(PRECISION)?;
     opt.add_inequality_constraint(
         |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            (xs[0] - prev_x).abs() - (o.p.f)(t, &xs.to_vec()).unwrap() / 2.
+            (xs[0] - prev_x).abs() - (o.p.cost)(t, &xs.to_vec()).unwrap() / 2.
         },
         (),
         PRECISION,

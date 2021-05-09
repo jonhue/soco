@@ -4,7 +4,9 @@ use num::NumCast;
 
 use crate::cost::CostFn;
 use crate::online::Online;
-use crate::problem::Problem;
+use crate::problem::{
+    SmoothedConstantOptimization, SmoothedConvexOptimization,
+};
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
@@ -27,11 +29,15 @@ where
     }
 }
 
-impl<'a, T> Problem<'a, T>
+pub trait VerifiableProblem {
+    fn verify(&self) -> Result<()>;
+}
+
+impl<'a, T> VerifiableProblem for SmoothedConvexOptimization<'a, T>
 where
     T: Clone + NumCast + PartialOrd + std::fmt::Debug,
 {
-    pub fn verify(&self) -> Result<()> {
+    fn verify(&self) -> Result<()> {
         assert_validity(
             self.d > 0,
             format!("number of dimensions must be positive, is {}", self.d),
@@ -45,8 +51,8 @@ where
             format!("length of vector of upper bounds must equal dimension, {} != {}", self.bounds.len(), self.d),
         )?;
         assert_validity(
-            self.switching_costs.len() == self.d as usize,
-            format!("length of vector of switching cost factors must equal dimension, {} != {}", self.switching_costs.len(), self.d),
+            self.switching_cost.len() == self.d as usize,
+            format!("length of vector of switching cost factors must equal dimension, {} != {}", self.switching_cost.len(), self.d),
         )?;
 
         for k in 0..self.d as usize {
@@ -55,19 +61,19 @@ where
                 format!("upper bound of dimension {} must be positive", k + 1),
             )?;
             assert_validity(
-                self.switching_costs[k] > 0.,
+                self.switching_cost[k] > 0.,
                 format!(
-                    "switching cost factor of dimension {} must be positive",
+                    "switching cost of dimension {} must be positive",
                     k + 1
                 ),
             )?;
 
             for t in 1..=self.t_end {
-                self.f.verify(
+                self.hitting_cost.verify(
                     t,
                     &vec![NumCast::from(0).unwrap(); self.d as usize],
                 )?;
-                self.f.verify(t, &self.bounds)?;
+                self.hitting_cost.verify(t, &self.bounds)?;
             }
         }
 
@@ -75,9 +81,79 @@ where
     }
 }
 
-impl<'a, T> Online<Problem<'a, T>>
+impl<T> VerifiableProblem for SmoothedConstantOptimization<T>
 where
     T: Clone + NumCast + PartialOrd + std::fmt::Debug,
+{
+    fn verify(&self) -> Result<()> {
+        assert_validity(
+            self.d > 0,
+            format!("number of dimensions must be positive, is {}", self.d),
+        )?;
+        assert_validity(
+            self.t_end > 0,
+            format!("time horizon must be positive, is {}", self.t_end),
+        )?;
+        assert_validity(
+            self.bounds.len() == self.d as usize,
+            format!("length of vector of upper bounds must equal dimension, {} != {}", self.bounds.len(), self.d),
+        )?;
+        assert_validity(
+            self.switching_cost.len() == self.d as usize,
+            format!("length of vector of switching cost factors must equal dimension, {} != {}", self.switching_cost.len(), self.d),
+        )?;
+
+        for k in 0..self.d as usize {
+            assert_validity(
+                self.bounds[k] > NumCast::from(0).unwrap(),
+                format!("upper bound of dimension {} must be positive", k + 1),
+            )?;
+            assert_validity(
+                self.switching_cost[k] > 0.,
+                format!(
+                    "switching cost of dimension {} must be positive",
+                    k + 1
+                ),
+            )?;
+            assert_validity(
+                self.hitting_cost[k] >= 0.,
+                format!(
+                    "hitting cost of dimension {} must be non-negative",
+                    k + 1
+                ),
+            )?;
+
+            for l in 0..self.d as usize {
+                if k != l {
+                    assert_validity(
+                        !(self.hitting_cost[k] >= self.hitting_cost[l] &&
+                            self.switching_cost[k] >= self.switching_cost[l]),
+                        format!(
+                            "dimension {} is inefficient compared to dimension {}",
+                            k + 1, l + 1
+                        ),
+                    )?;
+                }
+            }
+        }
+
+        for k in 1..self.d as usize {
+            assert_validity(
+                self.hitting_cost[k] >= self.hitting_cost[k - 1],
+                format!(
+                    "hitting costs must be ascending, are not between dimension {} and dimension {}", k,
+                    k + 1
+                ),
+            )?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<'a, T> Online<T>
+where
+    T: VerifiableProblem,
 {
     pub fn verify(&self) -> Result<()> {
         assert_validity(

@@ -4,16 +4,16 @@ mod make_pow_of_2 {
     use std::sync::Arc;
 
     use soco::algorithms::offline::iopt::make_pow_of_2;
-    use soco::problem::Problem;
+    use soco::problem::SmoothedConvexOptimization;
 
     #[test]
     fn _1() {
-        let p = Problem {
+        let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1_000,
             bounds: vec![103],
             switching_costs: vec![1.],
-            f: Arc::new(|_, _| Some(1.)),
+            cost: Arc::new(|_, _| Some(1.)),
         };
         p.verify().unwrap();
         let transformed_p = make_pow_of_2(&p).unwrap();
@@ -26,7 +26,7 @@ mod make_pow_of_2 {
         for t in 1..=transformed_p.t_end {
             for j in 0..=transformed_p.bounds[0] {
                 assert_eq!(
-                    (transformed_p.f)(t, &vec![j]).unwrap(),
+                    (transformed_p.cost)(t, &vec![j]).unwrap(),
                     if j <= p.bounds[0] {
                         1.
                     } else {
@@ -48,17 +48,17 @@ mod iopt {
 
     use soco::algorithms::offline::iopt::{iopt, make_pow_of_2};
     use soco::objective::Objective;
-    use soco::problem::Problem;
+    use soco::problem::SmoothedConvexOptimization;
     use soco::verifiers::VerifiableSchedule;
 
     #[test]
     fn _1() {
-        let p = Problem {
+        let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 2,
             bounds: vec![2],
             switching_costs: vec![1.],
-            f: Arc::new(|t, j| {
+            cost: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
             }),
         };
@@ -73,12 +73,12 @@ mod iopt {
 
     #[test]
     fn _2() {
-        let p = Problem {
+        let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 100,
             bounds: vec![8],
             switching_costs: vec![1.],
-            f: Arc::new(|t, j| {
+            cost: Arc::new(|t, j| {
                 Some(
                     Pcg64::seed_from_u64((t * j[0]) as u64)
                         .gen_range(0.0..1_000_000.),
@@ -95,12 +95,12 @@ mod iopt {
 
     #[test]
     fn _3() {
-        let p = Problem {
+        let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1_000,
             bounds: vec![9],
             switching_costs: vec![1.],
-            f: Arc::new(|t, j| {
+            cost: Arc::new(|t, j| {
                 Some(
                     Pcg64::seed_from_u64((t * j[0]) as u64)
                         .gen_range(0.0..1_000_000.),

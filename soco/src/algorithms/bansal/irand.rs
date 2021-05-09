@@ -3,7 +3,7 @@ use rand::{thread_rng, Rng};
 use crate::algorithms::bansal::det::{det, Memory as DetMemory};
 use crate::convert::RelaxableSchedule;
 use crate::online::{Online, OnlineSolution};
-use crate::problem::ContinuousProblem;
+use crate::problem::ContinuousSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::{DiscreteSchedule, Step};
 use crate::utils::{assert, frac, project};
@@ -15,7 +15,7 @@ pub type Memory<'a> = (Step<f64>, DetMemory<'a>);
 ///
 /// Note: Relax discrete problem to continuous problem before use!
 pub fn irand<'a>(
-    o: &'a Online<ContinuousProblem<'a>>,
+    o: &'a Online<ContinuousSmoothedConvexOptimization<'a>>,
     xs: &DiscreteSchedule,
     ms: &Vec<Memory<'a>>,
 ) -> Result<OnlineSolution<Step<i32>, Memory<'a>>> {

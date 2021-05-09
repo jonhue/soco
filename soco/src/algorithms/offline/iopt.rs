@@ -1,7 +1,9 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::problem::{DiscreteProblem, Problem};
+use crate::problem::{
+    DiscreteSmoothedConvexOptimization, SmoothedConvexOptimization,
+};
 use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
 use crate::utils::{assert, is_pow_of_2, pos};
@@ -12,16 +14,21 @@ type Path = (DiscreteSchedule, f64);
 type Paths = HashMap<(i32, i32), Path>;
 
 /// Optimal Discrete Deterministic Offline Algorithm
-pub fn iopt(p: &'_ DiscreteProblem<'_>) -> Result<Path> {
+pub fn iopt(p: &'_ DiscreteSmoothedConvexOptimization<'_>) -> Result<Path> {
     _iopt(p, false)
 }
 
 /// Inverted Optimal Discrete Deterministic Offline Algorithm
-pub fn inverted_iopt(p: &'_ DiscreteProblem<'_>) -> Result<Path> {
+pub fn inverted_iopt(
+    p: &'_ DiscreteSmoothedConvexOptimization<'_>,
+) -> Result<Path> {
     _iopt(p, true)
 }
 
-fn _iopt<'a>(p: &'a DiscreteProblem<'a>, inverted: bool) -> Result<Path> {
+fn _iopt<'a>(
+    p: &'a DiscreteSmoothedConvexOptimization<'a>,
+    inverted: bool,
+) -> Result<Path> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
     assert(is_pow_of_2(p.bounds[0]), Error::MustBePowOf2)?;
 
@@ -45,39 +52,39 @@ fn _iopt<'a>(p: &'a DiscreteProblem<'a>, inverted: bool) -> Result<Path> {
 
 /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `iopt`.
 pub fn make_pow_of_2<'a>(
-    p: &'a DiscreteProblem<'a>,
-) -> Result<DiscreteProblem<'a>> {
+    p: &'a DiscreteSmoothedConvexOptimization<'a>,
+) -> Result<DiscreteSmoothedConvexOptimization<'a>> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
 
     let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);
-    let f = Arc::new(move |t, xs: &Vec<i32>| {
+    let cost = Arc::new(move |t, xs: &Vec<i32>| {
         if xs[0] <= p.bounds[0] {
-            (p.f)(t, xs)
+            (p.cost)(t, xs)
         } else {
             Some(
                 xs[0] as f64
-                    * ((p.f)(t, &p.bounds).unwrap() + std::f64::EPSILON),
+                    * ((p.cost)(t, &p.bounds).unwrap() + std::f64::EPSILON),
             )
         }
     });
 
-    Ok(Problem {
+    Ok(SmoothedConvexOptimization {
         d: p.d,
         t_end: p.t_end,
         bounds: vec![m],
         switching_costs: p.switching_costs.clone(),
-        f,
+        cost,
     })
 }
 
 fn select_initial_rows<'a>(
-    p: &'a DiscreteProblem<'a>,
+    p: &'a DiscreteSmoothedConvexOptimization<'a>,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
     move |_| (0..=4).map(|e| e * p.bounds[0] / 4).collect()
 }
 
 fn select_next_rows<'a>(
-    p: &'a DiscreteProblem<'a>,
+    p: &'a DiscreteSmoothedConvexOptimization<'a>,
     xs: &'a DiscreteSchedule,
     k: u32,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
@@ -90,7 +97,7 @@ fn select_next_rows<'a>(
 }
 
 fn find_schedule(
-    p: &DiscreteProblem<'_>,
+    p: &DiscreteSmoothedConvexOptimization<'_>,
     select_rows: impl Fn(i32) -> Vec<i32>,
     inverted: bool,
 ) -> Result<Path> {
@@ -119,7 +126,7 @@ fn find_schedule(
 }
 
 fn find_shortest_path(
-    p: &DiscreteProblem<'_>,
+    p: &DiscreteSmoothedConvexOptimization<'_>,
     paths: &mut Paths,
     t: i32,
     from: &Vec<i32>,
@@ -144,13 +151,13 @@ fn find_shortest_path(
 }
 
 fn build_cost(
-    p: &DiscreteProblem<'_>,
+    p: &DiscreteSmoothedConvexOptimization<'_>,
     t: i32,
     i: i32,
     j: i32,
     inverted: bool,
 ) -> Result<f64> {
-    let hitting_cost = (p.f)(t, &vec![j]).ok_or(Error::CostFnMustBeTotal)?;
+    let hitting_cost = (p.cost)(t, &vec![j]).ok_or(Error::CostFnMustBeTotal)?;
     let switching_cost =
         p.switching_costs[0] * pos(if inverted { i - j } else { j - i }) as f64;
     Ok(hitting_cost + switching_cost)

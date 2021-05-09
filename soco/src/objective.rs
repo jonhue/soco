@@ -2,7 +2,7 @@
 
 use num::{Num, NumCast, ToPrimitive};
 
-use crate::problem::Problem;
+use crate::problem::SmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::{access, pos};
@@ -26,7 +26,7 @@ pub trait Objective<T> {
     ) -> Result<f64>;
 }
 
-impl<'a, T> Objective<T> for Problem<'a, T>
+impl<'a, T> Objective<T> for SmoothedConvexOptimization<'a, T>
 where
     T: Copy + Num + NumCast + PartialOrd,
 {
@@ -43,7 +43,7 @@ where
                 vec![NumCast::from(0).unwrap(); self.d as usize],
             );
             let x = &xs[t as usize - 1];
-            cost += (self.f)(t as i32, x).ok_or(Error::CostFnMustBeTotal)?;
+            cost += (self.cost)(t as i32, x).ok_or(Error::CostFnMustBeTotal)?;
             for k in 0..self.d as usize {
                 let delta = ToPrimitive::to_f64(&pos(if inverted {
                     prev_x[k] - x[k]
