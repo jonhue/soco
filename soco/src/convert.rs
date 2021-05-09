@@ -76,8 +76,8 @@ impl<'a> ContinuousSmoothedConvexOptimization<'a> {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.floor(),
-            switching_costs: self.switching_costs.clone(),
-            cost: self.cost.to_i(),
+            switching_cost: self.switching_cost.clone(),
+            hitting_cost: self.hitting_cost.to_i(),
         }
     }
 }
@@ -88,8 +88,8 @@ impl<'a> DiscreteSmoothedConvexOptimization<'a> {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.to_f(),
-            switching_costs: self.switching_costs.clone(),
-            cost: self.cost.to_f(),
+            switching_cost: self.switching_cost.clone(),
+            hitting_cost: self.hitting_cost.to_f(),
         }
     }
 }
@@ -151,8 +151,8 @@ where
             d: self.d,
             t_end: self.t_end - t_start,
             bounds: self.bounds.clone(),
-            switching_costs: self.switching_costs.clone(),
-            cost: self.cost.reset(t_start),
+            switching_cost: self.switching_cost.clone(),
+            hitting_cost: self.hitting_cost.reset(t_start),
         }
     }
 }

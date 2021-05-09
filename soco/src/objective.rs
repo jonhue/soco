@@ -43,7 +43,8 @@ where
                 vec![NumCast::from(0).unwrap(); self.d as usize],
             );
             let x = &xs[t as usize - 1];
-            cost += (self.cost)(t as i32, x).ok_or(Error::CostFnMustBeTotal)?;
+            cost += (self.hitting_cost)(t as i32, x)
+                .ok_or(Error::CostFnMustBeTotal)?;
             for k in 0..self.d as usize {
                 let delta = ToPrimitive::to_f64(&pos(if inverted {
                     prev_x[k] - x[k]
@@ -51,7 +52,7 @@ where
                     x[k] - prev_x[k]
                 }))
                 .unwrap();
-                cost += self.switching_costs[k] * delta;
+                cost += self.switching_cost[k] * delta;
             }
         }
         Ok(cost)

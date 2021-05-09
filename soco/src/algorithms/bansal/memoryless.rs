@@ -37,7 +37,7 @@ fn next(
 ) -> Result<f64> {
     let objective_function =
         |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            (o.p.cost)(t, &xs.to_vec()).unwrap()
+            (o.p.hitting_cost)(t, &xs.to_vec()).unwrap()
         };
     let mut xs = [0.0];
     let mut opt = Nlopt::new(
@@ -52,7 +52,8 @@ fn next(
     opt.set_xtol_rel(PRECISION)?;
     opt.add_inequality_constraint(
         |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            (xs[0] - prev_x).abs() - (o.p.cost)(t, &xs.to_vec()).unwrap() / 2.
+            (xs[0] - prev_x).abs()
+                - (o.p.hitting_cost)(t, &xs.to_vec()).unwrap() / 2.
         },
         (),
         PRECISION,

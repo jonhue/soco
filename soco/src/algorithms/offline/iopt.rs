@@ -57,13 +57,14 @@ pub fn make_pow_of_2<'a>(
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
 
     let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);
-    let cost = Arc::new(move |t, xs: &Vec<i32>| {
+    let hitting_cost = Arc::new(move |t, xs: &Vec<i32>| {
         if xs[0] <= p.bounds[0] {
-            (p.cost)(t, xs)
+            (p.hitting_cost)(t, xs)
         } else {
             Some(
                 xs[0] as f64
-                    * ((p.cost)(t, &p.bounds).unwrap() + std::f64::EPSILON),
+                    * ((p.hitting_cost)(t, &p.bounds).unwrap()
+                        + std::f64::EPSILON),
             )
         }
     });
@@ -72,8 +73,8 @@ pub fn make_pow_of_2<'a>(
         d: p.d,
         t_end: p.t_end,
         bounds: vec![m],
-        switching_costs: p.switching_costs.clone(),
-        cost,
+        switching_cost: p.switching_cost.clone(),
+        hitting_cost,
     })
 }
 
@@ -157,9 +158,10 @@ fn build_cost(
     j: i32,
     inverted: bool,
 ) -> Result<f64> {
-    let hitting_cost = (p.cost)(t, &vec![j]).ok_or(Error::CostFnMustBeTotal)?;
+    let hitting_cost =
+        (p.hitting_cost)(t, &vec![j]).ok_or(Error::CostFnMustBeTotal)?;
     let switching_cost =
-        p.switching_costs[0] * pos(if inverted { i - j } else { j - i }) as f64;
+        p.switching_cost[0] * pos(if inverted { i - j } else { j - i }) as f64;
     Ok(hitting_cost + switching_cost)
 }
 

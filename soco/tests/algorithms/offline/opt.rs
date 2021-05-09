@@ -6,7 +6,7 @@ mod opt_backward {
     use soco::algorithms::offline::opt::opt_backward;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SmoothedConvexOptimization;
-    use soco::verifiers::VerifiableSchedule;
+    use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
 
     #[test]
     fn _1() {
@@ -14,8 +14,8 @@ mod opt_backward {
             d: 1,
             t_end: 2,
             bounds: vec![2.],
-            switching_costs: vec![1.],
-            cost: Arc::new(|t, j| {
+            switching_cost: vec![1.],
+            hitting_cost: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0. { 1. } else { 0. }))
             }),
         };
@@ -34,7 +34,7 @@ mod opt_forward {
     use soco::algorithms::offline::opt::opt_forward;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SmoothedConvexOptimization;
-    use soco::verifiers::VerifiableSchedule;
+    use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
 
     #[test]
     fn _1() {
@@ -42,8 +42,8 @@ mod opt_forward {
             d: 1,
             t_end: 2,
             bounds: vec![2.],
-            switching_costs: vec![1.],
-            cost: Arc::new(|t, j| {
+            switching_cost: vec![1.],
+            hitting_cost: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0. { 1. } else { 0. }))
             }),
         };

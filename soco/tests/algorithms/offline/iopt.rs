@@ -5,6 +5,7 @@ mod make_pow_of_2 {
 
     use soco::algorithms::offline::iopt::make_pow_of_2;
     use soco::problem::SmoothedConvexOptimization;
+    use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
@@ -12,8 +13,8 @@ mod make_pow_of_2 {
             d: 1,
             t_end: 1_000,
             bounds: vec![103],
-            switching_costs: vec![1.],
-            cost: Arc::new(|_, _| Some(1.)),
+            switching_cost: vec![1.],
+            hitting_cost: Arc::new(|_, _| Some(1.)),
         };
         p.verify().unwrap();
         let transformed_p = make_pow_of_2(&p).unwrap();
@@ -21,12 +22,12 @@ mod make_pow_of_2 {
 
         assert_eq!(transformed_p.t_end, p.t_end);
         assert_eq!(transformed_p.bounds[0], 128);
-        assert_eq!(transformed_p.switching_costs[0], p.switching_costs[0]);
+        assert_eq!(transformed_p.switching_cost[0], p.switching_cost[0]);
 
         for t in 1..=transformed_p.t_end {
             for j in 0..=transformed_p.bounds[0] {
                 assert_eq!(
-                    (transformed_p.cost)(t, &vec![j]).unwrap(),
+                    (transformed_p.hitting_cost)(t, &vec![j]).unwrap(),
                     if j <= p.bounds[0] {
                         1.
                     } else {
@@ -49,7 +50,7 @@ mod iopt {
     use soco::algorithms::offline::iopt::{iopt, make_pow_of_2};
     use soco::objective::Objective;
     use soco::problem::SmoothedConvexOptimization;
-    use soco::verifiers::VerifiableSchedule;
+    use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
 
     #[test]
     fn _1() {
@@ -57,8 +58,8 @@ mod iopt {
             d: 1,
             t_end: 2,
             bounds: vec![2],
-            switching_costs: vec![1.],
-            cost: Arc::new(|t, j| {
+            switching_cost: vec![1.],
+            hitting_cost: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
             }),
         };
@@ -77,8 +78,8 @@ mod iopt {
             d: 1,
             t_end: 100,
             bounds: vec![8],
-            switching_costs: vec![1.],
-            cost: Arc::new(|t, j| {
+            switching_cost: vec![1.],
+            hitting_cost: Arc::new(|t, j| {
                 Some(
                     Pcg64::seed_from_u64((t * j[0]) as u64)
                         .gen_range(0.0..1_000_000.),
@@ -99,8 +100,8 @@ mod iopt {
             d: 1,
             t_end: 1_000,
             bounds: vec![9],
-            switching_costs: vec![1.],
-            cost: Arc::new(|t, j| {
+            switching_cost: vec![1.],
+            hitting_cost: Arc::new(|t, j| {
                 Some(
                     Pcg64::seed_from_u64((t * j[0]) as u64)
                         .gen_range(0.0..1_000_000.),
