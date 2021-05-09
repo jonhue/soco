@@ -10,7 +10,7 @@ use crate::utils::assert;
 pub type Memory = ();
 
 /// Deterministic Online Algorithm
-pub fn det<'a>(
+pub fn idet<'a>(
     o: &'a Online<DiscreteSmoothedConstantOptimization>,
     xs: &DiscreteSchedule,
     ps: &Vec<Memory>,
