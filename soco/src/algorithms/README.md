@@ -17,7 +17,8 @@
 
 ### Problem Variants
 
-1. The most relaxed version of the problem as used by [2] and [3]. Here, the convex cost functions `f_t` arrive over time.
+1. Smoothed optimization with convex cost functions.
+2. Smoothed optimization with dimension-dependent constant cost functions.
 
 ### Optimal Competitiveness
 
