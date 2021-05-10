@@ -2,7 +2,9 @@
 
 use num::{Num, NumCast, ToPrimitive};
 
-use crate::problem::SmoothedConvexOptimization;
+use crate::problem::{
+    SmoothedConstantOptimization, SmoothedConvexOptimization,
+};
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::{access, pos};
@@ -46,6 +48,39 @@ where
             cost += (self.hitting_cost)(t as i32, x)
                 .ok_or(Error::CostFnMustBeTotal)?;
             for k in 0..self.d as usize {
+                let delta = ToPrimitive::to_f64(&pos(if inverted {
+                    prev_x[k] - x[k]
+                } else {
+                    x[k] - prev_x[k]
+                }))
+                .unwrap();
+                cost += self.switching_cost[k] * delta;
+            }
+        }
+        Ok(cost)
+    }
+}
+
+impl<T> Objective<T> for SmoothedConstantOptimization<T>
+where
+    T: Copy + Num + NumCast + PartialOrd,
+{
+    fn _objective_function(
+        &self,
+        xs: &Schedule<T>,
+        inverted: bool,
+    ) -> Result<f64> {
+        let mut cost = 0.;
+        for t in 1..=self.t_end {
+            let prev_x = access(
+                xs,
+                t - 2,
+                vec![NumCast::from(0).unwrap(); self.d as usize],
+            );
+            let x = &xs[t as usize - 1];
+            for k in 0..self.d as usize {
+                cost +=
+                    self.hitting_cost[k] * ToPrimitive::to_f64(&x[k]).unwrap();
                 let delta = ToPrimitive::to_f64(&pos(if inverted {
                     prev_x[k] - x[k]
                 } else {

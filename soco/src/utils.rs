@@ -1,6 +1,6 @@
 //! Utilities.
 
-use num::NumCast;
+use num::{Num, NumCast};
 
 use crate::result::{Error, Result};
 
@@ -50,4 +50,16 @@ pub fn access<T: Clone>(xs: &Vec<T>, i: i32, def: T) -> T {
     } else {
         def
     }
+}
+
+/// Computes the sum of bounds across all dimensions.
+pub fn total_bound<T>(bounds: &Vec<T>) -> T
+where
+    T: Copy + Num + NumCast,
+{
+    let mut result: T = NumCast::from(0).unwrap();
+    for &b in bounds {
+        result = result + b;
+    }
+    result
 }
