@@ -28,10 +28,10 @@ pub struct SmoothedConstantOptimization<T> {
     pub t_end: i32,
     /// Vector of upper bounds of each dimension.
     pub bounds: Vec<T>,
-    /// Vector of positive real constants resembling the switching cost of each dimension.
+    /// Vector of positive real constants resembling the switching cost of each dimension (strictly descending).
     /// Dimensions must be _efficient_, i.e. there must not be dimensions with a higher switching and higher hitting cost than onether dimension.
     pub switching_cost: Vec<f64>,
-    /// Time-independent cost of each dimension (ascending).
+    /// Time-independent cost of each dimension (strictly ascending).
     pub hitting_cost: Vec<f64>,
 }
 pub type DiscreteSmoothedConstantOptimization =
