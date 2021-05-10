@@ -10,7 +10,7 @@
 | [`bansal::memoryless`](bansal/memoryless.rs) [2] | 1       | ❌                 | ❌        | ✅      | 3-competitive    | ?            |
 | [`bansal::det`](bansal/det.rs) [2]               | 1       | ❌                 | ❌        | ✅      | 2-competitive    | ?            |
 | [`bansal::irand`](bansal/irand.rs) [3]           | 1       | ❌                 | ✅        | ✅      | 2-competitive    | ?            |
-| [`quedenfeld::idet`](quedenfeld/idet.rs) [4]     | 2       | ✅                 | ✅        | ✅      | 2d-competitive    | ?            |
+| [`quedenfeld::idet`](quedenfeld/idet.rs) [4]     | 2       | ✅                 | ✅        | ✅      | 2d-competitive   | ?            |
 
 \* If online, the competitive ratio describes how much worse the algorithm performs compared to an optimal offline algorithm in the worst case.
 
@@ -23,11 +23,12 @@
 
 ### Optimal Competitiveness
 
-| Variant | Heterogeneous? | Discrete? | Deterministic? | Memoryless? | Optimal Competitiveness |
-| ------- | -------------- | --------- | -------------- | ----------- | ----------------------- |
-| 1       | ❌             | ❌        | ✅             | ✅          | 3-competitive           |
-| 1       | ❌             | ❌        | ✅             | ❌          | 2-competitive           |
-| 1       | ❌             | ✅        | ✅             | ❌          | 3-competitive           |
+| Variant | Multi-Dimensional? | Discrete? | Deterministic? | Memoryless? | Optimal Competitiveness |
+| ------- | ------------------ | --------- | -------------- | ----------- | ----------------------- |
+| 1       | ❌                 | ❌        | ✅             | ✅          | 3-competitive           |
+| 1       | ❌                 | ❌        | ✅             | ❌          | 2-competitive           |
+| 1       | ❌                 | ✅        | ✅             | ❌          | 3-competitive           |
+| 2       | ✅                 | ✅        | ✅             | ❌          | 2d-competitive          |
 
 ### References
 
