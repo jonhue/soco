@@ -18,6 +18,8 @@
 \newcommand*{\getSubmissionDate}{July 31, 2021}
 \newcommand*{\getSubmissionLocation}{Munich}
 
+\input{thesis/symbols}
+
 \begin{document}
 
 % Set page numbering to avoid "destination with the same identifier has been already used" warning for cover page.
@@ -38,14 +40,58 @@
 \mainmatter{}
 
 \input{thesis/chapters/01_introduction}
+\input{thesis/chapters/02_theory}
+\input{thesis/chapters/03_application_data_centers}
+\input{thesis/chapters/04_algorithms}
+\input{thesis/chapters/05_conclusion}
 % TODO: add more chapters here
+
+% Examples
+Citation test~\parencite{latex}.
+Reference symbols: $\gls{x}$
+
+\begin{figure}[htb]
+    \centering
+    Test
+    \caption{Caption}
+    \label{fig:my_label}
+\end{figure}
+
+\begin{algorithm}[H]
+    \caption{Algorithm}
+    \SetKwInOut{Input}{Input}
+    \Input{something}
+    step 1\;
+    step 2\;
+\end{algorithm}
+
+\begin{definition}[Test]
+...
+\end{definition}
+
+\begin{theorem}
+...
+\end{theorem}
+
+\begin{problem}[Test]
+...
+\end{problem}
 
 \appendix{}
 
 \microtypesetup{protrusion=false}
-\listoffigures{}
-\listoftables{}
+
+\listoftheorems[ignoreall,show=problem,title={List of Problems}]{}
+
+\listofalgorithms{}
+\addcontentsline{toc}{chapter}{List of Algorithms}
+
+% \listoffigures{}
+
+\printnoidxglossary[type=symbols,style=long,title={List of Symbols}]
+
 \microtypesetup{protrusion=true}
+
 \printbibliography{}
 
 \end{document}
