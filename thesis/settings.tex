@@ -26,6 +26,20 @@
 \usepackage[final]{microtype}
 \usepackage{caption}
 \usepackage[hidelinks]{hyperref} % hidelinks removes colored boxes around references and links
+\usepackage[symbols,nogroupskip,nonumberlist,sort=use]{glossaries-extra}
+\usepackage{amsmath}
+\usepackage{amsthm,thmtools}
+\usepackage[nottoc]{tocbibind}
+\usepackage[ruled]{algorithm2e}
+
+\declaretheorem[name=Theorem]{theorem}
+\declaretheorem[name=Definition]{definition}
+\declaretheorem[name=Problem]{problem}
+\makeatletter
+\def\ll@problem{
+  \protect\numberline{\theproblem}\thmt@shortoptarg
+}
+\makeatother
 
 \bibliography{sources}
 
