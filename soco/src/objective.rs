@@ -37,11 +37,9 @@ where
     ) -> Result<f64> {
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = access(
-                xs,
-                t - 2,
-                vec![NumCast::from(0).unwrap(); self.d as usize],
-            );
+            let prev_x = access(xs, t - 2).unwrap_or_else(|| {
+                vec![NumCast::from(0).unwrap(); self.d as usize]
+            });
             let x = xs[t as usize - 1].clone();
             cost += (self.hitting_cost)(t as i32, x.clone())
                 .ok_or(Error::CostFnMustBeTotal)?;
@@ -70,11 +68,9 @@ where
     ) -> Result<f64> {
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = access(
-                xs,
-                t - 2,
-                vec![NumCast::from(0).unwrap(); self.d as usize],
-            );
+            let prev_x = access(xs, t - 2).unwrap_or_else(|| {
+                vec![NumCast::from(0).unwrap(); self.d as usize]
+            });
             let x = &xs[t as usize - 1];
             for k in 0..self.d as usize {
                 cost +=

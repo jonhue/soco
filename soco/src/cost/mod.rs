@@ -1,11 +1,13 @@
 //! Convex cost functions.
 
-use crate::PRECISION;
 use nlopt::Algorithm;
 use nlopt::Nlopt;
 use nlopt::Target;
 use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
+
+use crate::utils::access;
+use crate::PRECISION;
 
 pub mod data_center;
 
@@ -31,59 +33,54 @@ where
     T: Copy + NumCast,
 {
     Arc::new(move |t, x| {
-        let i = t as usize - 1;
-        if i <= ls.len() {
-            let l = ls[t as usize - 1];
+        let l = access(ls, t - 1)?;
 
-            let objective_function =
-                |zs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-                    x.iter()
-                        .enumerate()
-                        .map(|(k, &j)| {
-                            let z = zs[k];
-                            let prim_j = ToPrimitive::to_f64(&j).unwrap();
-                            let prim_l = ToPrimitive::to_f64(&l).unwrap();
-                            if prim_j > 0. {
-                                let l_frac = NumCast::from(prim_l * z).unwrap();
-                                f(l_frac)(j)
-                            } else if prim_j == 0. && prim_l * z > 0. {
-                                Some(f64::INFINITY)
-                            } else if prim_j == 0. && prim_l * z == 0. {
-                                Some(0.)
-                            } else {
-                                None
-                            }
-                        })
-                        .sum::<Option<f64>>()
-                        .unwrap()
-                };
-            let mut zs = vec![1. / d as f64; d as usize];
+        let objective_function =
+            |zs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
+                x.iter()
+                    .enumerate()
+                    .map(|(k, &j)| {
+                        let z = zs[k];
+                        let prim_j = ToPrimitive::to_f64(&j)?;
+                        let prim_l = ToPrimitive::to_f64(&l)?;
+                        if prim_j > 0. {
+                            let l_frac = NumCast::from(prim_l * z)?;
+                            f(l_frac)(j)
+                        } else if prim_j == 0. && prim_l * z > 0. {
+                            Some(f64::INFINITY)
+                        } else if prim_j == 0. && prim_l * z == 0. {
+                            Some(0.)
+                        } else {
+                            None
+                        }
+                    })
+                    .sum::<Option<f64>>()
+                    .unwrap()
+            };
+        let mut zs = vec![1. / d as f64; d as usize];
 
-            // minimize cost across all possible server to load matchings
-            let mut opt = Nlopt::new(
-                Algorithm::Bobyqa,
-                d as usize,
-                objective_function,
-                Target::Minimize,
-                (),
-            );
-            opt.set_lower_bound(0.).unwrap();
-            opt.set_upper_bound(1.).unwrap();
-            opt.set_xtol_rel(PRECISION).unwrap();
+        // minimize cost across all possible server to load matchings
+        let mut opt = Nlopt::new(
+            Algorithm::Bobyqa,
+            d as usize,
+            objective_function,
+            Target::Minimize,
+            (),
+        );
+        opt.set_lower_bound(0.).ok()?;
+        opt.set_upper_bound(1.).ok()?;
+        opt.set_xtol_rel(PRECISION).ok()?;
 
-            opt.add_equality_constraint(
-                |zs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-                    zs.iter().sum::<f64>() - 1.
-                },
-                (),
-                PRECISION,
-            )
-            .unwrap();
+        opt.add_equality_constraint(
+            |zs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
+                zs.iter().sum::<f64>() - 1.
+            },
+            (),
+            PRECISION,
+        )
+        .ok()?;
 
-            Some(opt.optimize(&mut zs).unwrap().1)
-        } else {
-            None
-        }
+        Some(opt.optimize(&mut zs).ok()?.1)
     })
 }
 
