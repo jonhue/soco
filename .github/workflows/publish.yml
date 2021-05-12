@@ -16,7 +16,7 @@ jobs:
       with:
         toolchain: stable
     - name: Build documentation
-      uses: actions-rs/cargo@v1
+      uses: actions-rs/cargo@v1.0.3
       with:
         command: doc
         args: --manifest-path=soco/Cargo.toml
