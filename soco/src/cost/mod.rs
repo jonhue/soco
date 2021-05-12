@@ -18,7 +18,7 @@ pub type CostFn<'a, T> = Arc<dyn Fn(i32, T) -> Option<f64> + 'a>;
 pub type SingleCostFn<'a, T> = Arc<dyn Fn(T) -> Option<f64> + 'a>;
 
 /// Collection of cost functions for some load.
-pub type LazyCostFn<'a, T> = Arc<dyn Fn(T) -> SingleCostFn<'a, T> + 'a>;
+pub type LoadCostFn<'a, T> = Arc<dyn Fn(T) -> SingleCostFn<'a, T> + 'a>;
 
 /// Converts a lazy cost function to a cost function that is total on `t`.
 ///
@@ -26,7 +26,7 @@ pub type LazyCostFn<'a, T> = Arc<dyn Fn(T) -> SingleCostFn<'a, T> + 'a>;
 /// * `l` - Vector of loads for `0<=t<=T-1`. This vector can be updated online as `T` grows.
 pub fn lazy<'a, T>(
     d: i32,
-    f: LazyCostFn<'a, T>,
+    f: LoadCostFn<'a, T>,
     ls: &'a Vec<T>,
 ) -> CostFn<'a, Vec<T>>
 where

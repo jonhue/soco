@@ -1,6 +1,6 @@
 //! Functions to convert between problem instances.
 
-use crate::cost::{lazy, LazyCostFn};
+use crate::cost::{lazy, LoadCostFn};
 use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
@@ -125,7 +125,7 @@ where
 {
     /// Convert instance to an instance of Smoothed Convex Optimization.
     pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {
-        let f: LazyCostFn<'a, T> = Arc::new(|l| {
+        let f: LoadCostFn<'a, T> = Arc::new(|l| {
             Arc::new(move |x| {
                 let prim_l = ToPrimitive::to_f64(&l).unwrap();
                 let prim_x = ToPrimitive::to_f64(&x).unwrap();

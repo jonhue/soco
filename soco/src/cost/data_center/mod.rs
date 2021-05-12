@@ -3,7 +3,7 @@
 use num::ToPrimitive;
 use std::sync::Arc;
 
-use crate::cost::LazyCostFn;
+use crate::cost::LoadCostFn;
 
 use load::LoadFn;
 
@@ -14,7 +14,7 @@ pub mod load;
 /// distributes the load evenly across all active servers (at time `t`).
 ///
 /// This behavior models the optimal dispatching rule of workload to all active servers.
-pub fn load_balance<'a, T>(f: &'a LoadFn) -> LazyCostFn<'a, T>
+pub fn load_balance<'a, T>(f: &'a LoadFn) -> LoadCostFn<'a, T>
 where
     T: Clone + ToPrimitive + 'a,
 {
