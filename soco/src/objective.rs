@@ -42,8 +42,8 @@ where
                 t - 2,
                 vec![NumCast::from(0).unwrap(); self.d as usize],
             );
-            let x = &xs[t as usize - 1];
-            cost += (self.hitting_cost)(t as i32, x)
+            let x = xs[t as usize - 1].clone();
+            cost += (self.hitting_cost)(t as i32, x.clone())
                 .ok_or(Error::CostFnMustBeTotal)?;
             for k in 0..self.d as usize {
                 let delta = ToPrimitive::to_f64(&pos(if inverted {

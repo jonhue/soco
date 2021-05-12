@@ -41,7 +41,7 @@ pub fn det<'a>(
         if j >= x_l && j <= x_r {
             prev_p(j)
                 + second_derivative(
-                    |j: f64| (o.p.hitting_cost)(t, &vec![j]).unwrap(),
+                    |j: f64| (o.p.hitting_cost)(t, vec![j]).unwrap(),
                     j,
                     STEP_SIZE,
                 ) / 2.
@@ -61,7 +61,7 @@ fn find_minimizer(
 ) -> Result<f64> {
     let objective_function =
         |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            (o.p.hitting_cost)(t, &xs.to_vec()).unwrap()
+            (o.p.hitting_cost)(t, xs.to_vec()).unwrap()
         };
     let mut xs = [0.0];
 
@@ -109,7 +109,7 @@ fn find_right_bound(
                 xs[0],
                 |j: f64| {
                     second_derivative(
-                        |j: f64| (o.p.hitting_cost)(t, &vec![j]).unwrap(),
+                        |j: f64| (o.p.hitting_cost)(t, vec![j]).unwrap(),
                         j,
                         STEP_SIZE,
                     )
@@ -159,7 +159,7 @@ fn find_left_bound(
                 x_m,
                 |j: f64| {
                     second_derivative(
-                        |j: f64| (o.p.hitting_cost)(t, &vec![j]).unwrap(),
+                        |j: f64| (o.p.hitting_cost)(t, vec![j]).unwrap(),
                         j,
                         STEP_SIZE,
                     )

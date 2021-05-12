@@ -50,7 +50,7 @@ pub struct SmoothedLoadOptimization<T> {
     /// Time-independent cost of each dimension (strictly ascending).
     pub hitting_cost: Vec<f64>,
     /// Load at each time step `t`.
-    pub load: Vec<i32>,
+    pub load: Vec<T>,
 }
 pub type DiscreteSmoothedLoadOptimization = SmoothedLoadOptimization<i32>;
 impl<T> Problem for SmoothedLoadOptimization<T> {

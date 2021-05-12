@@ -10,16 +10,16 @@ use crate::schedule::Schedule;
 use crate::utils::assert;
 
 pub trait VerifiableCostFn<'a, T> {
-    fn verify(&self, t: i32, x: &T) -> Result<()>;
+    fn verify(&self, t: i32, x: T) -> Result<()>;
 }
 
 impl<'a, T> VerifiableCostFn<'a, T> for CostFn<'a, T>
 where
-    T: std::fmt::Debug,
+    T: Clone + std::fmt::Debug,
 {
-    fn verify(&self, t: i32, x: &T) -> Result<()> {
+    fn verify(&self, t: i32, x: T) -> Result<()> {
         assert_validity(
-            self(t, x).ok_or_else(|| {
+            self(t, x.clone()).ok_or_else(|| {
                 invalid(format!("cost function must be total on its domain, but returns None for ({}, {:?})", t, x))
             })? >= 0.,
             format!("cost function must be non-negative, but is for ({}, {:?})", t, x),
@@ -69,9 +69,9 @@ where
             for t in 1..=self.t_end {
                 self.hitting_cost.verify(
                     t,
-                    &vec![NumCast::from(0).unwrap(); self.d as usize],
+                    vec![NumCast::from(0).unwrap(); self.d as usize],
                 )?;
-                self.hitting_cost.verify(t, &self.bounds)?;
+                self.hitting_cost.verify(t, self.bounds.clone())?;
             }
         }
 

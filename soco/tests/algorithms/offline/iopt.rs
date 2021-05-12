@@ -27,7 +27,7 @@ mod make_pow_of_2 {
         for t in 1..=transformed_p.t_end {
             for j in 0..=transformed_p.bounds[0] {
                 assert_eq!(
-                    (transformed_p.hitting_cost)(t, &vec![j]).unwrap(),
+                    (transformed_p.hitting_cost)(t, vec![j]).unwrap(),
                     if j <= p.bounds[0] {
                         1.
                     } else {

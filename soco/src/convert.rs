@@ -1,12 +1,14 @@
 //! Functions to convert between problem instances.
 
+use crate::cost::{lazy, LazyCostFn};
+use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
 use crate::cost::CostFn;
 use crate::online::Online;
 use crate::problem::{
     ContinuousSmoothedConvexOptimization, DiscreteSmoothedConvexOptimization,
-    SmoothedConvexOptimization,
+    SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
 use crate::schedule::{ContinuousSchedule, DiscreteSchedule};
 
@@ -41,7 +43,7 @@ pub trait DiscretizableCostFn<'a> {
 
 impl<'a> DiscretizableCostFn<'a> for CostFn<'a, Vec<f64>> {
     fn to_i(&'a self) -> CostFn<'a, Vec<i32>> {
-        Arc::new(move |t, x| self(t, &x.to_f()))
+        Arc::new(move |t, x| self(t, x.to_f()))
     }
 }
 
@@ -56,10 +58,10 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, Vec<i32>> {
 
             let j = x[0];
             if j.fract() == 0. {
-                self(t, &vec![j as i32])
+                self(t, vec![j as i32])
             } else {
-                let l = self(t, &vec![j.floor() as i32]);
-                let u = self(t, &vec![j.ceil() as i32]);
+                let l = self(t, vec![j.floor() as i32]);
+                let u = self(t, vec![j.ceil() as i32]);
                 if l.is_none() || u.is_none() {
                     return None;
                 }
@@ -90,6 +92,32 @@ impl<'a> DiscreteSmoothedConvexOptimization<'a> {
             bounds: self.bounds.to_f(),
             switching_cost: self.switching_cost.clone(),
             hitting_cost: self.hitting_cost.to_f(),
+        }
+    }
+}
+
+impl<'a, T> SmoothedLoadOptimization<T>
+where
+    T: Clone + Copy + NumCast,
+{
+    pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {
+        let f: LazyCostFn<'a, T> = Arc::new(|l| {
+            Arc::new(move |x| {
+                let prim_l = ToPrimitive::to_f64(&l).unwrap();
+                let prim_x = ToPrimitive::to_f64(&x).unwrap();
+                if prim_x >= prim_l {
+                    Some(prim_l * prim_x)
+                } else {
+                    Some(f64::INFINITY)
+                }
+            })
+        });
+        SmoothedConvexOptimization {
+            d: self.d,
+            t_end: self.t_end,
+            bounds: self.bounds.clone(),
+            switching_cost: self.switching_cost.clone(),
+            hitting_cost: lazy(self.d, f, &self.load),
         }
     }
 }
