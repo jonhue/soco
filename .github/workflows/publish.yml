@@ -25,7 +25,7 @@ jobs:
     - name: Prepare files
       run: sh ./scripts/setup.sh
     - name: Compile LaTeX sources
-      uses: xu-cheng/latex-action@v2
+      uses: xu-cheng/latex-action@2.2.1
       with:
         pre_compile: tlmgr update --self && tlmgr update --all
         root_file: |
