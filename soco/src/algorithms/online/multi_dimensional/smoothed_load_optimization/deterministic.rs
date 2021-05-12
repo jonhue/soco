@@ -1,4 +1,4 @@
-use crate::algorithms::offline::miopt::miopt;
+use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
 use crate::online::Online;
 use crate::online::OnlineSolution;
 use crate::problem::DiscreteSmoothedLoadOptimization;
@@ -18,8 +18,8 @@ pub type Lanes = Vec<i32>;
 /// Maps each lane to a finite time horizon it stays "active" for unless replaced by another dimension.
 pub type Horizons = Vec<i32>;
 
-/// Deterministic Online Algorithm
-pub fn idet<'a>(
+/// Deterministic Algorithm
+pub fn deterministic<'a>(
     o: &'a Online<DiscreteSmoothedLoadOptimization>,
     xs: &DiscreteSchedule,
     ms: &Vec<Memory>,
@@ -111,6 +111,6 @@ fn find_optimal_lanes(
     p: &DiscreteSmoothedLoadOptimization,
     bound: usize,
 ) -> Result<Lanes> {
-    let (xs, _) = miopt(&p.to_sco())?;
+    let (xs, _) = optimal_graph_search(&p.to_sco())?;
     Ok(build_lanes(&xs[xs.len() - 1], p.d, bound))
 }

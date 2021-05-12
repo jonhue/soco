@@ -1,26 +1,26 @@
 use itertools::Either::{Left, Right};
 
-use crate::algorithms::lcp::bounds::Bounded;
+use crate::algorithms::capacity_provisioning::Bounded;
 use crate::problem::ContinuousSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::ContinuousSchedule;
 use crate::utils::{assert, project};
 
-/// Optimal Backward Offline Algorithm
-pub fn opt_backward(
+/// Backward-Recurrent Capacity Provisioning
+pub fn bcp(
     p: &ContinuousSmoothedConvexOptimization<'_>,
 ) -> Result<ContinuousSchedule> {
-    opt(p, false)
+    cp(p, false)
 }
 
-/// Optimal Forward Offline Algorithm
-pub fn opt_forward(
+/// Forward-Recurrent Capacity Provisioning
+pub fn fcp(
     p: &ContinuousSmoothedConvexOptimization<'_>,
 ) -> Result<ContinuousSchedule> {
-    opt(p, true)
+    cp(p, true)
 }
 
-fn opt(
+fn cp(
     p: &ContinuousSmoothedConvexOptimization<'_>,
     forward: bool,
 ) -> Result<ContinuousSchedule> {

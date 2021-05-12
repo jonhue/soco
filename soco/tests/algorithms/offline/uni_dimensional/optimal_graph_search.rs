@@ -3,7 +3,7 @@
 mod make_pow_of_2 {
     use std::sync::Arc;
 
-    use soco::algorithms::offline::iopt::make_pow_of_2;
+    use soco::algorithms::offline::uni_dimensional::optimal_graph_search::make_pow_of_2;
     use soco::problem::SmoothedConvexOptimization;
     use soco::verifiers::VerifiableProblem;
 
@@ -42,12 +42,14 @@ mod make_pow_of_2 {
     }
 }
 
-mod iopt {
+mod optimal_graph_search {
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use std::sync::Arc;
 
-    use soco::algorithms::offline::iopt::{iopt, make_pow_of_2};
+    use soco::algorithms::offline::uni_dimensional::optimal_graph_search::{
+        make_pow_of_2, optimal_graph_search,
+    };
     use soco::objective::Objective;
     use soco::problem::SmoothedConvexOptimization;
     use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
@@ -65,7 +67,7 @@ mod iopt {
         };
         p.verify().unwrap();
 
-        let result = iopt(&p).unwrap();
+        let result = optimal_graph_search(&p, false).unwrap();
         result.0.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result, (vec![vec![1], vec![1]], 1.));
@@ -88,7 +90,7 @@ mod iopt {
         };
         p.verify().unwrap();
 
-        let result = iopt(&p).unwrap();
+        let result = optimal_graph_search(&p, false).unwrap();
         result.0.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.1, p.objective_function(&result.0).unwrap());
@@ -111,7 +113,7 @@ mod iopt {
         p.verify().unwrap();
 
         let transformed_p = make_pow_of_2(&p).unwrap();
-        let result = iopt(&transformed_p).unwrap();
+        let result = optimal_graph_search(&transformed_p, false).unwrap();
         result
             .0
             .verify(transformed_p.t_end, &transformed_p.bounds)

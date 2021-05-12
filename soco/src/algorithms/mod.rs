@@ -1,6 +1,7 @@
 //! Algorithms.
 
-pub mod bansal;
-pub mod lcp;
+mod capacity_provisioning;
+mod graph_search;
+
 pub mod offline;
-pub mod quedenfeld;
+pub mod online;
