@@ -5,7 +5,7 @@
 | `offline::uni_dimensional::capacity_provisioning::bcp` [1]                                | 1       | ❌                 | ❌        | ❌      | optimal                        | ?            |
 | `offline::uni_dimensional::capacity_provisioning::fcp` [*]                                | 1       | ❌                 | ❌        | ❌      | optimal                        | ?            |
 | `offline::uni_dimensional::optimal_graph_search::optimal_graph_search` [3]                | 1       | ❌                 | ✅        | ❌      | optimal                        | O(T log m)   |
-| `offline::multi_dimensional::optimal_graph_search::optimal_graph_search` [5]              | 4       | ✅                 | ✅        | ❌      | optimal                        | O(T log m)   |
+| `offline::multi_dimensional::optimal_graph_search::optimal_graph_search` [5]              | 4       | ✅                 | ✅        | ❌      | optimal                        | ?            |
 | `online::uni_dimensional::lazy_capacity_provisioning::fractional::lcp` [1]                | 1       | ❌                 | ❌        | ✅      | 3-competitive                  | ?            |
 | `online::uni_dimensional::lazy_capacity_provisioning::discrete::lcp` [3]                  | 1       | ❌                 | ✅        | ✅      | 3-competitive                  | ?            |
 | `online::uni_dimensional::memoryless::memoryless` [2]                                     | 1       | ❌                 | ❌        | ✅      | 3-competitive                  | ?            |
