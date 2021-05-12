@@ -44,12 +44,7 @@ where
             cost += (self.hitting_cost)(t as i32, x.clone())
                 .ok_or(Error::CostFnMustBeTotal)?;
             for k in 0..self.d as usize {
-                let delta = ToPrimitive::to_f64(&pos(if inverted {
-                    prev_x[k] - x[k]
-                } else {
-                    x[k] - prev_x[k]
-                }))
-                .unwrap();
+                let delta = movement(x[k], prev_x[k], inverted);
                 cost += self.switching_cost[k] * delta;
             }
         }
@@ -75,15 +70,18 @@ where
             for k in 0..self.d as usize {
                 cost +=
                     self.hitting_cost[k] * ToPrimitive::to_f64(&x[k]).unwrap();
-                let delta = ToPrimitive::to_f64(&pos(if inverted {
-                    prev_x[k] - x[k]
-                } else {
-                    x[k] - prev_x[k]
-                }))
-                .unwrap();
+                let delta = movement(x[k], prev_x[k], inverted);
                 cost += self.switching_cost[k] * delta;
             }
         }
         Ok(cost)
     }
+}
+
+fn movement<T>(x: T, prev_x: T, inverted: bool) -> f64
+where
+    T: Num + NumCast + PartialOrd,
+{
+    ToPrimitive::to_f64(&pos(if inverted { prev_x - x } else { x - prev_x }))
+        .unwrap()
 }
