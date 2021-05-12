@@ -77,9 +77,17 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, Vec<i32>> {
     }
 }
 
-impl<'a> ContinuousSmoothedConvexOptimization<'a> {
-    /// Discretize a problem instance.
-    pub fn to_i(&'a self) -> DiscreteSmoothedConvexOptimization<'a> {
+pub trait DiscretizableProblem<'a> {
+    type Output;
+
+    /// Discretize a continuous problem instance.
+    fn to_i(&'a self) -> Self::Output;
+}
+
+impl<'a> DiscretizableProblem<'a> for ContinuousSmoothedConvexOptimization<'a> {
+    type Output = DiscreteSmoothedConvexOptimization<'a>;
+
+    fn to_i(&'a self) -> DiscreteSmoothedConvexOptimization<'a> {
         SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
@@ -91,13 +99,16 @@ impl<'a> ContinuousSmoothedConvexOptimization<'a> {
 }
 
 pub trait RelaxableProblem<'a> {
+    type Output;
+
     /// Relax a discrete problem instance to the continuous setting.
-    fn to_f(&'a self) -> CostFn<'a, Vec<f64>>;
+    fn to_f(&'a self) -> Self::Output;
 }
 
-impl<'a> DiscreteSmoothedConvexOptimization<'a> {
-    /// Relax a problem instance.
-    pub fn to_f(&'a self) -> ContinuousSmoothedConvexOptimization<'a> {
+impl<'a> RelaxableProblem<'a> for DiscreteSmoothedConvexOptimization<'a> {
+    type Output = ContinuousSmoothedConvexOptimization<'a>;
+
+    fn to_f(&'a self) -> ContinuousSmoothedConvexOptimization<'a> {
         SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
@@ -135,8 +146,12 @@ where
     }
 }
 
-impl<'a> Online<ContinuousSmoothedConvexOptimization<'a>> {
-    pub fn to_i(&'a self) -> Online<DiscreteSmoothedConvexOptimization<'a>> {
+impl<'a, T> Online<T>
+where
+    T: DiscretizableProblem<'a>,
+{
+    /// Discretize online problem.
+    pub fn to_i(&'a self) -> Online<T::Output> {
         Online {
             w: self.w,
             p: self.p.to_i(),
@@ -144,8 +159,12 @@ impl<'a> Online<ContinuousSmoothedConvexOptimization<'a>> {
     }
 }
 
-impl<'a> Online<DiscreteSmoothedConvexOptimization<'a>> {
-    pub fn to_f(&'a self) -> Online<ContinuousSmoothedConvexOptimization<'a>> {
+impl<'a, T> Online<T>
+where
+    T: RelaxableProblem<'a>,
+{
+    /// Relax online problem.
+    pub fn to_f(&'a self) -> Online<T::Output> {
         Online {
             w: self.w,
             p: self.p.to_f(),
@@ -154,6 +173,7 @@ impl<'a> Online<DiscreteSmoothedConvexOptimization<'a>> {
 }
 
 pub trait DiscretizableSchedule {
+    /// Discretize a schedule.
     fn to_i(&self) -> DiscreteSchedule;
 }
 
@@ -164,6 +184,7 @@ impl DiscretizableSchedule for ContinuousSchedule {
 }
 
 pub trait RelaxableSchedule {
+    /// Relax a discrete schedule to a continuous schedule.
     fn to_f(&self) -> ContinuousSchedule;
 }
 
@@ -174,6 +195,7 @@ impl RelaxableSchedule for DiscreteSchedule {
 }
 
 pub trait ResettableCostFn<'a, T> {
+    /// Shift a cost function to some new initial time `t_start`.
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T>;
 }
 
@@ -187,6 +209,7 @@ impl<'a, T> SmoothedConvexOptimization<'a, T>
 where
     T: Clone,
 {
+    /// Shifts problem instance to some new initial time `t_start`.
     pub fn reset(&'a self, t_start: i32) -> SmoothedConvexOptimization<'a, T> {
         SmoothedConvexOptimization {
             d: self.d,
