@@ -17,8 +17,8 @@ pub type Memory<'a> = Arc<dyn Fn(f64) -> f64 + 'a>;
 
 static STEP_SIZE: f64 = 1e-16;
 
-/// Deterministic Online Algorithm
-pub fn det<'a>(
+/// Probabilistic Algorithm
+pub fn probabilistic<'a>(
     o: &'a Online<ContinuousSmoothedConvexOptimization<'a>>,
     xs: &ContinuousSchedule,
     ps: &Vec<Memory<'a>>,

@@ -1,9 +1,9 @@
 #![allow(clippy::float_cmp)]
 
-mod opt_backward {
+mod bcp {
     use std::sync::Arc;
 
-    use soco::algorithms::offline::opt::opt_backward;
+    use soco::algorithms::offline::uni_dimensional::capacity_provisioning::bcp;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SmoothedConvexOptimization;
     use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
@@ -21,17 +21,17 @@ mod opt_backward {
         };
         p.verify().unwrap();
 
-        let result = opt_backward(&p).unwrap();
+        let result = bcp(&p).unwrap();
         result.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.to_i(), vec![vec![1], vec![1]]);
     }
 }
 
-mod opt_forward {
+mod fcp {
     use std::sync::Arc;
 
-    use soco::algorithms::offline::opt::opt_forward;
+    use soco::algorithms::offline::uni_dimensional::capacity_provisioning::fcp;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SmoothedConvexOptimization;
     use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
@@ -49,7 +49,7 @@ mod opt_forward {
         };
         p.verify().unwrap();
 
-        let result = opt_forward(&p).unwrap();
+        let result = fcp(&p).unwrap();
         result.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.to_i(), vec![vec![1], vec![1]]);

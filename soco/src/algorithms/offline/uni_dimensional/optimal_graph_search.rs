@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use crate::algorithms::graph_search::{Path, Paths};
 use crate::problem::{
     DiscreteSmoothedConvexOptimization, SmoothedConvexOptimization,
 };
@@ -8,25 +9,9 @@ use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
 use crate::utils::{assert, is_pow_of_2, pos};
 
-/// The minimal cost from some initial vertice alongside the shortest path to the final vertice.
-pub type Path = (DiscreteSchedule, f64);
-/// Maps a vertice to its minimal cost from some initial vertice alongside the shortest path.
-pub type Paths = HashMap<(i32, i32), Path>;
-
-/// Optimal Discrete Deterministic Offline Algorithm
-pub fn iopt(p: &'_ DiscreteSmoothedConvexOptimization<'_>) -> Result<Path> {
-    _iopt(p, false)
-}
-
-/// Inverted Optimal Discrete Deterministic Offline Algorithm
-pub fn inverted_iopt(
+/// Graph-Based Optimal Discrete Algorithm
+pub fn optimal_graph_search(
     p: &'_ DiscreteSmoothedConvexOptimization<'_>,
-) -> Result<Path> {
-    _iopt(p, true)
-}
-
-fn _iopt<'a>(
-    p: &'a DiscreteSmoothedConvexOptimization<'a>,
     inverted: bool,
 ) -> Result<Path> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;

@@ -1,2 +1,2 @@
-mod lcp;
 mod offline;
+mod online;

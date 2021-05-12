@@ -1,7 +1,7 @@
 mod lcp {
     use std::sync::Arc;
 
-    use soco::algorithms::lcp::lcp::lcp;
+    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::fractional::lcp;
     use soco::convert::DiscretizableSchedule;
     use soco::online::Online;
     use soco::problem::SmoothedConvexOptimization;

@@ -9,7 +9,7 @@ use crate::schedule::{ContinuousSchedule, Step};
 use crate::utils::assert;
 use crate::PRECISION;
 
-/// Memoryless Deterministic Online Algorithm
+/// Memoryless Algorithm
 pub fn memoryless(
     o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
     xs: &ContinuousSchedule,

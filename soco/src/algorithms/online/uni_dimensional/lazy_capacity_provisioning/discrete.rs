@@ -1,13 +1,15 @@
-use crate::algorithms::lcp::bounds::Bounded;
-use crate::algorithms::lcp::{find_initial_time, Memory};
+use crate::algorithms::capacity_provisioning::Bounded;
+use crate::algorithms::online::uni_dimensional::lazy_capacity_provisioning::{
+    find_initial_time, Memory,
+};
 use crate::online::{Online, OnlineSolution};
 use crate::problem::DiscreteSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::{DiscreteSchedule, Step};
 use crate::utils::{assert, project};
 
-/// Integer Lazy Capacity Provisioning
-pub fn ilcp(
+/// Discrete Lazy Capacity Provisioning
+pub fn lcp(
     o: &Online<DiscreteSmoothedConvexOptimization<'_>>,
     xs: &DiscreteSchedule,
     ms: &Vec<Memory<i32>>,

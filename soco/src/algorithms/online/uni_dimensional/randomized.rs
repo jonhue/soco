@@ -1,6 +1,8 @@
 use rand::{thread_rng, Rng};
 
-use crate::algorithms::bansal::det::{det, Memory as DetMemory};
+use crate::algorithms::online::uni_dimensional::probabilistic::{
+    probabilistic, Memory as ProbMemory,
+};
 use crate::convert::RelaxableSchedule;
 use crate::online::{Online, OnlineSolution};
 use crate::problem::ContinuousSmoothedConvexOptimization;
@@ -9,12 +11,12 @@ use crate::schedule::{DiscreteSchedule, Step};
 use crate::utils::{assert, frac, project};
 
 /// Continuous number of servers as determined by `bansal::det`; memory of `bansal::det`.
-pub type Memory<'a> = (Step<f64>, DetMemory<'a>);
+pub type Memory<'a> = (Step<f64>, ProbMemory<'a>);
 
-/// Discrete Randomized Online Algorithm
+/// Randomized Discrete Relaxation
 ///
-/// Note: Relax discrete problem to continuous problem before use!
-pub fn irand<'a>(
+/// Relax discrete problem to continuous problem before use!
+pub fn randomized<'a>(
     o: &'a Online<ContinuousSmoothedConvexOptimization<'a>>,
     xs: &DiscreteSchedule,
     ms: &Vec<Memory<'a>>,
@@ -22,8 +24,8 @@ pub fn irand<'a>(
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
-    let det_ms = ms.iter().map(|m| m.1.clone()).collect();
-    let (y, det_m) = det(o, &xs.to_f(), &det_ms)?;
+    let prob_ms = ms.iter().map(|m| m.1.clone()).collect();
+    let (y, prob_m) = probabilistic(o, &xs.to_f(), &prob_ms)?;
 
     let prev_x = if xs.is_empty() {
         0
@@ -38,7 +40,7 @@ pub fn irand<'a>(
 
     let x = next(prev_x, prev_y, y[0]);
 
-    Ok((vec![x], (y, det_m)))
+    Ok((vec![x], (y, prob_m)))
 }
 
 fn next(prev_x: i32, prev_y: f64, y: f64) -> i32 {

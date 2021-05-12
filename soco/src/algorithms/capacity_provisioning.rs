@@ -3,7 +3,9 @@ use nlopt::Nlopt;
 use nlopt::ObjFn;
 use nlopt::Target;
 
-use crate::algorithms::offline::iopt::{inverted_iopt, iopt, make_pow_of_2};
+use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
+    make_pow_of_2, optimal_graph_search,
+};
 use crate::objective::Objective;
 use crate::problem::{
     ContinuousSmoothedConvexOptimization, DiscreteSmoothedConvexOptimization,
@@ -85,11 +87,17 @@ impl ContinuousSmoothedConvexOptimization<'_> {
 
 impl Bounded<i32> for DiscreteSmoothedConvexOptimization<'_> {
     fn find_lower_bound(&self, t: i32, t_start: i32) -> Result<i32> {
-        self.find_bound(iopt, t, t_start)
+        let alg = |p: &DiscreteSmoothedConvexOptimization<'_>| {
+            optimal_graph_search(p, false)
+        };
+        self.find_bound(alg, t, t_start)
     }
 
     fn find_upper_bound(&self, t: i32, t_start: i32) -> Result<i32> {
-        self.find_bound(inverted_iopt, t, t_start)
+        let alg = |p: &DiscreteSmoothedConvexOptimization<'_>| {
+            optimal_graph_search(p, true)
+        };
+        self.find_bound(alg, t, t_start)
     }
 }
 
