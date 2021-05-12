@@ -13,22 +13,22 @@ jobs:
       with:
         toolchain: stable
     - name: Format
-      uses: actions-rs/cargo@v1
+      uses: actions-rs/cargo@v1.0.3
       with:
         command: fmt
         args: --manifest-path=soco/Cargo.toml -- --check
     - name: Check
-      uses: actions-rs/cargo@v1
+      uses: actions-rs/cargo@v1.0.3
       with:
         command: clippy
         args: --manifest-path=soco/Cargo.toml --all-targets --all-features -- -D warnings
     - name: Test
-      uses: actions-rs/cargo@v1
+      uses: actions-rs/cargo@v1.0.3
       with:
         command: test
         args: --manifest-path=soco/Cargo.toml
     # - name: Package
-    #   uses: actions-rs/cargo@v1
+    #   uses: actions-rs/cargo@v1.0.3
     #   with:
     #     command: package
     #     args: --manifest-path=soco/Cargo.toml
