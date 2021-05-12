@@ -57,7 +57,7 @@ where
                         .sum::<Option<f64>>()
                         .unwrap()
                 };
-            let mut zs = vec![0.0; d as usize];
+            let mut zs = vec![1. / d as f64; d as usize];
 
             // minimize cost across all possible server to load matchings
             let mut opt = Nlopt::new(
