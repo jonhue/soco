@@ -3,17 +3,17 @@ mod ilcp {
 
     use soco::algorithms::lcp::ilcp::ilcp;
     use soco::online::Online;
-    use soco::problem::Problem;
+    use soco::problem::SmoothedConvexOptimization;
     use soco::verifiers::VerifiableSchedule;
 
     #[test]
     fn _1() {
-        let p = Problem {
+        let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1,
             bounds: vec![2],
-            switching_costs: vec![1.],
-            f: Arc::new(|t, j| {
+            switching_cost: vec![1.],
+            hitting_cost: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
             }),
         };
@@ -28,12 +28,12 @@ mod ilcp {
 
     #[test]
     fn _2() {
-        let p = Problem {
+        let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1,
             bounds: vec![2],
-            switching_costs: vec![1.],
-            f: Arc::new(|t, j| {
+            switching_cost: vec![1.],
+            hitting_cost: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
             }),
         };

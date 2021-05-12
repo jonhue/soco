@@ -14,12 +14,16 @@ pub mod load;
 /// distributes the load evenly across all active servers (at time `t`).
 ///
 /// This behavior models the optimal dispatching rule of workload to all active servers.
-pub fn load_balance<'a, T: ToPrimitive>(f: &'a LoadFn) -> LazyCostFn<'a, T> {
+pub fn load_balance<'a, T>(f: &'a LoadFn) -> LazyCostFn<'a, T>
+where
+    T: Clone + ToPrimitive + 'a,
+{
     Arc::new(move |l| {
         Arc::new(move |x| {
             Some(
-                ToPrimitive::to_f64(x).unwrap()
-                    * f(l / ToPrimitive::to_f64(x).unwrap()),
+                ToPrimitive::to_f64(&x).unwrap()
+                    * f(ToPrimitive::to_f64(&l).unwrap()
+                        / ToPrimitive::to_f64(&x).unwrap()),
             )
         })
     })

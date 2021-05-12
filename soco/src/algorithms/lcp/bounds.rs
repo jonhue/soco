@@ -5,7 +5,9 @@ use nlopt::Target;
 
 use crate::algorithms::offline::iopt::{inverted_iopt, iopt, make_pow_of_2};
 use crate::objective::Objective;
-use crate::problem::{ContinuousProblem, DiscreteProblem};
+use crate::problem::{
+    ContinuousSmoothedConvexOptimization, DiscreteSmoothedConvexOptimization,
+};
 use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
 use crate::utils::{assert, is_pow_of_2};
@@ -19,38 +21,40 @@ pub trait Bounded<T> {
     fn find_upper_bound(&self, t: i32, t_start: i32) -> Result<T>;
 }
 
-impl Bounded<f64> for ContinuousProblem<'_> {
+impl Bounded<f64> for ContinuousSmoothedConvexOptimization<'_> {
     fn find_lower_bound(&self, t: i32, t_start: i32) -> Result<f64> {
-        let objective_function = |xs: &[f64],
-                                  _: Option<&mut [f64]>,
-                                  p: &mut &ContinuousProblem<'_>|
-         -> f64 {
-            p.objective_function(&xs.iter().map(|&x| vec![x]).collect())
-                .unwrap()
-        };
+        let objective_function =
+            |xs: &[f64],
+             _: Option<&mut [f64]>,
+             p: &mut &ContinuousSmoothedConvexOptimization<'_>|
+             -> f64 {
+                p.objective_function(&xs.iter().map(|&x| vec![x]).collect())
+                    .unwrap()
+            };
 
         self.find_bound(objective_function, t, t_start)
     }
 
     fn find_upper_bound(&self, t: i32, t_start: i32) -> Result<f64> {
-        let objective_function = |xs: &[f64],
-                                  _: Option<&mut [f64]>,
-                                  p: &mut &ContinuousProblem<'_>|
-         -> f64 {
-            p.inverted_objective_function(
-                &xs.iter().map(|&x| vec![x]).collect(),
-            )
-            .unwrap()
-        };
+        let objective_function =
+            |xs: &[f64],
+             _: Option<&mut [f64]>,
+             p: &mut &ContinuousSmoothedConvexOptimization<'_>|
+             -> f64 {
+                p.inverted_objective_function(
+                    &xs.iter().map(|&x| vec![x]).collect(),
+                )
+                .unwrap()
+            };
 
         self.find_bound(objective_function, t, t_start)
     }
 }
 
-impl ContinuousProblem<'_> {
+impl ContinuousSmoothedConvexOptimization<'_> {
     fn find_bound<'a>(
         &'a self,
-        objective_function: impl ObjFn<&'a ContinuousProblem<'a>>,
+        objective_function: impl ObjFn<&'a ContinuousSmoothedConvexOptimization<'a>>,
         t: i32,
         t_start: i32,
     ) -> Result<f64> {
@@ -79,7 +83,7 @@ impl ContinuousProblem<'_> {
     }
 }
 
-impl Bounded<i32> for DiscreteProblem<'_> {
+impl Bounded<i32> for DiscreteSmoothedConvexOptimization<'_> {
     fn find_lower_bound(&self, t: i32, t_start: i32) -> Result<i32> {
         self.find_bound(iopt, t, t_start)
     }
@@ -89,10 +93,12 @@ impl Bounded<i32> for DiscreteProblem<'_> {
     }
 }
 
-impl DiscreteProblem<'_> {
+impl DiscreteSmoothedConvexOptimization<'_> {
     fn find_bound(
         &self,
-        alg: impl Fn(&'_ DiscreteProblem<'_>) -> Result<(DiscreteSchedule, f64)>,
+        alg: impl Fn(
+            &'_ DiscreteSmoothedConvexOptimization<'_>,
+        ) -> Result<(DiscreteSchedule, f64)>,
         t: i32,
         t_start: i32,
     ) -> Result<i32> {

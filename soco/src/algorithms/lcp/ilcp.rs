@@ -1,14 +1,14 @@
 use crate::algorithms::lcp::bounds::Bounded;
 use crate::algorithms::lcp::{find_initial_time, Memory};
 use crate::online::{Online, OnlineSolution};
-use crate::problem::DiscreteProblem;
+use crate::problem::DiscreteSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::{DiscreteSchedule, Step};
 use crate::utils::{assert, project};
 
 /// Integer Lazy Capacity Provisioning
 pub fn ilcp(
-    o: &Online<DiscreteProblem<'_>>,
+    o: &Online<DiscreteSmoothedConvexOptimization<'_>>,
     xs: &DiscreteSchedule,
     ms: &Vec<Memory<i32>>,
 ) -> Result<OnlineSolution<Step<i32>, Memory<i32>>> {

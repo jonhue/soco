@@ -1,14 +1,21 @@
 //! Functions to convert between problem instances.
 
+use crate::cost::{lazy, LazyCostFn};
+use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
 use crate::cost::CostFn;
 use crate::online::Online;
-use crate::problem::{ContinuousProblem, DiscreteProblem, Problem};
+use crate::problem::{
+    ContinuousSmoothedConvexOptimization, DiscreteSmoothedConvexOptimization,
+    SmoothedConvexOptimization, SmoothedLoadOptimization,
+};
 use crate::schedule::{ContinuousSchedule, DiscreteSchedule};
 
 pub trait DiscretizableVector {
+    /// Ceil all elements of a vector.
     fn ceil(&self) -> Vec<i32>;
+    /// Floor all elements of a vector.
     fn floor(&self) -> Vec<i32>;
 }
 
@@ -23,6 +30,7 @@ impl DiscretizableVector for Vec<f64> {
 }
 
 pub trait RelaxableVector {
+    /// Convert a discrete vector to a continuous vector.
     fn to_f(&self) -> Vec<f64>;
 }
 
@@ -33,16 +41,18 @@ impl RelaxableVector for Vec<i32> {
 }
 
 pub trait DiscretizableCostFn<'a> {
+    /// Discretize a continuous cost function.
     fn to_i(&'a self) -> CostFn<'a, Vec<i32>>;
 }
 
 impl<'a> DiscretizableCostFn<'a> for CostFn<'a, Vec<f64>> {
     fn to_i(&'a self) -> CostFn<'a, Vec<i32>> {
-        Arc::new(move |t, x| self(t, &x.to_f()))
+        Arc::new(move |t, x| self(t, x.to_f()))
     }
 }
 
 pub trait RelaxableCostFn<'a> {
+    /// Relax a discrete cost function to the continuous setting.
     fn to_f(&'a self) -> CostFn<'a, Vec<f64>>;
 }
 
@@ -53,10 +63,10 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, Vec<i32>> {
 
             let j = x[0];
             if j.fract() == 0. {
-                self(t, &vec![j as i32])
+                self(t, vec![j as i32])
             } else {
-                let l = self(t, &vec![j.floor() as i32]);
-                let u = self(t, &vec![j.ceil() as i32]);
+                let l = self(t, vec![j.floor() as i32]);
+                let u = self(t, vec![j.ceil() as i32]);
                 if l.is_none() || u.is_none() {
                     return None;
                 }
@@ -67,32 +77,81 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, Vec<i32>> {
     }
 }
 
-impl<'a> ContinuousProblem<'a> {
-    pub fn to_i(&'a self) -> DiscreteProblem<'a> {
-        Problem {
+pub trait DiscretizableProblem<'a> {
+    type Output;
+
+    /// Discretize a continuous problem instance.
+    fn to_i(&'a self) -> Self::Output;
+}
+
+impl<'a> DiscretizableProblem<'a> for ContinuousSmoothedConvexOptimization<'a> {
+    type Output = DiscreteSmoothedConvexOptimization<'a>;
+
+    fn to_i(&'a self) -> DiscreteSmoothedConvexOptimization<'a> {
+        SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.floor(),
-            switching_costs: self.switching_costs.clone(),
-            f: self.f.to_i(),
+            switching_cost: self.switching_cost.clone(),
+            hitting_cost: self.hitting_cost.to_i(),
         }
     }
 }
 
-impl<'a> DiscreteProblem<'a> {
-    pub fn to_f(&'a self) -> ContinuousProblem<'a> {
-        Problem {
+pub trait RelaxableProblem<'a> {
+    type Output;
+
+    /// Relax a discrete problem instance to the continuous setting.
+    fn to_f(&'a self) -> Self::Output;
+}
+
+impl<'a> RelaxableProblem<'a> for DiscreteSmoothedConvexOptimization<'a> {
+    type Output = ContinuousSmoothedConvexOptimization<'a>;
+
+    fn to_f(&'a self) -> ContinuousSmoothedConvexOptimization<'a> {
+        SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.to_f(),
-            switching_costs: self.switching_costs.clone(),
-            f: self.f.to_f(),
+            switching_cost: self.switching_cost.clone(),
+            hitting_cost: self.hitting_cost.to_f(),
         }
     }
 }
 
-impl<'a> Online<ContinuousProblem<'a>> {
-    pub fn to_i(&'a self) -> Online<DiscreteProblem<'a>> {
+impl<'a, T> SmoothedLoadOptimization<T>
+where
+    T: Clone + Copy + NumCast,
+{
+    /// Convert instance to an instance of Smoothed Convex Optimization.
+    pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {
+        let f: LazyCostFn<'a, T> = Arc::new(|l| {
+            Arc::new(move |x| {
+                let prim_l = ToPrimitive::to_f64(&l).unwrap();
+                let prim_x = ToPrimitive::to_f64(&x).unwrap();
+                if prim_x >= prim_l {
+                    Some(prim_l * prim_x)
+                } else {
+                    Some(f64::INFINITY)
+                }
+            })
+        });
+        SmoothedConvexOptimization {
+            d: self.d,
+            t_end: self.t_end,
+            bounds: self.bounds.clone(),
+            switching_cost: self.switching_cost.clone(),
+            hitting_cost: lazy(self.d, f, &self.load),
+        }
+    }
+}
+
+impl<'a, T> Online<T>
+where
+    T: DiscretizableProblem<'a>,
+{
+    /// Discretize online problem.
+    pub fn to_i(&'a self) -> Online<T::Output> {
         Online {
             w: self.w,
             p: self.p.to_i(),
@@ -100,8 +159,12 @@ impl<'a> Online<ContinuousProblem<'a>> {
     }
 }
 
-impl<'a> Online<DiscreteProblem<'a>> {
-    pub fn to_f(&'a self) -> Online<ContinuousProblem<'a>> {
+impl<'a, T> Online<T>
+where
+    T: RelaxableProblem<'a>,
+{
+    /// Relax online problem.
+    pub fn to_f(&'a self) -> Online<T::Output> {
         Online {
             w: self.w,
             p: self.p.to_f(),
@@ -110,6 +173,7 @@ impl<'a> Online<DiscreteProblem<'a>> {
 }
 
 pub trait DiscretizableSchedule {
+    /// Discretize a schedule.
     fn to_i(&self) -> DiscreteSchedule;
 }
 
@@ -120,6 +184,7 @@ impl DiscretizableSchedule for ContinuousSchedule {
 }
 
 pub trait RelaxableSchedule {
+    /// Relax a discrete schedule to a continuous schedule.
     fn to_f(&self) -> ContinuousSchedule;
 }
 
@@ -130,6 +195,7 @@ impl RelaxableSchedule for DiscreteSchedule {
 }
 
 pub trait ResettableCostFn<'a, T> {
+    /// Shift a cost function to some new initial time `t_start`.
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T>;
 }
 
@@ -139,17 +205,18 @@ impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T> {
     }
 }
 
-impl<'a, T> Problem<'a, T>
+impl<'a, T> SmoothedConvexOptimization<'a, T>
 where
     T: Clone,
 {
-    pub fn reset(&'a self, t_start: i32) -> Problem<'a, T> {
-        Problem {
+    /// Shifts problem instance to some new initial time `t_start`.
+    pub fn reset(&'a self, t_start: i32) -> SmoothedConvexOptimization<'a, T> {
+        SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end - t_start,
             bounds: self.bounds.clone(),
-            switching_costs: self.switching_costs.clone(),
-            f: self.f.reset(t_start),
+            switching_cost: self.switching_cost.clone(),
+            hitting_cost: self.hitting_cost.reset(t_start),
         }
     }
 }

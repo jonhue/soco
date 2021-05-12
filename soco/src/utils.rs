@@ -1,6 +1,6 @@
 //! Utilities.
 
-use num::NumCast;
+use num::{Num, NumCast};
 
 use crate::result::{Error, Result};
 
@@ -19,7 +19,10 @@ pub fn frac(x: f64) -> f64 {
 }
 
 /// max{0, x}
-pub fn pos<T: NumCast + PartialOrd>(x: T) -> T {
+pub fn pos<T>(x: T) -> T
+where
+    T: NumCast + PartialOrd,
+{
     let l = NumCast::from(0).unwrap();
     if x > l {
         x
@@ -29,7 +32,10 @@ pub fn pos<T: NumCast + PartialOrd>(x: T) -> T {
 }
 
 /// max{a, min{b, x}}
-pub fn project<T: NumCast + PartialOrd>(x: T, a: T, b: T) -> T {
+pub fn project<T>(x: T, a: T, b: T) -> T
+where
+    T: NumCast + PartialOrd,
+{
     let tmp = if b < x { b } else { x };
     if a > tmp {
         a
@@ -43,11 +49,26 @@ pub fn is_pow_of_2(x: i32) -> bool {
     x != 0 && x & (x - 1) == 0
 }
 
-/// Returns the `i`-th element of vector `xs` if present; `def` otherwise.
-pub fn access<T: Clone>(xs: &Vec<T>, i: i32, def: T) -> T {
+/// Returns the `i`-th element of vector `xs` if present.
+pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<T>
+where
+    T: Clone,
+{
     if i >= 0 && i < xs.len() as i32 {
-        xs[i as usize].clone()
+        Some(xs[i as usize].clone())
     } else {
-        def
+        None
     }
+}
+
+/// Computes the sum of bounds across all dimensions.
+pub fn total_bound<T>(bounds: &Vec<T>) -> T
+where
+    T: Copy + Num + NumCast,
+{
+    let mut result: T = NumCast::from(0).unwrap();
+    for &b in bounds {
+        result = result + b;
+    }
+    result
 }
