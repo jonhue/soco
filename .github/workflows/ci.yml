@@ -12,6 +12,9 @@ jobs:
     - uses: actions-rs/toolchain@v1.0.7
       with:
         toolchain: stable
+    - uses: Swatinem/rust-cache@v1
+      with:
+        working-directory: soco
     - name: Format
       uses: actions-rs/cargo@v1.0.3
       with:
