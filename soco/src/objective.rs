@@ -2,9 +2,7 @@
 
 use num::{Num, NumCast, ToPrimitive};
 
-use crate::problem::{
-    SmoothedLoadOptimization, SmoothedConvexOptimization,
-};
+use crate::problem::{SmoothedConvexOptimization, SmoothedLoadOptimization};
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::{access, pos};

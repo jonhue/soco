@@ -2,6 +2,11 @@
 
 use crate::cost::CostFn;
 
+pub trait Problem {
+    fn t_end(&self) -> i32;
+    fn inc_t_end(&mut self);
+}
+
 /// Smoothed Convex Optimization.
 pub struct SmoothedConvexOptimization<'a, T> {
     /// Number of dimensions.
@@ -19,6 +24,14 @@ pub type DiscreteSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, i32>;
 pub type ContinuousSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, f64>;
+impl<'a, T> Problem for SmoothedConvexOptimization<'a, T> {
+    fn t_end(&self) -> i32 {
+        self.t_end
+    }
+    fn inc_t_end(&mut self) {
+        self.t_end += 1
+    }
+}
 
 /// Smoothed Load Optimization
 pub struct SmoothedLoadOptimization<T> {
@@ -36,5 +49,12 @@ pub struct SmoothedLoadOptimization<T> {
     /// Load at each time step `t`.
     pub load: Vec<i32>,
 }
-pub type DiscreteSmoothedLoadOptimization =
-    SmoothedLoadOptimization<i32>;
+pub type DiscreteSmoothedLoadOptimization = SmoothedLoadOptimization<i32>;
+impl<T> Problem for SmoothedLoadOptimization<T> {
+    fn t_end(&self) -> i32 {
+        self.t_end
+    }
+    fn inc_t_end(&mut self) {
+        self.t_end += 1
+    }
+}

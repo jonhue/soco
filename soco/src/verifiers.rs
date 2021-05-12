@@ -4,9 +4,7 @@ use num::NumCast;
 
 use crate::cost::CostFn;
 use crate::online::Online;
-use crate::problem::{
-    SmoothedLoadOptimization, SmoothedConvexOptimization,
-};
+use crate::problem::{SmoothedConvexOptimization, SmoothedLoadOptimization};
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;

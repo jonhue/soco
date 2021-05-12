@@ -1,6 +1,6 @@
 //! Online problems.
 
-use crate::problem::SmoothedConvexOptimization;
+use crate::problem::Problem;
 use crate::result::{Error, Result};
 use crate::schedule::{Schedule, Step};
 use crate::utils::assert;
@@ -21,9 +21,9 @@ pub struct Online<T> {
 /// * `U` - Memory.
 pub type OnlineSolution<T, U> = (T, U);
 
-impl<'a, T> Online<SmoothedConvexOptimization<'a, T>>
+impl<'a, T> Online<T>
 where
-    T: Copy,
+    T: Problem,
 {
     /// Utility to stream an online algorithm.
     ///
@@ -35,15 +35,11 @@ where
     pub fn stream<U, V>(
         &mut self,
         alg: impl Fn(
-            &Online<SmoothedConvexOptimization<'a, T>>,
+            &Online<T>,
             &Schedule<V>,
             &Vec<U>,
         ) -> Result<OnlineSolution<Step<V>, U>>,
-        next: impl Fn(
-            &mut Online<SmoothedConvexOptimization<'a, T>>,
-            &Schedule<V>,
-            &Vec<U>,
-        ) -> bool,
+        next: impl Fn(&mut Online<T>, &Schedule<V>, &Vec<U>) -> bool,
     ) -> Result<(Schedule<V>, Vec<U>)> {
         let mut xs = vec![];
         let mut ms = vec![];
@@ -51,7 +47,7 @@ where
         loop {
             let t = xs.len() as i32 + 1;
             assert(
-                self.p.t_end == t + self.w,
+                self.p.t_end() == t + self.w,
                 Error::OnlineInsufficientInformation,
             )?;
 
@@ -76,15 +72,15 @@ where
     pub fn offline_stream<U, V>(
         &mut self,
         alg: impl Fn(
-            &Online<SmoothedConvexOptimization<'a, T>>,
+            &Online<T>,
             &Schedule<V>,
             &Vec<U>,
         ) -> Result<OnlineSolution<Step<V>, U>>,
         t_end: i32,
     ) -> Result<(Schedule<V>, Vec<U>)> {
         self.stream(alg, |o, _, _| {
-            if o.p.t_end < t_end - o.w {
-                o.p.t_end += 1;
+            if o.p.t_end() < t_end - o.w {
+                o.p.inc_t_end();
                 true
             } else {
                 false
