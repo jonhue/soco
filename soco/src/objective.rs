@@ -3,7 +3,7 @@
 use num::{Num, NumCast, ToPrimitive};
 
 use crate::problem::{
-    SmoothedConstantOptimization, SmoothedConvexOptimization,
+    SmoothedLoadOptimization, SmoothedConvexOptimization,
 };
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
@@ -61,7 +61,7 @@ where
     }
 }
 
-impl<T> Objective<T> for SmoothedConstantOptimization<T>
+impl<T> Objective<T> for SmoothedLoadOptimization<T>
 where
     T: Copy + Num + NumCast + PartialOrd,
 {

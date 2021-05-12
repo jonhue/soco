@@ -20,8 +20,8 @@ pub type DiscreteSmoothedConvexOptimization<'a> =
 pub type ContinuousSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, f64>;
 
-/// Smoothed Constant Optimization
-pub struct SmoothedConstantOptimization<T> {
+/// Smoothed Load Optimization
+pub struct SmoothedLoadOptimization<T> {
     /// Number of dimensions.
     pub d: i32,
     /// Finite, positive time horizon.
@@ -33,6 +33,8 @@ pub struct SmoothedConstantOptimization<T> {
     pub switching_cost: Vec<f64>,
     /// Time-independent cost of each dimension (strictly ascending).
     pub hitting_cost: Vec<f64>,
+    /// Load at each time step `t`.
+    pub load: Vec<i32>,
 }
-pub type DiscreteSmoothedConstantOptimization =
-    SmoothedConstantOptimization<i32>;
+pub type DiscreteSmoothedLoadOptimization =
+    SmoothedLoadOptimization<i32>;

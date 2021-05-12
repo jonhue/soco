@@ -5,7 +5,7 @@ use num::NumCast;
 use crate::cost::CostFn;
 use crate::online::Online;
 use crate::problem::{
-    SmoothedConstantOptimization, SmoothedConvexOptimization,
+    SmoothedLoadOptimization, SmoothedConvexOptimization,
 };
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
@@ -81,7 +81,7 @@ where
     }
 }
 
-impl<T> VerifiableProblem for SmoothedConstantOptimization<T>
+impl<T> VerifiableProblem for SmoothedLoadOptimization<T>
 where
     T: Clone + NumCast + PartialOrd + std::fmt::Debug,
 {

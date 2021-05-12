@@ -1,6 +1,6 @@
 use crate::online::Online;
 use crate::online::OnlineSolution;
-use crate::problem::DiscreteSmoothedConstantOptimization;
+use crate::problem::DiscreteSmoothedLoadOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
 use crate::schedule::Step;
@@ -19,7 +19,7 @@ pub type Horizons = Vec<i32>;
 
 /// Deterministic Online Algorithm
 pub fn idet<'a>(
-    o: &'a Online<DiscreteSmoothedConstantOptimization>,
+    o: &'a Online<DiscreteSmoothedLoadOptimization>,
     xs: &DiscreteSchedule,
     ms: &Vec<Memory>,
 ) -> Result<OnlineSolution<Step<i32>, Memory>> {
