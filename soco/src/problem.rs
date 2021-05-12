@@ -2,8 +2,11 @@
 
 use crate::cost::CostFn;
 
+/// Trait implemented by all finite-time-horizon problems.
 pub trait Problem {
+    /// Finite, positive time horizon.
     fn t_end(&self) -> i32;
+    /// Increases the time horizon by one time step.
     fn inc_t_end(&mut self);
 }
 
