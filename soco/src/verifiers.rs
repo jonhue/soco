@@ -81,7 +81,7 @@ where
 
 impl<T> VerifiableProblem for SmoothedLoadOptimization<T>
 where
-    T: Clone + NumCast + PartialOrd + std::fmt::Debug,
+    T: Clone + NumCast + PartialOrd + std::fmt::Debug + std::fmt::Display,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -148,6 +148,17 @@ where
                 format!(
                     "hitting costs must be descending, are not between dimension {} and dimension {}", k,
                     k + 1
+                ),
+            )?;
+        }
+
+        for t in 0..self.t_end as usize {
+            assert_validity(
+                self.load[t] >= NumCast::from(0).unwrap(),
+                format!(
+                    "load must be non-negative, is {} at time {}",
+                    self.load[t],
+                    t + 1
                 ),
             )?;
         }
