@@ -1,3 +1,4 @@
+use crate::algorithms::offline::miopt::miopt;
 use crate::online::Online;
 use crate::online::OnlineSolution;
 use crate::problem::DiscreteSmoothedLoadOptimization;
@@ -27,7 +28,7 @@ pub fn idet<'a>(
 
     let t = xs.len() as i32 + 1;
     let bound = total_bound(&o.p.bounds) as usize;
-    let optimal_lanes = find_optimal_lanes();
+    let optimal_lanes = find_optimal_lanes(&o.p, bound)?;
     let (prev_lanes, mut horizons) = if ms.is_empty() {
         (vec![0; bound], vec![0; bound])
     } else {
@@ -81,31 +82,35 @@ fn collect_step(d: i32, lanes: &Lanes) -> Step<i32> {
     step
 }
 
-// fn build_lanes(x: &Step<i32>, d: i32, bound: i32) -> Lanes {
-//     let mut lanes = vec![0; bound as usize];
-//     for k in 0..lanes.len() {
-//         if k as i32 <= active_lanes(x, 1, d) {
-//             for j in 1..=d {
-//                 if active_lanes(x, j, d) >= k as i32 {
-//                     lanes[k] = j;
-//                 } else {
-//                     continue;
-//                 }
-//             }
-//         }
-//     }
-//     lanes
-// }
+fn build_lanes(x: &Step<i32>, d: i32, bound: usize) -> Lanes {
+    let mut lanes = vec![0; bound];
+    for (k, lane) in lanes.iter_mut().enumerate() {
+        if k as i32 <= active_lanes(x, 1, d) {
+            for j in 1..=d {
+                if active_lanes(x, j, d) >= k as i32 {
+                    *lane = j;
+                } else {
+                    continue;
+                }
+            }
+        }
+    }
+    lanes
+}
 
-// /// Sums step across dimension from `from` to `to`.
-// fn active_lanes(x: &Step<i32>, from: i32, to: i32) -> i32 {
-//     let mut result = 0;
-//     for k in from..=to {
-//         result += x[k as usize];
-//     }
-//     result
-// }
+/// Sums step across dimension from `from` to `to`.
+fn active_lanes(x: &Step<i32>, from: i32, to: i32) -> i32 {
+    let mut result = 0;
+    for k in from..=to {
+        result += x[k as usize];
+    }
+    result
+}
 
-fn find_optimal_lanes() -> Lanes {
-    vec![]
+fn find_optimal_lanes(
+    p: &DiscreteSmoothedLoadOptimization,
+    bound: usize,
+) -> Result<Lanes> {
+    let (xs, _) = miopt(&p.to_sco())?;
+    Ok(build_lanes(&xs[xs.len() - 1], p.d, bound))
 }

@@ -9,9 +9,9 @@ use crate::schedule::DiscreteSchedule;
 use crate::utils::{assert, is_pow_of_2, pos};
 
 /// The minimal cost from some initial vertice alongside the shortest path to the final vertice.
-type Path = (DiscreteSchedule, f64);
+pub type Path = (DiscreteSchedule, f64);
 /// Maps a vertice to its minimal cost from some initial vertice alongside the shortest path.
-type Paths = HashMap<(i32, i32), Path>;
+pub type Paths = HashMap<(i32, i32), Path>;
 
 /// Optimal Discrete Deterministic Offline Algorithm
 pub fn iopt(p: &'_ DiscreteSmoothedConvexOptimization<'_>) -> Result<Path> {

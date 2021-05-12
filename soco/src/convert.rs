@@ -13,7 +13,9 @@ use crate::problem::{
 use crate::schedule::{ContinuousSchedule, DiscreteSchedule};
 
 pub trait DiscretizableVector {
+    /// Ceil all elements of a vector.
     fn ceil(&self) -> Vec<i32>;
+    /// Floor all elements of a vector.
     fn floor(&self) -> Vec<i32>;
 }
 
@@ -28,6 +30,7 @@ impl DiscretizableVector for Vec<f64> {
 }
 
 pub trait RelaxableVector {
+    /// Convert a discrete vector to a continuous vector.
     fn to_f(&self) -> Vec<f64>;
 }
 
@@ -38,6 +41,7 @@ impl RelaxableVector for Vec<i32> {
 }
 
 pub trait DiscretizableCostFn<'a> {
+    /// Discretize a continuous cost function.
     fn to_i(&'a self) -> CostFn<'a, Vec<i32>>;
 }
 
@@ -48,6 +52,7 @@ impl<'a> DiscretizableCostFn<'a> for CostFn<'a, Vec<f64>> {
 }
 
 pub trait RelaxableCostFn<'a> {
+    /// Relax a discrete cost function to the continuous setting.
     fn to_f(&'a self) -> CostFn<'a, Vec<f64>>;
 }
 
@@ -73,6 +78,7 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, Vec<i32>> {
 }
 
 impl<'a> ContinuousSmoothedConvexOptimization<'a> {
+    /// Discretize a problem instance.
     pub fn to_i(&'a self) -> DiscreteSmoothedConvexOptimization<'a> {
         SmoothedConvexOptimization {
             d: self.d,
@@ -84,7 +90,13 @@ impl<'a> ContinuousSmoothedConvexOptimization<'a> {
     }
 }
 
+pub trait RelaxableProblem<'a> {
+    /// Relax a discrete problem instance to the continuous setting.
+    fn to_f(&'a self) -> CostFn<'a, Vec<f64>>;
+}
+
 impl<'a> DiscreteSmoothedConvexOptimization<'a> {
+    /// Relax a problem instance.
     pub fn to_f(&'a self) -> ContinuousSmoothedConvexOptimization<'a> {
         SmoothedConvexOptimization {
             d: self.d,
@@ -100,6 +112,7 @@ impl<'a, T> SmoothedLoadOptimization<T>
 where
     T: Clone + Copy + NumCast,
 {
+    /// Convert instance to an instance of Smoothed Convex Optimization.
     pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {
         let f: LazyCostFn<'a, T> = Arc::new(|l| {
             Arc::new(move |x| {
