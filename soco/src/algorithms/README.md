@@ -21,8 +21,8 @@
 
 1. Smoothed Convex Optimization
 2. Smoothed Load Optimization
-3. Smoothed Balanced-Load Optimization (fixed cost)
-4. Smoothed Balanced-Load Optimization (varying cost)
+3. Smoothed Balanced-Load Optimization with time-independent cost
+4. Smoothed Balanced-Load Optimization with time-dependent cost
 
 ### Optimal Competitiveness
 
