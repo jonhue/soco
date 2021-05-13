@@ -42,7 +42,7 @@ where
                     .map(|(k, &j)| {
                         let z = zs[k];
                         let prim_j = ToPrimitive::to_f64(&j)?;
-                        let prim_l = ToPrimitive::to_f64(&l)?;
+                        let prim_l = ToPrimitive::to_f64(l)?;
                         if prim_j > 0. {
                             let l_frac = NumCast::from(prim_l * z)?;
                             f(l_frac)(j)

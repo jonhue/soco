@@ -49,12 +49,9 @@ pub fn is_pow_of_2(x: i32) -> bool {
     x != 0 && x & (x - 1) == 0
 }
 
-pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<T>
-where
-    T: Clone,
-{
+pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<&T> {
     if i >= 0 && i < xs.len() as i32 {
-        Some(xs[i as usize].clone())
+        Some(&xs[i as usize])
     } else {
         None
     }
@@ -70,4 +67,19 @@ where
         result = result + b;
     }
     result
+}
+
+/// Clones `base`, appends `x` to all vectors within `base`, and extends `bag` with the updated `base`.
+pub fn duplicate_and_push_to_all<T>(
+    bag: &mut Vec<Vec<T>>,
+    base: &Vec<Vec<T>>,
+    x: T,
+) where
+    T: Copy,
+{
+    let mut tmp = base.clone();
+    for xs in tmp.iter_mut() {
+        xs.push(x);
+    }
+    bag.extend(tmp);
 }
