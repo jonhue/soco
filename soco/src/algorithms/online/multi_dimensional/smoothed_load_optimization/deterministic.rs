@@ -1,5 +1,6 @@
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
+use crate::algorithms::offline::multi_dimensional::approx_graph_search::approx_graph_search;
 use crate::config::Config;
 use crate::online::Online;
 use crate::online::OnlineSolution;
@@ -28,12 +29,13 @@ pub fn deterministic<'a>(
     o: &'a Online<IntegralSmoothedLoadOptimization>,
     xs: &IntegralSchedule,
     ms: &Vec<Memory>,
+    use_approx: bool,
 ) -> Result<OnlineSolution<i32, Memory>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
     let t = xs.t_end() + 1;
     let bound = total_bound(&o.p.bounds) as usize;
-    let optimal_lanes = find_optimal_lanes(&o.p, bound)?;
+    let optimal_lanes = find_optimal_lanes(&o.p, bound, use_approx)?;
     let Memory {
         lanes: prev_lanes,
         mut horizons,
@@ -121,7 +123,9 @@ fn active_lanes(x: &Config<i32>, from: i32, to: i32) -> i32 {
 fn find_optimal_lanes(
     p: &IntegralSmoothedLoadOptimization,
     bound: usize,
+    use_approx: bool,
 ) -> Result<Lanes> {
-    let Path(xs, _) = optimal_graph_search(&p.to_sco())?;
+    let alg = if use_approx { approx_graph_search } else { optimal_graph_search };
+    let Path(xs, _) = alg(&p.to_sco())?;
     Ok(build_lanes(&xs.now(), p.d, bound))
 }
