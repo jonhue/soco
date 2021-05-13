@@ -2,7 +2,7 @@
 
 use crate::problem::Problem;
 use crate::result::{Error, Result};
-use crate::schedule::{Schedule, Step};
+use crate::schedule::{Config, Schedule};
 use crate::utils::assert;
 
 /// Online instance of a problem.
@@ -19,7 +19,7 @@ pub struct Online<T> {
 ///
 /// * `T` - Number of servers at time t.
 /// * `U` - Memory.
-pub type OnlineSolution<T, U> = (T, U);
+pub struct OnlineSolution<T, U>(pub T, pub U);
 
 impl<'a, T> Online<T>
 where
@@ -38,7 +38,7 @@ where
             &Online<T>,
             &Schedule<V>,
             &Vec<U>,
-        ) -> Result<OnlineSolution<Step<V>, U>>,
+        ) -> Result<OnlineSolution<Config<V>, U>>,
         next: impl Fn(&mut Online<T>, &Schedule<V>, &Vec<U>) -> bool,
     ) -> Result<(Schedule<V>, Vec<U>)> {
         let mut xs = vec![];
@@ -51,7 +51,7 @@ where
                 Error::OnlineInsufficientInformation,
             )?;
 
-            let (i, m) = alg(self, &xs, &ms)?;
+            let OnlineSolution(i, m) = alg(self, &xs, &ms)?;
             xs.push(i);
             ms.push(m);
             if !next(self, &xs, &ms) {
@@ -75,7 +75,7 @@ where
             &Online<T>,
             &Schedule<V>,
             &Vec<U>,
-        ) -> Result<OnlineSolution<Step<V>, U>>,
+        ) -> Result<OnlineSolution<Config<V>, U>>,
         t_end: i32,
     ) -> Result<(Schedule<V>, Vec<U>)> {
         self.stream(alg, |o, _, _| {

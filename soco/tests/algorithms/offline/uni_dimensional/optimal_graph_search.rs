@@ -70,7 +70,8 @@ mod optimal_graph_search {
         let result = optimal_graph_search(&p, false).unwrap();
         result.0.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result, (vec![vec![1], vec![1]], 1.));
+        assert_eq!(result.0, vec![vec![1], vec![1]]);
+        assert_eq!(result.1, 1.);
         assert_eq!(result.1, p.objective_function(&result.0).unwrap());
     }
 

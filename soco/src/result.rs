@@ -11,6 +11,7 @@ pub enum Error {
     NlOpt(nlopt::FailState),
     OnlineInsufficientInformation,
     PathsShouldBeCached,
+    SubpathShouldBePresent,
     UnsupportedBoundsCalculation,
     UnsupportedPredictionWindow,
     UnsupportedProblemDimension,

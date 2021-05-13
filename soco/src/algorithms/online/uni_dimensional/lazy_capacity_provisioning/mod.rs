@@ -1,7 +1,7 @@
 //! Lazy Capacity Provisioning.
 
 /// Lower and upper bound at some time `t`.
-pub type Memory<T> = (T, T);
+pub struct Memory<T>(pub T, pub T);
 
 /// Finds a valid reference time to base the optimization on (alternatively to time `0`).
 pub fn find_initial_time<T: PartialOrd>(
