@@ -23,9 +23,9 @@ pub struct SmoothedConvexOptimization<'a, T> {
     /// Non-negative convex cost functions.
     pub hitting_cost: CostFn<'a, Vec<T>>,
 }
-pub type DiscreteSmoothedConvexOptimization<'a> =
+pub type IntegralSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, i32>;
-pub type ContinuousSmoothedConvexOptimization<'a> =
+pub type FractionalSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, f64>;
 impl<'a, T> Problem for SmoothedConvexOptimization<'a, T> {
     fn t_end(&self) -> i32 {
@@ -52,7 +52,7 @@ pub struct SmoothedLoadOptimization<T> {
     /// Non-negative load at each time step `t`.
     pub load: Vec<T>,
 }
-pub type DiscreteSmoothedLoadOptimization = SmoothedLoadOptimization<i32>;
+pub type IntegralSmoothedLoadOptimization = SmoothedLoadOptimization<i32>;
 impl<T> Problem for SmoothedLoadOptimization<T> {
     fn t_end(&self) -> i32 {
         self.t_end

@@ -1,32 +1,33 @@
 use itertools::Either::{Left, Right};
 
 use crate::algorithms::capacity_provisioning::Bounded;
-use crate::problem::ContinuousSmoothedConvexOptimization;
+use crate::config::Config;
+use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
-use crate::schedule::ContinuousSchedule;
+use crate::schedule::{FractionalSchedule, Schedule};
 use crate::utils::{assert, project};
 
 /// Backward-Recurrent Capacity Provisioning
 pub fn bcp(
-    p: &ContinuousSmoothedConvexOptimization<'_>,
-) -> Result<ContinuousSchedule> {
+    p: &FractionalSmoothedConvexOptimization<'_>,
+) -> Result<FractionalSchedule> {
     cp(p, false)
 }
 
 /// Forward-Recurrent Capacity Provisioning
 pub fn fcp(
-    p: &ContinuousSmoothedConvexOptimization<'_>,
-) -> Result<ContinuousSchedule> {
+    p: &FractionalSmoothedConvexOptimization<'_>,
+) -> Result<FractionalSchedule> {
     cp(p, true)
 }
 
 fn cp(
-    p: &ContinuousSmoothedConvexOptimization<'_>,
+    p: &FractionalSmoothedConvexOptimization<'_>,
     forward: bool,
-) -> Result<ContinuousSchedule> {
+) -> Result<FractionalSchedule> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
 
-    let mut xs = Vec::new();
+    let mut xs = Schedule::empty();
 
     let mut x = 0.;
     let range = if forward {
@@ -36,14 +37,14 @@ fn cp(
     };
     for t in range {
         x = next(p, t, x)?;
-        xs.insert(0, vec![x]);
+        xs.shift(Config::single(x));
     }
 
     Ok(xs)
 }
 
 fn next(
-    p: &ContinuousSmoothedConvexOptimization<'_>,
+    p: &FractionalSmoothedConvexOptimization<'_>,
     t: i32,
     x: f64,
 ) -> Result<f64> {

@@ -1,16 +1,18 @@
 //! Functions to convert between problem instances.
 
-use crate::cost::{lazy, LoadCostFn};
 use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
+use crate::config::Config;
 use crate::cost::CostFn;
+use crate::cost::{lazy, LoadCostFn};
 use crate::online::Online;
 use crate::problem::{
-    ContinuousSmoothedConvexOptimization, DiscreteSmoothedConvexOptimization,
+    FractionalSmoothedConvexOptimization, IntegralSmoothedConvexOptimization,
     SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
-use crate::schedule::{ContinuousSchedule, DiscreteSchedule};
+use crate::schedule::{FractionalSchedule, IntegralSchedule};
+use crate::vec_wrapper::VecWrapper;
 
 pub trait DiscretizableVector {
     /// Ceil all elements of a vector.
@@ -30,7 +32,7 @@ impl DiscretizableVector for Vec<f64> {
 }
 
 pub trait RelaxableVector {
-    /// Convert a discrete vector to a continuous vector.
+    /// Convert an integral vector to a fractional vector.
     fn to_f(&self) -> Vec<f64>;
 }
 
@@ -41,7 +43,7 @@ impl RelaxableVector for Vec<i32> {
 }
 
 pub trait DiscretizableCostFn<'a> {
-    /// Discretize a continuous cost function.
+    /// Discretize a fractional cost function.
     fn to_i(&'a self) -> CostFn<'a, Vec<i32>>;
 }
 
@@ -52,7 +54,7 @@ impl<'a> DiscretizableCostFn<'a> for CostFn<'a, Vec<f64>> {
 }
 
 pub trait RelaxableCostFn<'a> {
-    /// Relax a discrete cost function to the continuous setting.
+    /// Relax an integral cost function to the fractional setting.
     fn to_f(&'a self) -> CostFn<'a, Vec<f64>>;
 }
 
@@ -80,14 +82,14 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, Vec<i32>> {
 pub trait DiscretizableProblem<'a> {
     type Output;
 
-    /// Discretize a continuous problem instance.
+    /// Discretize a fractional problem instance.
     fn to_i(&'a self) -> Self::Output;
 }
 
-impl<'a> DiscretizableProblem<'a> for ContinuousSmoothedConvexOptimization<'a> {
-    type Output = DiscreteSmoothedConvexOptimization<'a>;
+impl<'a> DiscretizableProblem<'a> for FractionalSmoothedConvexOptimization<'a> {
+    type Output = IntegralSmoothedConvexOptimization<'a>;
 
-    fn to_i(&'a self) -> DiscreteSmoothedConvexOptimization<'a> {
+    fn to_i(&'a self) -> IntegralSmoothedConvexOptimization<'a> {
         SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
@@ -101,14 +103,14 @@ impl<'a> DiscretizableProblem<'a> for ContinuousSmoothedConvexOptimization<'a> {
 pub trait RelaxableProblem<'a> {
     type Output;
 
-    /// Relax a discrete problem instance to the continuous setting.
+    /// Relax an integral problem instance to the fractional setting.
     fn to_f(&'a self) -> Self::Output;
 }
 
-impl<'a> RelaxableProblem<'a> for DiscreteSmoothedConvexOptimization<'a> {
-    type Output = ContinuousSmoothedConvexOptimization<'a>;
+impl<'a> RelaxableProblem<'a> for IntegralSmoothedConvexOptimization<'a> {
+    type Output = FractionalSmoothedConvexOptimization<'a>;
 
-    fn to_f(&'a self) -> ContinuousSmoothedConvexOptimization<'a> {
+    fn to_f(&'a self) -> FractionalSmoothedConvexOptimization<'a> {
         SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
@@ -172,24 +174,52 @@ where
     }
 }
 
-pub trait DiscretizableSchedule {
-    /// Discretize a schedule.
-    fn to_i(&self) -> DiscreteSchedule;
+pub trait DiscretizableConfig {
+    /// Ceil all elements of a config.
+    fn ceil(&self) -> Config<i32>;
+    /// Floor all elements of a config.
+    fn floor(&self) -> Config<i32>;
 }
 
-impl DiscretizableSchedule for ContinuousSchedule {
-    fn to_i(&self) -> DiscreteSchedule {
+impl DiscretizableConfig for Config<f64> {
+    fn ceil(&self) -> Config<i32> {
+        Config::new(self.to_vec().ceil())
+    }
+
+    fn floor(&self) -> Config<i32> {
+        Config::new(self.to_vec().floor())
+    }
+}
+
+pub trait RelaxableConfig {
+    /// Convert an integral config to a fractional config.
+    fn to_f(&self) -> Config<f64>;
+}
+
+impl RelaxableConfig for Config<i32> {
+    fn to_f(&self) -> Config<f64> {
+        Config::new(self.to_vec().to_f())
+    }
+}
+
+pub trait DiscretizableSchedule {
+    /// Discretize a schedule.
+    fn to_i(&self) -> IntegralSchedule;
+}
+
+impl DiscretizableSchedule for FractionalSchedule {
+    fn to_i(&self) -> IntegralSchedule {
         self.iter().map(|x| x.ceil()).collect()
     }
 }
 
 pub trait RelaxableSchedule {
-    /// Relax a discrete schedule to a continuous schedule.
-    fn to_f(&self) -> ContinuousSchedule;
+    /// Relax an integral schedule to a fractional schedule.
+    fn to_f(&self) -> FractionalSchedule;
 }
 
-impl RelaxableSchedule for DiscreteSchedule {
-    fn to_f(&self) -> ContinuousSchedule {
+impl RelaxableSchedule for IntegralSchedule {
+    fn to_f(&self) -> FractionalSchedule {
         self.iter().map(|x| x.to_f()).collect()
     }
 }

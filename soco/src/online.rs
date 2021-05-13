@@ -1,8 +1,9 @@
 //! Online problems.
 
+use crate::config::Config;
 use crate::problem::Problem;
 use crate::result::{Error, Result};
-use crate::schedule::{Config, Schedule};
+use crate::schedule::Schedule;
 use crate::utils::assert;
 
 /// Online instance of a problem.
@@ -15,11 +16,11 @@ pub struct Online<T> {
     pub w: i32,
 }
 
-/// Solution fragment at some time t to an online problem.
+/// Solution fragment at some time `t` to an online problem.
 ///
-/// * `T` - Number of servers at time t.
-/// * `U` - Memory.
-pub struct OnlineSolution<T, U>(pub T, pub U);
+/// * Configuration at time `t`.
+/// * Memory.
+pub struct OnlineSolution<T, U>(pub Config<T>, pub U);
 
 impl<'a, T> Online<T>
 where
@@ -29,7 +30,6 @@ where
     ///
     /// Returns resulting schedule, memory of the algorithm.
     ///
-    /// * `U` - Memory.
     /// * `alg` - Online algorithm to stream.
     /// * `next` - Callback that in each iteration updates the problem instance. Return `true` to continue stream, `false` to end stream.
     pub fn stream<U, V>(
@@ -38,14 +38,17 @@ where
             &Online<T>,
             &Schedule<V>,
             &Vec<U>,
-        ) -> Result<OnlineSolution<Config<V>, U>>,
+        ) -> Result<OnlineSolution<V, U>>,
         next: impl Fn(&mut Online<T>, &Schedule<V>, &Vec<U>) -> bool,
-    ) -> Result<(Schedule<V>, Vec<U>)> {
-        let mut xs = vec![];
+    ) -> Result<(Schedule<V>, Vec<U>)>
+    where
+        V: Clone,
+    {
+        let mut xs = Schedule::empty();
         let mut ms = vec![];
 
         loop {
-            let t = xs.len() as i32 + 1;
+            let t = xs.t_end() + 1;
             assert(
                 self.p.t_end() == t + self.w,
                 Error::OnlineInsufficientInformation,
@@ -75,9 +78,12 @@ where
             &Online<T>,
             &Schedule<V>,
             &Vec<U>,
-        ) -> Result<OnlineSolution<Config<V>, U>>,
+        ) -> Result<OnlineSolution<V, U>>,
         t_end: i32,
-    ) -> Result<(Schedule<V>, Vec<U>)> {
+    ) -> Result<(Schedule<V>, Vec<U>)>
+    where
+        V: Clone,
+    {
         self.stream(alg, |o, _, _| {
             if o.p.t_end() < t_end - o.w {
                 o.p.inc_t_end();

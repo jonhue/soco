@@ -1,11 +1,11 @@
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
+use crate::config::Config;
 use crate::online::Online;
 use crate::online::OnlineSolution;
-use crate::problem::DiscreteSmoothedLoadOptimization;
+use crate::problem::IntegralSmoothedLoadOptimization;
 use crate::result::{Error, Result};
-use crate::schedule::Config;
-use crate::schedule::DiscreteSchedule;
+use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, total_bound};
 use std::cmp::max;
 
@@ -25,13 +25,13 @@ pub type Horizons = Vec<i32>;
 
 /// Deterministic Algorithm
 pub fn deterministic<'a>(
-    o: &'a Online<DiscreteSmoothedLoadOptimization>,
-    xs: &DiscreteSchedule,
+    o: &'a Online<IntegralSmoothedLoadOptimization>,
+    xs: &IntegralSchedule,
     ms: &Vec<Memory>,
-) -> Result<OnlineSolution<Config<i32>, Memory>> {
+) -> Result<OnlineSolution<i32, Memory>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
-    let t = xs.len() as i32 + 1;
+    let t = xs.t_end() + 1;
     let bound = total_bound(&o.p.bounds) as usize;
     let optimal_lanes = find_optimal_lanes(&o.p, bound)?;
     let Memory {
@@ -68,8 +68,8 @@ pub fn deterministic<'a>(
         }
     }
 
-    let step = collect_step(o.p.d, &lanes);
-    Ok(OnlineSolution(step, Memory { lanes, horizons }))
+    let config = collect_config(o.p.d, &lanes);
+    Ok(OnlineSolution(config, Memory { lanes, horizons }))
 }
 
 fn next_time_horizon(
@@ -85,12 +85,12 @@ fn next_time_horizon(
     }
 }
 
-fn collect_step(d: i32, lanes: &Lanes) -> Config<i32> {
-    let mut step = vec![0; d as usize];
+fn collect_config(d: i32, lanes: &Lanes) -> Config<i32> {
+    let mut config = vec![0; d as usize];
     for i in 0..lanes.len() {
-        step[lanes[i] as usize] += 1;
+        config[lanes[i] as usize] += 1;
     }
-    step
+    Config::new(config)
 }
 
 fn build_lanes(x: &Config<i32>, d: i32, bound: usize) -> Lanes {
@@ -119,9 +119,9 @@ fn active_lanes(x: &Config<i32>, from: i32, to: i32) -> i32 {
 }
 
 fn find_optimal_lanes(
-    p: &DiscreteSmoothedLoadOptimization,
+    p: &IntegralSmoothedLoadOptimization,
     bound: usize,
 ) -> Result<Lanes> {
     let Path(xs, _) = optimal_graph_search(&p.to_sco())?;
-    Ok(build_lanes(&xs[xs.len() - 1], p.d, bound))
+    Ok(build_lanes(&xs.now(), p.d, bound))
 }

@@ -1,10 +1,11 @@
 mod ilcp {
     use std::sync::Arc;
 
-    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::discrete::lcp;
+    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::integral::lcp;
     use soco::online::Online;
     use soco::problem::SmoothedConvexOptimization;
-    use soco::verifiers::VerifiableSchedule;
+    use soco::config::Config;
+    use soco::schedule::Schedule;
 
     #[test]
     fn _1() {
@@ -23,7 +24,7 @@ mod ilcp {
         let result = o.stream(lcp, |_, _, _| false).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
-        assert_eq!(result.0, vec![vec![0]]);
+        assert_eq!(result.0, Schedule::new(vec![Config::single(0)]));
     }
 
     #[test]
@@ -44,6 +45,9 @@ mod ilcp {
         let result = o.offline_stream(lcp, t_end).unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
-        assert_eq!(result.0, vec![vec![0], vec![1]]);
+        assert_eq!(
+            result.0,
+            Schedule::new(vec![Config::single(0), Config::single(1)])
+        );
     }
 }

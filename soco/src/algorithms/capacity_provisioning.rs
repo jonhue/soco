@@ -7,9 +7,10 @@ use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
     make_pow_of_2, optimal_graph_search,
 };
+use crate::config::Config;
 use crate::objective::Objective;
 use crate::problem::{
-    ContinuousSmoothedConvexOptimization, DiscreteSmoothedConvexOptimization,
+    FractionalSmoothedConvexOptimization, IntegralSmoothedConvexOptimization,
 };
 use crate::result::{Error, Result};
 use crate::utils::{assert, is_pow_of_2};
@@ -23,15 +24,17 @@ pub trait Bounded<T> {
     fn find_upper_bound(&self, t: i32, t_start: i32) -> Result<T>;
 }
 
-impl Bounded<f64> for ContinuousSmoothedConvexOptimization<'_> {
+impl Bounded<f64> for FractionalSmoothedConvexOptimization<'_> {
     fn find_lower_bound(&self, t: i32, t_start: i32) -> Result<f64> {
         let objective_function =
             |xs: &[f64],
              _: Option<&mut [f64]>,
-             p: &mut &ContinuousSmoothedConvexOptimization<'_>|
+             p: &mut &FractionalSmoothedConvexOptimization<'_>|
              -> f64 {
-                p.objective_function(&xs.iter().map(|&x| vec![x]).collect())
-                    .unwrap()
+                p.objective_function(
+                    &xs.iter().map(|&x| Config::single(x)).collect(),
+                )
+                .unwrap()
             };
 
         self.find_bound(objective_function, t, t_start)
@@ -41,10 +44,10 @@ impl Bounded<f64> for ContinuousSmoothedConvexOptimization<'_> {
         let objective_function =
             |xs: &[f64],
              _: Option<&mut [f64]>,
-             p: &mut &ContinuousSmoothedConvexOptimization<'_>|
+             p: &mut &FractionalSmoothedConvexOptimization<'_>|
              -> f64 {
                 p.inverted_objective_function(
-                    &xs.iter().map(|&x| vec![x]).collect(),
+                    &xs.iter().map(|&x| Config::single(x)).collect(),
                 )
                 .unwrap()
             };
@@ -53,10 +56,10 @@ impl Bounded<f64> for ContinuousSmoothedConvexOptimization<'_> {
     }
 }
 
-impl ContinuousSmoothedConvexOptimization<'_> {
+impl FractionalSmoothedConvexOptimization<'_> {
     fn find_bound<'a>(
         &'a self,
-        objective_function: impl ObjFn<&'a ContinuousSmoothedConvexOptimization<'a>>,
+        objective_function: impl ObjFn<&'a FractionalSmoothedConvexOptimization<'a>>,
         t: i32,
         t_start: i32,
     ) -> Result<f64> {
@@ -85,26 +88,26 @@ impl ContinuousSmoothedConvexOptimization<'_> {
     }
 }
 
-impl Bounded<i32> for DiscreteSmoothedConvexOptimization<'_> {
+impl Bounded<i32> for IntegralSmoothedConvexOptimization<'_> {
     fn find_lower_bound(&self, t: i32, t_start: i32) -> Result<i32> {
-        let alg = |p: &DiscreteSmoothedConvexOptimization<'_>| {
+        let alg = |p: &IntegralSmoothedConvexOptimization<'_>| {
             optimal_graph_search(p, false)
         };
         self.find_bound(alg, t, t_start)
     }
 
     fn find_upper_bound(&self, t: i32, t_start: i32) -> Result<i32> {
-        let alg = |p: &DiscreteSmoothedConvexOptimization<'_>| {
+        let alg = |p: &IntegralSmoothedConvexOptimization<'_>| {
             optimal_graph_search(p, true)
         };
         self.find_bound(alg, t, t_start)
     }
 }
 
-impl DiscreteSmoothedConvexOptimization<'_> {
+impl IntegralSmoothedConvexOptimization<'_> {
     fn find_bound(
         &self,
-        alg: impl Fn(&'_ DiscreteSmoothedConvexOptimization<'_>) -> Result<Path>,
+        alg: impl Fn(&'_ IntegralSmoothedConvexOptimization<'_>) -> Result<Path>,
         t: i32,
         t_start: i32,
     ) -> Result<i32> {

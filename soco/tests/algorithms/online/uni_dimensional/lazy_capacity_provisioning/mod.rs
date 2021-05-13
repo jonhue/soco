@@ -1,2 +1,2 @@
-mod discrete;
 mod fractional;
+mod integral;

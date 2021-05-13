@@ -2,20 +2,21 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::algorithms::graph_search::{Path, Paths};
+use crate::config::Config;
 use crate::problem::{
-    DiscreteSmoothedConvexOptimization, SmoothedConvexOptimization,
+    IntegralSmoothedConvexOptimization, SmoothedConvexOptimization,
 };
 use crate::result::{Error, Result};
-use crate::schedule::DiscreteSchedule;
+use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::{assert, is_pow_of_2, pos};
 
 /// Vertice in the graph denoting time `t` and the value `j` at time `t`.
 #[derive(Eq, Hash, PartialEq)]
 pub struct Vertice(i32, i32);
 
-/// Graph-Based Optimal Discrete Algorithm
+/// Graph-Based Optimal Integral Algorithm
 pub fn optimal_graph_search(
-    p: &'_ DiscreteSmoothedConvexOptimization<'_>,
+    p: &'_ IntegralSmoothedConvexOptimization<'_>,
     inverted: bool,
 ) -> Result<Path> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
@@ -41,8 +42,8 @@ pub fn optimal_graph_search(
 
 /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `iopt`.
 pub fn make_pow_of_2<'a>(
-    p: &'a DiscreteSmoothedConvexOptimization<'a>,
-) -> Result<DiscreteSmoothedConvexOptimization<'a>> {
+    p: &'a IntegralSmoothedConvexOptimization<'a>,
+) -> Result<IntegralSmoothedConvexOptimization<'a>> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
 
     let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);
@@ -68,14 +69,14 @@ pub fn make_pow_of_2<'a>(
 }
 
 fn select_initial_rows<'a>(
-    p: &'a DiscreteSmoothedConvexOptimization<'a>,
+    p: &'a IntegralSmoothedConvexOptimization<'a>,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
     move |_| (0..=4).map(|e| e * p.bounds[0] / 4).collect()
 }
 
 fn select_next_rows<'a>(
-    p: &'a DiscreteSmoothedConvexOptimization<'a>,
-    xs: &'a DiscreteSchedule,
+    p: &'a IntegralSmoothedConvexOptimization<'a>,
+    xs: &'a IntegralSchedule,
     k: u32,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
     move |t| {
@@ -87,13 +88,13 @@ fn select_next_rows<'a>(
 }
 
 fn find_schedule(
-    p: &DiscreteSmoothedConvexOptimization<'_>,
+    p: &IntegralSmoothedConvexOptimization<'_>,
     select_rows: impl Fn(i32) -> Vec<i32>,
     inverted: bool,
 ) -> Result<Path> {
     let mut paths: Paths<Vertice> = HashMap::new();
     let initial_vertice = Vertice(0, 0);
-    let initial_path = Path(vec![], 0.);
+    let initial_path = Path(Schedule::empty(), 0.);
     paths.insert(initial_vertice, initial_path);
 
     let mut prev_rows = vec![0];
@@ -105,7 +106,7 @@ fn find_schedule(
         prev_rows = rows;
     }
 
-    let mut result = &Path(vec![], f64::INFINITY);
+    let mut result = &Path(Schedule::empty(), f64::INFINITY);
     for i in prev_rows {
         let path = paths
             .get(&Vertice(p.t_end, i))
@@ -119,7 +120,7 @@ fn find_schedule(
 }
 
 fn find_shortest_subpath(
-    p: &DiscreteSmoothedConvexOptimization<'_>,
+    p: &IntegralSmoothedConvexOptimization<'_>,
     paths: &mut Paths<Vertice>,
     t: i32,
     from: &Vec<i32>,
@@ -144,7 +145,7 @@ fn find_shortest_subpath(
 }
 
 fn build_cost(
-    p: &DiscreteSmoothedConvexOptimization<'_>,
+    p: &IntegralSmoothedConvexOptimization<'_>,
     t: i32,
     i: i32,
     j: i32,
@@ -167,7 +168,7 @@ fn update_paths(
     let u = Vertice(t - 1, i);
     let v = Vertice(t, j);
     let prev_xs = &paths.get(&u).ok_or(Error::PathsShouldBeCached)?.0;
-    let xs = [&prev_xs[..], &[vec![j]]].concat();
+    let xs = prev_xs.extend(Config::single(j));
 
     paths.insert(v, Path(xs, c));
     Ok(())

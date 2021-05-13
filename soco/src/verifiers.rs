@@ -2,12 +2,14 @@
 
 use num::NumCast;
 
+use crate::config::Config;
 use crate::cost::CostFn;
 use crate::online::Online;
 use crate::problem::{SmoothedConvexOptimization, SmoothedLoadOptimization};
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
+use crate::vec_wrapper::VecWrapper;
 
 pub trait VerifiableCostFn<'a, T> {
     fn verify(&self, t: i32, x: T) -> Result<()>;
@@ -181,31 +183,42 @@ where
     }
 }
 
-pub trait VerifiableSchedule<'a, T> {
-    fn verify(&self, t_end: i32, bounds: &Vec<T>) -> Result<()>;
-}
-
-impl<'a, T> VerifiableSchedule<'a, T> for Schedule<T>
+impl<'a, T> Config<T>
 where
     T: Copy + NumCast + PartialOrd,
 {
-    fn verify(&self, t_end: i32, bounds: &Vec<T>) -> Result<()> {
+    pub fn verify(&self, t: i32, bounds: &Vec<T>) -> Result<()> {
+        for (k, &j) in self.iter().enumerate() {
+            assert_validity(
+                j >= NumCast::from(0).unwrap(),
+                format!(
+                    "value at time {} for dimension {} must be non-negative",
+                    t + 1,
+                    k + 1
+                ),
+            )?;
+            assert_validity(
+                j <= bounds[k],
+                format!("value at time {} for dimension {} must not exceed its upper bound", t + 1, k + 1),
+            )?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<'a, T> Schedule<T>
+where
+    T: Copy + NumCast + PartialOrd,
+{
+    pub fn verify(&self, t_end: i32, bounds: &Vec<T>) -> Result<()> {
         assert_validity(
-            self.len() == t_end as usize,
-            format!("schedule must have a value for each time step, `t_end` is {} and schedule contains {} steps", t_end, self.len()),
+            self.t_end() == t_end,
+            format!("schedule must have a value for each time step, `t_end` is {} and schedule contains {} steps", t_end, self.t_end()),
         )?;
 
         for (t, x) in self.iter().enumerate() {
-            for (k, &j) in x.iter().enumerate() {
-                assert_validity(
-                    j >= NumCast::from(0).unwrap(),
-                    format!("value at time {} for dimension {} must be non-negative", t + 1, k + 1),
-                )?;
-                assert_validity(
-                    j <= bounds[k],
-                    format!("value at time {} for dimension {} must not exceed its upper bound", t + 1, k + 1),
-                )?;
-            }
+            x.verify(t as i32, bounds)?;
         }
 
         Ok(())
