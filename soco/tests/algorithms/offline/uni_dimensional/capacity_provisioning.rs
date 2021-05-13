@@ -4,9 +4,11 @@ mod bcp {
     use std::sync::Arc;
 
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::bcp;
+    use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SmoothedConvexOptimization;
-    use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
+    use soco::schedule::Schedule;
+    use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
@@ -24,7 +26,10 @@ mod bcp {
         let result = bcp(&p).unwrap();
         result.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.to_i(), vec![vec![1], vec![1]]);
+        assert_eq!(
+            result.to_i(),
+            Schedule::new(vec![Config::single(1), Config::single(1)])
+        );
     }
 }
 
@@ -32,9 +37,11 @@ mod fcp {
     use std::sync::Arc;
 
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::fcp;
+    use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SmoothedConvexOptimization;
-    use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
+    use soco::schedule::Schedule;
+    use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
@@ -52,6 +59,9 @@ mod fcp {
         let result = fcp(&p).unwrap();
         result.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.to_i(), vec![vec![1], vec![1]]);
+        assert_eq!(
+            result.to_i(),
+            Schedule::new(vec![Config::single(1), Config::single(1)])
+        );
     }
 }

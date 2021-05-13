@@ -3,31 +3,32 @@ use pathfinding::prelude::astar;
 use std::collections::HashMap;
 
 use crate::algorithms::graph_search::{Path, Paths};
-use crate::problem::DiscreteSmoothedConvexOptimization;
+use crate::config::Config;
+use crate::problem::IntegralSmoothedConvexOptimization;
 use crate::result::{Error, Result};
-use crate::schedule::Config;
+use crate::schedule::Schedule;
 use crate::utils::pos;
 
 /// Vertice in the graph denoting time `t` and the value `x` at time `t`.
 /// The boolean flag indicates whether the vertice belongs to the powering up (`true`) or powering down (`false`) phase.
 #[derive(Clone, Eq, Hash, PartialEq)]
 pub struct Vertice {
-    pub t: i32,
-    pub config: Config<i32>,
-    pub powering_up: bool,
+    t: i32,
+    config: Config<i32>,
+    powering_up: bool,
 }
 
-/// Graph-Based Optimal Discrete Algorithm
+/// Graph-Based Optimal Integral Algorithm
 pub fn optimal_graph_search<'a>(
-    p: &'a DiscreteSmoothedConvexOptimization<'a>,
+    p: &'a IntegralSmoothedConvexOptimization<'a>,
 ) -> Result<Path> {
     let mut paths: Paths<Vertice> = HashMap::new();
     let initial_vertice = Vertice {
         t: 1,
-        config: vec![0; p.d as usize],
+        config: Config::repeat(0, p.d),
         powering_up: true,
     };
-    let initial_path = Path(vec![], 0.);
+    let initial_path = Path(Schedule::empty(), 0.);
     paths.insert(initial_vertice, initial_path);
 
     let configs = build_configs(p);
@@ -51,7 +52,7 @@ pub fn optimal_graph_search<'a>(
 
     let final_vertice = Vertice {
         t: p.t_end + 1,
-        config: vec![0; p.d as usize],
+        config: Config::repeat(0, p.d),
         powering_up: false,
     };
     for config in configs {
@@ -71,21 +72,24 @@ pub fn optimal_graph_search<'a>(
 
 /// Computes all configurations for some time `t`.
 fn build_configs(
-    p: &DiscreteSmoothedConvexOptimization<'_>,
+    p: &IntegralSmoothedConvexOptimization<'_>,
 ) -> Vec<Config<i32>> {
-    let mut layer: Vec<Vec<i32>> = vec![vec![]];
+    let mut configs: Vec<Vec<i32>> = vec![vec![]];
     for k in 1..=p.d {
         for j in 0..=p.bounds[k as usize] {
-            for v in layer.iter_mut() {
+            for v in configs.iter_mut() {
                 v.push(j);
             }
         }
     }
-    layer
+    configs
+        .iter()
+        .map(|config| Config::new(config.clone()))
+        .collect()
 }
 
 fn find_shortest_subpath(
-    p: &DiscreteSmoothedConvexOptimization<'_>,
+    p: &IntegralSmoothedConvexOptimization<'_>,
     paths: &mut Paths<Vertice>,
     from: &Vertice,
     to: &Vertice,
@@ -112,7 +116,7 @@ impl Vertice {
     fn heuristic(
         &self,
         to: &Vertice,
-        p: &DiscreteSmoothedConvexOptimization<'_>,
+        p: &IntegralSmoothedConvexOptimization<'_>,
     ) -> OrderedFloat<f64> {
         assert!(to.powering_up, "Only powering up vertices may be used as goals with this heuristic function.");
 
@@ -146,7 +150,7 @@ impl Vertice {
 
     fn successors(
         &self,
-        p: &DiscreteSmoothedConvexOptimization<'_>,
+        p: &IntegralSmoothedConvexOptimization<'_>,
     ) -> Vec<(Vertice, OrderedFloat<f64>)> {
         let mut successors = vec![];
         if self.powering_up {
@@ -158,18 +162,18 @@ impl Vertice {
                     powering_up: false,
                 },
                 OrderedFloat(
-                    (p.hitting_cost)(self.t, self.config.clone()).unwrap(),
+                    (p.hitting_cost)(self.t, self.config.to_vec()).unwrap(),
                 ),
             ));
             // edges for powering up
             for k in 0..p.d as usize {
-                let mut config = self.config.clone();
-                if config[k] < p.bounds[k] {
-                    config[k] += 1;
+                let mut x = self.config.to_vec();
+                if x[k] < p.bounds[k] {
+                    x[k] += 1;
                     successors.push((
                         Vertice {
                             t: self.t,
-                            config,
+                            config: Config::new(x),
                             powering_up: true,
                         },
                         OrderedFloat(p.switching_cost[k]),
@@ -179,13 +183,13 @@ impl Vertice {
         } else {
             // edges for powering down
             for k in 0..p.d as usize {
-                let mut config = self.config.clone();
-                if config[k] > 0 {
-                    config[k] -= 1;
+                let mut x = self.config.to_vec();
+                if x[k] > 0 {
+                    x[k] -= 1;
                     successors.push((
                         Vertice {
                             t: self.t,
-                            config,
+                            config: Config::new(x),
                             powering_up: false,
                         },
                         OrderedFloat(0.),
@@ -216,7 +220,7 @@ fn update_paths(
     c: f64,
 ) -> Result<()> {
     let prev_xs = &paths.get(from).ok_or(Error::PathsShouldBeCached)?.0;
-    let xs = [&prev_xs[..], &[x]].concat();
+    let xs = prev_xs.extend(x);
 
     paths.insert(to.clone(), Path(xs, c));
     Ok(())

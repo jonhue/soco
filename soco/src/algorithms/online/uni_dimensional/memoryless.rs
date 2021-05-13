@@ -2,36 +2,33 @@ use nlopt::Algorithm;
 use nlopt::Nlopt;
 use nlopt::Target;
 
+use crate::config::Config;
 use crate::online::{Online, OnlineSolution};
-use crate::problem::ContinuousSmoothedConvexOptimization;
+use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
-use crate::schedule::{Config, ContinuousSchedule};
+use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::PRECISION;
 
 /// Memoryless Algorithm
 pub fn memoryless(
-    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
-    xs: &ContinuousSchedule,
+    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
+    xs: &FractionalSchedule,
     _: &Vec<()>,
-) -> Result<OnlineSolution<Config<f64>, ()>> {
+) -> Result<OnlineSolution<f64, ()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
-    let t = xs.len() as i32 + 1;
-    let prev_x = if xs.is_empty() {
-        0.
-    } else {
-        xs[xs.len() - 1][0]
-    };
+    let t = xs.t_end() + 1;
+    let prev_x = if xs.is_empty() { 0. } else { xs.now()[0] };
 
     let x = next(o, t, prev_x)?;
-    Ok(OnlineSolution(vec![x], ()))
+    Ok(OnlineSolution(Config::single(x), ()))
 }
 
 /// Determines next `x` with a convex optimization.
 fn next(
-    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
+    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
     t: i32,
     prev_x: f64,
 ) -> Result<f64> {

@@ -49,7 +49,6 @@ pub fn is_pow_of_2(x: i32) -> bool {
     x != 0 && x & (x - 1) == 0
 }
 
-/// Returns the `i`-th element of vector `xs` if present.
 pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<T>
 where
     T: Clone,

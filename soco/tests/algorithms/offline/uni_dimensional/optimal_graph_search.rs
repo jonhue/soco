@@ -50,9 +50,11 @@ mod optimal_graph_search {
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::{
         make_pow_of_2, optimal_graph_search,
     };
+    use soco::config::Config;
     use soco::objective::Objective;
     use soco::problem::SmoothedConvexOptimization;
-    use soco::verifiers::{VerifiableProblem, VerifiableSchedule};
+    use soco::schedule::Schedule;
+    use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
@@ -70,7 +72,10 @@ mod optimal_graph_search {
         let result = optimal_graph_search(&p, false).unwrap();
         result.0.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.0, vec![vec![1], vec![1]]);
+        assert_eq!(
+            result.0,
+            Schedule::new(vec![Config::single(1), Config::single(1)])
+        );
         assert_eq!(result.1, 1.);
         assert_eq!(result.1, p.objective_function(&result.0).unwrap());
     }

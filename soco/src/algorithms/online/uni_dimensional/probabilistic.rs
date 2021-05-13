@@ -5,10 +5,11 @@ use nlopt::Nlopt;
 use nlopt::Target;
 use std::sync::Arc;
 
+use crate::config::Config;
 use crate::online::{Online, OnlineSolution};
-use crate::problem::ContinuousSmoothedConvexOptimization;
+use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
-use crate::schedule::{Config, ContinuousSchedule};
+use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::PRECISION;
 
@@ -19,14 +20,14 @@ static STEP_SIZE: f64 = 1e-16;
 
 /// Probabilistic Algorithm
 pub fn probabilistic<'a>(
-    o: &'a Online<ContinuousSmoothedConvexOptimization<'a>>,
-    xs: &ContinuousSchedule,
+    o: &'a Online<FractionalSmoothedConvexOptimization<'a>>,
+    xs: &FractionalSchedule,
     ps: &Vec<Memory<'a>>,
-) -> Result<OnlineSolution<Config<f64>, Memory<'a>>> {
+) -> Result<OnlineSolution<f64, Memory<'a>>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
-    let t = xs.len() as i32 + 1;
+    let t = xs.t_end() + 1;
     let prev_p = if ps.is_empty() {
         Arc::new(|j| if j == 0. { 1. } else { 0. })
     } else {
@@ -51,12 +52,12 @@ pub fn probabilistic<'a>(
     });
 
     let x = expected_value(&p, x_l, x_r)?;
-    Ok(OnlineSolution(vec![x], p))
+    Ok(OnlineSolution(Config::single(x), p))
 }
 
 /// Determines minimizer of `f` with a convex optimization.
 fn find_minimizer(
-    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
+    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
     t: i32,
 ) -> Result<f64> {
     let objective_function =
@@ -82,7 +83,7 @@ fn find_minimizer(
 
 /// Determines `x_r` with a convex optimization.
 fn find_right_bound(
-    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
+    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
     t: i32,
     prev_p: &Memory<'_>,
     x_m: f64,
@@ -132,7 +133,7 @@ fn find_right_bound(
 
 /// Determines `x_l` with a convex optimization.
 fn find_left_bound(
-    o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
+    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
     t: i32,
     prev_p: &Memory<'_>,
     x_m: f64,

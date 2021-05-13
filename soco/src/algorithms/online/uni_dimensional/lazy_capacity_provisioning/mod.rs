@@ -25,5 +25,5 @@ fn is_valid_initial_time<T: PartialOrd>(
     m.1 < prev_m.1 || m.0 > prev_m.0
 }
 
-pub mod discrete;
 pub mod fractional;
+pub mod integral;

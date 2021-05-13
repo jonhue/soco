@@ -2,10 +2,11 @@
 
 use num::{Num, NumCast, ToPrimitive};
 
+use crate::config::Config;
 use crate::problem::{SmoothedConvexOptimization, SmoothedLoadOptimization};
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
-use crate::utils::{access, pos};
+use crate::utils::pos;
 
 pub trait Objective<T> {
     /// Objective Function. Calculates the cost of a schedule.
@@ -37,11 +38,11 @@ where
     ) -> Result<f64> {
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = access(xs, t - 2).unwrap_or_else(|| {
-                vec![NumCast::from(0).unwrap(); self.d as usize]
+            let prev_x = xs.get(t - 2).unwrap_or_else(|| {
+                Config::repeat(NumCast::from(0).unwrap(), self.d)
             });
             let x = xs[t as usize - 1].clone();
-            cost += (self.hitting_cost)(t as i32, x.clone())
+            cost += (self.hitting_cost)(t as i32, x.to_vec())
                 .ok_or(Error::CostFnMustBeTotal)?;
             for k in 0..self.d as usize {
                 let delta = movement(x[k], prev_x[k], inverted);
@@ -63,8 +64,8 @@ where
     ) -> Result<f64> {
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = access(xs, t - 2).unwrap_or_else(|| {
-                vec![NumCast::from(0).unwrap(); self.d as usize]
+            let prev_x = xs.get(t - 2).unwrap_or_else(|| {
+                Config::repeat(NumCast::from(0).unwrap(), self.d)
             });
             let x = &xs[t as usize - 1];
             for k in 0..self.d as usize {
