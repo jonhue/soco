@@ -36,12 +36,11 @@ where
         xs: &Schedule<T>,
         inverted: bool,
     ) -> Result<f64> {
+        let default_x = Config::<T>::repeat(NumCast::from(0).unwrap(), self.d);
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 2).unwrap_or_else(|| {
-                Config::repeat(NumCast::from(0).unwrap(), self.d)
-            });
-            let x = xs[t as usize - 1].clone();
+            let prev_x = xs.get(t - 2).unwrap_or(&default_x);
+            let x = &xs[t as usize - 1];
             cost += (self.hitting_cost)(t as i32, x.to_vec())
                 .ok_or(Error::CostFnMustBeTotal)?;
             for k in 0..self.d as usize {
@@ -62,11 +61,10 @@ where
         xs: &Schedule<T>,
         inverted: bool,
     ) -> Result<f64> {
+        let default_x = Config::<T>::repeat(NumCast::from(0).unwrap(), self.d);
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 2).unwrap_or_else(|| {
-                Config::repeat(NumCast::from(0).unwrap(), self.d)
-            });
+            let prev_x = xs.get(t - 2).unwrap_or(&default_x);
             let x = &xs[t as usize - 1];
             for k in 0..self.d as usize {
                 cost +=

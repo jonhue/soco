@@ -36,12 +36,12 @@ where
     }
 
     /// Returns the config of the latest time step.
-    pub fn now(&self) -> Config<T> {
-        self[self.0.len() - 1].clone()
+    pub fn now(&self) -> &Config<T> {
+        &self[self.0.len() - 1]
     }
 
     /// Returns the config at time `t` if present.
-    pub fn get(&self, t: i32) -> Option<Config<T>> {
+    pub fn get(&self, t: i32) -> Option<&Config<T>> {
         access(&self.0, t)
     }
 

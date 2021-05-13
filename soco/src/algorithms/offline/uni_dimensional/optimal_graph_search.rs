@@ -12,7 +12,7 @@ use crate::utils::{assert, is_pow_of_2, pos};
 
 /// Vertice in the graph denoting time `t` and the value `j` at time `t`.
 #[derive(Eq, Hash, PartialEq)]
-pub struct Vertice(i32, i32);
+struct Vertice(i32, i32);
 
 /// Graph-Based Optimal Integral Algorithm
 pub fn optimal_graph_search(
@@ -53,8 +53,8 @@ pub fn make_pow_of_2<'a>(
         } else {
             Some(
                 xs[0] as f64
-                    * ((p.hitting_cost)(t, p.bounds.clone()).unwrap()
-                        + std::f64::EPSILON),
+                    * ((p.hitting_cost)(t, (*p.bounds).to_vec()).unwrap()
+                        + f64::EPSILON),
             )
         }
     });

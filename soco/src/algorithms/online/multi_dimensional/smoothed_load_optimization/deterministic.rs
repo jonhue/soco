@@ -1,6 +1,6 @@
 use crate::algorithms::graph_search::Path;
-use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
 use crate::algorithms::offline::multi_dimensional::approx_graph_search::approx_graph_search;
+use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
 use crate::config::Config;
 use crate::online::Online;
 use crate::online::OnlineSolution;
@@ -125,7 +125,11 @@ fn find_optimal_lanes(
     bound: usize,
     use_approx: bool,
 ) -> Result<Lanes> {
-    let alg = if use_approx { approx_graph_search } else { optimal_graph_search };
+    let alg = if use_approx {
+        approx_graph_search
+    } else {
+        optimal_graph_search
+    };
     let Path(xs, _) = alg(&p.to_sco())?;
     Ok(build_lanes(&xs.now(), p.d, bound))
 }
