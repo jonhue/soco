@@ -1,15 +1,20 @@
+use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
 use crate::online::Online;
 use crate::online::OnlineSolution;
 use crate::problem::DiscreteSmoothedLoadOptimization;
 use crate::result::{Error, Result};
+use crate::schedule::Config;
 use crate::schedule::DiscreteSchedule;
-use crate::schedule::Step;
 use crate::utils::{assert, total_bound};
 use std::cmp::max;
 
 /// Lane distribution at some time `t`.
-pub type Memory = (Lanes, Horizons);
+#[derive(Clone)]
+pub struct Memory {
+    pub lanes: Lanes,
+    pub horizons: Horizons,
+}
 
 /// Maps each lane to the dimension it is "handled by" at some time `t`.
 /// If value is `0`, there the lane is not "active".
@@ -23,14 +28,20 @@ pub fn deterministic<'a>(
     o: &'a Online<DiscreteSmoothedLoadOptimization>,
     xs: &DiscreteSchedule,
     ms: &Vec<Memory>,
-) -> Result<OnlineSolution<Step<i32>, Memory>> {
+) -> Result<OnlineSolution<Config<i32>, Memory>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
     let t = xs.len() as i32 + 1;
     let bound = total_bound(&o.p.bounds) as usize;
     let optimal_lanes = find_optimal_lanes(&o.p, bound)?;
-    let (prev_lanes, mut horizons) = if ms.is_empty() {
-        (vec![0; bound], vec![0; bound])
+    let Memory {
+        lanes: prev_lanes,
+        mut horizons,
+    } = if ms.is_empty() {
+        Memory {
+            lanes: vec![0; bound],
+            horizons: vec![0; bound],
+        }
     } else {
         ms[ms.len() - 1].clone()
     };
@@ -58,7 +69,7 @@ pub fn deterministic<'a>(
     }
 
     let step = collect_step(o.p.d, &lanes);
-    Ok((step, (lanes, horizons)))
+    Ok(OnlineSolution(step, Memory { lanes, horizons }))
 }
 
 fn next_time_horizon(
@@ -74,7 +85,7 @@ fn next_time_horizon(
     }
 }
 
-fn collect_step(d: i32, lanes: &Lanes) -> Step<i32> {
+fn collect_step(d: i32, lanes: &Lanes) -> Config<i32> {
     let mut step = vec![0; d as usize];
     for i in 0..lanes.len() {
         step[lanes[i] as usize] += 1;
@@ -82,7 +93,7 @@ fn collect_step(d: i32, lanes: &Lanes) -> Step<i32> {
     step
 }
 
-fn build_lanes(x: &Step<i32>, d: i32, bound: usize) -> Lanes {
+fn build_lanes(x: &Config<i32>, d: i32, bound: usize) -> Lanes {
     let mut lanes = vec![0; bound];
     for (k, lane) in lanes.iter_mut().enumerate() {
         if k as i32 <= active_lanes(x, 1, d) {
@@ -99,7 +110,7 @@ fn build_lanes(x: &Step<i32>, d: i32, bound: usize) -> Lanes {
 }
 
 /// Sums step across dimension from `from` to `to`.
-fn active_lanes(x: &Step<i32>, from: i32, to: i32) -> i32 {
+fn active_lanes(x: &Config<i32>, from: i32, to: i32) -> i32 {
     let mut result = 0;
     for k in from..=to {
         result += x[k as usize];
@@ -111,6 +122,6 @@ fn find_optimal_lanes(
     p: &DiscreteSmoothedLoadOptimization,
     bound: usize,
 ) -> Result<Lanes> {
-    let (xs, _) = optimal_graph_search(&p.to_sco())?;
+    let Path(xs, _) = optimal_graph_search(&p.to_sco())?;
     Ok(build_lanes(&xs[xs.len() - 1], p.d, bound))
 }

@@ -9,6 +9,10 @@ use crate::result::{Error, Result};
 use crate::schedule::DiscreteSchedule;
 use crate::utils::{assert, is_pow_of_2, pos};
 
+/// Vertice in the graph denoting time `t` and the value `j` at time `t`.
+#[derive(Eq, Hash, PartialEq)]
+pub struct Vertice(i32, i32);
+
 /// Graph-Based Optimal Discrete Algorithm
 pub fn optimal_graph_search(
     p: &'_ DiscreteSmoothedConvexOptimization<'_>,
@@ -87,22 +91,25 @@ fn find_schedule(
     select_rows: impl Fn(i32) -> Vec<i32>,
     inverted: bool,
 ) -> Result<Path> {
-    let mut paths: Paths = HashMap::new();
-    paths.insert((0, 0), (vec![], 0.));
+    let mut paths: Paths<Vertice> = HashMap::new();
+    let initial_vertice = Vertice(0, 0);
+    let initial_path = Path(vec![], 0.);
+    paths.insert(initial_vertice, initial_path);
 
     let mut prev_rows = vec![0];
     for t in 1..=p.t_end {
         let rows = select_rows(t);
         for &j in &rows {
-            find_shortest_path(p, &mut paths, t, &prev_rows, j, inverted)?;
+            find_shortest_subpath(p, &mut paths, t, &prev_rows, j, inverted)?;
         }
         prev_rows = rows;
     }
 
-    let mut result = &(vec![], f64::INFINITY);
+    let mut result = &Path(vec![], f64::INFINITY);
     for i in prev_rows {
-        let path =
-            paths.get(&(p.t_end, i)).ok_or(Error::PathsShouldBeCached)?;
+        let path = paths
+            .get(&Vertice(p.t_end, i))
+            .ok_or(Error::PathsShouldBeCached)?;
         if path.1 < result.1 {
             result = path;
         }
@@ -111,9 +118,9 @@ fn find_schedule(
     Ok(result.clone())
 }
 
-fn find_shortest_path(
+fn find_shortest_subpath(
     p: &DiscreteSmoothedConvexOptimization<'_>,
-    paths: &mut Paths,
+    paths: &mut Paths<Vertice>,
     t: i32,
     from: &Vec<i32>,
     to: i32,
@@ -123,7 +130,7 @@ fn find_shortest_path(
     let mut picked_cost = f64::INFINITY;
     for &source in from {
         let prev_cost = paths
-            .get(&(t - 1, source))
+            .get(&Vertice(t - 1, source))
             .ok_or(Error::PathsShouldBeCached)?
             .1;
         let cost = build_cost(p, t, source, to, inverted)?;
@@ -151,17 +158,17 @@ fn build_cost(
 }
 
 fn update_paths(
-    paths: &mut Paths,
+    paths: &mut Paths<Vertice>,
     t: i32,
     i: i32,
     j: i32,
     c: f64,
 ) -> Result<()> {
-    let u = (t - 1, i);
-    let v = (t, j);
+    let u = Vertice(t - 1, i);
+    let v = Vertice(t, j);
     let prev_xs = &paths.get(&u).ok_or(Error::PathsShouldBeCached)?.0;
     let xs = [&prev_xs[..], &[vec![j]]].concat();
 
-    paths.insert(v, (xs, c));
+    paths.insert(v, Path(xs, c));
     Ok(())
 }

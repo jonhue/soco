@@ -3,6 +3,7 @@ use nlopt::Nlopt;
 use nlopt::ObjFn;
 use nlopt::Target;
 
+use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
     make_pow_of_2, optimal_graph_search,
 };
@@ -11,7 +12,6 @@ use crate::problem::{
     ContinuousSmoothedConvexOptimization, DiscreteSmoothedConvexOptimization,
 };
 use crate::result::{Error, Result};
-use crate::schedule::DiscreteSchedule;
 use crate::utils::{assert, is_pow_of_2};
 use crate::PRECISION;
 
@@ -104,9 +104,7 @@ impl Bounded<i32> for DiscreteSmoothedConvexOptimization<'_> {
 impl DiscreteSmoothedConvexOptimization<'_> {
     fn find_bound(
         &self,
-        alg: impl Fn(
-            &'_ DiscreteSmoothedConvexOptimization<'_>,
-        ) -> Result<(DiscreteSchedule, f64)>,
+        alg: impl Fn(&'_ DiscreteSmoothedConvexOptimization<'_>) -> Result<Path>,
         t: i32,
         t_start: i32,
     ) -> Result<i32> {
@@ -126,7 +124,7 @@ impl DiscreteSmoothedConvexOptimization<'_> {
         };
         let reset_p = p.reset(t_start);
 
-        let (xs, _) = alg(&reset_p)?;
+        let Path(xs, _) = alg(&reset_p)?;
         Ok(xs[(t - t_start) as usize - 1][0])
     }
 }

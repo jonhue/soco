@@ -8,7 +8,7 @@ use std::sync::Arc;
 use crate::online::{Online, OnlineSolution};
 use crate::problem::ContinuousSmoothedConvexOptimization;
 use crate::result::{Error, Result};
-use crate::schedule::{ContinuousSchedule, Step};
+use crate::schedule::{Config, ContinuousSchedule};
 use crate::utils::assert;
 use crate::PRECISION;
 
@@ -22,7 +22,7 @@ pub fn probabilistic<'a>(
     o: &'a Online<ContinuousSmoothedConvexOptimization<'a>>,
     xs: &ContinuousSchedule,
     ps: &Vec<Memory<'a>>,
-) -> Result<OnlineSolution<Step<f64>, Memory<'a>>> {
+) -> Result<OnlineSolution<Config<f64>, Memory<'a>>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
@@ -51,7 +51,7 @@ pub fn probabilistic<'a>(
     });
 
     let x = expected_value(&p, x_l, x_r)?;
-    Ok((vec![x], p))
+    Ok(OnlineSolution(vec![x], p))
 }
 
 /// Determines minimizer of `f` with a convex optimization.

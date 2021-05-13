@@ -5,7 +5,7 @@ use nlopt::Target;
 use crate::online::{Online, OnlineSolution};
 use crate::problem::ContinuousSmoothedConvexOptimization;
 use crate::result::{Error, Result};
-use crate::schedule::{ContinuousSchedule, Step};
+use crate::schedule::{Config, ContinuousSchedule};
 use crate::utils::assert;
 use crate::PRECISION;
 
@@ -14,7 +14,7 @@ pub fn memoryless(
     o: &Online<ContinuousSmoothedConvexOptimization<'_>>,
     xs: &ContinuousSchedule,
     _: &Vec<()>,
-) -> Result<OnlineSolution<Step<f64>, ()>> {
+) -> Result<OnlineSolution<Config<f64>, ()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
@@ -26,7 +26,7 @@ pub fn memoryless(
     };
 
     let x = next(o, t, prev_x)?;
-    Ok((vec![x], ()))
+    Ok(OnlineSolution(vec![x], ()))
 }
 
 /// Determines next `x` with a convex optimization.
