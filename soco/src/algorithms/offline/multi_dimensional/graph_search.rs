@@ -3,6 +3,7 @@ use pathfinding::prelude::astar;
 use std::collections::HashMap;
 
 use crate::algorithms::graph_search::{Path, Paths};
+use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::objective::movement;
 use crate::problem::IntegralSmoothedConvexOptimization;
@@ -22,7 +23,7 @@ struct Vertice {
 pub fn graph_search<'a>(
     p: &'a IntegralSmoothedConvexOptimization<'a>,
     configs: &Vec<Config<i32>>,
-    inverted: bool,
+    offline_options: &OfflineOptions,
 ) -> Result<Path> {
     let mut paths: Paths<Vertice> = HashMap::new();
     let initial_vertice = Vertice {
@@ -46,7 +47,14 @@ pub fn graph_search<'a>(
             config: config.clone(),
             powering_up: true,
         };
-        find_shortest_subpath(p, configs, inverted, &mut paths, &from, &to)?;
+        find_shortest_subpath(
+            p,
+            configs,
+            offline_options.inverted,
+            &mut paths,
+            &from,
+            &to,
+        )?;
     }
 
     // intermediate time steps (1 < t < T)
@@ -66,7 +74,12 @@ pub fn graph_search<'a>(
                 })
                 .collect();
             find_shortest_subpath(
-                p, configs, inverted, &mut paths, &from, &to,
+                p,
+                configs,
+                offline_options.inverted,
+                &mut paths,
+                &from,
+                &to,
             )?;
         }
     }
@@ -84,7 +97,7 @@ pub fn graph_search<'a>(
         find_shortest_subpath(
             p,
             configs,
-            inverted,
+            offline_options.inverted,
             &mut paths,
             &from,
             &final_vertice,

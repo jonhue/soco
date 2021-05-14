@@ -1,5 +1,6 @@
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::graph_search::graph_search;
+use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::problem::IntegralSmoothedConvexOptimization;
 use crate::result::{Error, Result};
@@ -11,17 +12,16 @@ static MAX_ITERATIONS: i32 = 1_000_000;
 pub struct Options {
     /// `gamma > 1`. If `gamma` is too close to `1` the algorithm will not terminate. Default is `2`.
     pub gamma: Option<f64>,
-    /// Compute inverted cost.
-    pub inverted: bool,
 }
 
 /// Graph-Based Polynomial-Time Integral Approximation Algorithm
 pub fn approx_graph_search<'a>(
     p: &'a IntegralSmoothedConvexOptimization<'a>,
     options: &Options,
+    offline_options: &OfflineOptions,
 ) -> Result<Path> {
     let configs = build_configs(p, options.gamma.unwrap_or(DEFAULT_GAMMA))?;
-    graph_search(p, &configs, options.inverted)
+    graph_search(p, &configs, offline_options)
 }
 
 /// Computes all configurations examined by the approximation algorithm.

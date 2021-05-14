@@ -1,22 +1,18 @@
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::graph_search::graph_search;
+use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::problem::IntegralSmoothedConvexOptimization;
 use crate::result::Result;
 use crate::utils::duplicate_and_push_to_all;
 
-pub struct Options {
-    /// Compute inverted cost.
-    pub inverted: bool,
-}
-
 /// Graph-Based Optimal Integral Algorithm
 pub fn optimal_graph_search<'a>(
     p: &'a IntegralSmoothedConvexOptimization<'a>,
-    options: &Options,
+    offline_options: &OfflineOptions,
 ) -> Result<Path> {
     let configs = build_configs(p);
-    graph_search(p, &configs, options.inverted)
+    graph_search(p, &configs, offline_options)
 }
 
 /// Computes all configurations.
