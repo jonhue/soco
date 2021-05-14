@@ -98,7 +98,7 @@ where
     }
 }
 
-fn movement<T>(x: T, prev_x: T, inverted: bool) -> f64
+pub fn movement<T>(x: T, prev_x: T, inverted: bool) -> f64
 where
     T: Num + NumCast + PartialOrd,
 {

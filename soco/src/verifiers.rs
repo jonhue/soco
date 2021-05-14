@@ -107,7 +107,11 @@ where
         )?;
         assert_validity(
             self.load.len() == self.t_end as usize,
-            format!("length of vector of loads must equal time horizon, {} != {}", self.load.len(), self.t_end),
+            format!(
+                "length of vector of loads must equal time horizon, {} != {}",
+                self.load.len(),
+                self.t_end
+            ),
         )?;
 
         for k in 0..self.d as usize {
@@ -204,7 +208,11 @@ where
         )?;
         assert_validity(
             self.load.len() == self.t_end as usize,
-            format!("length of vector of loads must equal time horizon, {} != {}", self.load.len(), self.t_end),
+            format!(
+                "length of vector of loads must equal time horizon, {} != {}",
+                self.load.len(),
+                self.t_end
+            ),
         )?;
 
         for k in 0..self.d as usize {
