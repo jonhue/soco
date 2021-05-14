@@ -11,7 +11,7 @@ use crate::utils::pos;
 
 /// Vertice in the graph denoting time `t` and the value `x` at time `t`.
 /// The boolean flag indicates whether the vertice belongs to the powering up (`true`) or powering down (`false`) phase.
-#[derive(Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct Vertice {
     t: i32,
     config: Config<i32>,
@@ -29,38 +29,55 @@ pub fn graph_search<'a>(
         config: Config::repeat(0, p.d),
         powering_up: true,
     };
-    let initial_path = Path(Schedule::empty(), 0.);
-    paths.insert(initial_vertice, initial_path);
-
-    for t in 1..p.t_end {
-        for x in configs {
-            let to = Vertice {
-                t: t + 1,
-                config: x.clone(),
-                powering_up: true,
-            };
-            for y in configs {
-                let from = Vertice {
-                    t,
-                    config: y.clone(),
-                    powering_up: true,
-                };
-                find_shortest_subpath(p, configs, &mut paths, &from, &to)?;
-            }
-        }
-    }
-
     let final_vertice = Vertice {
         t: p.t_end + 1,
         config: Config::repeat(0, p.d),
-        powering_up: false,
+        powering_up: true,
     };
+    let initial_path = Path(Schedule::empty(), 0.);
+    paths.insert(initial_vertice.clone(), initial_path);
+
+    // initial time step (t = 1)
+    let from = vec![initial_vertice];
     for config in configs {
-        let from = Vertice {
-            t: p.t_end,
+        let to = Vertice {
+            t: 2,
             config: config.clone(),
             powering_up: true,
         };
+        find_shortest_subpath(p, configs, &mut paths, &from, &to)?;
+    }
+
+    // intermediate time steps (1 < t < T)
+    for t in 2..p.t_end {
+        for config in configs {
+            let to = Vertice {
+                t: t + 1,
+                config: config.clone(),
+                powering_up: true,
+            };
+            let from = configs
+                .iter()
+                .map(|config| Vertice {
+                    t,
+                    config: config.clone(),
+                    powering_up: true,
+                })
+                .collect();
+            find_shortest_subpath(p, configs, &mut paths, &from, &to)?;
+        }
+    }
+
+    // final time step (t = T)
+    if p.t_end > 1 {
+        let from = configs
+            .iter()
+            .map(|config| Vertice {
+                t: p.t_end,
+                config: config.clone(),
+                powering_up: true,
+            })
+            .collect();
         find_shortest_subpath(p, configs, &mut paths, &from, &final_vertice)?;
     }
 
@@ -74,19 +91,37 @@ fn find_shortest_subpath(
     p: &IntegralSmoothedConvexOptimization<'_>,
     configs: &Vec<Config<i32>>,
     paths: &mut Paths<Vertice>,
-    from: &Vertice,
+    from: &Vec<Vertice>,
     to: &Vertice,
 ) -> Result<()> {
-    let (vs, c) = astar(
-        from,
-        |v| v.successors(p, configs),
-        |v| v.heuristic(to, p),
-        |v| *v == *to,
-    )
-    .ok_or(Error::SubpathShouldBePresent)?;
+    let mut picked_source = &from[0];
+    let mut picked_cost = f64::INFINITY;
+    let mut picked_vs = vec![];
+    for source in from {
+        let (vs, cost) = astar(
+            source,
+            |v| v.successors(p, configs),
+            |v| v.heuristic(to, p),
+            |v| *v == *to,
+        )
+        .ok_or(Error::SubpathShouldBePresent)?;
+        let prev_cost = paths.get(source).ok_or(Error::PathsShouldBeCached)?.1;
+        let new_cost = prev_cost + cost.into_inner();
+        if new_cost < picked_cost {
+            picked_source = source;
+            picked_cost = new_cost;
+            picked_vs = vs;
+        };
+    }
+
     // the configuration of the first power-down vertice is the optimal config for this time step
-    let x = vs.iter().find(|&v| !v.powering_up).unwrap().config.clone();
-    update_paths(paths, from, to, x, c.into_inner())
+    let x = picked_vs
+        .iter()
+        .find(|&v| !v.powering_up)
+        .unwrap()
+        .config
+        .clone();
+    update_paths(paths, picked_source, to, x, picked_cost)
 }
 
 impl Vertice {
@@ -187,7 +222,7 @@ impl Vertice {
                 }
             }
             // edges for moving to the next time step
-            if self.t < p.t_end {
+            if self.t <= p.t_end {
                 successors.push((
                     Vertice {
                         t: self.t + 1,

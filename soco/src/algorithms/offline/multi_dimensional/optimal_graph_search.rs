@@ -18,7 +18,7 @@ fn build_configs(
     p: &IntegralSmoothedConvexOptimization<'_>,
 ) -> Vec<Config<i32>> {
     let mut configs: Vec<Vec<i32>> = vec![vec![]];
-    for k in 1..=p.d {
+    for k in 0..p.d {
         let base = configs.clone();
         configs = vec![];
 

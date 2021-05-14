@@ -3,6 +3,7 @@
 #[derive(Debug)]
 pub enum Error {
     CostFnMustBeTotal,
+    GammaTooSmall,
     Integration(String),
     Invalid(String),
     LcpBoundComputationExceedsDomain,
@@ -12,6 +13,7 @@ pub enum Error {
     OnlineInsufficientInformation,
     PathsShouldBeCached,
     SubpathShouldBePresent,
+    UnsupportedArgument(String),
     UnsupportedBoundsCalculation,
     UnsupportedPredictionWindow,
     UnsupportedProblemDimension,

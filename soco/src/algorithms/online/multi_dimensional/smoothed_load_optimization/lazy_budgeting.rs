@@ -1,5 +1,7 @@
 use crate::algorithms::graph_search::Path;
-use crate::algorithms::offline::multi_dimensional::approx_graph_search::approx_graph_search;
+use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
+    approx_graph_search, Options as ApproxOptions,
+};
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
 use crate::config::Config;
 use crate::online::Online;
@@ -24,10 +26,10 @@ pub type Lanes = Vec<i32>;
 /// Maps each lane to a finite time horizon it stays "active" for unless replaced by another dimension.
 pub type Horizons = Vec<i32>;
 
-pub struct Options {
+pub struct Options<'a> {
     /// Whether to use an approximation to find the optimal schedule.
-    pub use_approx: bool,
-    /// Factor for calculating next time horizons used for the randomized variant of the algorithm.
+    pub use_approx: Option<&'a ApproxOptions>,
+    /// Factor for calculating next time horizons when using the randomized variant of the algorithm.
     pub gamma: Option<f64>,
 }
 
@@ -142,13 +144,12 @@ fn active_lanes(x: &Config<i32>, from: i32, to: i32) -> i32 {
 fn find_optimal_lanes(
     p: &IntegralSmoothedLoadOptimization,
     bound: usize,
-    use_approx: bool,
+    use_approx: Option<&ApproxOptions>,
 ) -> Result<Lanes> {
-    let alg = if use_approx {
-        approx_graph_search
-    } else {
-        optimal_graph_search
+    let sco_p = p.to_sco();
+    let Path(xs, _) = match use_approx {
+        None => optimal_graph_search(&sco_p)?,
+        Some(options) => approx_graph_search(&sco_p, options)?,
     };
-    let Path(xs, _) = alg(&p.to_sco())?;
     Ok(build_lanes(&xs.now(), p.d, bound))
 }

@@ -4,6 +4,9 @@ use nlopt::ObjFn;
 use nlopt::Target;
 
 use crate::algorithms::graph_search::Path;
+use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
+    approx_graph_search, Options as ApproxOptions,
+};
 use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
     make_pow_of_2, optimal_graph_search,
 };
@@ -17,15 +20,42 @@ use crate::utils::{assert, is_pow_of_2};
 use crate::PRECISION;
 
 pub trait Bounded<T> {
-    /// Computes the number of servers at time `t` simulating up to time `t_end` resulting in the lowest possible cost.
-    fn find_lower_bound(&self, t: i32, t_start: i32) -> Result<T>;
+    /// Computes the number of servers at time `t` starting from `t_start` simulating up to time `t_end` resulting in the lowest possible cost.
+    ///
+    /// `use_approx` may only be set when computing integral bounds.
+    fn find_lower_bound(
+        &self,
+        t: i32,
+        t_start: i32,
+        use_approx: Option<&'_ ApproxOptions>,
+    ) -> Result<T>;
 
-    /// Computes the number of servers at time `t` simulating up to time `t_end` resulting in the highest possible cost.
-    fn find_upper_bound(&self, t: i32, t_start: i32) -> Result<T>;
+    /// Computes the number of servers at time `t` starting from `t_start` simulating up to time `t_end` resulting in the highest possible cost.
+    ///
+    /// `use_approx` may only be set when computing integral bounds.
+    fn find_upper_bound(
+        &self,
+        t: i32,
+        t_start: i32,
+        use_approx: Option<&'_ ApproxOptions>,
+    ) -> Result<T>;
 }
 
 impl Bounded<f64> for FractionalSmoothedConvexOptimization<'_> {
-    fn find_lower_bound(&self, t: i32, t_start: i32) -> Result<f64> {
+    fn find_lower_bound(
+        &self,
+        t: i32,
+        t_start: i32,
+        use_approx: Option<&'_ ApproxOptions>,
+    ) -> Result<f64> {
+        assert(
+            use_approx.is_none(),
+            Error::UnsupportedArgument(
+                "Approximation can only be used for integral bounds."
+                    .to_string(),
+            ),
+        )?;
+
         let objective_function =
             |xs: &[f64],
              _: Option<&mut [f64]>,
@@ -36,11 +66,23 @@ impl Bounded<f64> for FractionalSmoothedConvexOptimization<'_> {
                 )
                 .unwrap()
             };
-
         self.find_bound(objective_function, t, t_start)
     }
 
-    fn find_upper_bound(&self, t: i32, t_start: i32) -> Result<f64> {
+    fn find_upper_bound(
+        &self,
+        t: i32,
+        t_start: i32,
+        use_approx: Option<&'_ ApproxOptions>,
+    ) -> Result<f64> {
+        assert(
+            use_approx.is_none(),
+            Error::UnsupportedArgument(
+                "Approximation can only be used for integral bounds."
+                    .to_string(),
+            ),
+        )?;
+
         let objective_function =
             |xs: &[f64],
              _: Option<&mut [f64]>,
@@ -51,7 +93,6 @@ impl Bounded<f64> for FractionalSmoothedConvexOptimization<'_> {
                 )
                 .unwrap()
             };
-
         self.find_bound(objective_function, t, t_start)
     }
 }
@@ -89,27 +130,32 @@ impl FractionalSmoothedConvexOptimization<'_> {
 }
 
 impl Bounded<i32> for IntegralSmoothedConvexOptimization<'_> {
-    fn find_lower_bound(&self, t: i32, t_start: i32) -> Result<i32> {
-        let alg = |p: &IntegralSmoothedConvexOptimization<'_>| {
-            optimal_graph_search(p, false)
-        };
-        self.find_bound(alg, t, t_start)
+    fn find_lower_bound(
+        &self,
+        t: i32,
+        t_start: i32,
+        use_approx: Option<&'_ ApproxOptions>,
+    ) -> Result<i32> {
+        self.find_bound(t, t_start, false, use_approx)
     }
 
-    fn find_upper_bound(&self, t: i32, t_start: i32) -> Result<i32> {
-        let alg = |p: &IntegralSmoothedConvexOptimization<'_>| {
-            optimal_graph_search(p, true)
-        };
-        self.find_bound(alg, t, t_start)
+    fn find_upper_bound(
+        &self,
+        t: i32,
+        t_start: i32,
+        use_approx: Option<&'_ ApproxOptions>,
+    ) -> Result<i32> {
+        self.find_bound(t, t_start, true, use_approx)
     }
 }
 
 impl IntegralSmoothedConvexOptimization<'_> {
     fn find_bound(
         &self,
-        alg: impl Fn(&'_ IntegralSmoothedConvexOptimization<'_>) -> Result<Path>,
         t: i32,
         t_start: i32,
+        inverted: bool,
+        use_approx: Option<&'_ ApproxOptions>,
     ) -> Result<i32> {
         assert(self.d == 1, Error::UnsupportedProblemDimension)?;
         assert(t <= self.t_end, Error::LcpBoundComputationExceedsDomain)?;
@@ -118,16 +164,17 @@ impl IntegralSmoothedConvexOptimization<'_> {
             return Ok(0);
         }
 
-        let tmp;
-        let p = if is_pow_of_2(self.bounds[0]) {
-            self
-        } else {
-            tmp = make_pow_of_2(self)?;
-            &tmp
+        let mut p = self.reset(t_start);
+        let Path(xs, _) = match use_approx {
+            None => {
+                if !is_pow_of_2(self.bounds[0]) {
+                    p = make_pow_of_2(self)?;
+                }
+                optimal_graph_search(&p, inverted)?
+            }
+            Some(options) => approx_graph_search(&p, options)?,
         };
-        let reset_p = p.reset(t_start);
 
-        let Path(xs, _) = alg(&reset_p)?;
         Ok(xs[(t - t_start) as usize - 1][0])
     }
 }
