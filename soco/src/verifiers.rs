@@ -55,7 +55,7 @@ where
         )?;
         assert_validity(
             self.switching_cost.len() == self.d as usize,
-            format!("length of vector of switching cost factors must equal dimension, {} != {}", self.switching_cost.len(), self.d),
+            format!("length of vector of switching costs must equal dimension, {} != {}", self.switching_cost.len(), self.d),
         )?;
 
         for k in 0..self.d as usize {
@@ -103,7 +103,11 @@ where
         )?;
         assert_validity(
             self.switching_cost.len() == self.d as usize,
-            format!("length of vector of switching cost factors must equal dimension, {} != {}", self.switching_cost.len(), self.d),
+            format!("length of vector of switching costs must equal dimension, {} != {}", self.switching_cost.len(), self.d),
+        )?;
+        assert_validity(
+            self.load.len() == self.t_end as usize,
+            format!("length of vector of loads must equal time horizon, {} != {}", self.load.len(), self.t_end),
         )?;
 
         for k in 0..self.d as usize {
@@ -196,7 +200,11 @@ where
         )?;
         assert_validity(
             self.switching_cost.len() == self.d as usize,
-            format!("length of vector of switching cost factors must equal dimension, {} != {}", self.switching_cost.len(), self.d),
+            format!("length of vector of switching costs must equal dimension, {} != {}", self.switching_cost.len(), self.d),
+        )?;
+        assert_validity(
+            self.load.len() == self.t_end as usize,
+            format!("length of vector of loads must equal time horizon, {} != {}", self.load.len(), self.t_end),
         )?;
 
         for k in 0..self.d as usize {
