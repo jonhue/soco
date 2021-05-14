@@ -21,7 +21,7 @@ mod ilcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.stream(lcp, |_, _, _| false).unwrap();
+        let result = o.stream(lcp, |_, _, _| false, &()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         assert_eq!(result.0, Schedule::new(vec![Config::single(0)]));
@@ -42,7 +42,7 @@ mod ilcp {
         o.verify().unwrap();
 
         let t_end = 2;
-        let result = o.offline_stream(lcp, t_end).unwrap();
+        let result = o.offline_stream(lcp, t_end, &()).unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
         assert_eq!(

@@ -14,6 +14,7 @@ pub fn lcp(
     o: &Online<FractionalSmoothedConvexOptimization<'_>>,
     xs: &FractionalSchedule,
     ms: &Vec<Memory<f64>>,
+    _: &(),
 ) -> Result<OnlineSolution<f64, Memory<f64>>> {
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 

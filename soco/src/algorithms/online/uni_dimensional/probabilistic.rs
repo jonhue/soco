@@ -23,6 +23,7 @@ pub fn probabilistic<'a>(
     o: &'a Online<FractionalSmoothedConvexOptimization<'a>>,
     xs: &FractionalSchedule,
     ps: &Vec<Memory<'a>>,
+    _: &(),
 ) -> Result<OnlineSolution<f64, Memory<'a>>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;

@@ -15,6 +15,7 @@ pub fn memoryless(
     o: &Online<FractionalSmoothedConvexOptimization<'_>>,
     xs: &FractionalSchedule,
     _: &Vec<()>,
+    _: &(),
 ) -> Result<OnlineSolution<f64, ()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
