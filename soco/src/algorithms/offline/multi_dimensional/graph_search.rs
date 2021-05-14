@@ -11,7 +11,7 @@ use crate::utils::pos;
 
 /// Vertice in the graph denoting time `t` and the value `x` at time `t`.
 /// The boolean flag indicates whether the vertice belongs to the powering up (`true`) or powering down (`false`) phase.
-#[derive(Clone, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct Vertice {
     t: i32,
     config: Config<i32>,
@@ -30,9 +30,18 @@ pub fn graph_search<'a>(
         powering_up: true,
     };
     let initial_path = Path(Schedule::empty(), 0.);
-    paths.insert(initial_vertice, initial_path);
+    paths.insert(initial_vertice.clone(), initial_path);
 
-    for t in 1..p.t_end {
+    for x in configs {
+        let to = Vertice {
+            t: 2,
+            config: x.clone(),
+            powering_up: true,
+        };
+        find_shortest_subpath(p, configs, &mut paths, &initial_vertice, &to)?;
+    }
+
+    for t in 2..p.t_end {
         for x in configs {
             let to = Vertice {
                 t: t + 1,
@@ -53,15 +62,23 @@ pub fn graph_search<'a>(
     let final_vertice = Vertice {
         t: p.t_end + 1,
         config: Config::repeat(0, p.d),
-        powering_up: false,
+        powering_up: true,
     };
-    for config in configs {
-        let from = Vertice {
-            t: p.t_end,
-            config: config.clone(),
-            powering_up: true,
-        };
-        find_shortest_subpath(p, configs, &mut paths, &from, &final_vertice)?;
+    if p.t_end > 1 {
+        for config in configs {
+            let from = Vertice {
+                t: p.t_end,
+                config: config.clone(),
+                powering_up: true,
+            };
+            find_shortest_subpath(
+                p,
+                configs,
+                &mut paths,
+                &from,
+                &final_vertice,
+            )?;
+        }
     }
 
     Ok(paths
@@ -187,7 +204,7 @@ impl Vertice {
                 }
             }
             // edges for moving to the next time step
-            if self.t < p.t_end {
+            if self.t <= p.t_end {
                 successors.push((
                     Vertice {
                         t: self.t + 1,

@@ -1,7 +1,8 @@
-mod ilcp {
+mod lcp {
     use std::sync::Arc;
 
-    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::integral::lcp;
+    use soco::algorithms::offline::multi_dimensional::approx_graph_search::{Options as ApproxOptions};
+    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::integral::{Options, lcp};
     use soco::online::Online;
     use soco::problem::SmoothedConvexOptimization;
     use soco::config::Config;
@@ -9,6 +10,7 @@ mod ilcp {
 
     #[test]
     fn _1() {
+        let approx_options = ApproxOptions { gamma: None };
         let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -21,7 +23,15 @@ mod ilcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.stream(lcp, |_, _, _| false, &()).unwrap();
+        let result = o
+            .stream(
+                lcp,
+                |_, _, _| false,
+                &Options {
+                    use_approx: Some(&approx_options),
+                },
+            )
+            .unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         assert_eq!(result.0, Schedule::new(vec![Config::single(0)]));
@@ -29,10 +39,11 @@ mod ilcp {
 
     #[test]
     fn _2() {
+        let approx_options = ApproxOptions { gamma: None };
         let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1,
-            bounds: vec![2],
+            bounds: vec![5],
             switching_cost: vec![1.],
             hitting_cost: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
@@ -42,7 +53,15 @@ mod ilcp {
         o.verify().unwrap();
 
         let t_end = 2;
-        let result = o.offline_stream(lcp, t_end, &()).unwrap();
+        let result = o
+            .offline_stream(
+                lcp,
+                t_end,
+                &Options {
+                    use_approx: Some(&approx_options),
+                },
+            )
+            .unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
         assert_eq!(

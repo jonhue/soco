@@ -21,8 +21,8 @@ pub fn lcp(
     let t_start = find_initial_time(o.p.t_end, ms);
 
     let i = if xs.is_empty() { 0. } else { xs.now()[0] };
-    let l = o.p.find_lower_bound(o.p.t_end, t_start)?;
-    let u = o.p.find_upper_bound(o.p.t_end, t_start)?;
+    let l = o.p.find_lower_bound(o.p.t_end, t_start, None)?;
+    let u = o.p.find_upper_bound(o.p.t_end, t_start, None)?;
     let j = project(i, l, u);
     Ok(OnlineSolution(Config::single(j), Memory(l, u)))
 }
