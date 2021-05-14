@@ -39,7 +39,7 @@ mod lcp {
 
     #[test]
     fn _2() {
-        let approx_options = ApproxOptions { gamma: None };
+        let approx_options = ApproxOptions { gamma: None, inverted: false };
         let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -102,7 +102,7 @@ mod lcp {
 
     #[test]
     fn _4() {
-        let approx_options = ApproxOptions { gamma: None };
+        let approx_options = ApproxOptions { gamma: None, inverted: false };
         let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1,

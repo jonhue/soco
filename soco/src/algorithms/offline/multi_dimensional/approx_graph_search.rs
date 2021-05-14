@@ -11,6 +11,8 @@ static MAX_ITERATIONS: i32 = 1_000_000;
 pub struct Options {
     /// `gamma > 1`. If `gamma` is too close to `1` the algorithm will not terminate. Default is `2`.
     pub gamma: Option<f64>,
+    /// Compute inverted cost.
+    pub inverted: bool,
 }
 
 /// Graph-Based Polynomial-Time Integral Approximation Algorithm
@@ -19,7 +21,7 @@ pub fn approx_graph_search<'a>(
     options: &Options,
 ) -> Result<Path> {
     let configs = build_configs(p, options.gamma.unwrap_or(DEFAULT_GAMMA))?;
-    graph_search(p, &configs)
+    graph_search(p, &configs, options.inverted)
 }
 
 /// Computes all configurations examined by the approximation algorithm.

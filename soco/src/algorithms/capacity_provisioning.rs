@@ -172,7 +172,13 @@ impl IntegralSmoothedConvexOptimization<'_> {
                 }
                 optimal_graph_search(&p, &OptOptions { inverted })?
             }
-            Some(options) => approx_graph_search(&p, options)?,
+            Some(options) => approx_graph_search(
+                &p,
+                &ApproxOptions {
+                    inverted,
+                    ..*options
+                },
+            )?,
         };
 
         Ok(xs[(t - t_start) as usize - 1][0])
