@@ -5,7 +5,10 @@ use num::NumCast;
 use crate::config::Config;
 use crate::cost::CostFn;
 use crate::online::Online;
-use crate::problem::{SmoothedConvexOptimization, SmoothedLoadOptimization};
+use crate::problem::{
+    SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
+    SmoothedLoadOptimization,
+};
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
@@ -52,7 +55,7 @@ where
         )?;
         assert_validity(
             self.switching_cost.len() == self.d as usize,
-            format!("length of vector of switching cost factors must equal dimension, {} != {}", self.switching_cost.len(), self.d),
+            format!("length of vector of switching costs must equal dimension, {} != {}", self.switching_cost.len(), self.d),
         )?;
 
         for k in 0..self.d as usize {
@@ -100,7 +103,11 @@ where
         )?;
         assert_validity(
             self.switching_cost.len() == self.d as usize,
-            format!("length of vector of switching cost factors must equal dimension, {} != {}", self.switching_cost.len(), self.d),
+            format!("length of vector of switching costs must equal dimension, {} != {}", self.switching_cost.len(), self.d),
+        )?;
+        assert_validity(
+            self.load.len() == self.t_end as usize,
+            format!("length of vector of loads must equal time horizon, {} != {}", self.load.len(), self.t_end),
         )?;
 
         for k in 0..self.d as usize {
@@ -152,6 +159,71 @@ where
                     k + 1
                 ),
             )?;
+        }
+
+        for t in 0..self.t_end as usize {
+            assert_validity(
+                self.load[t] >= NumCast::from(0).unwrap(),
+                format!(
+                    "load must be non-negative, is {} at time {}",
+                    self.load[t],
+                    t + 1
+                ),
+            )?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<'a, T> VerifiableProblem for SmoothedBalancedLoadOptimization<'a, T>
+where
+    T: Copy
+        + Clone
+        + NumCast
+        + PartialOrd
+        + std::fmt::Debug
+        + std::fmt::Display,
+{
+    fn verify(&self) -> Result<()> {
+        assert_validity(
+            self.d > 0,
+            format!("number of dimensions must be positive, is {}", self.d),
+        )?;
+        assert_validity(
+            self.t_end > 0,
+            format!("time horizon must be positive, is {}", self.t_end),
+        )?;
+        assert_validity(
+            self.bounds.len() == self.d as usize,
+            format!("length of vector of upper bounds must equal dimension, {} != {}", self.bounds.len(), self.d),
+        )?;
+        assert_validity(
+            self.switching_cost.len() == self.d as usize,
+            format!("length of vector of switching costs must equal dimension, {} != {}", self.switching_cost.len(), self.d),
+        )?;
+        assert_validity(
+            self.load.len() == self.t_end as usize,
+            format!("length of vector of loads must equal time horizon, {} != {}", self.load.len(), self.t_end),
+        )?;
+
+        for k in 0..self.d as usize {
+            assert_validity(
+                self.bounds[k] > NumCast::from(0).unwrap(),
+                format!("upper bound of dimension {} must be positive", k + 1),
+            )?;
+            assert_validity(
+                self.switching_cost[k] > 0.,
+                format!(
+                    "switching cost of dimension {} must be positive",
+                    k + 1
+                ),
+            )?;
+
+            for t in 1..=self.t_end {
+                self.hitting_cost[k].verify(t, NumCast::from(0).unwrap())?;
+                self.hitting_cost[k].verify(t, self.bounds[k])?;
+            }
         }
 
         for t in 0..self.t_end as usize {

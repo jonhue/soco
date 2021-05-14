@@ -61,3 +61,29 @@ impl<T> Problem for SmoothedLoadOptimization<T> {
         self.t_end += 1
     }
 }
+
+/// Smoothed Balanced-Load Optimization
+pub struct SmoothedBalancedLoadOptimization<'a, T> {
+    /// Number of dimensions.
+    pub d: i32,
+    /// Finite, positive time horizon.
+    pub t_end: i32,
+    /// Vector of upper bounds of each dimension.
+    pub bounds: Vec<T>,
+    /// Vector of positive real constants resembling the switching cost of each dimension.
+    pub switching_cost: Vec<f64>,
+    /// Non-negative convex increasing cost functions for each dimension.
+    pub hitting_cost: Vec<CostFn<'a, T>>,
+    /// Non-negative load at each time step `t`.
+    pub load: Vec<T>,
+}
+pub type IntegralSmoothedBalancedLoadOptimization<'a> =
+    SmoothedBalancedLoadOptimization<'a, i32>;
+impl<'a, T> Problem for SmoothedBalancedLoadOptimization<'a, T> {
+    fn t_end(&self) -> i32 {
+        self.t_end
+    }
+    fn inc_t_end(&mut self) {
+        self.t_end += 1
+    }
+}

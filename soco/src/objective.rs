@@ -3,7 +3,10 @@
 use num::{Num, NumCast, ToPrimitive};
 
 use crate::config::Config;
-use crate::problem::{SmoothedConvexOptimization, SmoothedLoadOptimization};
+use crate::problem::{
+    SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
+    SmoothedLoadOptimization,
+};
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::pos;
@@ -74,6 +77,24 @@ where
             }
         }
         Ok(cost)
+    }
+}
+
+impl<'a, T> Objective<T> for SmoothedBalancedLoadOptimization<'a, T>
+where
+    T: Copy + Num + NumCast + PartialOrd,
+{
+    fn _objective_function(
+        &self,
+        xs: &Schedule<T>,
+        inverted: bool,
+    ) -> Result<f64> {
+        let sco_p = self.to_sco();
+        if inverted {
+            sco_p.inverted_objective_function(xs)
+        } else {
+            sco_p.objective_function(xs)
+        }
     }
 }
 

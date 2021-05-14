@@ -9,21 +9,23 @@ use load::LoadFn;
 
 pub mod load;
 
-/// Given a function `f` that maps the load of a server to some cost metric:
+/// Given functions `f` that map the load of a server type to some cost metric:
 /// returns a closure that given some workload `l` (at time `t`) for all servers,
 /// distributes the load evenly across all active servers (at time `t`).
 ///
 /// This behavior models the optimal dispatching rule of workload to all active servers.
-pub fn load_balance<'a, T>(f: &'a LoadFn) -> LoadCostFn<'a, T>
+pub fn load_balance<'a, T>(f: &'a Vec<LoadFn>) -> LoadCostFn<'a, T>
 where
     T: Clone + ToPrimitive + 'a,
 {
-    Arc::new(move |l| {
+    Arc::new(move |_, k, l| {
         Arc::new(move |x| {
             Some(
                 ToPrimitive::to_f64(&x).unwrap()
-                    * f(ToPrimitive::to_f64(&l).unwrap()
-                        / ToPrimitive::to_f64(&x).unwrap()),
+                    * f[k as usize](
+                        ToPrimitive::to_f64(&l).unwrap()
+                            / ToPrimitive::to_f64(&x).unwrap(),
+                    ),
             )
         })
     })

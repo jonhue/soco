@@ -33,7 +33,8 @@
 | 1       | ❌                 | ❌        | ✅             | ✅          | 3-competitive           |
 | 1       | ❌                 | ❌        | ✅             | ❌          | 2-competitive           |
 | 1       | ❌                 | ✅        | ✅             | ❌          | 3-competitive           |
-| 2       | ✅                 | ✅        | ✅             | ❌          | 2d-competitive          |
+| 1       | ❌                 | ✅        | ❌             | ❌          | 2-competitive           |
+| 2, 3, 4 | ✅                 | ✅        | ✅             | ❌          | 2d-competitive          |
 
 ### References
 
