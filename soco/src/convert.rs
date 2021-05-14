@@ -1,6 +1,6 @@
 //! Functions to convert between problem instances.
 
-use num::{NumCast, ToPrimitive};
+use num::{Num, NumCast, ToPrimitive};
 use std::sync::Arc;
 
 use crate::config::Config;
@@ -9,7 +9,8 @@ use crate::cost::{lazy, LoadCostFn};
 use crate::online::Online;
 use crate::problem::{
     FractionalSmoothedConvexOptimization, IntegralSmoothedConvexOptimization,
-    SmoothedConvexOptimization, SmoothedLoadOptimization,
+    SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
+    SmoothedLoadOptimization,
 };
 use crate::schedule::{FractionalSchedule, IntegralSchedule};
 use crate::vec_wrapper::VecWrapper;
@@ -125,16 +126,35 @@ impl<'a, T> SmoothedLoadOptimization<T>
 where
     T: Clone + Copy + NumCast,
 {
+    /// Convert instance to an instance of Smoothed Balanced-Load Optimization.
+    pub fn to_sblo(&'a self) -> SmoothedBalancedLoadOptimization<'a, T> {
+        let hitting_cost: Vec<CostFn<'a, T>> = self
+            .hitting_cost
+            .iter()
+            .map(|&l| -> CostFn<'a, T> { Arc::new(move |_, _| Some(l)) })
+            .collect();
+        SmoothedBalancedLoadOptimization {
+            d: self.d,
+            t_end: self.t_end,
+            bounds: self.bounds.clone(),
+            switching_cost: self.switching_cost.clone(),
+            hitting_cost,
+            load: self.load.clone(),
+        }
+    }
+}
+
+impl<'a, T> SmoothedBalancedLoadOptimization<'a, T>
+where
+    T: Clone + Copy + Num + NumCast,
+{
     /// Convert instance to an instance of Smoothed Convex Optimization.
     pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {
-        let f: LoadCostFn<'a, T> = Arc::new(|l| {
-            Arc::new(move |x| {
-                let prim_l = ToPrimitive::to_f64(&l).unwrap();
-                let prim_x = ToPrimitive::to_f64(&x).unwrap();
-                if prim_x >= prim_l {
-                    Some(prim_l * prim_x)
-                } else {
-                    Some(f64::INFINITY)
+        let f: LoadCostFn<'a, T> = Arc::new(move |t, k, l| {
+            Arc::new(move |j| match self.hitting_cost[k as usize](t, l / j) {
+                None => None,
+                Some(hitting_cost) => {
+                    Some(ToPrimitive::to_f64(&j).unwrap() * hitting_cost)
                 }
             })
         });

@@ -17,8 +17,9 @@ pub type CostFn<'a, T> = Arc<dyn Fn(i32, T) -> Option<f64> + 'a>;
 /// Cost function (at time `t`). Must be total on `0<=j<=m`. May return `None` otherwise.
 pub type SingleCostFn<'a, T> = Arc<dyn Fn(T) -> Option<f64> + 'a>;
 
-/// Collection of cost functions for some load.
-pub type LoadCostFn<'a, T> = Arc<dyn Fn(T) -> SingleCostFn<'a, T> + 'a>;
+/// Collection of cost functions for some time, dimension, and load.
+pub type LoadCostFn<'a, T> =
+    Arc<dyn Fn(i32, i32, T) -> SingleCostFn<'a, T> + 'a>;
 
 /// Converts a lazy cost function to a cost function that is total on `t`.
 ///
@@ -45,7 +46,7 @@ where
                         let prim_l = ToPrimitive::to_f64(l)?;
                         if prim_j > 0. {
                             let l_frac = NumCast::from(prim_l * z)?;
-                            f(l_frac)(j)
+                            f(t, k as i32, l_frac)(j)
                         } else if prim_j == 0. && prim_l * z > 0. {
                             Some(f64::INFINITY)
                         } else if prim_j == 0. && prim_l * z == 0. {

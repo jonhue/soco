@@ -146,7 +146,8 @@ fn find_optimal_lanes(
     bound: usize,
     use_approx: Option<&ApproxOptions>,
 ) -> Result<Lanes> {
-    let sco_p = p.to_sco();
+    let sblo_p = p.to_sblo();
+    let sco_p = sblo_p.to_sco();
     let Path(xs, _) = match use_approx {
         None => optimal_graph_search(&sco_p)?,
         Some(options) => approx_graph_search(&sco_p, options)?,
