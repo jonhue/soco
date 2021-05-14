@@ -1,3 +1,3 @@
 //! Online Algorithms for Smoothed Load Optimization.
 
-pub mod deterministic;
+pub mod lazy_budgeting;

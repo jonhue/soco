@@ -12,7 +12,7 @@ use crate::utils::pos;
 /// Vertice in the graph denoting time `t` and the value `x` at time `t`.
 /// The boolean flag indicates whether the vertice belongs to the powering up (`true`) or powering down (`false`) phase.
 #[derive(Clone, Eq, Hash, PartialEq)]
-pub struct Vertice {
+struct Vertice {
     t: i32,
     config: Config<i32>,
     powering_up: bool,

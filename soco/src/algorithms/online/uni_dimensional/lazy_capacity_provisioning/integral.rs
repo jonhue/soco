@@ -14,6 +14,7 @@ pub fn lcp(
     o: &Online<IntegralSmoothedConvexOptimization<'_>>,
     xs: &IntegralSchedule,
     ms: &Vec<Memory<i32>>,
+    _: &(),
 ) -> Result<OnlineSolution<i32, Memory<i32>>> {
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 

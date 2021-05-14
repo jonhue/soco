@@ -1,6 +1,7 @@
 //! Utilities.
 
 use num::{Num, NumCast};
+use rand::{thread_rng, Rng};
 
 use crate::result::{Error, Result};
 
@@ -49,6 +50,7 @@ pub fn is_pow_of_2(x: i32) -> bool {
     x != 0 && x & (x - 1) == 0
 }
 
+/// Returns the `i`-th element if it exists.
 pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<&T> {
     if i >= 0 && i < xs.len() as i32 {
         Some(&xs[i as usize])
@@ -82,4 +84,10 @@ pub fn duplicate_and_push_to_all<T>(
         xs.push(x);
     }
     bag.extend(tmp);
+}
+
+/// Randomly samples a uniform value in `[0,1]`.
+pub fn sample_uniform() -> f64 {
+    let mut rng = thread_rng();
+    rng.gen_range(0.0..=1.0)
 }

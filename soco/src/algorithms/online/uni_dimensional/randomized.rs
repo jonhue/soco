@@ -1,5 +1,3 @@
-use rand::{thread_rng, Rng};
-
 use crate::algorithms::online::uni_dimensional::probabilistic::{
     probabilistic, Memory as ProbMemory,
 };
@@ -9,7 +7,7 @@ use crate::online::{Online, OnlineSolution};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;
-use crate::utils::{assert, frac, project};
+use crate::utils::{assert, frac, project, sample_uniform};
 
 /// Fractional number of servers as determined by `bansal::det`; memory of `bansal::det`.
 pub struct Memory<'a>(pub Config<f64>, pub ProbMemory<'a>);
@@ -21,12 +19,14 @@ pub fn randomized<'a>(
     o: &'a Online<FractionalSmoothedConvexOptimization<'a>>,
     xs: &IntegralSchedule,
     ms: &Vec<Memory<'a>>,
+    _: &(),
 ) -> Result<OnlineSolution<i32, Memory<'a>>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
     let prob_ms = ms.iter().map(|m| m.1.clone()).collect();
-    let OnlineSolution(y, prob_m) = probabilistic(o, &xs.to_f(), &prob_ms)?;
+    let OnlineSolution(y, prob_m) =
+        probabilistic(o, &xs.to_f(), &prob_ms, &())?;
 
     let prev_x = if xs.is_empty() { 0 } else { xs.now()[0] };
     let prev_y = if ms.is_empty() {
@@ -74,9 +74,4 @@ fn next(prev_x: i32, prev_y: f64, y: f64) -> i32 {
             }
         }
     }
-}
-
-fn sample_uniform() -> f64 {
-    let mut rng = thread_rng();
-    rng.gen_range(0.0..=1.0)
 }

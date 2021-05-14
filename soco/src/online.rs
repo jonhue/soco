@@ -32,14 +32,16 @@ where
     ///
     /// * `alg` - Online algorithm to stream.
     /// * `next` - Callback that in each iteration updates the problem instance. Return `true` to continue stream, `false` to end stream.
-    pub fn stream<U, V>(
+    pub fn stream<U, V, W>(
         &mut self,
         alg: impl Fn(
             &Online<T>,
             &Schedule<V>,
             &Vec<U>,
+            &W,
         ) -> Result<OnlineSolution<V, U>>,
         next: impl Fn(&mut Online<T>, &Schedule<V>, &Vec<U>) -> bool,
+        options: &W,
     ) -> Result<(Schedule<V>, Vec<U>)>
     where
         V: Clone,
@@ -54,7 +56,7 @@ where
                 Error::OnlineInsufficientInformation,
             )?;
 
-            let OnlineSolution(i, m) = alg(self, &xs, &ms)?;
+            let OnlineSolution(i, m) = alg(self, &xs, &ms, options)?;
             xs.push(i);
             ms.push(m);
             if !next(self, &xs, &ms) {
@@ -72,25 +74,31 @@ where
     /// * `U` - Memory.
     /// * `alg` - Online algorithm to stream.
     /// * `t_end` - Finite time horizon.
-    pub fn offline_stream<U, V>(
+    pub fn offline_stream<U, V, W>(
         &mut self,
         alg: impl Fn(
             &Online<T>,
             &Schedule<V>,
             &Vec<U>,
+            &W,
         ) -> Result<OnlineSolution<V, U>>,
         t_end: i32,
+        options: &W,
     ) -> Result<(Schedule<V>, Vec<U>)>
     where
         V: Clone,
     {
-        self.stream(alg, |o, _, _| {
-            if o.p.t_end() < t_end - o.w {
-                o.p.inc_t_end();
-                true
-            } else {
-                false
-            }
-        })
+        self.stream(
+            alg,
+            |o, _, _| {
+                if o.p.t_end() < t_end - o.w {
+                    o.p.inc_t_end();
+                    true
+                } else {
+                    false
+                }
+            },
+            options,
+        )
     }
 }
