@@ -13,7 +13,7 @@ mod lcp {
         let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1,
-            bounds: vec![2],
+            bounds: vec![5],
             switching_cost: vec![1.],
             hitting_cost: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
@@ -23,13 +23,7 @@ mod lcp {
         o.verify().unwrap();
 
         let result = o
-            .stream(
-                lcp,
-                |_, _, _| false,
-                &Options {
-                    use_approx: None,
-                },
-            )
+            .stream(lcp, |_, _, _| false, &Options { use_approx: None })
             .unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
@@ -42,7 +36,7 @@ mod lcp {
         let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1,
-            bounds: vec![2],
+            bounds: vec![5],
             switching_cost: vec![1.],
             hitting_cost: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
@@ -81,13 +75,7 @@ mod lcp {
 
         let t_end = 2;
         let result = o
-            .offline_stream(
-                lcp,
-                t_end,
-                &Options {
-                    use_approx: None,
-                },
-            )
+            .offline_stream(lcp, t_end, &Options { use_approx: None })
             .unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
