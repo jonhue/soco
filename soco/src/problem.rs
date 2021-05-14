@@ -72,7 +72,7 @@ pub struct SmoothedBalancedLoadOptimization<'a, T> {
     pub bounds: Vec<T>,
     /// Vector of positive real constants resembling the switching cost of each dimension.
     pub switching_cost: Vec<f64>,
-    /// Non-negative convex increasing cost functions for each dimension.
+    /// Non-negative increasing cost functions for each dimension.
     pub hitting_cost: Vec<CostFn<'a, T>>,
     /// Non-negative load at each time step `t`.
     pub load: Vec<T>,
