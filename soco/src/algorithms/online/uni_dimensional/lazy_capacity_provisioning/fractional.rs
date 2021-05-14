@@ -9,16 +9,25 @@ use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, project};
 
+pub struct Options {
+    /// Whether to to start optimization at reference time other than `0`.
+    pub optimize_reference_time: bool,
+}
+
 /// Fractional Lazy Capacity Provisioning
 pub fn lcp(
     o: &Online<FractionalSmoothedConvexOptimization<'_>>,
     xs: &FractionalSchedule,
     ms: &Vec<Memory<f64>>,
-    _: &(),
+    options: &Options,
 ) -> Result<OnlineSolution<f64, Memory<f64>>> {
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
-    let t_start = find_initial_time(o.p.t_end, ms);
+    let t_start = if options.optimize_reference_time {
+        find_initial_time(o.p.t_end, ms)
+    } else {
+        0
+    };
 
     let i = if xs.is_empty() { 0. } else { xs.now()[0] };
     let l = o.p.find_lower_bound(o.p.t_end, t_start, None)?;

@@ -33,7 +33,7 @@ pub struct Options<'a> {
     pub gamma: Option<f64>,
 }
 
-/// Utility to sample gamme for Randomized Lazy Budgeting.
+/// Utility to sample gamma for Randomized Lazy Budgeting.
 ///
 /// Sample gamma once before running the algorithm.
 pub fn sample_gamma() -> f64 {

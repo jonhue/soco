@@ -23,7 +23,14 @@ mod lcp {
         o.verify().unwrap();
 
         let result = o
-            .stream(lcp, |_, _, _| false, &Options { use_approx: None })
+            .stream(
+                lcp,
+                |_, _, _| false,
+                &Options {
+                    optimize_reference_time: true,
+                    use_approx: None,
+                },
+            )
             .unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
@@ -50,6 +57,7 @@ mod lcp {
                 lcp,
                 |_, _, _| false,
                 &Options {
+                    optimize_reference_time: true,
                     use_approx: Some(&approx_options),
                 },
             )
@@ -75,7 +83,14 @@ mod lcp {
 
         let t_end = 2;
         let result = o
-            .offline_stream(lcp, t_end, &Options { use_approx: None })
+            .offline_stream(
+                lcp,
+                t_end,
+                &Options {
+                    optimize_reference_time: true,
+                    use_approx: None,
+                },
+            )
             .unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
@@ -106,6 +121,7 @@ mod lcp {
                 lcp,
                 t_end,
                 &Options {
+                    optimize_reference_time: true,
                     use_approx: Some(&approx_options),
                 },
             )

@@ -1,7 +1,7 @@
 mod lcp {
     use std::sync::Arc;
 
-    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::fractional::lcp;
+    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::fractional::{Options, lcp};
     use soco::convert::DiscretizableSchedule;
     use soco::online::Online;
     use soco::problem::SmoothedConvexOptimization;
@@ -22,7 +22,15 @@ mod lcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.stream(lcp, |_, _, _| false, &()).unwrap();
+        let result = o
+            .stream(
+                lcp,
+                |_, _, _| false,
+                &Options {
+                    optimize_reference_time: true,
+                },
+            )
+            .unwrap();
         result.0.verify(o.p.t_end, &o.p.switching_cost).unwrap();
 
         assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(1)]));
@@ -43,7 +51,15 @@ mod lcp {
         o.verify().unwrap();
 
         let t_end = 2;
-        let result = o.offline_stream(lcp, t_end, &()).unwrap();
+        let result = o
+            .offline_stream(
+                lcp,
+                t_end,
+                &Options {
+                    optimize_reference_time: true,
+                },
+            )
+            .unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
         assert_eq!(
