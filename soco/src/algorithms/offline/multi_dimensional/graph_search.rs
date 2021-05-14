@@ -3,11 +3,12 @@ use pathfinding::prelude::astar;
 use std::collections::HashMap;
 
 use crate::algorithms::graph_search::{Path, Paths};
+use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
+use crate::objective::movement;
 use crate::problem::IntegralSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
-use crate::utils::pos;
 
 /// Vertice in the graph denoting time `t` and the value `x` at time `t`.
 /// The boolean flag indicates whether the vertice belongs to the powering up (`true`) or powering down (`false`) phase.
@@ -22,6 +23,7 @@ struct Vertice {
 pub fn graph_search<'a>(
     p: &'a IntegralSmoothedConvexOptimization<'a>,
     configs: &Vec<Config<i32>>,
+    offline_options: &OfflineOptions,
 ) -> Result<Path> {
     let mut paths: Paths<Vertice> = HashMap::new();
     let initial_vertice = Vertice {
@@ -45,7 +47,14 @@ pub fn graph_search<'a>(
             config: config.clone(),
             powering_up: true,
         };
-        find_shortest_subpath(p, configs, &mut paths, &from, &to)?;
+        find_shortest_subpath(
+            p,
+            configs,
+            offline_options.inverted,
+            &mut paths,
+            &from,
+            &to,
+        )?;
     }
 
     // intermediate time steps (1 < t < T)
@@ -64,7 +73,14 @@ pub fn graph_search<'a>(
                     powering_up: true,
                 })
                 .collect();
-            find_shortest_subpath(p, configs, &mut paths, &from, &to)?;
+            find_shortest_subpath(
+                p,
+                configs,
+                offline_options.inverted,
+                &mut paths,
+                &from,
+                &to,
+            )?;
         }
     }
 
@@ -78,7 +94,14 @@ pub fn graph_search<'a>(
                 powering_up: true,
             })
             .collect();
-        find_shortest_subpath(p, configs, &mut paths, &from, &final_vertice)?;
+        find_shortest_subpath(
+            p,
+            configs,
+            offline_options.inverted,
+            &mut paths,
+            &from,
+            &final_vertice,
+        )?;
     }
 
     Ok(paths
@@ -90,6 +113,7 @@ pub fn graph_search<'a>(
 fn find_shortest_subpath(
     p: &IntegralSmoothedConvexOptimization<'_>,
     configs: &Vec<Config<i32>>,
+    inverted: bool,
     paths: &mut Paths<Vertice>,
     from: &Vec<Vertice>,
     to: &Vertice,
@@ -100,8 +124,8 @@ fn find_shortest_subpath(
     for source in from {
         let (vs, cost) = astar(
             source,
-            |v| v.successors(p, configs),
-            |v| v.heuristic(to, p),
+            |v| v.successors(p, configs, inverted),
+            |v| v.heuristic(to, p, inverted),
             |v| *v == *to,
         )
         .ok_or(Error::SubpathShouldBePresent)?;
@@ -135,6 +159,7 @@ impl Vertice {
         &self,
         to: &Vertice,
         p: &IntegralSmoothedConvexOptimization<'_>,
+        inverted: bool,
     ) -> OrderedFloat<f64> {
         assert!(to.powering_up, "Only vertices from the powering up phase may be used as goals with this heuristic function.");
 
@@ -156,8 +181,8 @@ impl Vertice {
 
         // switching costs
         for k in 0..p.d as usize {
-            cost +=
-                p.switching_cost[k] * pos(to.config[k] - self.config[k]) as f64;
+            cost += p.switching_cost[k]
+                * movement(to.config[k], self.config[k], inverted);
         }
 
         // one could also add the smallest hitting cost of any of the configurations,
@@ -170,6 +195,7 @@ impl Vertice {
         &self,
         p: &IntegralSmoothedConvexOptimization<'_>,
         configs: &Vec<Config<i32>>,
+        inverted: bool,
     ) -> Vec<(Vertice, OrderedFloat<f64>)> {
         let mut successors = vec![];
         if self.powering_up {
@@ -198,7 +224,8 @@ impl Vertice {
                             powering_up: true,
                         },
                         OrderedFloat(
-                            p.switching_cost[k] * (vs[i + 1] - vs[i]) as f64,
+                            p.switching_cost[k]
+                                * movement(vs[i + 1], vs[i], inverted),
                         ),
                     ));
                 }

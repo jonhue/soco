@@ -10,6 +10,7 @@ use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
 use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
     make_pow_of_2, optimal_graph_search, Options as OptOptions,
 };
+use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::objective::Objective;
 use crate::problem::{
@@ -172,7 +173,9 @@ impl IntegralSmoothedConvexOptimization<'_> {
                 }
                 optimal_graph_search(&p, &OptOptions { inverted })?
             }
-            Some(options) => approx_graph_search(&p, options)?,
+            Some(options) => {
+                approx_graph_search(&p, options, &OfflineOptions { inverted })?
+            }
         };
 
         Ok(xs[(t - t_start) as usize - 1][0])

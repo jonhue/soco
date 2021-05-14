@@ -3,6 +3,7 @@ use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
     approx_graph_search, Options as ApproxOptions,
 };
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
+use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::online::Online;
 use crate::online::OnlineSolution;
@@ -149,8 +150,14 @@ fn find_optimal_lanes(
     let sblo_p = p.to_sblo();
     let sco_p = sblo_p.to_sco();
     let Path(xs, _) = match use_approx {
-        None => optimal_graph_search(&sco_p)?,
-        Some(options) => approx_graph_search(&sco_p, options)?,
+        None => {
+            optimal_graph_search(&sco_p, &OfflineOptions { inverted: false })?
+        }
+        Some(options) => approx_graph_search(
+            &sco_p,
+            options,
+            &OfflineOptions { inverted: false },
+        )?,
     };
     Ok(build_lanes(&xs.now(), p.d, bound))
 }

@@ -1,5 +1,6 @@
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::graph_search::graph_search;
+use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::problem::IntegralSmoothedConvexOptimization;
 use crate::result::{Error, Result};
@@ -17,9 +18,10 @@ pub struct Options {
 pub fn approx_graph_search<'a>(
     p: &'a IntegralSmoothedConvexOptimization<'a>,
     options: &Options,
+    offline_options: &OfflineOptions,
 ) -> Result<Path> {
     let configs = build_configs(p, options.gamma.unwrap_or(DEFAULT_GAMMA))?;
-    graph_search(p, &configs)
+    graph_search(p, &configs, offline_options)
 }
 
 /// Computes all configurations examined by the approximation algorithm.
