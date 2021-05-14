@@ -151,11 +151,10 @@ where
     /// Convert instance to an instance of Smoothed Convex Optimization.
     pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {
         let f: LoadCostFn<'a, T> = Arc::new(move |t, k, l| {
-            Arc::new(move |j| match self.hitting_cost[k as usize](t, l / j) {
-                None => None,
-                Some(hitting_cost) => {
-                    Some(ToPrimitive::to_f64(&j).unwrap() * hitting_cost)
-                }
+            Arc::new(move |j| {
+                self.hitting_cost[k as usize](t, l / j).map(|hitting_cost| {
+                    ToPrimitive::to_f64(&j).unwrap() * hitting_cost
+                })
             })
         });
         SmoothedConvexOptimization {

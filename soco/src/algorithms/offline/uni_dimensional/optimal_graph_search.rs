@@ -3,21 +3,27 @@ use std::sync::Arc;
 
 use crate::algorithms::graph_search::{Path, Paths};
 use crate::config::Config;
+use crate::objective::movement;
 use crate::problem::{
     IntegralSmoothedConvexOptimization, SmoothedConvexOptimization,
 };
 use crate::result::{Error, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
-use crate::utils::{assert, is_pow_of_2, pos};
+use crate::utils::{assert, is_pow_of_2};
 
 /// Vertice in the graph denoting time `t` and the value `j` at time `t`.
 #[derive(Eq, Hash, PartialEq)]
 struct Vertice(i32, i32);
 
+pub struct Options {
+    /// Compute inverted cost.
+    pub inverted: bool,
+}
+
 /// Graph-Based Optimal Integral Algorithm
 pub fn optimal_graph_search(
     p: &'_ IntegralSmoothedConvexOptimization<'_>,
-    inverted: bool,
+    options: &Options,
 ) -> Result<Path> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
     assert(is_pow_of_2(p.bounds[0]), Error::MustBePowOf2)?;
@@ -28,12 +34,16 @@ pub fn optimal_graph_search(
         0
     };
 
-    let mut result = find_schedule(p, select_initial_rows(p), inverted)?;
+    let mut result =
+        find_schedule(p, select_initial_rows(p), options.inverted)?;
 
     if k_init > 0 {
         for k in k_init - 1..=0 {
-            result =
-                find_schedule(p, select_next_rows(p, &result.0, k), inverted)?;
+            result = find_schedule(
+                p,
+                select_next_rows(p, &result.0, k),
+                options.inverted,
+            )?;
         }
     }
 
@@ -106,17 +116,22 @@ fn find_schedule(
         prev_rows = rows;
     }
 
-    let mut result = &Path(Schedule::empty(), f64::INFINITY);
+    let mut result = Path(Schedule::empty(), f64::INFINITY);
     for i in prev_rows {
         let path = paths
             .get(&Vertice(p.t_end, i))
             .ok_or(Error::PathsShouldBeCached)?;
-        if path.1 < result.1 {
-            result = path;
+        let cost = if inverted {
+            p.switching_cost[0] * i as f64
+        } else {
+            0.
+        };
+        let picked_cost = path.1 + cost;
+        if picked_cost < result.1 {
+            result = Path(path.0.clone(), picked_cost);
         }
     }
-
-    Ok(result.clone())
+    Ok(result)
 }
 
 fn find_shortest_subpath(
@@ -153,8 +168,7 @@ fn build_cost(
 ) -> Result<f64> {
     let hitting_cost =
         (p.hitting_cost)(t, vec![j]).ok_or(Error::CostFnMustBeTotal)?;
-    let switching_cost =
-        p.switching_cost[0] * pos(if inverted { i - j } else { j - i }) as f64;
+    let switching_cost = p.switching_cost[0] * movement(j, i, inverted);
     Ok(hitting_cost + switching_cost)
 }
 

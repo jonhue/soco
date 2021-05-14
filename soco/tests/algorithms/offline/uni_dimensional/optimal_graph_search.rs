@@ -48,7 +48,7 @@ mod optimal_graph_search {
     use std::sync::Arc;
 
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::{
-        make_pow_of_2, optimal_graph_search,
+        make_pow_of_2, optimal_graph_search, Options,
     };
     use soco::config::Config;
     use soco::objective::Objective;
@@ -69,9 +69,15 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result = optimal_graph_search(&p, false).unwrap();
+        let result =
+            optimal_graph_search(&p, &Options { inverted: false }).unwrap();
         result.0.verify(p.t_end, &p.bounds).unwrap();
+        let inv_result =
+            optimal_graph_search(&p, &Options { inverted: true }).unwrap();
+        inv_result.0.verify(p.t_end, &p.bounds).unwrap();
 
+        assert_eq!(result.0, inv_result.0);
+        assert_eq!(result.1, inv_result.1);
         assert_eq!(
             result.0,
             Schedule::new(vec![Config::single(1), Config::single(1)])
@@ -96,9 +102,15 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result = optimal_graph_search(&p, false).unwrap();
+        let result =
+            optimal_graph_search(&p, &Options { inverted: false }).unwrap();
         result.0.verify(p.t_end, &p.bounds).unwrap();
+        let inv_result =
+            optimal_graph_search(&p, &Options { inverted: true }).unwrap();
+        inv_result.0.verify(p.t_end, &p.bounds).unwrap();
 
+        assert_eq!(result.0, inv_result.0);
+        assert_eq!(result.1, inv_result.1);
         assert_eq!(result.1, p.objective_function(&result.0).unwrap());
     }
 
@@ -119,12 +131,23 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let transformed_p = make_pow_of_2(&p).unwrap();
-        let result = optimal_graph_search(&transformed_p, false).unwrap();
+        let result =
+            optimal_graph_search(&transformed_p, &Options { inverted: false })
+                .unwrap();
         result
             .0
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
+        let inv_result =
+            optimal_graph_search(&transformed_p, &Options { inverted: true })
+                .unwrap();
+        inv_result
+            .0
+            .verify(transformed_p.t_end, &transformed_p.bounds)
+            .unwrap();
 
+        assert_eq!(result.0, inv_result.0);
+        assert_eq!(result.1, inv_result.1);
         assert_eq!(
             result.1,
             transformed_p.objective_function(&result.0).unwrap()
