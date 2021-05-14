@@ -5,7 +5,7 @@ use crate::problem::IntegralSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::utils::duplicate_and_push_to_all;
 
-static DEFAULT_GAMMA: f64 = 2.;
+static DEFAULT_GAMMA: f64 = 1.1;
 static MAX_ITERATIONS: i32 = 1_000_000;
 
 pub struct Options {
