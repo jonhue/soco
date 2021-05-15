@@ -10,18 +10,21 @@ use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::cost::CostFn;
 use crate::online::Online;
-use crate::online::OnlineSolution;
+use crate::online::Step;
 use crate::problem::{
     IntegralSmoothedBalancedLoadOptimization, SmoothedBalancedLoadOptimization,
 };
 use crate::result::{Error, Result};
-use crate::schedule::IntegralSchedule;
+use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::assert;
 
 static DEFAULT_EPSILON: f64 = 0.25;
 
-/// Maps dimension to the number of active instances at some time `t`.
-pub type Memory = Vec<i32>;
+/// Schedule and memory of internally used algorithm.
+pub type Memory = (IntegralSchedule, Vec<AlgBMemory>);
+
+/// Maps dimension to the number of active instances for some sub time slot `u`.
+type AlgBMemory = Vec<i32>;
 
 pub struct Options<'a> {
     /// Whether to use an approximation to find the optimal schedule.
@@ -33,28 +36,35 @@ pub struct Options<'a> {
 /// Lazy Budgeting for Smoothed Balanced-Load Optimization
 pub fn lb<'a>(
     o: &'a Online<IntegralSmoothedBalancedLoadOptimization>,
-    xs: &IntegralSchedule,
-    _: &Vec<()>,
+    xs: &mut IntegralSchedule,
+    ms: &mut Vec<Memory>,
     options: &Options,
-) -> Result<OnlineSolution<i32, ()>> {
+) -> Result<Step<i32, Memory>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
     let epsilon = options.epsilon.unwrap_or(DEFAULT_EPSILON);
     let t = xs.t_end() + 1;
     let n = determine_sub_time_slots(&o.p, t, epsilon)?;
-    let mod_p = modify_problem(&o.p, t, epsilon)?;
-    let mut mod_o = Online { w: 0, p: mod_p };
+    let mut mod_o = Online {
+        w: 0,
+        p: modify_problem(&o.p, t, epsilon)?,
+    };
     let init_u = mod_o.p.t_end;
 
-    let (xs, _) = mod_o.offline_stream(alg_b, n, options)?;
+    if ms.is_empty() {
+        ms.push((Schedule::empty(), vec![]));
+    }
+    let (mut algb_xs, mut algb_ms) = ms[0].clone();
+    mod_o.offline_stream_from(alg_b, n, options, &mut algb_xs, &mut algb_ms)?;
+    ms[0] = (algb_xs, algb_ms);
 
     let config = determine_config(&mod_o.p, xs, init_u, n)?;
-    Ok(OnlineSolution(config, ()))
+    Ok(Step(config, None))
 }
 
 fn determine_config(
     p: &IntegralSmoothedBalancedLoadOptimization,
-    xs: IntegralSchedule,
+    xs: &IntegralSchedule,
     init_u: i32,
     n: i32,
 ) -> Result<Config<i32>> {
@@ -142,10 +152,10 @@ fn determine_sub_time_slots(
 
 fn alg_b(
     o: &Online<IntegralSmoothedBalancedLoadOptimization>,
-    xs: &IntegralSchedule,
-    ms: &Vec<Memory>,
+    xs: &mut IntegralSchedule,
+    ms: &mut Vec<AlgBMemory>,
     options: &Options,
-) -> Result<OnlineSolution<i32, Memory>> {
+) -> Result<Step<i32, AlgBMemory>> {
     let t = xs.t_end() + 1;
     let opt_x = find_optimal_config(&o.p, options.use_approx)?;
     let mut m = vec![0; o.p.d as usize];
@@ -169,13 +179,13 @@ fn alg_b(
         }
     }
 
-    Ok(OnlineSolution(x, m))
+    Ok(Step(x, Some(m)))
 }
 
 fn deactivated_quantity(
     hitting_cost: &CostFn<'_, i32>,
     switching_cost: f64,
-    ms: &Vec<Memory>,
+    ms: &Vec<AlgBMemory>,
     t_now: i32,
     k: usize,
 ) -> Result<i32> {

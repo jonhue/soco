@@ -6,7 +6,7 @@ use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::online::Online;
-use crate::online::OnlineSolution;
+use crate::online::Step;
 use crate::problem::IntegralSmoothedLoadOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;
@@ -45,10 +45,10 @@ pub fn sample_gamma() -> f64 {
 /// Lazy Budgeting for Smoothed Load Optimization
 pub fn lb(
     o: &Online<IntegralSmoothedLoadOptimization>,
-    xs: &IntegralSchedule,
-    ms: &Vec<Memory>,
+    xs: &mut IntegralSchedule,
+    ms: &mut Vec<Memory>,
     options: &Options,
-) -> Result<OnlineSolution<i32, Memory>> {
+) -> Result<Step<i32, Memory>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
     let t = xs.t_end() + 1;
@@ -91,7 +91,7 @@ pub fn lb(
     }
 
     let config = collect_config(o.p.d, &lanes);
-    Ok(OnlineSolution(config, Memory { lanes, horizons }))
+    Ok(Step(config, Some(Memory { lanes, horizons })))
 }
 
 fn next_time_horizon(
