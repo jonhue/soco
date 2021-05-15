@@ -7,6 +7,7 @@ use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
 use crate::utils::access;
+use crate::value::Value;
 use crate::PRECISION;
 
 pub mod data_center;
@@ -31,7 +32,7 @@ pub fn lazy<'a, T>(
     ls: &'a Vec<T>,
 ) -> CostFn<'a, Vec<T>>
 where
-    T: Copy + NumCast,
+    T: Value,
 {
     Arc::new(move |t, x| {
         let l = access(ls, t - 1)?;

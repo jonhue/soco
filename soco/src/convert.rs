@@ -1,6 +1,6 @@
 //! Functions to convert between problem instances.
 
-use num::{Num, NumCast, ToPrimitive};
+use num::ToPrimitive;
 use std::sync::Arc;
 
 use crate::config::Config;
@@ -13,6 +13,7 @@ use crate::problem::{
     SmoothedLoadOptimization,
 };
 use crate::schedule::{FractionalSchedule, IntegralSchedule};
+use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 
 pub trait DiscretizableVector {
@@ -124,7 +125,7 @@ impl<'a> RelaxableProblem<'a> for IntegralSmoothedConvexOptimization<'a> {
 
 impl<'a, T> SmoothedLoadOptimization<T>
 where
-    T: Clone + Copy + Num + NumCast,
+    T: Value,
 {
     /// Convert instance to an instance of Smoothed Balanced-Load Optimization.
     pub fn to_sblo(&'a self) -> SmoothedBalancedLoadOptimization<'a, T> {
@@ -146,7 +147,7 @@ where
 
 impl<'a, T> SmoothedBalancedLoadOptimization<'a, T>
 where
-    T: Clone + Copy + Num + NumCast,
+    T: Value,
 {
     /// Convert instance to an instance of Smoothed Convex Optimization.
     pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {

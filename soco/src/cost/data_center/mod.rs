@@ -4,6 +4,7 @@ use num::ToPrimitive;
 use std::sync::Arc;
 
 use crate::cost::LoadCostFn;
+use crate::value::Value;
 
 use load::LoadFn;
 
@@ -16,7 +17,7 @@ pub mod load;
 /// This behavior models the optimal dispatching rule of workload to all active servers.
 pub fn load_balance<'a, T>(f: &'a Vec<LoadFn>) -> LoadCostFn<'a, T>
 where
-    T: Clone + ToPrimitive + 'a,
+    T: Value + 'a,
 {
     Arc::new(move |_, k, l| {
         Arc::new(move |x| {

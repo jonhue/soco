@@ -1,6 +1,7 @@
 //! Functions to check that values satisfy the imposed constraints.
 
 use num::NumCast;
+use std::fmt::Debug;
 
 use crate::config::Config;
 use crate::cost::CostFn;
@@ -12,6 +13,7 @@ use crate::problem::{
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
+use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 
 pub trait VerifiableCostFn<'a, T> {
@@ -20,7 +22,7 @@ pub trait VerifiableCostFn<'a, T> {
 
 impl<'a, T> VerifiableCostFn<'a, T> for CostFn<'a, T>
 where
-    T: Clone + std::fmt::Debug,
+    T: Clone + Debug,
 {
     fn verify(&self, t: i32, x: T) -> Result<()> {
         assert_validity(
@@ -38,7 +40,7 @@ pub trait VerifiableProblem {
 
 impl<'a, T> VerifiableProblem for SmoothedConvexOptimization<'a, T>
 where
-    T: Clone + NumCast + PartialOrd + std::fmt::Debug,
+    T: Value,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -86,7 +88,7 @@ where
 
 impl<T> VerifiableProblem for SmoothedLoadOptimization<T>
 where
-    T: Clone + NumCast + PartialOrd + std::fmt::Debug + std::fmt::Display,
+    T: Value,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -182,12 +184,7 @@ where
 
 impl<'a, T> VerifiableProblem for SmoothedBalancedLoadOptimization<'a, T>
 where
-    T: Copy
-        + Clone
-        + NumCast
-        + PartialOrd
-        + std::fmt::Debug
-        + std::fmt::Display,
+    T: Value,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -265,7 +262,7 @@ where
 
 impl<'a, T> Config<T>
 where
-    T: Copy + NumCast + PartialOrd,
+    T: Value,
 {
     pub fn verify(&self, t: i32, bounds: &Vec<T>) -> Result<()> {
         for (k, &j) in self.iter().enumerate() {
@@ -289,7 +286,7 @@ where
 
 impl<'a, T> Schedule<T>
 where
-    T: Copy + NumCast + PartialOrd,
+    T: Value,
 {
     pub fn verify(&self, t_end: i32, bounds: &Vec<T>) -> Result<()> {
         assert_validity(

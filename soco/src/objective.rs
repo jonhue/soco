@@ -1,6 +1,6 @@
 //! Objective function.
 
-use num::{Num, NumCast, ToPrimitive};
+use num::{NumCast, ToPrimitive};
 
 use crate::config::Config;
 use crate::problem::{
@@ -10,6 +10,7 @@ use crate::problem::{
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::pos;
+use crate::value::Value;
 
 pub trait Objective<T> {
     /// Objective Function. Calculates the cost of a schedule.
@@ -32,7 +33,7 @@ pub trait Objective<T> {
 
 impl<'a, T> Objective<T> for SmoothedConvexOptimization<'a, T>
 where
-    T: Copy + Num + NumCast + PartialOrd,
+    T: Value,
 {
     fn _objective_function(
         &self,
@@ -57,7 +58,7 @@ where
 
 impl<T> Objective<T> for SmoothedLoadOptimization<T>
 where
-    T: Copy + Num + NumCast + PartialOrd,
+    T: Value,
 {
     fn _objective_function(
         &self,
@@ -82,7 +83,7 @@ where
 
 impl<'a, T> Objective<T> for SmoothedBalancedLoadOptimization<'a, T>
 where
-    T: Copy + Num + NumCast + PartialOrd,
+    T: Value,
 {
     fn _objective_function(
         &self,
@@ -100,7 +101,7 @@ where
 
 pub fn movement<T>(x: T, prev_x: T, inverted: bool) -> f64
 where
-    T: Num + NumCast + PartialOrd,
+    T: Value,
 {
     ToPrimitive::to_f64(&pos(if inverted { prev_x - x } else { x - prev_x }))
         .unwrap()
