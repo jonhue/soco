@@ -12,7 +12,10 @@ use crate::schedule::Schedule;
 use crate::utils::pos;
 use crate::value::Value;
 
-pub trait Objective<T> {
+pub trait Objective<T>
+where
+    T: Value,
+{
     /// Objective Function. Calculates the cost of a schedule.
     fn objective_function(&self, xs: &Schedule<T>) -> Result<f64> {
         self._objective_function(xs, false)

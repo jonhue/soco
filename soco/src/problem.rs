@@ -1,6 +1,7 @@
 //! Problem definition.
 
 use crate::cost::CostFn;
+use crate::value::Value;
 
 /// Trait implemented by all finite-time-horizon problems.
 pub trait Problem {
@@ -11,7 +12,10 @@ pub trait Problem {
 }
 
 /// Smoothed Convex Optimization.
-pub struct SmoothedConvexOptimization<'a, T> {
+pub struct SmoothedConvexOptimization<'a, T>
+where
+    T: Value,
+{
     /// Number of dimensions.
     pub d: i32,
     /// Finite, positive time horizon.
@@ -27,7 +31,10 @@ pub type IntegralSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, i32>;
 pub type FractionalSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, f64>;
-impl<'a, T> Problem for SmoothedConvexOptimization<'a, T> {
+impl<'a, T> Problem for SmoothedConvexOptimization<'a, T>
+where
+    T: Value,
+{
     fn t_end(&self) -> i32 {
         self.t_end
     }
@@ -37,7 +44,10 @@ impl<'a, T> Problem for SmoothedConvexOptimization<'a, T> {
 }
 
 /// Smoothed Load Optimization
-pub struct SmoothedLoadOptimization<T> {
+pub struct SmoothedLoadOptimization<T>
+where
+    T: Value,
+{
     /// Number of dimensions.
     pub d: i32,
     /// Finite, positive time horizon.
@@ -53,7 +63,10 @@ pub struct SmoothedLoadOptimization<T> {
     pub load: Vec<T>,
 }
 pub type IntegralSmoothedLoadOptimization = SmoothedLoadOptimization<i32>;
-impl<T> Problem for SmoothedLoadOptimization<T> {
+impl<T> Problem for SmoothedLoadOptimization<T>
+where
+    T: Value,
+{
     fn t_end(&self) -> i32 {
         self.t_end
     }
@@ -63,7 +76,10 @@ impl<T> Problem for SmoothedLoadOptimization<T> {
 }
 
 /// Smoothed Balanced-Load Optimization
-pub struct SmoothedBalancedLoadOptimization<'a, T> {
+pub struct SmoothedBalancedLoadOptimization<'a, T>
+where
+    T: Value,
+{
     /// Number of dimensions.
     pub d: i32,
     /// Finite, positive time horizon.
@@ -79,7 +95,10 @@ pub struct SmoothedBalancedLoadOptimization<'a, T> {
 }
 pub type IntegralSmoothedBalancedLoadOptimization<'a> =
     SmoothedBalancedLoadOptimization<'a, i32>;
-impl<'a, T> Problem for SmoothedBalancedLoadOptimization<'a, T> {
+impl<'a, T> Problem for SmoothedBalancedLoadOptimization<'a, T>
+where
+    T: Value,
+{
     fn t_end(&self) -> i32 {
         self.t_end
     }

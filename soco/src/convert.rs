@@ -257,7 +257,7 @@ impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T> {
 
 impl<'a, T> SmoothedConvexOptimization<'a, T>
 where
-    T: Clone,
+    T: Value,
 {
     /// Shifts problem instance to some new initial time `t_start`.
     pub fn reset(&'a self, t_start: i32) -> SmoothedConvexOptimization<'a, T> {

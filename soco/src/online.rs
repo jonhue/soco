@@ -21,7 +21,9 @@ pub struct Online<T> {
 ///
 /// * Configuration at time `t`.
 /// * Memory if new memory should be added.
-pub struct Step<T, U>(pub Config<T>, pub Option<U>);
+pub struct Step<T, U>(pub Config<T>, pub Option<U>)
+where
+    T: Value;
 
 impl<'a, T> Online<T>
 where

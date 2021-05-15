@@ -1,6 +1,7 @@
 //! Multi-Dimensional Offline Algorithms.
 
 use crate::config::Config;
+use crate::value::Value;
 
 pub mod approx_graph_search;
 pub mod optimal_graph_search;
@@ -13,7 +14,7 @@ pub fn duplicate_and_push_to_all<T>(
     base: &Vec<Config<T>>,
     j: T,
 ) where
-    T: Copy,
+    T: Value,
 {
     let mut tmp = base.clone();
     for x in tmp.iter_mut() {
