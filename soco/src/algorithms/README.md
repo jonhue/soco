@@ -12,8 +12,9 @@
 | `online::uni_dimensional::memoryless::memoryless` [2]                                        | 1       | ❌                 | ❌        | ✅      | 3-competitive                  |              |
 | `online::uni_dimensional::probabilistic::probabilistic` [2]                                  | 1       | ❌                 | ❌        | ✅      | 2-competitive                  |              |
 | `online::uni_dimensional::randomized::randomized` [3]                                        | 1       | ❌                 | ✅        | ✅      | 2-competitive                  |              |
-| `online::multi_dimensional::smoothed_load_optimization::lazy_budgeting::lb` [4]              | 2       | ✅                 | ✅        | ✅      | 2d-competitive                 |              |
-| `online::multi_dimensional::smoothed_load_optimization::lazy_budgeting::lb` (randomized) [4] | 2       | ✅                 | ✅        | ✅      | (e / (e - 1))d-competitive     |              |
+| `online::multi_dimensional::lazy_budgeting::smoothed_load_optimization::lb` [4]              | 2       | ✅                 | ✅        | ✅      | 2d-competitive                 |              |
+| `online::multi_dimensional::lazy_budgeting::smoothed_load_optimization::lb` (randomized) [4] | 2       | ✅                 | ✅        | ✅      | (e / (e - 1))d-competitive     |              |
+| `online::multi_dimensional::lazy_budgeting::smoothed_balanced_load_optimization::lb` [5]     | 3       | ✅                 | ✅        | ✅      | (2d + 1 + ε)-competitive       |              |
 
 \* If online, the competitive ratio describes how much worse the algorithm performs compared to an optimal offline algorithm in the worst case.
 
@@ -23,8 +24,7 @@
 
 1. Smoothed Convex Optimization
 2. Smoothed Load Optimization
-3. Smoothed Balanced-Load Optimization with time-independent cost
-4. Smoothed Balanced-Load Optimization with time-dependent cost
+3. Smoothed Balanced-Load Optimization
 
 ### Optimal Competitiveness
 
@@ -34,7 +34,7 @@
 | 1       | ❌                 | ❌        | ✅             | ❌          | 2-competitive           |
 | 1       | ❌                 | ✅        | ✅             | ❌          | 3-competitive           |
 | 1       | ❌                 | ✅        | ❌             | ❌          | 2-competitive           |
-| 2, 3, 4 | ✅                 | ✅        | ✅             | ❌          | 2d-competitive          |
+| 2, 3    | ✅                 | ✅        | ✅             | ❌          | 2d-competitive          |
 
 ### References
 

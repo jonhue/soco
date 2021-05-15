@@ -1,10 +1,10 @@
 use crate::algorithms::graph_search::Path;
+use crate::algorithms::offline::multi_dimensional::duplicate_and_push_to_all;
 use crate::algorithms::offline::multi_dimensional::graph_search::graph_search;
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::problem::IntegralSmoothedConvexOptimization;
 use crate::result::{Error, Result};
-use crate::utils::duplicate_and_push_to_all;
 
 static DEFAULT_GAMMA: f64 = 1.1;
 static MAX_ITERATIONS: i32 = 1_000_000;
@@ -29,7 +29,7 @@ fn build_configs(
     p: &IntegralSmoothedConvexOptimization<'_>,
     gamma: f64,
 ) -> Result<Vec<Config<i32>>> {
-    let mut configs: Vec<Vec<i32>> = vec![vec![]];
+    let mut configs: Vec<Config<i32>> = vec![Config::empty()];
     for k in 0..p.d {
         let bound = p.bounds[k as usize];
 
@@ -67,5 +67,5 @@ fn build_configs(
             duplicate_and_push_to_all(&mut configs, &base, v);
         }
     }
-    Ok(configs.into_iter().map(Config::new).collect())
+    Ok(configs)
 }

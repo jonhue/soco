@@ -42,9 +42,9 @@ pub fn sample_gamma() -> f64 {
     (r * (std::f64::consts::E - 1.) + 1.).ln()
 }
 
-/// Lazy Budgeting
-pub fn lb<'a>(
-    o: &'a Online<IntegralSmoothedLoadOptimization>,
+/// Lazy Budgeting for Smoothed Load Optimization
+pub fn lb(
+    o: &Online<IntegralSmoothedLoadOptimization>,
     xs: &IntegralSchedule,
     ms: &Vec<Memory>,
     options: &Options,
@@ -67,23 +67,23 @@ pub fn lb<'a>(
     };
 
     let mut lanes = vec![0; bound];
-    for k in 0..bound {
-        if prev_lanes[k] < optimal_lanes[k] || t >= horizons[k] {
-            lanes[k] = optimal_lanes[k];
-            horizons[k] = t + next_time_horizon(
+    for j in 0..bound {
+        if prev_lanes[j] < optimal_lanes[j] || t >= horizons[j] {
+            lanes[j] = optimal_lanes[j];
+            horizons[j] = t + next_time_horizon(
                 &o.p.hitting_cost,
                 &o.p.switching_cost,
-                lanes[k],
+                lanes[j],
                 options.gamma,
             );
         } else {
-            lanes[k] = prev_lanes[k];
-            horizons[k] = max(
-                horizons[k],
+            lanes[j] = prev_lanes[j];
+            horizons[j] = max(
+                horizons[j],
                 t + next_time_horizon(
                     &o.p.hitting_cost,
                     &o.p.switching_cost,
-                    lanes[k],
+                    lanes[j],
                     options.gamma,
                 ),
             );
@@ -110,11 +110,11 @@ fn next_time_horizon(
 }
 
 fn collect_config(d: i32, lanes: &Lanes) -> Config<i32> {
-    let mut config = vec![0; d as usize];
+    let mut config = Config::repeat(0, d);
     for i in 0..lanes.len() {
         config[lanes[i] as usize] += 1;
     }
-    Config::new(config)
+    config
 }
 
 fn build_lanes(x: &Config<i32>, d: i32, bound: usize) -> Lanes {
