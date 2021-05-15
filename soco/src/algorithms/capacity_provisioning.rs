@@ -12,6 +12,7 @@ use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
 };
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
+use crate::convert::ResettableProblem;
 use crate::objective::Objective;
 use crate::problem::{
     FractionalSmoothedConvexOptimization, IntegralSmoothedConvexOptimization,

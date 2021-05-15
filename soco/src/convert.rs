@@ -255,12 +255,16 @@ impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T> {
     }
 }
 
-impl<'a, T> SmoothedConvexOptimization<'a, T>
+pub trait ResettableProblem<'a, T> {
+    /// Shifts problem instance to some new initial time `t_start`.
+    fn reset(&'a self, t_start: i32) -> Self;
+}
+
+impl<'a, T> ResettableProblem<'a, T> for SmoothedConvexOptimization<'a, T>
 where
     T: Value,
 {
-    /// Shifts problem instance to some new initial time `t_start`.
-    pub fn reset(&'a self, t_start: i32) -> SmoothedConvexOptimization<'a, T> {
+    fn reset(&'a self, t_start: i32) -> SmoothedConvexOptimization<'a, T> {
         SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end - t_start,
