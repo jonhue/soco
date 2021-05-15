@@ -124,7 +124,7 @@ impl<'a> RelaxableProblem<'a> for IntegralSmoothedConvexOptimization<'a> {
 
 impl<'a, T> SmoothedLoadOptimization<T>
 where
-    T: Clone + Copy + NumCast,
+    T: Clone + Copy + Num + NumCast,
 {
     /// Convert instance to an instance of Smoothed Balanced-Load Optimization.
     pub fn to_sblo(&'a self) -> SmoothedBalancedLoadOptimization<'a, T> {

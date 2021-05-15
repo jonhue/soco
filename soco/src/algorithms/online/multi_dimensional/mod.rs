@@ -1,3 +1,3 @@
 //! Multi-Dimensional Online Algorithms.
 
-pub mod smoothed_load_optimization;
+pub mod lazy_budgeting;

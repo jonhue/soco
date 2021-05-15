@@ -212,15 +212,15 @@ impl Vertice {
             ));
             // edges for powering up
             for k in 0..p.d as usize {
-                let mut x = self.config.to_vec();
+                let mut config = self.config.clone();
                 let vs = collect_dimension_range(configs, k);
-                let i = vs.iter().position(|&v| v == x[k]).unwrap();
+                let i = vs.iter().position(|&v| v == config[k]).unwrap();
                 if i < vs.len() - 1 {
-                    x[k] = vs[i + 1];
+                    config[k] = vs[i + 1];
                     successors.push((
                         Vertice {
                             t: self.t,
-                            config: Config::new(x),
+                            config,
                             powering_up: true,
                         },
                         OrderedFloat(
@@ -233,15 +233,15 @@ impl Vertice {
         } else {
             // edges for powering down
             for k in 0..p.d as usize {
-                let mut x = self.config.to_vec();
+                let mut config = self.config.clone();
                 let vs = collect_dimension_range(configs, k);
-                let i = vs.iter().position(|&v| v == x[k]).unwrap();
+                let i = vs.iter().position(|&v| v == config[k]).unwrap();
                 if i > 0 {
-                    x[k] = vs[i - 1];
+                    config[k] = vs[i - 1];
                     successors.push((
                         Vertice {
                             t: self.t,
-                            config: Config::new(x),
+                            config,
                             powering_up: false,
                         },
                         OrderedFloat(0.),

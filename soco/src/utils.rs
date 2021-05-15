@@ -71,21 +71,6 @@ where
     result
 }
 
-/// Clones `base`, appends `x` to all vectors within `base`, and extends `bag` with the updated `base`.
-pub fn duplicate_and_push_to_all<T>(
-    bag: &mut Vec<Vec<T>>,
-    base: &Vec<Vec<T>>,
-    x: T,
-) where
-    T: Copy,
-{
-    let mut tmp = base.clone();
-    for xs in tmp.iter_mut() {
-        xs.push(x);
-    }
-    bag.extend(tmp);
-}
-
 /// Randomly samples a uniform value in `[0,1]`.
 pub fn sample_uniform() -> f64 {
     let mut rng = thread_rng();

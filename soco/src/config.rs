@@ -2,6 +2,7 @@
 
 use std::iter::FromIterator;
 use std::ops::Index;
+use std::ops::IndexMut;
 
 use crate::vec_wrapper::VecWrapper;
 
@@ -15,6 +16,10 @@ where
 {
     pub fn new(x: Vec<T>) -> Config<T> {
         Config(x)
+    }
+
+    pub fn empty() -> Config<T> {
+        Config(vec![])
     }
 
     pub fn single(j: T) -> Config<T> {
@@ -31,6 +36,10 @@ where
     pub fn to_vec(&self) -> Vec<T> {
         self.0.clone()
     }
+
+    pub fn push(&mut self, j: T) {
+        self.0.push(j)
+    }
 }
 
 impl<T> Index<usize> for Config<T> {
@@ -44,6 +53,18 @@ impl<T> Index<usize> for Config<T> {
             k + 1
         );
         &self.0[k]
+    }
+}
+
+impl<T> IndexMut<usize> for Config<T> {
+    fn index_mut(&mut self, k: usize) -> &mut T {
+        assert!(
+            k < self.0.len(),
+            "argument must denote one of {} dimensions, is {}",
+            self.0.len(),
+            k + 1
+        );
+        &mut self.0[k]
     }
 }
 
@@ -63,10 +84,10 @@ where
     where
         I: IntoIterator<Item = T>,
     {
-        let mut x = vec![];
+        let mut x = Config::empty();
         for j in iter {
             x.push(j);
         }
-        Config::new(x)
+        x
     }
 }
