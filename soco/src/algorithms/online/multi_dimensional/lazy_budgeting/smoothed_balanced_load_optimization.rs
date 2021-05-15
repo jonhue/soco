@@ -34,8 +34,8 @@ pub struct Options<'a> {
 }
 
 /// Lazy Budgeting for Smoothed Balanced-Load Optimization
-pub fn lb<'a>(
-    o: &'a Online<IntegralSmoothedBalancedLoadOptimization>,
+pub fn lb(
+    o: &Online<IntegralSmoothedBalancedLoadOptimization>,
     xs: &mut IntegralSchedule,
     ms: &mut Vec<Memory>,
     options: &Options,
