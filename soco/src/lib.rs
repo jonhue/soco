@@ -17,4 +17,5 @@ pub mod schedule;
 pub mod utils;
 pub mod verifiers;
 
+mod value;
 mod vec_wrapper;

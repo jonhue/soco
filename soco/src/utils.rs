@@ -1,9 +1,10 @@
 //! Utilities.
 
-use num::{Num, NumCast};
+use num::NumCast;
 use rand::{thread_rng, Rng};
 
 use crate::result::{Error, Result};
+use crate::value::Value;
 
 /// Safely asserts `pred`.
 pub fn assert(pred: bool, error: Error) -> Result<()> {
@@ -22,7 +23,7 @@ pub fn frac(x: f64) -> f64 {
 /// max{0, x}
 pub fn pos<T>(x: T) -> T
 where
-    T: NumCast + PartialOrd,
+    T: Value,
 {
     let l = NumCast::from(0).unwrap();
     if x > l {
@@ -35,7 +36,7 @@ where
 /// max{a, min{b, x}}
 pub fn project<T>(x: T, a: T, b: T) -> T
 where
-    T: NumCast + PartialOrd,
+    T: Value,
 {
     let tmp = if b < x { b } else { x };
     if a > tmp {
@@ -62,7 +63,7 @@ pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<&T> {
 /// Computes the sum of bounds across all dimensions.
 pub fn total_bound<T>(bounds: &Vec<T>) -> T
 where
-    T: Copy + Num + NumCast,
+    T: Value,
 {
     let mut result: T = NumCast::from(0).unwrap();
     for &b in bounds {
