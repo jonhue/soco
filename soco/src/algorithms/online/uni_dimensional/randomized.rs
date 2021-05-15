@@ -3,7 +3,7 @@ use crate::algorithms::online::uni_dimensional::probabilistic::{
 };
 use crate::config::Config;
 use crate::convert::RelaxableSchedule;
-use crate::online::{Online, OnlineSolution};
+use crate::online::{Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;
@@ -17,16 +17,15 @@ pub struct Memory<'a>(pub Config<f64>, pub ProbMemory<'a>);
 /// Relax discrete problem to fractional problem before use!
 pub fn randomized<'a>(
     o: &'a Online<FractionalSmoothedConvexOptimization<'a>>,
-    xs: &IntegralSchedule,
-    ms: &Vec<Memory<'a>>,
+    xs: &mut IntegralSchedule,
+    ms: &mut Vec<Memory<'a>>,
     _: &(),
-) -> Result<OnlineSolution<i32, Memory<'a>>> {
+) -> Result<Step<i32, Memory<'a>>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
-    let prob_ms = ms.iter().map(|m| m.1.clone()).collect();
-    let OnlineSolution(y, prob_m) =
-        probabilistic(o, &xs.to_f(), &prob_ms, &())?;
+    let mut prob_ms = ms.iter().map(|m| m.1.clone()).collect();
+    let Step(y, prob_m) = probabilistic(o, &mut xs.to_f(), &mut prob_ms, &())?;
 
     let prev_x = if xs.is_empty() { 0 } else { xs.now()[0] };
     let prev_y = if ms.is_empty() {
@@ -37,7 +36,10 @@ pub fn randomized<'a>(
 
     let x = next(prev_x, prev_y, y[0]);
 
-    Ok(OnlineSolution(Config::single(x), Memory(y, prob_m)))
+    Ok(Step(
+        Config::single(x),
+        Some(Memory(y, prob_m.ok_or(Error::MemoryShouldBePresent)?)),
+    ))
 }
 
 fn next(prev_x: i32, prev_y: f64, y: f64) -> i32 {

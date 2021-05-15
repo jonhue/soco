@@ -4,15 +4,18 @@ use std::iter::FromIterator;
 use std::ops::Index;
 use std::ops::IndexMut;
 
+use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 
 /// For some time `t`, assigns each dimension `d` a unique value.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Config<T>(Vec<T>);
+pub struct Config<T>(Vec<T>)
+where
+    T: Value;
 
 impl<T> Config<T>
 where
-    T: Clone,
+    T: Value,
 {
     pub fn new(x: Vec<T>) -> Config<T> {
         Config(x)
@@ -42,7 +45,10 @@ where
     }
 }
 
-impl<T> Index<usize> for Config<T> {
+impl<T> Index<usize> for Config<T>
+where
+    T: Value,
+{
     type Output = T;
 
     fn index(&self, k: usize) -> &T {
@@ -56,7 +62,10 @@ impl<T> Index<usize> for Config<T> {
     }
 }
 
-impl<T> IndexMut<usize> for Config<T> {
+impl<T> IndexMut<usize> for Config<T>
+where
+    T: Value,
+{
     fn index_mut(&mut self, k: usize) -> &mut T {
         assert!(
             k < self.0.len(),
@@ -68,7 +77,10 @@ impl<T> IndexMut<usize> for Config<T> {
     }
 }
 
-impl<T> VecWrapper for Config<T> {
+impl<T> VecWrapper for Config<T>
+where
+    T: Value,
+{
     type Item = T;
 
     fn to_vec(&self) -> &Vec<Self::Item> {
@@ -78,7 +90,7 @@ impl<T> VecWrapper for Config<T> {
 
 impl<T> FromIterator<T> for Config<T>
 where
-    T: Clone,
+    T: Value,
 {
     fn from_iter<I>(iter: I) -> Self
     where

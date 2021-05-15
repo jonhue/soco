@@ -6,7 +6,7 @@ use nlopt::Target;
 use std::sync::Arc;
 
 use crate::config::Config;
-use crate::online::{Online, OnlineSolution};
+use crate::online::{Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
@@ -21,10 +21,10 @@ static STEP_SIZE: f64 = 1e-16;
 /// Probabilistic Algorithm
 pub fn probabilistic<'a>(
     o: &'a Online<FractionalSmoothedConvexOptimization<'a>>,
-    xs: &FractionalSchedule,
-    ps: &Vec<Memory<'a>>,
+    xs: &mut FractionalSchedule,
+    ps: &mut Vec<Memory<'a>>,
     _: &(),
-) -> Result<OnlineSolution<f64, Memory<'a>>> {
+) -> Result<Step<f64, Memory<'a>>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
@@ -53,7 +53,7 @@ pub fn probabilistic<'a>(
     });
 
     let x = expected_value(&p, x_l, x_r)?;
-    Ok(OnlineSolution(Config::single(x), p))
+    Ok(Step(Config::single(x), Some(p)))
 }
 
 /// Determines minimizer of `f` with a convex optimization.

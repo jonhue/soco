@@ -8,6 +8,7 @@ pub enum Error {
     Invalid(String),
     LcpBoundComputationExceedsDomain,
     LcpBoundMismatch(f64, f64),
+    MemoryShouldBePresent,
     MustBePowOf2,
     NlOpt(nlopt::FailState),
     OnlineInsufficientInformation,

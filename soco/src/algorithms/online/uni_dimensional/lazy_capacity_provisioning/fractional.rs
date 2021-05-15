@@ -3,7 +3,7 @@ use crate::algorithms::online::uni_dimensional::lazy_capacity_provisioning::{
     find_initial_time, Memory,
 };
 use crate::config::Config;
-use crate::online::{Online, OnlineSolution};
+use crate::online::{Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
@@ -17,10 +17,10 @@ pub struct Options {
 /// Fractional Lazy Capacity Provisioning
 pub fn lcp(
     o: &Online<FractionalSmoothedConvexOptimization<'_>>,
-    xs: &FractionalSchedule,
-    ms: &Vec<Memory<f64>>,
+    xs: &mut FractionalSchedule,
+    ms: &mut Vec<Memory<f64>>,
     options: &Options,
-) -> Result<OnlineSolution<f64, Memory<f64>>> {
+) -> Result<Step<f64, Memory<f64>>> {
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
     let t_start = if options.optimize_reference_time {
@@ -33,5 +33,5 @@ pub fn lcp(
     let l = o.p.find_lower_bound(o.p.t_end, t_start, None)?;
     let u = o.p.find_upper_bound(o.p.t_end, t_start, None)?;
     let j = project(i, l, u);
-    Ok(OnlineSolution(Config::single(j), Memory(l, u)))
+    Ok(Step(Config::single(j), Some(Memory(l, u))))
 }

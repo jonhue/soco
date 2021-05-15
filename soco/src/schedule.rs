@@ -5,17 +5,20 @@ use std::ops::Index;
 
 use crate::config::Config;
 use crate::utils::access;
+use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 
 /// Includes all configurations from time `1` to time `t_end`.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Schedule<T>(pub Vec<Config<T>>);
+pub struct Schedule<T>(pub Vec<Config<T>>)
+where
+    T: Value;
 pub type IntegralSchedule = Schedule<i32>;
 pub type FractionalSchedule = Schedule<f64>;
 
 impl<T> Schedule<T>
 where
-    T: Clone,
+    T: Value,
 {
     pub fn new(x: Vec<Config<T>>) -> Schedule<T> {
         Schedule(x)
@@ -61,7 +64,10 @@ where
     }
 }
 
-impl<T> Index<usize> for Schedule<T> {
+impl<T> Index<usize> for Schedule<T>
+where
+    T: Value,
+{
     type Output = Config<T>;
 
     fn index(&self, t: usize) -> &Config<T> {
@@ -75,7 +81,10 @@ impl<T> Index<usize> for Schedule<T> {
     }
 }
 
-impl<T> VecWrapper for Schedule<T> {
+impl<T> VecWrapper for Schedule<T>
+where
+    T: Value,
+{
     type Item = Config<T>;
 
     fn to_vec(&self) -> &Vec<Self::Item> {
@@ -85,7 +94,7 @@ impl<T> VecWrapper for Schedule<T> {
 
 impl<T> FromIterator<Config<T>> for Schedule<T>
 where
-    T: Clone,
+    T: Value,
 {
     fn from_iter<I>(iter: I) -> Self
     where

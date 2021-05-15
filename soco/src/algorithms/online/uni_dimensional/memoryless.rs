@@ -3,7 +3,7 @@ use nlopt::Nlopt;
 use nlopt::Target;
 
 use crate::config::Config;
-use crate::online::{Online, OnlineSolution};
+use crate::online::{Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
@@ -13,10 +13,10 @@ use crate::PRECISION;
 /// Memoryless Algorithm
 pub fn memoryless(
     o: &Online<FractionalSmoothedConvexOptimization<'_>>,
-    xs: &FractionalSchedule,
-    _: &Vec<()>,
+    xs: &mut FractionalSchedule,
+    _: &mut Vec<()>,
     _: &(),
-) -> Result<OnlineSolution<f64, ()>> {
+) -> Result<Step<f64, ()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
@@ -24,7 +24,7 @@ pub fn memoryless(
     let prev_x = if xs.is_empty() { 0. } else { xs.now()[0] };
 
     let x = next(o, t, prev_x)?;
-    Ok(OnlineSolution(Config::single(x), ()))
+    Ok(Step(Config::single(x), None))
 }
 
 /// Determines next `x` with a convex optimization.
