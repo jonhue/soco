@@ -15,7 +15,7 @@ pub mod problem;
 pub mod result;
 pub mod schedule;
 pub mod utils;
-pub mod value;
 pub mod verifiers;
 
+mod value;
 mod vec_wrapper;
