@@ -28,18 +28,24 @@
 \usepackage[hidelinks]{hyperref} % hidelinks removes colored boxes around references and links
 \usepackage[symbols,nogroupskip,nonumberlist,sort=use]{glossaries-extra}
 \usepackage{amsmath}
+\usepackage{mathtools}
 \usepackage{amsthm,thmtools}
 \usepackage[nottoc]{tocbibind}
 \usepackage[ruled]{algorithm2e}
 
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
 \declaretheorem[name=Theorem]{theorem}
-\declaretheorem[name=Definition]{definition}
-\declaretheorem[name=Problem]{problem}
+\declaretheorem[name=Lemma,sibling=theorem]{lemma}
+\declaretheorem[name=Definition,sibling=theorem]{definition}
+\declaretheorem[name=Problem,sibling=theorem]{problem}
 \makeatletter
 \def\ll@problem{
   \protect\numberline{\theproblem}\thmt@shortoptarg
 }
 \makeatother
+
+\renewcommand{\thealgocf}{\arabic{theorem}}
 
 \bibliography{sources}
 
