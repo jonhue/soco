@@ -143,34 +143,6 @@ Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, swit
 where $x_0 = 0$.
 \end{problem}
 
-% To complete the proof that any instance of SSCO is an instance of SCO, we have to show that our switching cost is indeed a valid norm.
-
-% \begin{lemma}
-% $\norm{\cdot} : \mathbb{R}^d \to \mathbb{R} : x \mapsto \sum_{k=1}^d \beta_k x_k^+$ for $\beta \in \mathbb{R}_{>0}^d$ is a norm.
-% \end{lemma}
-% \begin{proof}
-% To show the triangle inequality, we observe for all $x, y \in \mathbb{R}^d$ \begin{align*}
-%          &\norm{x + y} \leq \norm{x} + \norm{y} \\
-%     \iff &\sum_{k=1}^d (x_k + y_k)^+ \leq \sum_{k=1}^d x_k^+ + \sum_{k=1}^d y_k^+
-% \end{align*}
-
-% To complete the proof, it suffices to prove the inequality for each dimension, i.e. $\forall k \in [d].\ (x_k + y_k)^+ \leq x_k^+ + y_k^+$. Let $k \in [d]$. Again, we consider three cases separately.
-
-% \begin{enumerate}
-%     \item If $x_k \leq 0$ and $y_k \leq 0$, then the inequality is trivially true as both sides become 0.
-%     \item If $x_k > 0$ and $y_k > 0$, then $(x_k + y_k)^+$ simplifies to $x_k + y_k$, proving equality.
-%     \item For the only remaining case we assume w.l.o.g. that $x_t > 0$ and $y_t \leq 0$. If $x_k \geq |y_k|$ we obtain \begin{align*}
-%         (x_k + y_k)^+ = x_k - |y_k| \leq x_k^+.
-%     \end{align*} If, on the other hand, $x_k < |y_k|$ we obtain \begin{align*}
-%         (x_k + y_k)^+ = 0 \leq x_k^+.
-%     \end{align*}
-% \end{enumerate}
-
-% We prove absolute homogeneity component-wise. Let $k \in [d]$. We observe for all $x_k \in \mathbb{R}$ and $a \in \mathbb{R}_{>0}$ that if $a x_k \geq 0$ we can conclude $\beta_k (a x_k)^+ = a \beta_k x_k$ and if $a x_k < 0$ we know $x_k < 0$ and therefore can conclude $\beta_k (a x_k)^+ = 0 = a \beta_k (x_k)^+$.
-
-% Positive definiteness follows immediately from the fact that $\beta_k > 0$ for all $k \in [d]$.
-% \end{proof}
-
 We observe that $c_{SSCO}$ pays the switching cost whenever $x$ increases. Decreasing $x$ does not increase the paid switching cost. This observation motivates the following lemma that shows that we could equivalently pay the switching cost for decreasing $x$.
 
 \begin{lemma}
@@ -231,32 +203,6 @@ We now prove the correctness of our construction. Again, we use \autoref{lemma:i
 
 Our construction is still total and polynomial in the size of $\mathcal{I}_{Min-KP}$. Hence, Int-SSCO is NP-hard.
 \end{proof}
-% \begin{proof}
-% Again, we use a reduction from Min-KP.
-
-% Let $\mathcal{I}_{Min-KP} = (n, c, u, U)$ be an instance of Min-KP and let $\hat{u} = \text{lcm}\{u_1, \dots, u_n\}$. Set $d = n$. We define $\mathcal{I}_{Int-SSCO} = (T, m, \beta, f)$ as an instance of Int-SSCO with $T = n + 1$, $m_k = \frac{\hat{u}}{u_k} U$, $\beta_k = \frac{M}{u_k}$ for all $k \in [n]$ where $M > \frac{c_{max}}{u_{min}}$, and \begin{align*}
-%     f_t(x) = \begin{cases}
-%         0 & t = 1 \land x_1 = m_1 \land (A) \\
-%         \frac{c_{\sigma(t)}}{\hat{u}} x_{\sigma(t)} + M (n - x_{\sigma(t)}) & t > 1 \land x_{t} = m_t \land x_{\sigma(t)} \in \{0,1\} \land (A) \\
-%         \infty & \text{otherwise}
-%     \end{cases}
-% \end{align*} where $\sigma : [T] \to [d] : t \mapsto t-1$ and \begin{align*}
-%     (A) : \forall k \in [d] \text{ with } k \neq t \text{ and } k \neq \sigma(t).\ x_k = 0.
-% \end{align*} We know that for all $k \in [n]$ $\frac{\hat{u}}{u_k} U \in \mathbb{N}$, hence $m_k \in \mathbb{N}$. It is easy to see that $f_t$ is non-negative. In \autoref{lemma:ssco_reduction_convexity}, we prove that $f_t$ is convex. Assuming the convexity of $f_t$, $\mathcal{I}_{Int-SSCO}$ is a valid instance of Int-SSCO.
-
-% The idea behind our construction is the following: in each time step $t \in \{2, \dots, n+1\}$ we determine the $\sigma(t)$-th element of our solution to $\mathcal{I}_{Min-KP}$. For each dimension $k \in [n]$, we \textit{force} our value at time $\sigma^{-1}(k)$ to $m_t$. For $m_t$ to be integral we scale all values by $\hat{u}$. The term $M (n - x_k)$ is used to correct for the cost incurred by decreasing $x_k$ back to 0. Therefore, we define the solution to $\mathcal{I}_{Min-KP}$ as \begin{align*}
-%     y_k = \frac{x_{\sigma^{-1}(k),k}}{\hat{u}}
-% \end{align*} for $k \in [n]$.
-
-% We now prove the correctness of our construction. We assume $x_0 = x_{n+2} = 0$. \begin{align*}
-%          &x \text{ is a solution to } \mathcal{I}_{Int-SSCO} \\
-%     \iff &x \text{ minimizes } \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+ \text{ such that } x_t \in [m_0]_0 \times \dots \times [m_d]_0. \\
-%     \iff &x \text{ minimizes } \sum_{t=1}^{n+1} f_t(x_t) + \sum_{k=1}^n \frac{M}{u_k} (x_{t,k} - x_{t+1,k})^+ \text{ such that } x_1 \in [m_0]_0 \times \dots \times [m_d]_0. \\
-%     \iff &x_1 \text{ is a solution to } \mathcal{I}_{Min-KP}.
-% \end{align*}
-
-% Our construction is total and polynomial in the size of $\mathcal{I}_{Min-KP}$. Hence, Int-SCO is NP-hard.
-% \end{proof}
 
 \begin{lemma}
 \label{lemma:ssco_reduction_convexity}
