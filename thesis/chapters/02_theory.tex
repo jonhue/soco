@@ -5,11 +5,13 @@
 
 \section{Problems}
 
+TODO: define Offline and Online
+
 \subsection{Smoothed Convex Optimization}
 
 \begin{problem}[Smoothed Convex Optimization (SCO)]
 Given a time horizon $T \in \mathbb{N}$, a convex decision space $\mathcal{X} \subset \mathbb{R}^d$, a norm $\norm{\cdot}$ on $\mathbb{R}^d$, and a sequence of non-negative convex functions $f_t$ for $t \in [T]$ with $f_t(x) = \infty$ for all $x \not\in \mathcal{X}$, find $x \in \mathcal{X}$ minimizing \begin{align*}
-    c(x) = \sum_{t=1}^T f_t(x_t) + \norm{x_t - x_{t-1}}
+    c_{SCO}(x) = \sum_{t=1}^T f_t(x_t) + \norm{x_t - x_{t-1}}
 \end{align*}
 where $x_0 = 0$.
 \end{problem}
@@ -22,7 +24,7 @@ We define Integral Smoothed Convex Optimization analogously to SCO with the adde
 
 \subsubsection{Complexity of the Offline Problem}
 
-We now want to examine the complexity of Int-SCO in the offline case. That is, we know all arriving convex cost functions $f_t$ in advance. We prove Int-SCO NP-hard for varying $d$ by giving a polynomial-time reduction from the Knapsack problem. In \autoref{section:theory:simplified_smoothed_convex_optimization} we first extend this proof of NP-hardness to the Integral Simplified Smoothed Convex Optimization problem which restricts the decision space and switching cost. Then, in \autoref{section:theory:smoothed_balanced_load_optimization}, we extend the proof to the Integral Smoothed Balanced-Load Optimization problem which further restricts the structure of the cost functions.
+We now want to examine the complexity of Int-SCO in the offline case. That is, we know all arriving convex cost functions $f_t$ in advance. We prove Int-SCO NP-hard for varying $d$ by giving a polynomial-time reduction from the Knapsack problem. In \autoref{section:theory:simplified_smoothed_convex_optimization} we extend this proof of NP-hardness to the Integral Simplified Smoothed Convex Optimization problem which further restricts the decision space and switching cost.
 
 Given a set of items with an associated value and weight and an upper bound to the total weight, Knapsack is the problem of determining the number of copies of each item that maximizes the total value and conforms to the given upper bound on total weight. Formally we define Knapsack as follows.
 
@@ -42,13 +44,12 @@ Given a number of items $n \in \mathbb{N}$, a cost of each item $c \in \mathbb{N
 \begin{lemma}
 Min-KP is NP-hard.
 \end{lemma}
-
 \begin{proof}
 We prove the lemma by giving a reduction from KP.
 
-Let $\mathcal{I}_1 = (n, v, w, W)$ be an instance of KP. Let $\mathcal{I}_2(U) = (n, c, u, U)$ be an instance of Min-KP with $c = w$, and $u = v$. Hence, $\mathcal{I}_2(U)$ minimizes the total weight $\sum_{i=1}^n w_i x_i$ such that $\sum_{i=1}^n v_i x_i \geq U$.
+Let $\mathcal{I}_{KP} = (n, v, w, W)$ be an instance of KP. Let $\mathcal{I}_{Min-KP}(U) = (n, c, u, U)$ be an instance of Min-KP with $c = w$, and $u = v$. Hence, $\mathcal{I}_{Min-KP}(U)$ minimizes the total weight $\sum_{i=1}^n w_i x_i$ such that $\sum_{i=1}^n v_i x_i \geq U$.
 
-By finding solutions to $\mathcal{I}_2(U)$ repeatedly for varying $U$, we determine the maximal $U$ such that $\sum_{i=1}^n w_i x_i \leq W$. Let $v_{max} = \max\{v_i \mid i \in [n]\}$ be the maximal value of any item. We observe that $U$ is upper bounded by $n \cdot v_{max}$. If $U$ were greater than $n \cdot v_{max}$ we would have $\sum_{i=1}^n v_{max} x_i \geq \sum_{i=1}^n v_i x_i > n \cdot v_{max}$ which contradicts $x \in \{0,1\}^n$. Hence, we can use binary search to find $U$ in $\mathcal{O}(\log n + \log v_{max})$ iterations. The other direction works analogously.
+By finding solutions to $\mathcal{I}_{Min-KP}(U)$ repeatedly for varying $U$, we determine the maximal $U$ such that $\sum_{i=1}^n w_i x_i \leq W$. Let $v_{max} = \max\{v_i \mid i \in [n]\}$ be the maximal value of any item. We observe that $U$ is upper bounded by $n \cdot v_{max}$. If $U$ were greater than $n \cdot v_{max}$ we would have $\sum_{i=1}^n v_{max} x_i \geq \sum_{i=1}^n v_i x_i > n \cdot v_{max}$ which contradicts $x \in \{0,1\}^n$. Hence, we can use binary search to find $U$ in $\mathcal{O}(\log n + \log v_{max})$ iterations. The other direction works analogously.
 
 We have seen a total, polynomial-time reduction from KP to Min-KP. Hence, Min-KP is NP-hard.
 \end{proof}
@@ -57,32 +58,30 @@ Next we prove our main reduction from Min-KP to Int-SCO. To motivate this reduct
 
 \begin{lemma}
 \label{lemma:integer_minimization}
-Let $\mathcal{I} = (n, c, u, U)$ be an instance of Min-KP. $x$ is the solution to $\mathcal{I}$ if and only if $x$ minimizes \begin{align*}
-    c'(x) = \sum_{i=1}^n c_i x_i + M(U - \sum_{i=1}^n u_i x_i)^+
+Let $\mathcal{I}_{Min-KP} = (n, c, u, U)$ be an instance of Min-KP. $x$ is the solution to $\mathcal{I}_{Min-KP}$ if and only if $x$ minimizes \begin{align*}
+    c_{SCO}'(x) = \sum_{i=1}^n c_i x_i + M(U - \sum_{i=1}^n u_i x_i)^+
 \end{align*} subject to $x \in \{0,1\}^n$ for some $M > \frac{c_{max}}{u_{min}}$.
 \end{lemma}
-
 \begin{proof}
-Suppose $x$ minimizes $c'(x)$. Now suppose $(U - \sum_{i=1}^n u_i x_i)^+ > 0$. Then, $(U - \sum_{i=1}^n u_i x_i)^+ \geq u_{min}$. Therefore, $c'(x) > \sum_{i=1}^n c_i x_i + c_{max}$. We observe that $x$ is not optimal as either $c'(x)$ could be minimized further by increasing $x$ such that $(U - \sum_{i=1}^n u_i x_i)^+ = 0$ since $\sum_{i=1}^n c_i x_i \leq c_{max}$ holds for all $x$. Alternatively, $x$ already equals 1 in each dimension in which case $\sum_{i=1}^n u_i < U$, indicating that $\mathcal{I}$ has no solution.
+Suppose $x$ minimizes $c_{SCO}'(x)$. Now suppose $(U - \sum_{i=1}^n u_i x_i)^+ > 0$. Then $\sum_{i=1}^n u_i < U$ follows immediately. It is easy to see that if $x \equiv 1$, $\mathcal{I}$ has no solution because the lower bound on the utility $U$ is not met. Henceforth, we assume $x$ can be further increased. Then, $(U - \sum_{i=1}^n u_i x_i)^+ \geq u_{min}$. Therefore, $c_{SCO}'(x) > \sum_{i=1}^n c_i x_i + c_{max}$. We observe that $x$ is not optimal as $c_{SCO}'(x)$ could be minimized further by increasing $x$ such that $(U - \sum_{i=1}^n u_i x_i)^+ = 0$ since $\sum_{i=1}^n c_i x_i \leq c_{max}$ holds for all $x$.
 
-By leading our previous assumption to a contradiction, we conclude $(U - \sum_{i=1}^n u_i x_i)^+ = 0$ and therefore $U \leq \sum_{i=1}^n u_i x_i$. Further, $c'(x)$ minimizes $\sum_{i=1}^n c_i x_i$ for all remaining candidates for $x$. Hence, $x$ is the solution of $\mathcal{I}$.
+By leading our previous assumption to a contradiction, we conclude $(U - \sum_{i=1}^n u_i x_i)^+ = 0$ and therefore $U \leq \sum_{i=1}^n u_i x_i$. Further, $c_{SCO}'(x)$ minimizes $\sum_{i=1}^n c_i x_i$ for all remaining candidates for $x$. Hence, $x$ is the solution of $\mathcal{I}_{Min-KP}$.
 
-On the other hand, suppose that $x$ is the solution to $\mathcal{I}$. Then $(U - \sum_{i=1}^n u_i x_i)^+ = 0$ and $\sum_{i=1}^n c_i x_i$ is minimized. Hence, $x$ minimizes $c'(x)$.
+On the other hand, suppose that $x$ is the solution to $\mathcal{I}_{Min-KP}$. Then $(U - \sum_{i=1}^n u_i x_i)^+ = 0$ and $\sum_{i=1}^n c_i x_i$ is minimized. Hence, $x$ minimizes $c_{SCO}'(x)$.
 \end{proof}
 
 For our construction we need that $c$ is convex.
 
 \begin{lemma}
 \label{lemma:integer_minimization_convexity}
-$c'(\cdot)$ is convex.
+$c_{SCO}'$ is convex.
 \end{lemma}
-
 \begin{proof}
-It is easy to see that $c$ is continuous. Therefore, to show the convexity of $c$ it suffices to prove $c'(\frac{x+y}{2}) \leq \frac{c'(x)+c'(y)}{2}$ for all $x, y \in \mathbb{R}^n$.
+It is easy to see that $c$ is continuous. Therefore, to show the convexity of $c$ it suffices to prove midpoint-convexity, i.e. $c_{SCO}'(\frac{x+y}{2}) \leq \frac{c_{SCO}'(x)+c_{SCO}'(y)}{2}$ for all $x, y \in \mathbb{R}^n$.
 
-To simplify the notation let $c'(x) = \sum_{i=1}^n c_i x_i$ and let $U(x) = \sum_{i=1}^n u_i x_i$. To further simplify the notation we define $\frac{x+y}{2}$ to be applied component-wise to elements $i \in [n]$ of $x$ and $y$. We then obtain \small{
+To simplify the notation let $C(x) = \sum_{i=1}^n c_i x_i$ and let $U(x) = \sum_{i=1}^n u_i x_i$. To further simplify the notation we define $\frac{x+y}{2}$ to be applied component-wise to elements $i \in [n]$ of $x$ and $y$. We then obtain \small{
 \begin{align*}
-         &c'(\frac{x+y}{2}) \leq \frac{c'(x)+c'(y)}{2} \\
+         &c_{SCO}'(\frac{x+y}{2}) \leq \frac{c_{SCO}'(x)+c_{SCO}'(y)}{2} \\
     \iff &C(\frac{x+y}{2}) + M(U - U(\frac{x+y}{2}))^+ \leq \frac{C(x) + M(U - U(x))^+ + C(y) + M(U - U(y))^+}{2} \\
     \iff &C(x) + C(y) + 2M(U - U(\frac{x+y}{2}))^+ \leq C(x) + M(U - U(x))^+ + C(y) + M(U - U(y))^+ \\
     \iff &2(U - U(\frac{x+y}{2}))^+ \leq (U - U(x))^+ + (U - U(y))^+.
@@ -103,7 +102,7 @@ Now, we consider three cases separately.
     \end{align*}
     \item If $U(x) \leq U$ and $U(y) \leq U$, then $U(\frac{x+y}{2}) \leq U$. Hence \begin{align*}
         2(U - U(\frac{x+y}{2}))^+ &= 2U - 2U(\frac{x+y}{2}) \\
-                                  &= 2U - U(x) + U(y) \\
+                                  &= 2U - U(x) - U(y) \\
                                   &= (U - U(x))^+ + (U - U(y))^+.
     \end{align*}
     \item For the only remaining case we assume w.l.o.g. that $U(x) \leq U$ and $U(y) > U$. If $U - U(x) < U(y) - U$, then $U(\frac{x+y}{2}) > U$ and we follow the first case. If, on the other hand, $U - U(x) \geq U(y) - U$, then $U(\frac{x+y}{2}) \leq U$ and we follow the second case.\qedhere
@@ -115,46 +114,90 @@ We now have everything in place to prove our main result of this section.
 \begin{theorem}
 Int-SCO is NP-hard.
 \end{theorem}
-
 \begin{proof}
 We now give our reduction from Min-KP to Int-SCO.
 
-Let $\mathcal{I}_1 = (n, c, u, U)$ be an instance of Min-KP. We define $\mathcal{I}_2 = (T, \mathcal{X}, \norm{\cdot}, f)$ as an instance of Int-SCO with $T = 1$, $\mathcal{X} = \{0,1\}^n$, $\norm{\cdot} = 0$, and $f_1(x) = c'(x)$. We further set $d = n$. By \autoref{lemma:integer_minimization_convexity}, $\mathcal{I}_2$ is a valid instance of Int-SCO.
+Let $\mathcal{I}_{Min-KP} = (n, c, u, U)$ be an instance of Min-KP and set $d = n$. We define $\mathcal{I}_{Int-SCO} = (T, \mathcal{X}, \norm{\cdot}, f)$ as an instance of Int-SCO with $T = 1$, $\mathcal{X} = \{0,1\}^n$, $\norm{\cdot} = 0$, and $f_1(x) = c_{SCO}'(x)$. It is easy to see that $f_1$ is non-negative. By \autoref{lemma:integer_minimization_convexity}, $\mathcal{I}_{Int-SCO}$ is a valid instance of Int-SCO.
 
-The correctness of our construction follows from \autoref{lemma:integer_minimization}.
-
-\begin{align*}
-         &x \text{ is a solution to } \mathcal{I}_2 \\
+The correctness of our construction follows from \autoref{lemma:integer_minimization}. \begin{align*}
+         &x \text{ is a solution to } \mathcal{I}_{Int-SCO} \\
     \iff &x \text{ minimizes } \sum_{t=1}^T f_t(x_t) + \norm{x_t - x_{t-1}} \text{ such that } x_t \in \mathcal{X}. \\
-    \iff &x \text{ minimizes } c'(x_1) \text{ such that } x_1 \in \{0,1\}^n. \\
-    \iff &x_1 \text{ is a solution to } \mathcal{I}_1.
+    \iff &x \text{ minimizes } c_{SCO}'(x_1) \text{ such that } x_1 \in \{0,1\}^n. \\
+    \iff &x_1 \text{ is a solution to } \mathcal{I}_{Min-KP}.
 \end{align*}
 
-Our construction is total and polynomial in the size of $\mathcal{I}_1$. Hence, Int-SCO is NP-hard.
+Our construction is total and polynomial in the size of $\mathcal{I}_{Min-KP}$. Hence, Int-SCO is NP-hard.
 \end{proof}
 
-We observe that the above reduction can be extended to Knapsack with arbitrary bounds $m_i$ by setting $\mathcal{X}$ of $\mathcal{I}_2$ to $[m_1]_0 \times \dots \times [m_n]_0$.
+We observe that the above reduction can be extended to Knapsack with arbitrary bounds $m_i$ by setting $\mathcal{X}$ of $\mathcal{I}_{Int-SCO}$ to $[m_1]_0 \times \dots \times [m_n]_0$.
 
 \subsection{Simplified Smoothed Convex Optimization}
 \label{section:theory:simplified_smoothed_convex_optimization}
 
-In many applications, for example for right-sizing data centers, it suffices to restrict $\mathcal{X}$ to $\mathcal{X} = [m_0]_0 \times \dots \times [m_d]_0$ for some $m \in \mathbb{N}^d$ and the switching cost $\norm{x}$ to $\sum_{k=1}^d \beta_k x_k^+$ where $\beta$ is constant for each dimension. To that end, we first define a restricted variant of (fractional) SCO which we term \textit{Simplified Smoothed Convex Optimization}.
+In many applications, for example for right-sizing data centers where we are interested in determining the optimal servers to run at a particular time, it suffices to restrict $\mathcal{X}$ to $[m_0]_0 \times \dots \times [m_d]_0$ for some upper bound in each dimension $m \in \mathbb{N}^d$ and the switching cost $\norm{\cdot}$ to a Manhattan norm which is scaled in each dimension independently from time. To that end, we first define a restricted variant of (fractional) SCO which we term \textit{Simplified Smoothed Convex Optimization}.
 
 \begin{problem}[Simplified Smoothed Convex Optimization (SSCO)]
 Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, and a sequence of non-negative convex functions $f_t$ for $t \in [T]$, find $x \in \mathbb{R}_{\geq 0, \leq m_0} \times \dots \times \mathbb{R}_{\geq 0, \leq m_d}$ minimizing \begin{align*}
-    c(x) = \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+
+    c_{SSCO}(x) = \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+
 \end{align*}
 where $x_0 = 0$.
 \end{problem}
 
-We observe that $c(\cdot)$ pays the switching cost whenever $x$ increases. Decreasing $x$ does not increase the paid switching cost. This observation indicates that the following cost function $d(\cdot)$ is equivalent to $c(\cdot)$.
+% To complete the proof that any instance of SSCO is an instance of SCO, we have to show that our switching cost is indeed a valid norm.
 
-\begin{definition}[Inverted Simplified Smoothed Convex Optimization]
+% \begin{lemma}
+% $\norm{\cdot} : \mathbb{R}^d \to \mathbb{R} : x \mapsto \sum_{k=1}^d \beta_k x_k^+$ for $\beta \in \mathbb{R}_{>0}^d$ is a norm.
+% \end{lemma}
+% \begin{proof}
+% To show the triangle inequality, we observe for all $x, y \in \mathbb{R}^d$ \begin{align*}
+%          &\norm{x + y} \leq \norm{x} + \norm{y} \\
+%     \iff &\sum_{k=1}^d (x_k + y_k)^+ \leq \sum_{k=1}^d x_k^+ + \sum_{k=1}^d y_k^+
+% \end{align*}
+
+% To complete the proof, it suffices to prove the inequality for each dimension, i.e. $\forall k \in [d].\ (x_k + y_k)^+ \leq x_k^+ + y_k^+$. Let $k \in [d]$. Again, we consider three cases separately.
+
+% \begin{enumerate}
+%     \item If $x_k \leq 0$ and $y_k \leq 0$, then the inequality is trivially true as both sides become 0.
+%     \item If $x_k > 0$ and $y_k > 0$, then $(x_k + y_k)^+$ simplifies to $x_k + y_k$, proving equality.
+%     \item For the only remaining case we assume w.l.o.g. that $x_t > 0$ and $y_t \leq 0$. If $x_k \geq |y_k|$ we obtain \begin{align*}
+%         (x_k + y_k)^+ = x_k - |y_k| \leq x_k^+.
+%     \end{align*} If, on the other hand, $x_k < |y_k|$ we obtain \begin{align*}
+%         (x_k + y_k)^+ = 0 \leq x_k^+.
+%     \end{align*}
+% \end{enumerate}
+
+% We prove absolute homogeneity component-wise. Let $k \in [d]$. We observe for all $x_k \in \mathbb{R}$ and $a \in \mathbb{R}_{>0}$ that if $a x_k \geq 0$ we can conclude $\beta_k (a x_k)^+ = a \beta_k x_k$ and if $a x_k < 0$ we know $x_k < 0$ and therefore can conclude $\beta_k (a x_k)^+ = 0 = a \beta_k (x_k)^+$.
+
+% Positive definiteness follows immediately from the fact that $\beta_k > 0$ for all $k \in [d]$.
+% \end{proof}
+
+We observe that $c_{SSCO}$ pays the switching cost whenever $x$ increases. Decreasing $x$ does not increase the paid switching cost. This observation motivates the following lemma that shows that we could equivalently pay the switching cost for decreasing $x$.
+
+\begin{lemma}
+\label{lemma:inverse_switching_cost}
+For all $T \in \mathbb{N}$ and $ x_t \in \mathbb{R}$ where $x_0 = x_{t+1} = 0$, the following equivalence holds:
 \begin{align*}
-    d(x) = \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t+1,k})^+.
+    \sum_{t=1}^T (x_t - x_{t-1})^+ = \sum_{t=1}^T (x_t - x_{t+1})^+.
 \end{align*}
-Instead of $x_0 = 0$ we require $x_{T+1} = 0$.
-\end{definition}
+\end{lemma}
+\begin{proof}
+The left side of the equation sums all increases in $x$ from $t \in \{0, \dots, T\}$ starting from $x_0 = 0$. The right side of the equation sums all decreases in $x$ from $t \in \{1, \dots, T+1\}$ ending with $x_{T+1} = 0$. It is easy to see that the two sums are equivalent.
+\end{proof}
+
+To complete the proof that any instance of SSCO is an instance of SCO, we have to show that our switching cost is indeed a valid norm. Given an instance $\mathcal{I}_{SSCO} = (T, m, \beta, f)$ we define the corresponding instance of SCO as $\mathcal{I}_{SCO} = (T, \mathcal{X}, \norm{\cdot}, f)$ where $\mathcal{X} = \mathbb{R}_{\geq 0, \leq m_0} \times \dots \times \mathbb{R}_{\geq 0, \leq m_d}$ and $\norm{x} = \sum_{k=1}^d \frac{\beta_k}{2} |x_k|$ as the dimension-dependently scaled Manhattan norm of $x$. It is easy to see that $\norm{\cdot}$ is indeed a valid norm. The next lemma proves that $x \in \mathcal{X}$ is a solution to $I_{SCO}$ if and only if it is a solution to $\mathcal{I}_{SSCO}$.
+
+\begin{lemma}
+For any $T \in \mathbb{N}, \beta \in \mathbb{R}_{>0}^d$, and $x_t \in \mathbb{R}^d$ with $x_0 = x_{T+1} = 0$, the following equivalence holds:
+\begin{align*}
+    \sum_{t=1}^T \norm{x_t - x_{t-1}} = \sum_{t=1}^T \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+.
+\end{align*}
+\end{lemma}
+\begin{proof}
+By \autoref{lemma:inverse_switching_cost}, the above equivalence holds iff \begin{align*}
+    \sum_{t=1}^T \sum_{k=1}^d \beta_k |x_k| = \sum_{t=1}^T \sum_{k=1}^d \beta_k ((x_{t,k} - x_{t-1,k})^+ + (x_{t,k} - x_{t+1,k})^+).
+\end{align*}
+It is easy to see that this equivalence always holds.
+\end{proof}
 
 With the same motivation we used for the restriction of SCO to Int-SCO, we now restrict SSCO to an integral variant.
 
@@ -166,12 +209,69 @@ We define Integral Simplified Smoothed Convex Optimization analogously to SSCO w
 
 We next extend our proof of NP-hardness of Int-SCO for varying $d$ to Int-SSCO. We cannot reuse our original proof as the switching cost of SSCO is required to be positive.
 
+\begin{theorem}
+\label{theorem:int_ssco_np_hardness}
+Int-SSCO is NP-hard.
+\end{theorem}
+\begin{proof}
+Again, we use a reduction from Min-KP.
+
+Let $\mathcal{I}_{Min-KP} = (n, c, u, U)$ be an instance of Min-KP and set $d = n$. We define $\mathcal{I}_{Int-SSCO} = (T, m, \beta, f)$ as an instance of Int-SSCO with $T = 1$, $m \equiv 1$, $\beta \equiv 1$, and $f_1(x) = c_{SCO}'(x) + n - \sum_{i=1}^n x_i$.
+
+It is easy to see that $f_1$ is non-negative. In \autoref{lemma:ssco_reduction_convexity}, we prove that $f_1$ is convex. Assuming the convexity of $f_1$, $\mathcal{I}_{Int-SSCO}$ is a valid instance of Int-SSCO.
+
+We now prove the correctness of our construction. Again, we use \autoref{lemma:integer_minimization}. \begin{align*}
+         &x \text{ is a solution to } \mathcal{I}_{Int-SSCO} \\
+    \iff &x \text{ minimizes } \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+ \text{ such that } x_t \in [m_0]_0 \times \dots \times [m_d]_0. \\
+    \iff &x \text{ minimizes } f_1(x_1) + \sum_{i=1}^n x_{1,i} \text{ such that } x_1 \in \{0,1\}^n. \\
+    \iff &x \text{ minimizes } c_{SCO}'(x_1) + n + \sum_{i=1}^n x_{1,i} - x_{1,i} \text{ such that } x_1 \in \{0,1\}^n. \\
+    \iff &x \text{ minimizes } c_{SCO}'(x_1) \text{ such that } x_1 \in \{0,1\}^n. \\
+    \iff &x_1 \text{ is a solution to } \mathcal{I}_{Min-KP}.
+\end{align*}
+
+Our construction is still total and polynomial in the size of $\mathcal{I}_{Min-KP}$. Hence, Int-SSCO is NP-hard.
+\end{proof}
+% \begin{proof}
+% Again, we use a reduction from Min-KP.
+
+% Let $\mathcal{I}_{Min-KP} = (n, c, u, U)$ be an instance of Min-KP and let $\hat{u} = \text{lcm}\{u_1, \dots, u_n\}$. Set $d = n$. We define $\mathcal{I}_{Int-SSCO} = (T, m, \beta, f)$ as an instance of Int-SSCO with $T = n + 1$, $m_k = \frac{\hat{u}}{u_k} U$, $\beta_k = \frac{M}{u_k}$ for all $k \in [n]$ where $M > \frac{c_{max}}{u_{min}}$, and \begin{align*}
+%     f_t(x) = \begin{cases}
+%         0 & t = 1 \land x_1 = m_1 \land (A) \\
+%         \frac{c_{\sigma(t)}}{\hat{u}} x_{\sigma(t)} + M (n - x_{\sigma(t)}) & t > 1 \land x_{t} = m_t \land x_{\sigma(t)} \in \{0,1\} \land (A) \\
+%         \infty & \text{otherwise}
+%     \end{cases}
+% \end{align*} where $\sigma : [T] \to [d] : t \mapsto t-1$ and \begin{align*}
+%     (A) : \forall k \in [d] \text{ with } k \neq t \text{ and } k \neq \sigma(t).\ x_k = 0.
+% \end{align*} We know that for all $k \in [n]$ $\frac{\hat{u}}{u_k} U \in \mathbb{N}$, hence $m_k \in \mathbb{N}$. It is easy to see that $f_t$ is non-negative. In \autoref{lemma:ssco_reduction_convexity}, we prove that $f_t$ is convex. Assuming the convexity of $f_t$, $\mathcal{I}_{Int-SSCO}$ is a valid instance of Int-SSCO.
+
+% The idea behind our construction is the following: in each time step $t \in \{2, \dots, n+1\}$ we determine the $\sigma(t)$-th element of our solution to $\mathcal{I}_{Min-KP}$. For each dimension $k \in [n]$, we \textit{force} our value at time $\sigma^{-1}(k)$ to $m_t$. For $m_t$ to be integral we scale all values by $\hat{u}$. The term $M (n - x_k)$ is used to correct for the cost incurred by decreasing $x_k$ back to 0. Therefore, we define the solution to $\mathcal{I}_{Min-KP}$ as \begin{align*}
+%     y_k = \frac{x_{\sigma^{-1}(k),k}}{\hat{u}}
+% \end{align*} for $k \in [n]$.
+
+% We now prove the correctness of our construction. We assume $x_0 = x_{n+2} = 0$. \begin{align*}
+%          &x \text{ is a solution to } \mathcal{I}_{Int-SSCO} \\
+%     \iff &x \text{ minimizes } \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+ \text{ such that } x_t \in [m_0]_0 \times \dots \times [m_d]_0. \\
+%     \iff &x \text{ minimizes } \sum_{t=1}^{n+1} f_t(x_t) + \sum_{k=1}^n \frac{M}{u_k} (x_{t,k} - x_{t+1,k})^+ \text{ such that } x_1 \in [m_0]_0 \times \dots \times [m_d]_0. \\
+%     \iff &x_1 \text{ is a solution to } \mathcal{I}_{Min-KP}.
+% \end{align*}
+
+% Our construction is total and polynomial in the size of $\mathcal{I}_{Min-KP}$. Hence, Int-SCO is NP-hard.
+% \end{proof}
+
+\begin{lemma}
+\label{lemma:ssco_reduction_convexity}
+$f_1$ from \autoref{theorem:int_ssco_np_hardness} is convex.
+\end{lemma}
+\begin{proof}
+To show convexity of $f_1$, it suffices to show that $h(x) = n - \sum_{i=1}^n x_i$ is convex as the convexity of $c_{SCO}'$ was already established in \autoref{lemma:integer_minimization_convexity} and $f_1(x) = c_{SCO}'(x) + h(x)$. Further, it is enough to prove $h$ midpoint-convex as $h$ is continuous. We observe that \begin{align*}
+         &&h(\frac{x + y}{2}) &\leq \frac{h(x) + h(y)}{2} \\
+    \iff &&n - \sum_{i=1}^n \frac{x_i + y_i}{2} &\leq n - \frac{\sum_{i=1}^n x_i + \sum_{i=1}^n y_i}{2}
+\end{align*} holds for any $x, y \in \{0,1\}^n$, proving the lemma.
+\end{proof}
+
 \subsection{Smoothed Balanced-Load Optimization}
-\label{section:theory:smoothed_balanced_load_optimization}
 
 \subsection{Smoothed Load Optimization}
-
-\subsubsection{Complexity of the Offline Problem}
 
 \section{Algorithm Analysis}
 
