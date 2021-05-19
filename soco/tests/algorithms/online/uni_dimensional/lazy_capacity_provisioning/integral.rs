@@ -4,13 +4,13 @@ mod lcp {
     use soco::algorithms::offline::multi_dimensional::approx_graph_search::{Options as ApproxOptions};
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::integral::{Options, lcp};
     use soco::online::Online;
-    use soco::problem::SmoothedConvexOptimization;
+    use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::config::Config;
     use soco::schedule::Schedule;
 
     #[test]
     fn _1() {
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
             bounds: vec![5],
@@ -40,7 +40,7 @@ mod lcp {
     #[test]
     fn _2() {
         let approx_options = ApproxOptions { gamma: None };
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
             bounds: vec![5],
@@ -69,7 +69,7 @@ mod lcp {
 
     #[test]
     fn _3() {
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
             bounds: vec![5],
@@ -103,7 +103,7 @@ mod lcp {
     #[test]
     fn _4() {
         let approx_options = ApproxOptions { gamma: None };
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
             bounds: vec![5],

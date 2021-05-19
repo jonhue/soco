@@ -218,13 +218,13 @@ fn find_optimal_config(
     p: &IntegralSmoothedBalancedLoadOptimization,
     use_approx: Option<&ApproxOptions>,
 ) -> Result<Config<i32>> {
-    let sco_p = p.to_sco();
+    let ssco_p = p.to_ssco();
     let Path(xs, _) = match use_approx {
         None => {
-            optimal_graph_search(&sco_p, &OfflineOptions { inverted: false })?
+            optimal_graph_search(&ssco_p, &OfflineOptions { inverted: false })?
         }
         Some(options) => approx_graph_search(
-            &sco_p,
+            &ssco_p,
             options,
             &OfflineOptions { inverted: false },
         )?,

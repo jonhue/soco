@@ -4,7 +4,7 @@ use crate::algorithms::online::uni_dimensional::lazy_capacity_provisioning::{
 };
 use crate::config::Config;
 use crate::online::{Online, Step};
-use crate::problem::FractionalSmoothedConvexOptimization;
+use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, project};
@@ -16,7 +16,7 @@ pub struct Options {
 
 /// Fractional Lazy Capacity Provisioning
 pub fn lcp(
-    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
+    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
     xs: &mut FractionalSchedule,
     ms: &mut Vec<Memory<f64>>,
     options: &Options,

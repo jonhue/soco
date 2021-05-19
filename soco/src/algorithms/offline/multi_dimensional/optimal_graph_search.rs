@@ -3,12 +3,12 @@ use crate::algorithms::offline::multi_dimensional::duplicate_and_push_to_all;
 use crate::algorithms::offline::multi_dimensional::graph_search::graph_search;
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
-use crate::problem::IntegralSmoothedConvexOptimization;
+use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 
 /// Graph-Based Optimal Integral Algorithm
 pub fn optimal_graph_search<'a>(
-    p: &'a IntegralSmoothedConvexOptimization<'a>,
+    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
     offline_options: &OfflineOptions,
 ) -> Result<Path> {
     let configs = build_configs(p);
@@ -17,7 +17,7 @@ pub fn optimal_graph_search<'a>(
 
 /// Computes all configurations.
 fn build_configs(
-    p: &IntegralSmoothedConvexOptimization<'_>,
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
 ) -> Vec<Config<i32>> {
     let mut configs: Vec<Config<i32>> = vec![Config::empty()];
     for k in 0..p.d {

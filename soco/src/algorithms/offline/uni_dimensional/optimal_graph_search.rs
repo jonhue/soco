@@ -1,11 +1,13 @@
+use num::ToPrimitive;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::algorithms::graph_search::{Path, Paths};
 use crate::config::Config;
-use crate::objective::movement;
+use crate::objective::scalar_movement;
 use crate::problem::{
-    IntegralSmoothedConvexOptimization, SmoothedConvexOptimization,
+    IntegralSimplifiedSmoothedConvexOptimization,
+    SimplifiedSmoothedConvexOptimization,
 };
 use crate::result::{Error, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
@@ -22,7 +24,7 @@ pub struct Options {
 
 /// Graph-Based Optimal Integral Algorithm
 pub fn optimal_graph_search(
-    p: &'_ IntegralSmoothedConvexOptimization<'_>,
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     options: &Options,
 ) -> Result<Path> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
@@ -52,24 +54,25 @@ pub fn optimal_graph_search(
 
 /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `iopt`.
 pub fn make_pow_of_2<'a>(
-    p: &'a IntegralSmoothedConvexOptimization<'a>,
-) -> Result<IntegralSmoothedConvexOptimization<'a>> {
+    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
+) -> Result<IntegralSimplifiedSmoothedConvexOptimization<'a>> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
 
     let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);
-    let hitting_cost = Arc::new(move |t, xs: Vec<i32>| {
-        if xs[0] <= p.bounds[0] {
-            (p.hitting_cost)(t, xs)
+    let hitting_cost = Arc::new(move |t, x: Config<i32>| {
+        if x[0] <= p.bounds[0] {
+            (p.hitting_cost)(t, x)
         } else {
             Some(
-                xs[0] as f64
-                    * ((p.hitting_cost)(t, (*p.bounds).to_vec()).unwrap()
+                x[0] as f64
+                    * ((p.hitting_cost)(t, Config::new(p.bounds.clone()))
+                        .unwrap()
                         + f64::EPSILON),
             )
         }
     });
 
-    Ok(SmoothedConvexOptimization {
+    Ok(SimplifiedSmoothedConvexOptimization {
         d: p.d,
         t_end: p.t_end,
         bounds: vec![m],
@@ -79,13 +82,13 @@ pub fn make_pow_of_2<'a>(
 }
 
 fn select_initial_rows<'a>(
-    p: &'a IntegralSmoothedConvexOptimization<'a>,
+    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
     move |_| (0..=4).map(|e| e * p.bounds[0] / 4).collect()
 }
 
 fn select_next_rows<'a>(
-    p: &'a IntegralSmoothedConvexOptimization<'a>,
+    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
     xs: &'a IntegralSchedule,
     k: u32,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
@@ -98,7 +101,7 @@ fn select_next_rows<'a>(
 }
 
 fn find_schedule(
-    p: &IntegralSmoothedConvexOptimization<'_>,
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     select_rows: impl Fn(i32) -> Vec<i32>,
     inverted: bool,
 ) -> Result<Path> {
@@ -135,7 +138,7 @@ fn find_schedule(
 }
 
 fn find_shortest_subpath(
-    p: &IntegralSmoothedConvexOptimization<'_>,
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     paths: &mut Paths<Vertice>,
     t: i32,
     from: &Vec<i32>,
@@ -160,15 +163,16 @@ fn find_shortest_subpath(
 }
 
 fn build_cost(
-    p: &IntegralSmoothedConvexOptimization<'_>,
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     t: i32,
     i: i32,
     j: i32,
     inverted: bool,
 ) -> Result<f64> {
-    let hitting_cost =
-        (p.hitting_cost)(t, vec![j]).ok_or(Error::CostFnMustBeTotal)?;
-    let switching_cost = p.switching_cost[0] * movement(j, i, inverted);
+    let hitting_cost = (p.hitting_cost)(t, Config::single(j))
+        .ok_or(Error::CostFnMustBeTotal)?;
+    let delta = ToPrimitive::to_f64(&scalar_movement(j, i, inverted)).unwrap();
+    let switching_cost = p.switching_cost[0] * delta;
     Ok(hitting_cost + switching_cost)
 }
 

@@ -9,6 +9,7 @@ pub mod algorithms;
 pub mod config;
 pub mod convert;
 pub mod cost;
+pub mod norm;
 pub mod objective;
 pub mod online;
 pub mod problem;

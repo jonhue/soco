@@ -4,13 +4,13 @@ mod lcp {
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::fractional::{Options, lcp};
     use soco::convert::DiscretizableSchedule;
     use soco::online::Online;
-    use soco::problem::SmoothedConvexOptimization;
+    use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::config::Config;
     use soco::schedule::Schedule;
 
     #[test]
     fn _1() {
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
             bounds: vec![2.],
@@ -38,7 +38,7 @@ mod lcp {
 
     #[test]
     fn _2() {
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
             bounds: vec![2.],

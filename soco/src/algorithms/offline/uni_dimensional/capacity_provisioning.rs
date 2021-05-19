@@ -2,27 +2,27 @@ use itertools::Either::{Left, Right};
 
 use crate::algorithms::capacity_provisioning::Bounded;
 use crate::config::Config;
-use crate::problem::FractionalSmoothedConvexOptimization;
+use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::{FractionalSchedule, Schedule};
 use crate::utils::{assert, project};
 
 /// Backward-Recurrent Capacity Provisioning
 pub fn bcp(
-    p: &FractionalSmoothedConvexOptimization<'_>,
+    p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
 ) -> Result<FractionalSchedule> {
     cp(p, false)
 }
 
 /// Forward-Recurrent Capacity Provisioning
 pub fn fcp(
-    p: &FractionalSmoothedConvexOptimization<'_>,
+    p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
 ) -> Result<FractionalSchedule> {
     cp(p, true)
 }
 
 fn cp(
-    p: &FractionalSmoothedConvexOptimization<'_>,
+    p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
     forward: bool,
 ) -> Result<FractionalSchedule> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
@@ -44,7 +44,7 @@ fn cp(
 }
 
 fn next(
-    p: &FractionalSmoothedConvexOptimization<'_>,
+    p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
     t: i32,
     x: f64,
 ) -> Result<f64> {

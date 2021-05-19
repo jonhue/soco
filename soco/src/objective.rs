@@ -4,8 +4,8 @@ use num::{NumCast, ToPrimitive};
 
 use crate::config::Config;
 use crate::problem::{
-    SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
-    SmoothedLoadOptimization,
+    SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
+    SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
@@ -48,10 +48,36 @@ where
         for t in 1..=self.t_end {
             let prev_x = xs.get(t - 2).unwrap_or(&default_x);
             let x = &xs[t as usize - 1];
-            cost += (self.hitting_cost)(t as i32, x.to_vec())
+            cost += (self.hitting_cost)(t as i32, x.clone())
+                .ok_or(Error::CostFnMustBeTotal)?;
+            let delta = movement(x, prev_x, inverted);
+            cost += (self.switching_cost)(delta);
+        }
+        Ok(cost)
+    }
+}
+
+impl<'a, T> Objective<T> for SimplifiedSmoothedConvexOptimization<'a, T>
+where
+    T: Value,
+{
+    fn _objective_function(
+        &self,
+        xs: &Schedule<T>,
+        inverted: bool,
+    ) -> Result<f64> {
+        let default_x = Config::<T>::repeat(NumCast::from(0).unwrap(), self.d);
+        let mut cost = 0.;
+        for t in 1..=self.t_end {
+            let prev_x = xs.get(t - 2).unwrap_or(&default_x);
+            let x = &xs[t as usize - 1];
+            cost += (self.hitting_cost)(t as i32, x.clone())
                 .ok_or(Error::CostFnMustBeTotal)?;
             for k in 0..self.d as usize {
-                let delta = movement(x[k], prev_x[k], inverted);
+                let delta = ToPrimitive::to_f64(&scalar_movement(
+                    x[k], prev_x[k], inverted,
+                ))
+                .unwrap();
                 cost += self.switching_cost[k] * delta;
             }
         }
@@ -76,7 +102,10 @@ where
             for k in 0..self.d as usize {
                 cost +=
                     self.hitting_cost[k] * ToPrimitive::to_f64(&x[k]).unwrap();
-                let delta = movement(x[k], prev_x[k], inverted);
+                let delta = ToPrimitive::to_f64(&scalar_movement(
+                    x[k], prev_x[k], inverted,
+                ))
+                .unwrap();
                 cost += self.switching_cost[k] * delta;
             }
         }
@@ -93,19 +122,33 @@ where
         xs: &Schedule<T>,
         inverted: bool,
     ) -> Result<f64> {
-        let sco_p = self.to_sco();
+        let ssco_p = self.to_ssco();
         if inverted {
-            sco_p.inverted_objective_function(xs)
+            ssco_p.inverted_objective_function(xs)
         } else {
-            sco_p.objective_function(xs)
+            ssco_p.objective_function(xs)
         }
     }
 }
 
-pub fn movement<T>(x: T, prev_x: T, inverted: bool) -> f64
+pub fn scalar_movement<T>(j: T, prev_j: T, inverted: bool) -> T
 where
     T: Value,
 {
-    ToPrimitive::to_f64(&pos(if inverted { prev_x - x } else { x - prev_x }))
-        .unwrap()
+    pos(if inverted { prev_j - j } else { j - prev_j })
+}
+
+pub fn movement<T>(
+    x: &Config<T>,
+    prev_x: &Config<T>,
+    inverted: bool,
+) -> Config<T>
+where
+    T: Value,
+{
+    let mut result = Config::empty();
+    for i in 0..x.d() as usize {
+        result.push(scalar_movement(x[i], prev_x[i], inverted));
+    }
+    result
 }

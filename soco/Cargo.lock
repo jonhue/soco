@@ -18,7 +18,7 @@ checksum = "cdb031dd78e28731d87d56cc8ffef4a8f36ca26c38fe2de700543e627f8a464a"
 [[package]]
 name = "bacon-sci"
 version = "0.11.0"
-source = "git+https://github.com/jonhue/bacon?branch=allow-closures-in-differentiation#200c6763b1e1ce5fe41c9886db304eb0edce0712"
+source = "git+https://github.com/aftix/bacon?branch=master#ae764ac7acc7a4c7d35d3d62a09d96ae3ea5f4c8"
 dependencies = [
  "nalgebra",
  "num-complex 0.3.1",

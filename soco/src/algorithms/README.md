@@ -2,19 +2,19 @@
 
 | Name                                                                                         | Variant | Multi-Dimensional? | Integral? | Online? | Approximation/Competitiveness* | Complexity** |
 | -------------------------------------------------------------------------------------------- | ------- | ------------------ | --------- | ------- | ------------------------------ | ------------ |
-| `offline::uni_dimensional::capacity_provisioning::bcp` [1]                                   | 1       | ❌                 | ❌        | ❌      | optimal                        |              |
-| `offline::uni_dimensional::capacity_provisioning::fcp` [*]                                   | 1       | ❌                 | ❌        | ❌      | optimal                        |              |
-| `offline::uni_dimensional::optimal_graph_search::optimal_graph_search` [3]                   | 1       | ❌                 | ✅        | ❌      | optimal                        | O(T log m)   |
-| `offline::multi_dimensional::optimal_graph_search::optimal_graph_search` [5]                 | 1       | ✅                 | ✅        | ❌      | optimal                        |              |
-| `offline::multi_dimensional::approx_graph_search::approx_graph_search` [5]                   | 1       | ✅                 | ✅        | ❌      | (2𝛾 - 1)-approximation         |              |
-| `online::uni_dimensional::lazy_capacity_provisioning::fractional::lcp` [1]                   | 1       | ❌                 | ❌        | ✅      | 3-competitive                  |              |
-| `online::uni_dimensional::lazy_capacity_provisioning::integral::lcp` [3]                     | 1       | ❌                 | ✅        | ✅      | 3-competitive                  |              |
-| `online::uni_dimensional::memoryless::memoryless` [2]                                        | 1       | ❌                 | ❌        | ✅      | 3-competitive                  |              |
-| `online::uni_dimensional::probabilistic::probabilistic` [2]                                  | 1       | ❌                 | ❌        | ✅      | 2-competitive                  |              |
-| `online::uni_dimensional::randomized::randomized` [3]                                        | 1       | ❌                 | ✅        | ✅      | 2-competitive                  |              |
-| `online::multi_dimensional::lazy_budgeting::smoothed_load_optimization::lb` [4]              | 2       | ✅                 | ✅        | ✅      | 2d-competitive                 |              |
-| `online::multi_dimensional::lazy_budgeting::smoothed_load_optimization::lb` (randomized) [4] | 2       | ✅                 | ✅        | ✅      | (e / (e - 1))d-competitive     |              |
-| `online::multi_dimensional::lazy_budgeting::smoothed_balanced_load_optimization::lb` [5]     | 3       | ✅                 | ✅        | ✅      | (2d + 1 + ε)-competitive       |              |
+| `offline::uni_dimensional::capacity_provisioning::bcp` [1]                                   | 2       | ❌                 | ❌        | ❌      | optimal                        |              |
+| `offline::uni_dimensional::capacity_provisioning::fcp` [*]                                   | 2       | ❌                 | ❌        | ❌      | optimal                        |              |
+| `offline::uni_dimensional::optimal_graph_search::optimal_graph_search` [3]                   | 2       | ❌                 | ✅        | ❌      | optimal                        | O(T log m)   |
+| `offline::multi_dimensional::optimal_graph_search::optimal_graph_search` [5]                 | 2       | ✅                 | ✅        | ❌      | optimal                        |              |
+| `offline::multi_dimensional::approx_graph_search::approx_graph_search` [5]                   | 2       | ✅                 | ✅        | ❌      | (2𝛾 - 1)-approximation         |              |
+| `online::uni_dimensional::lazy_capacity_provisioning::fractional::lcp` [1]                   | 2       | ❌                 | ❌        | ✅      | 3-competitive                  |              |
+| `online::uni_dimensional::lazy_capacity_provisioning::integral::lcp` [3]                     | 2       | ❌                 | ✅        | ✅      | 3-competitive                  |              |
+| `online::uni_dimensional::memoryless::memoryless` [2]                                        | 2       | ❌                 | ❌        | ✅      | 3-competitive                  |              |
+| `online::uni_dimensional::probabilistic::probabilistic` [2]                                  | 2       | ❌                 | ❌        | ✅      | 2-competitive                  |              |
+| `online::uni_dimensional::randomized::randomized` [3]                                        | 2       | ❌                 | ✅        | ✅      | 2-competitive                  |              |
+| `online::multi_dimensional::lazy_budgeting::smoothed_load_optimization::lb` [4]              | 3       | ✅                 | ✅        | ✅      | 2d-competitive                 |              |
+| `online::multi_dimensional::lazy_budgeting::smoothed_load_optimization::lb` (randomized) [4] | 3       | ✅                 | ✅        | ✅      | (e / (e - 1))d-competitive     |              |
+| `online::multi_dimensional::lazy_budgeting::smoothed_balanced_load_optimization::lb` [5]     | 4       | ✅                 | ✅        | ✅      | (2d + 1 + ε)-competitive       |              |
 
 \* If online, the competitive ratio describes how much worse the algorithm performs compared to an optimal offline algorithm in the worst case.
 
@@ -23,8 +23,9 @@
 ### Problem Variants
 
 1. Smoothed Convex Optimization
-2. Smoothed Load Optimization
-3. Smoothed Balanced-Load Optimization
+2. Simplified Smoothed Convex Optimization
+3. Smoothed Load Optimization
+4. Smoothed Balanced-Load Optimization
 
 ### Optimal Competitiveness
 

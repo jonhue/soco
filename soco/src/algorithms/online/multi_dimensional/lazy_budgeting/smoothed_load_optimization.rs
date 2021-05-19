@@ -148,13 +148,13 @@ fn find_optimal_lanes(
     use_approx: Option<&ApproxOptions>,
 ) -> Result<Lanes> {
     let sblo_p = p.to_sblo();
-    let sco_p = sblo_p.to_sco();
+    let ssco_p = sblo_p.to_ssco();
     let Path(xs, _) = match use_approx {
         None => {
-            optimal_graph_search(&sco_p, &OfflineOptions { inverted: false })?
+            optimal_graph_search(&ssco_p, &OfflineOptions { inverted: false })?
         }
         Some(options) => approx_graph_search(
-            &sco_p,
+            &ssco_p,
             options,
             &OfflineOptions { inverted: false },
         )?,

@@ -7,7 +7,7 @@ use std::sync::Arc;
 
 use crate::config::Config;
 use crate::online::{Online, Step};
-use crate::problem::FractionalSmoothedConvexOptimization;
+use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
@@ -20,7 +20,7 @@ static STEP_SIZE: f64 = 1e-16;
 
 /// Probabilistic Algorithm
 pub fn probabilistic<'a>(
-    o: &'a Online<FractionalSmoothedConvexOptimization<'a>>,
+    o: &'a Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
     xs: &mut FractionalSchedule,
     ps: &mut Vec<Memory<'a>>,
     _: &(),
@@ -43,7 +43,7 @@ pub fn probabilistic<'a>(
         if j >= x_l && j <= x_r {
             prev_p(j)
                 + second_derivative(
-                    |j: f64| (o.p.hitting_cost)(t, vec![j]).unwrap(),
+                    |j: f64| (o.p.hitting_cost)(t, Config::single(j)).unwrap(),
                     j,
                     STEP_SIZE,
                 ) / 2.
@@ -58,12 +58,12 @@ pub fn probabilistic<'a>(
 
 /// Determines minimizer of `f` with a convex optimization.
 fn find_minimizer(
-    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
+    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
     t: i32,
 ) -> Result<f64> {
     let objective_function =
         |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            (o.p.hitting_cost)(t, xs.to_vec()).unwrap()
+            (o.p.hitting_cost)(t, Config::new(xs.to_vec())).unwrap()
         };
     let mut xs = [0.0];
 
@@ -84,7 +84,7 @@ fn find_minimizer(
 
 /// Determines `x_r` with a convex optimization.
 fn find_right_bound(
-    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
+    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
     t: i32,
     prev_p: &Memory<'_>,
     x_m: f64,
@@ -111,7 +111,9 @@ fn find_right_bound(
                 xs[0],
                 |j: f64| {
                     second_derivative(
-                        |j: f64| (o.p.hitting_cost)(t, vec![j]).unwrap(),
+                        |j: f64| {
+                            (o.p.hitting_cost)(t, Config::single(j)).unwrap()
+                        },
                         j,
                         STEP_SIZE,
                     )
@@ -134,7 +136,7 @@ fn find_right_bound(
 
 /// Determines `x_l` with a convex optimization.
 fn find_left_bound(
-    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
+    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
     t: i32,
     prev_p: &Memory<'_>,
     x_m: f64,
@@ -161,7 +163,9 @@ fn find_left_bound(
                 x_m,
                 |j: f64| {
                     second_derivative(
-                        |j: f64| (o.p.hitting_cost)(t, vec![j]).unwrap(),
+                        |j: f64| {
+                            (o.p.hitting_cost)(t, Config::single(j)).unwrap()
+                        },
                         j,
                         STEP_SIZE,
                     )

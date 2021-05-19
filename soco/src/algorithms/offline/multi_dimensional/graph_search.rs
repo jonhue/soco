@@ -1,3 +1,4 @@
+use num::ToPrimitive;
 use ordered_float::OrderedFloat;
 use pathfinding::prelude::astar;
 use std::collections::HashMap;
@@ -5,8 +6,8 @@ use std::collections::HashMap;
 use crate::algorithms::graph_search::{Path, Paths};
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
-use crate::objective::movement;
-use crate::problem::IntegralSmoothedConvexOptimization;
+use crate::objective::scalar_movement;
+use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 
@@ -21,7 +22,7 @@ struct Vertice {
 
 /// Graph-Based Integral Algorithm
 pub fn graph_search<'a>(
-    p: &'a IntegralSmoothedConvexOptimization<'a>,
+    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
     configs: &Vec<Config<i32>>,
     offline_options: &OfflineOptions,
 ) -> Result<Path> {
@@ -111,7 +112,7 @@ pub fn graph_search<'a>(
 }
 
 fn find_shortest_subpath(
-    p: &IntegralSmoothedConvexOptimization<'_>,
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     configs: &Vec<Config<i32>>,
     inverted: bool,
     paths: &mut Paths<Vertice>,
@@ -158,7 +159,7 @@ impl Vertice {
     fn heuristic(
         &self,
         to: &Vertice,
-        p: &IntegralSmoothedConvexOptimization<'_>,
+        p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
         inverted: bool,
     ) -> OrderedFloat<f64> {
         assert!(to.powering_up, "Only vertices from the powering up phase may be used as goals with this heuristic function.");
@@ -181,8 +182,13 @@ impl Vertice {
 
         // switching costs
         for k in 0..p.d as usize {
-            cost += p.switching_cost[k]
-                * movement(to.config[k], self.config[k], inverted);
+            let delta = ToPrimitive::to_f64(&scalar_movement(
+                to.config[k],
+                self.config[k],
+                inverted,
+            ))
+            .unwrap();
+            cost += p.switching_cost[k] * delta;
         }
 
         // one could also add the smallest hitting cost of any of the configurations,
@@ -193,7 +199,7 @@ impl Vertice {
 
     fn successors(
         &self,
-        p: &IntegralSmoothedConvexOptimization<'_>,
+        p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
         configs: &Vec<Config<i32>>,
         inverted: bool,
     ) -> Vec<(Vertice, OrderedFloat<f64>)> {
@@ -207,7 +213,7 @@ impl Vertice {
                     powering_up: false,
                 },
                 OrderedFloat(
-                    (p.hitting_cost)(self.t, self.config.to_vec()).unwrap(),
+                    (p.hitting_cost)(self.t, self.config.clone()).unwrap(),
                 ),
             ));
             // edges for powering up
@@ -216,6 +222,13 @@ impl Vertice {
                 let vs = collect_dimension_range(configs, k);
                 let i = vs.iter().position(|&v| v == config[k]).unwrap();
                 if i < vs.len() - 1 {
+                    let delta = ToPrimitive::to_f64(&scalar_movement(
+                        vs[i + 1],
+                        vs[i],
+                        inverted,
+                    ))
+                    .unwrap();
+                    let cost = p.switching_cost[k] * delta;
                     config[k] = vs[i + 1];
                     successors.push((
                         Vertice {
@@ -223,10 +236,7 @@ impl Vertice {
                             config,
                             powering_up: true,
                         },
-                        OrderedFloat(
-                            p.switching_cost[k]
-                                * movement(vs[i + 1], vs[i], inverted),
-                        ),
+                        OrderedFloat(cost),
                     ));
                 }
             }

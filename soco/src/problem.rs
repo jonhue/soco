@@ -1,6 +1,8 @@
 //! Problem definition.
 
+use crate::config::Config;
 use crate::cost::CostFn;
+use crate::norm::NormFn;
 use crate::value::Value;
 
 /// Trait implemented by all finite-time-horizon problems.
@@ -14,7 +16,35 @@ pub trait Problem {
 /// Smoothed Convex Optimization.
 pub struct SmoothedConvexOptimization<'a, T>
 where
+    T: Value + 'a,
+{
+    /// Number of dimensions.
+    pub d: i32,
+    /// Finite, positive time horizon.
+    pub t_end: i32,
+    /// Vector of lower and upper bounds of each dimension.
+    pub bounds: Vec<(T, T)>,
+    /// Norm function.
+    pub switching_cost: NormFn<'a, Config<T>>,
+    /// Non-negative convex cost functions.
+    pub hitting_cost: CostFn<'a, Config<T>>,
+}
+impl<'a, T> Problem for SmoothedConvexOptimization<'a, T>
+where
     T: Value,
+{
+    fn t_end(&self) -> i32 {
+        self.t_end
+    }
+    fn inc_t_end(&mut self) {
+        self.t_end += 1
+    }
+}
+
+/// Simplified Smoothed Convex Optimization.
+pub struct SimplifiedSmoothedConvexOptimization<'a, T>
+where
+    T: Value + 'a,
 {
     /// Number of dimensions.
     pub d: i32,
@@ -25,13 +55,13 @@ where
     /// Vector of positive real constants resembling the switching cost of each dimension.
     pub switching_cost: Vec<f64>,
     /// Non-negative convex cost functions.
-    pub hitting_cost: CostFn<'a, Vec<T>>,
+    pub hitting_cost: CostFn<'a, Config<T>>,
 }
-pub type IntegralSmoothedConvexOptimization<'a> =
-    SmoothedConvexOptimization<'a, i32>;
-pub type FractionalSmoothedConvexOptimization<'a> =
-    SmoothedConvexOptimization<'a, f64>;
-impl<'a, T> Problem for SmoothedConvexOptimization<'a, T>
+pub type IntegralSimplifiedSmoothedConvexOptimization<'a> =
+    SimplifiedSmoothedConvexOptimization<'a, i32>;
+pub type FractionalSimplifiedSmoothedConvexOptimization<'a> =
+    SimplifiedSmoothedConvexOptimization<'a, f64>;
+impl<'a, T> Problem for SimplifiedSmoothedConvexOptimization<'a, T>
 where
     T: Value,
 {
