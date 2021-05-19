@@ -6,6 +6,7 @@ use nlopt::Target;
 use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
+use crate::config::Config;
 use crate::utils::access;
 use crate::value::Value;
 use crate::PRECISION;
@@ -30,7 +31,7 @@ pub fn lazy<'a, T>(
     d: i32,
     f: LoadCostFn<'a, T>,
     ls: &'a Vec<T>,
-) -> CostFn<'a, Vec<T>>
+) -> CostFn<'a, Config<T>>
 where
     T: Value,
 {
@@ -39,7 +40,8 @@ where
 
         let objective_function =
             |zs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-                x.iter()
+                x.to_vec()
+                    .iter()
                     .enumerate()
                     .map(|(k, &j)| {
                         let z = zs[k];

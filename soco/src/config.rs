@@ -36,6 +36,10 @@ where
         Config(vec![j; d as usize])
     }
 
+    pub fn d(&self) -> i32 {
+        self.0.len() as i32
+    }
+
     pub fn to_vec(&self) -> Vec<T> {
         self.0.clone()
     }

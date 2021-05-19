@@ -1,16 +1,18 @@
 //! Functions to convert between problem instances.
 
-use num::ToPrimitive;
+use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
 use crate::config::Config;
 use crate::cost::CostFn;
 use crate::cost::{lazy, LoadCostFn};
+use crate::norm::NormFn;
 use crate::online::Online;
 use crate::problem::{
-    FractionalSmoothedConvexOptimization, IntegralSmoothedConvexOptimization,
-    SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
-    SmoothedLoadOptimization,
+    FractionalSimplifiedSmoothedConvexOptimization,
+    IntegralSimplifiedSmoothedConvexOptimization,
+    SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
+    SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
 use crate::schedule::{FractionalSchedule, IntegralSchedule};
 use crate::value::Value;
@@ -46,31 +48,31 @@ impl RelaxableVector for Vec<i32> {
 
 pub trait DiscretizableCostFn<'a> {
     /// Discretize a fractional cost function.
-    fn to_i(&'a self) -> CostFn<'a, Vec<i32>>;
+    fn to_i(&'a self) -> CostFn<'a, Config<i32>>;
 }
 
-impl<'a> DiscretizableCostFn<'a> for CostFn<'a, Vec<f64>> {
-    fn to_i(&'a self) -> CostFn<'a, Vec<i32>> {
+impl<'a> DiscretizableCostFn<'a> for CostFn<'a, Config<f64>> {
+    fn to_i(&'a self) -> CostFn<'a, Config<i32>> {
         Arc::new(move |t, x| self(t, x.to_f()))
     }
 }
 
 pub trait RelaxableCostFn<'a> {
     /// Relax an integral cost function to the fractional setting.
-    fn to_f(&'a self) -> CostFn<'a, Vec<f64>>;
+    fn to_f(&'a self) -> CostFn<'a, Config<f64>>;
 }
 
-impl<'a> RelaxableCostFn<'a> for CostFn<'a, Vec<i32>> {
-    fn to_f(&'a self) -> CostFn<'a, Vec<f64>> {
+impl<'a> RelaxableCostFn<'a> for CostFn<'a, Config<i32>> {
+    fn to_f(&'a self) -> CostFn<'a, Config<f64>> {
         Arc::new(move |t, x| {
-            assert!(x.len() == 1, "cannot relax multidimensional problems");
+            assert!(x.d() == 1, "cannot relax multidimensional problems");
 
             let j = x[0];
             if j.fract() == 0. {
-                self(t, vec![j as i32])
+                self(t, Config::single(j as i32))
             } else {
-                let l = self(t, vec![j.floor() as i32]);
-                let u = self(t, vec![j.ceil() as i32]);
+                let l = self(t, Config::single(j.floor() as i32));
+                let u = self(t, Config::single(j.ceil() as i32));
                 if l.is_none() || u.is_none() {
                     return None;
                 }
@@ -88,11 +90,13 @@ pub trait DiscretizableProblem<'a> {
     fn to_i(&'a self) -> Self::Output;
 }
 
-impl<'a> DiscretizableProblem<'a> for FractionalSmoothedConvexOptimization<'a> {
-    type Output = IntegralSmoothedConvexOptimization<'a>;
+impl<'a> DiscretizableProblem<'a>
+    for FractionalSimplifiedSmoothedConvexOptimization<'a>
+{
+    type Output = IntegralSimplifiedSmoothedConvexOptimization<'a>;
 
-    fn to_i(&'a self) -> IntegralSmoothedConvexOptimization<'a> {
-        SmoothedConvexOptimization {
+    fn to_i(&'a self) -> IntegralSimplifiedSmoothedConvexOptimization<'a> {
+        SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.floor(),
@@ -109,16 +113,48 @@ pub trait RelaxableProblem<'a> {
     fn to_f(&'a self) -> Self::Output;
 }
 
-impl<'a> RelaxableProblem<'a> for IntegralSmoothedConvexOptimization<'a> {
-    type Output = FractionalSmoothedConvexOptimization<'a>;
+impl<'a> RelaxableProblem<'a>
+    for IntegralSimplifiedSmoothedConvexOptimization<'a>
+{
+    type Output = FractionalSimplifiedSmoothedConvexOptimization<'a>;
 
-    fn to_f(&'a self) -> FractionalSmoothedConvexOptimization<'a> {
-        SmoothedConvexOptimization {
+    fn to_f(&'a self) -> FractionalSimplifiedSmoothedConvexOptimization<'a> {
+        SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.to_f(),
             switching_cost: self.switching_cost.clone(),
             hitting_cost: self.hitting_cost.to_f(),
+        }
+    }
+}
+
+impl<'a, T> SimplifiedSmoothedConvexOptimization<'a, T>
+where
+    T: Value,
+{
+    /// Convert to an instance of Smoothed Convex Optimization.
+    pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {
+        let bounds = self
+            .bounds
+            .iter()
+            .map(|&u| (NumCast::from(0).unwrap(), u))
+            .collect();
+        let switching_cost: NormFn<'a, Config<T>> = Arc::new(move |x| {
+            let mut result = 0.;
+            for k in 0..self.d as usize {
+                result += self.switching_cost[k]
+                    * ToPrimitive::to_f64(&x[k]).unwrap().abs()
+                    / 2.;
+            }
+            result
+        });
+        SmoothedConvexOptimization {
+            d: self.d,
+            t_end: self.t_end,
+            bounds,
+            switching_cost,
+            hitting_cost: self.hitting_cost.clone(),
         }
     }
 }
@@ -149,8 +185,8 @@ impl<'a, T> SmoothedBalancedLoadOptimization<'a, T>
 where
     T: Value,
 {
-    /// Convert instance to an instance of Smoothed Convex Optimization.
-    pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {
+    /// Convert to an instance of Simplified Smoothed Convex Optimization.
+    pub fn to_ssco(&'a self) -> SimplifiedSmoothedConvexOptimization<'a, T> {
         let f: LoadCostFn<'a, T> = Arc::new(move |t, k, l| {
             Arc::new(move |j| {
                 self.hitting_cost[k as usize](t, l / j).map(|hitting_cost| {
@@ -158,7 +194,7 @@ where
                 })
             })
         });
-        SmoothedConvexOptimization {
+        SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.clone(),
@@ -260,12 +296,16 @@ pub trait ResettableProblem<'a, T> {
     fn reset(&'a self, t_start: i32) -> Self;
 }
 
-impl<'a, T> ResettableProblem<'a, T> for SmoothedConvexOptimization<'a, T>
+impl<'a, T> ResettableProblem<'a, T>
+    for SimplifiedSmoothedConvexOptimization<'a, T>
 where
     T: Value,
 {
-    fn reset(&'a self, t_start: i32) -> SmoothedConvexOptimization<'a, T> {
-        SmoothedConvexOptimization {
+    fn reset(
+        &'a self,
+        t_start: i32,
+    ) -> SimplifiedSmoothedConvexOptimization<'a, T> {
+        SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end - t_start,
             bounds: self.bounds.clone(),

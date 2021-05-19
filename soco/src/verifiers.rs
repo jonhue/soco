@@ -7,8 +7,8 @@ use crate::config::Config;
 use crate::cost::CostFn;
 use crate::online::Online;
 use crate::problem::{
-    SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
-    SmoothedLoadOptimization,
+    SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
+    SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
@@ -55,6 +55,39 @@ where
             self.bounds.len() == self.d as usize,
             format!("length of vector of upper bounds must equal dimension, {} != {}", self.bounds.len(), self.d),
         )?;
+
+        for t in 1..=self.t_end {
+            self.hitting_cost.verify(
+                t,
+                Config::new(self.bounds.iter().map(|&(l, _)| l).collect()),
+            )?;
+            self.hitting_cost.verify(
+                t,
+                Config::new(self.bounds.iter().map(|&(_, u)| u).collect()),
+            )?;
+        }
+
+        Ok(())
+    }
+}
+
+impl<'a, T> VerifiableProblem for SimplifiedSmoothedConvexOptimization<'a, T>
+where
+    T: Value,
+{
+    fn verify(&self) -> Result<()> {
+        assert_validity(
+            self.d > 0,
+            format!("number of dimensions must be positive, is {}", self.d),
+        )?;
+        assert_validity(
+            self.t_end > 0,
+            format!("time horizon must be positive, is {}", self.t_end),
+        )?;
+        assert_validity(
+            self.bounds.len() == self.d as usize,
+            format!("length of vector of upper bounds must equal dimension, {} != {}", self.bounds.len(), self.d),
+        )?;
         assert_validity(
             self.switching_cost.len() == self.d as usize,
             format!("length of vector of switching costs must equal dimension, {} != {}", self.switching_cost.len(), self.d),
@@ -76,9 +109,10 @@ where
             for t in 1..=self.t_end {
                 self.hitting_cost.verify(
                     t,
-                    vec![NumCast::from(0).unwrap(); self.d as usize],
+                    Config::repeat(NumCast::from(0).unwrap(), self.d),
                 )?;
-                self.hitting_cost.verify(t, self.bounds.clone())?;
+                self.hitting_cost
+                    .verify(t, Config::new(self.bounds.clone()))?;
             }
         }
 

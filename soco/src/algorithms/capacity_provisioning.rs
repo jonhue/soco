@@ -15,7 +15,8 @@ use crate::config::Config;
 use crate::convert::ResettableProblem;
 use crate::objective::Objective;
 use crate::problem::{
-    FractionalSmoothedConvexOptimization, IntegralSmoothedConvexOptimization,
+    FractionalSimplifiedSmoothedConvexOptimization,
+    IntegralSimplifiedSmoothedConvexOptimization,
 };
 use crate::result::{Error, Result};
 use crate::utils::{assert, is_pow_of_2};
@@ -43,7 +44,7 @@ pub trait Bounded<T> {
     ) -> Result<T>;
 }
 
-impl Bounded<f64> for FractionalSmoothedConvexOptimization<'_> {
+impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
     fn find_lower_bound(
         &self,
         t: i32,
@@ -61,7 +62,7 @@ impl Bounded<f64> for FractionalSmoothedConvexOptimization<'_> {
         let objective_function =
             |xs: &[f64],
              _: Option<&mut [f64]>,
-             p: &mut &FractionalSmoothedConvexOptimization<'_>|
+             p: &mut &FractionalSimplifiedSmoothedConvexOptimization<'_>|
              -> f64 {
                 p.objective_function(
                     &xs.iter().map(|&x| Config::single(x)).collect(),
@@ -88,7 +89,7 @@ impl Bounded<f64> for FractionalSmoothedConvexOptimization<'_> {
         let objective_function =
             |xs: &[f64],
              _: Option<&mut [f64]>,
-             p: &mut &FractionalSmoothedConvexOptimization<'_>|
+             p: &mut &FractionalSimplifiedSmoothedConvexOptimization<'_>|
              -> f64 {
                 p.inverted_objective_function(
                     &xs.iter().map(|&x| Config::single(x)).collect(),
@@ -99,10 +100,12 @@ impl Bounded<f64> for FractionalSmoothedConvexOptimization<'_> {
     }
 }
 
-impl FractionalSmoothedConvexOptimization<'_> {
+impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
     fn find_bound<'a>(
         &'a self,
-        objective_function: impl ObjFn<&'a FractionalSmoothedConvexOptimization<'a>>,
+        objective_function: impl ObjFn<
+            &'a FractionalSimplifiedSmoothedConvexOptimization<'a>,
+        >,
         t: i32,
         t_start: i32,
     ) -> Result<f64> {
@@ -131,7 +134,7 @@ impl FractionalSmoothedConvexOptimization<'_> {
     }
 }
 
-impl Bounded<i32> for IntegralSmoothedConvexOptimization<'_> {
+impl Bounded<i32> for IntegralSimplifiedSmoothedConvexOptimization<'_> {
     fn find_lower_bound(
         &self,
         t: i32,
@@ -151,7 +154,7 @@ impl Bounded<i32> for IntegralSmoothedConvexOptimization<'_> {
     }
 }
 
-impl IntegralSmoothedConvexOptimization<'_> {
+impl IntegralSimplifiedSmoothedConvexOptimization<'_> {
     fn find_bound(
         &self,
         t: i32,

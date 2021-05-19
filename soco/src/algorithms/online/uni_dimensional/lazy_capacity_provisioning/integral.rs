@@ -5,7 +5,7 @@ use crate::algorithms::online::uni_dimensional::lazy_capacity_provisioning::{
 };
 use crate::config::Config;
 use crate::online::{Online, Step};
-use crate::problem::IntegralSmoothedConvexOptimization;
+use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, project};
@@ -19,7 +19,7 @@ pub struct Options<'a> {
 
 /// Integral Lazy Capacity Provisioning
 pub fn lcp(
-    o: &Online<IntegralSmoothedConvexOptimization<'_>>,
+    o: &Online<IntegralSimplifiedSmoothedConvexOptimization<'_>>,
     xs: &mut IntegralSchedule,
     ms: &mut Vec<Memory<i32>>,
     options: &Options,

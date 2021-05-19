@@ -22,7 +22,7 @@
 
 ### Problem Variants
 
-1. Smoothed Convex Optimization
+1. Simplified Smoothed Convex Optimization
 2. Smoothed Load Optimization
 3. Smoothed Balanced-Load Optimization
 

@@ -6,13 +6,13 @@ mod bcp {
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::bcp;
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
-    use soco::problem::SmoothedConvexOptimization;
+    use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 2,
             bounds: vec![2.],
@@ -39,13 +39,13 @@ mod fcp {
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::fcp;
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
-    use soco::problem::SmoothedConvexOptimization;
+    use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 2,
             bounds: vec![2.],

@@ -4,12 +4,13 @@ mod make_pow_of_2 {
     use std::sync::Arc;
 
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::make_pow_of_2;
-    use soco::problem::SmoothedConvexOptimization;
+    use soco::config::Config;
+    use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1_000,
             bounds: vec![103],
@@ -27,7 +28,7 @@ mod make_pow_of_2 {
         for t in 1..=transformed_p.t_end {
             for j in 0..=transformed_p.bounds[0] {
                 assert_eq!(
-                    (transformed_p.hitting_cost)(t, vec![j]).unwrap(),
+                    (transformed_p.hitting_cost)(t, Config::single(j)).unwrap(),
                     if j <= p.bounds[0] {
                         1.
                     } else {
@@ -52,13 +53,13 @@ mod optimal_graph_search {
     };
     use soco::config::Config;
     use soco::objective::Objective;
-    use soco::problem::SmoothedConvexOptimization;
+    use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 2,
             bounds: vec![2],
@@ -88,7 +89,7 @@ mod optimal_graph_search {
 
     #[test]
     fn _2() {
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 100,
             bounds: vec![8],
@@ -116,7 +117,7 @@ mod optimal_graph_search {
 
     #[test]
     fn _3() {
-        let p = SmoothedConvexOptimization {
+        let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1_000,
             bounds: vec![9],

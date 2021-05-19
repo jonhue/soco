@@ -4,7 +4,7 @@ use crate::algorithms::online::uni_dimensional::probabilistic::{
 use crate::config::Config;
 use crate::convert::RelaxableSchedule;
 use crate::online::{Online, Step};
-use crate::problem::FractionalSmoothedConvexOptimization;
+use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, frac, project, sample_uniform};
@@ -16,7 +16,7 @@ pub struct Memory<'a>(pub Config<f64>, pub ProbMemory<'a>);
 ///
 /// Relax discrete problem to fractional problem before use!
 pub fn randomized<'a>(
-    o: &'a Online<FractionalSmoothedConvexOptimization<'a>>,
+    o: &'a Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
     xs: &mut IntegralSchedule,
     ms: &mut Vec<Memory<'a>>,
     _: &(),

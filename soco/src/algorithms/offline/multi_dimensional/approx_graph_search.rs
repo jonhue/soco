@@ -3,7 +3,7 @@ use crate::algorithms::offline::multi_dimensional::duplicate_and_push_to_all;
 use crate::algorithms::offline::multi_dimensional::graph_search::graph_search;
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
-use crate::problem::IntegralSmoothedConvexOptimization;
+use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 
 static DEFAULT_GAMMA: f64 = 1.1;
@@ -15,7 +15,7 @@ pub struct Options {
 
 /// Graph-Based Polynomial-Time Integral Approximation Algorithm
 pub fn approx_graph_search<'a>(
-    p: &'a IntegralSmoothedConvexOptimization<'a>,
+    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
     options: &Options,
     offline_options: &OfflineOptions,
 ) -> Result<Path> {
@@ -26,7 +26,7 @@ pub fn approx_graph_search<'a>(
 
 /// Computes all configurations examined by the approximation algorithm.
 fn build_configs(
-    p: &IntegralSmoothedConvexOptimization<'_>,
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     gamma: f64,
 ) -> Vec<Config<i32>> {
     let mut configs: Vec<Config<i32>> = vec![Config::empty()];

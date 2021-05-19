@@ -4,7 +4,7 @@ use nlopt::Target;
 
 use crate::config::Config;
 use crate::online::{Online, Step};
-use crate::problem::FractionalSmoothedConvexOptimization;
+use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
@@ -12,7 +12,7 @@ use crate::PRECISION;
 
 /// Memoryless Algorithm
 pub fn memoryless(
-    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
+    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
     _: &(),
@@ -29,13 +29,13 @@ pub fn memoryless(
 
 /// Determines next `x` with a convex optimization.
 fn next(
-    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
+    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
     t: i32,
     prev_x: f64,
 ) -> Result<f64> {
     let objective_function =
         |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            (o.p.hitting_cost)(t, xs.to_vec()).unwrap()
+            (o.p.hitting_cost)(t, Config::new(xs.to_vec())).unwrap()
         };
     let mut xs = [0.0];
     let mut opt = Nlopt::new(
@@ -51,7 +51,7 @@ fn next(
     opt.add_inequality_constraint(
         |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
             (xs[0] - prev_x).abs()
-                - (o.p.hitting_cost)(t, xs.to_vec()).unwrap() / 2.
+                - (o.p.hitting_cost)(t, Config::new(xs.to_vec())).unwrap() / 2.
         },
         (),
         PRECISION,
