@@ -14,6 +14,8 @@ use crate::vec_wrapper::VecWrapper;
 pub struct Config<T>(Vec<T>)
 where
     T: Value;
+pub type IntegralConfig = Config<i32>;
+pub type FractionalConfig = Config<f64>;
 
 impl<T> Config<T>
 where

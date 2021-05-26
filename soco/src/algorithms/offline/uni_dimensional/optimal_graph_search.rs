@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use crate::algorithms::graph_search::{Path, Paths};
-use crate::config::Config;
+use crate::config::{Config, IntegralConfig};
 use crate::objective::scalar_movement;
 use crate::problem::{
     IntegralSimplifiedSmoothedConvexOptimization,
@@ -59,7 +59,7 @@ pub fn make_pow_of_2<'a>(
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
 
     let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);
-    let hitting_cost = Arc::new(move |t, x: Config<i32>| {
+    let hitting_cost = Arc::new(move |t, x: IntegralConfig| {
         if x[0] <= p.bounds[0] {
             (p.hitting_cost)(t, x)
         } else {

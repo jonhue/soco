@@ -4,7 +4,7 @@ use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
 };
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
 use crate::algorithms::offline::OfflineOptions;
-use crate::config::Config;
+use crate::config::{Config, IntegralConfig};
 use crate::online::{IntegralStep, Online, Step};
 use crate::problem::IntegralSmoothedLoadOptimization;
 use crate::result::{Error, Result};
@@ -108,7 +108,7 @@ fn next_time_horizon(
     }
 }
 
-fn collect_config(d: i32, lanes: &Lanes) -> Config<i32> {
+fn collect_config(d: i32, lanes: &Lanes) -> IntegralConfig {
     let mut config = Config::repeat(0, d);
     for i in 0..lanes.len() {
         config[lanes[i] as usize] += 1;
@@ -116,7 +116,7 @@ fn collect_config(d: i32, lanes: &Lanes) -> Config<i32> {
     config
 }
 
-fn build_lanes(x: &Config<i32>, d: i32, bound: usize) -> Lanes {
+fn build_lanes(x: &IntegralConfig, d: i32, bound: usize) -> Lanes {
     let mut lanes = vec![0; bound];
     for (k, lane) in lanes.iter_mut().enumerate() {
         if k as i32 <= active_lanes(x, 1, d) {
@@ -133,7 +133,7 @@ fn build_lanes(x: &Config<i32>, d: i32, bound: usize) -> Lanes {
 }
 
 /// Sums step across dimension from `from` to `to`.
-fn active_lanes(x: &Config<i32>, from: i32, to: i32) -> i32 {
+fn active_lanes(x: &IntegralConfig, from: i32, to: i32) -> i32 {
     let mut result = 0;
     for k in from..=to {
         result += x[k as usize];

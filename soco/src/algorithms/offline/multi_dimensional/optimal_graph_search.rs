@@ -2,7 +2,7 @@ use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::duplicate_and_push_to_all;
 use crate::algorithms::offline::multi_dimensional::graph_search::graph_search;
 use crate::algorithms::offline::OfflineOptions;
-use crate::config::Config;
+use crate::config::{Config, IntegralConfig};
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 
@@ -18,8 +18,8 @@ pub fn optimal_graph_search<'a>(
 /// Computes all configurations.
 fn build_configs(
     p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
-) -> Vec<Config<i32>> {
-    let mut configs: Vec<Config<i32>> = vec![Config::empty()];
+) -> Vec<IntegralConfig> {
+    let mut configs: Vec<IntegralConfig> = vec![Config::empty()];
     for k in 0..p.d {
         let base = configs.clone();
         configs = vec![];

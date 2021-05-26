@@ -5,7 +5,7 @@ use nlopt::{Algorithm, Nlopt, Target};
 use num::ToPrimitive;
 use std::sync::Arc;
 
-use crate::config::Config;
+use crate::config::{Config, FractionalConfig};
 use crate::result::{Error, Result};
 use crate::value::Value;
 use crate::PRECISION;
@@ -73,8 +73,8 @@ where
 
 /// Computes the dual norm of `x` given some `norm`.
 pub fn dual(
-    norm: &NormFn<'_, Config<f64>>,
-    x: Config<f64>,
+    norm: &NormFn<'_, FractionalConfig>,
+    x: FractionalConfig,
 ) -> Result<f64> {
     let d = x.d() as usize;
 

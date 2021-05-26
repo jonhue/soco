@@ -2,7 +2,7 @@
 
 use nlopt::{Algorithm, Nlopt, Target};
 
-use crate::config::Config;
+use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::result::Result;
 use crate::PRECISION;
@@ -10,9 +10,9 @@ use crate::PRECISION;
 /// Determines the minimizer of `f` at time `t` with bounds `bounds`
 pub fn find_minimizer(
     t: i32,
-    f: &CostFn<'_, Config<f64>>,
+    f: &CostFn<'_, FractionalConfig>,
     bounds: &Vec<(f64, f64)>,
-) -> Result<Config<f64>> {
+) -> Result<FractionalConfig> {
     let d = bounds.len();
     let (lower, upper): (Vec<_>, Vec<_>) = bounds.iter().cloned().unzip();
 

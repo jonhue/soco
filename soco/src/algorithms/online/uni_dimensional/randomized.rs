@@ -1,7 +1,7 @@
 use crate::algorithms::online::uni_dimensional::probabilistic::{
     probabilistic, Memory as ProbMemory,
 };
-use crate::config::Config;
+use crate::config::{Config, FractionalConfig};
 use crate::convert::RelaxableSchedule;
 use crate::online::{IntegralStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
@@ -10,7 +10,7 @@ use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, frac, project, sample_uniform};
 
 /// Fractional number of servers as determined by `bansal::det`; memory of `bansal::det`.
-pub struct Memory<'a>(pub Config<f64>, pub ProbMemory<'a>);
+pub struct Memory<'a>(pub FractionalConfig, pub ProbMemory<'a>);
 
 /// Randomized Integral Relaxation
 ///

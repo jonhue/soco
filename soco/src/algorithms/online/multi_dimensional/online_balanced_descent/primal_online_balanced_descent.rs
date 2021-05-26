@@ -4,7 +4,7 @@ use crate::algorithms::optimization::find_minimizer;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::{MAX_L_FACTOR, MAX_ITERATIONS};
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::mirror_map::MirrorMap;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::online_balanced_descent::{obd, Options as MetaOptions};
-use crate::config::Config;
+use crate::config::{Config, FractionalConfig};
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
@@ -16,7 +16,7 @@ pub struct Options<'a> {
     /// The movement cost is at most `beta` times the hitting cost. `beta > 0`.
     pub beta: f64,
     /// Mirror map chosen based on the used norm.
-    pub mirror_map: MirrorMap<'a, Config<f64>>,
+    pub mirror_map: MirrorMap<'a, FractionalConfig>,
 }
 
 /// Primal Online Balanced Descent
@@ -76,10 +76,10 @@ pub fn pobd<'a>(
 fn balance_function<'a>(
     o: &'a Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
-    prev_x: &Config<f64>,
+    prev_x: &FractionalConfig,
     l: f64,
     beta: f64,
-    mirror_map: &MirrorMap<'a, Config<f64>>,
+    mirror_map: &MirrorMap<'a, FractionalConfig>,
 ) -> f64 {
     let Step(x, _) = obd(
         o,

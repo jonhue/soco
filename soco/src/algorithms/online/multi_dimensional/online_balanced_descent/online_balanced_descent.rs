@@ -2,7 +2,7 @@ use finitediff::FiniteDiff;
 use nlopt::{Algorithm, Nlopt, Target};
 
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::mirror_map::MirrorMap;
-use crate::config::Config;
+use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::norm::NormFn;
 use crate::online::{FractionalStep, Online, Step};
@@ -16,7 +16,7 @@ pub struct Options<'a> {
     /// Determines the l-level set used in each step by the algorithm.
     pub l: f64,
     /// Mirror map chosen based on the used norm.
-    pub mirror_map: MirrorMap<'a, Config<f64>>,
+    pub mirror_map: MirrorMap<'a, FractionalConfig>,
 }
 
 /// Online Balanced Descent (meta algorithm)
@@ -47,13 +47,13 @@ pub fn obd<'a>(
 ///
 /// `mirror_map` must be `m`-strongly convex and `M`-Lipschitz smooth for the norm function with fixed `m` and `M`.
 fn bregman_projection<'a>(
-    mirror_map: &MirrorMap<'a, Config<f64>>,
-    norm: &NormFn<'a, Config<f64>>,
-    f: &CostFn<'_, Config<f64>>,
+    mirror_map: &MirrorMap<'a, FractionalConfig>,
+    norm: &NormFn<'a, FractionalConfig>,
+    f: &CostFn<'_, FractionalConfig>,
     t: i32,
     l: f64,
-    x: &Config<f64>,
-) -> Result<Config<f64>> {
+    x: &FractionalConfig,
+) -> Result<FractionalConfig> {
     let d = x.d() as usize;
     let objective_function = |y: &[f64],
                               _: Option<&mut [f64]>,
@@ -86,10 +86,10 @@ fn bregman_projection<'a>(
 
 /// Bregman divergence between `x` and `y`.
 fn bregman_divergence<'a>(
-    mirror_map: &MirrorMap<'a, Config<f64>>,
-    norm: &NormFn<'a, Config<f64>>,
-    x: Config<f64>,
-    y: Config<f64>,
+    mirror_map: &MirrorMap<'a, FractionalConfig>,
+    norm: &NormFn<'a, FractionalConfig>,
+    x: FractionalConfig,
+    y: FractionalConfig,
 ) -> f64 {
     let m = |x: &Vec<f64>| mirror_map(norm, Config::new(x.clone()));
     let mx = mirror_map(norm, x.clone());
