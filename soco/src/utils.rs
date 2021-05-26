@@ -21,16 +21,35 @@ pub fn frac(x: f64) -> f64 {
 }
 
 /// max{0, x}
+pub fn max<T>(x: T, y: T) -> T
+where
+    T: Value,
+{
+    if x > y {
+        x
+    } else {
+        y
+    }
+}
+
+/// max{0, x}
+pub fn min<T>(x: T, y: T) -> T
+where
+    T: Value,
+{
+    if x > y {
+        y
+    } else {
+        x
+    }
+}
+
+/// max{0, x}
 pub fn pos<T>(x: T) -> T
 where
     T: Value,
 {
-    let l = NumCast::from(0).unwrap();
-    if x > l {
-        x
-    } else {
-        l
-    }
+    max(NumCast::from(0).unwrap(), x)
 }
 
 /// max{a, min{b, x}}
@@ -38,12 +57,7 @@ pub fn project<T>(x: T, a: T, b: T) -> T
 where
     T: Value,
 {
-    let tmp = if b < x { b } else { x };
-    if a > tmp {
-        a
-    } else {
-        tmp
-    }
+    max(a, min(b, x))
 }
 
 /// Determines whether `x` is a power of `2`.

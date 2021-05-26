@@ -1,6 +1,7 @@
 //! Definition of configurations.
 
 use std::iter::FromIterator;
+use std::ops::Add;
 use std::ops::Index;
 use std::ops::IndexMut;
 use std::ops::Mul;
@@ -112,6 +113,20 @@ where
     }
 }
 
+impl<T> Add for Config<T>
+where
+    T: Value,
+{
+    type Output = Self;
+
+    fn add(self, other: Self) -> Self::Output {
+        self.iter()
+            .zip(other.iter())
+            .map(|(&x, &y)| x + y)
+            .collect()
+    }
+}
+
 impl<T> Sub for Config<T>
 where
     T: Value,
@@ -135,5 +150,14 @@ where
     /// Dot product of transposed `self` with `other`.
     fn mul(self, other: Self) -> Self::Output {
         self.iter().zip(other.iter()).map(|(&x, &y)| x * y).sum()
+    }
+}
+
+impl Mul<FractionalConfig> for f64 {
+    type Output = FractionalConfig;
+
+    /// Scales config with scalar.
+    fn mul(self, other: FractionalConfig) -> Self::Output {
+        other.iter().map(|&j| self * j).collect()
     }
 }
