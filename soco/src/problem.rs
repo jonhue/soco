@@ -40,6 +40,8 @@ where
         self.t_end += 1
     }
 }
+pub type FractionalSmoothedConvexOptimization<'a> =
+    SmoothedConvexOptimization<'a, f64>;
 
 /// Simplified Smoothed Convex Optimization.
 pub struct SimplifiedSmoothedConvexOptimization<'a, T>

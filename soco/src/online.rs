@@ -24,6 +24,8 @@ pub struct Online<T> {
 pub struct Step<T, U>(pub Config<T>, pub Option<U>)
 where
     T: Value;
+pub type IntegralStep<U> = Step<i32, U>;
+pub type FractionalStep<U> = Step<f64, U>;
 
 impl<'a, T> Online<T>
 where

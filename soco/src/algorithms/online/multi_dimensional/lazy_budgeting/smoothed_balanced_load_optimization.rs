@@ -9,8 +9,8 @@ use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::cost::CostFn;
-use crate::online::Online;
 use crate::online::Step;
+use crate::online::{IntegralStep, Online};
 use crate::problem::{
     IntegralSmoothedBalancedLoadOptimization, SmoothedBalancedLoadOptimization,
 };
@@ -39,7 +39,7 @@ pub fn lb(
     xs: &mut IntegralSchedule,
     ms: &mut Vec<Memory>,
     options: &Options,
-) -> Result<Step<i32, Memory>> {
+) -> Result<IntegralStep<Memory>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
     let epsilon = options.epsilon.unwrap_or(DEFAULT_EPSILON);
@@ -155,7 +155,7 @@ fn alg_b(
     xs: &mut IntegralSchedule,
     ms: &mut Vec<AlgBMemory>,
     options: &Options,
-) -> Result<Step<i32, AlgBMemory>> {
+) -> Result<IntegralStep<AlgBMemory>> {
     let t = xs.t_end() + 1;
     let opt_x = find_optimal_config(&o.p, options.use_approx)?;
     let mut m = vec![0; o.p.d as usize];

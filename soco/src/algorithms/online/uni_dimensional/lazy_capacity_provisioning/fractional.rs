@@ -3,7 +3,7 @@ use crate::algorithms::online::uni_dimensional::lazy_capacity_provisioning::{
     find_initial_time, Memory,
 };
 use crate::config::Config;
-use crate::online::{Online, Step};
+use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
@@ -20,7 +20,7 @@ pub fn lcp(
     xs: &mut FractionalSchedule,
     ms: &mut Vec<Memory<f64>>,
     options: &Options,
-) -> Result<Step<f64, Memory<f64>>> {
+) -> Result<FractionalStep<Memory<f64>>> {
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
     let t_start = if options.optimize_reference_time {

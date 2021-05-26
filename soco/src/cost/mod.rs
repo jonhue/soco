@@ -1,8 +1,6 @@
 //! Convex cost functions.
 
-use nlopt::Algorithm;
-use nlopt::Nlopt;
-use nlopt::Target;
+use nlopt::{Algorithm, Nlopt, Target};
 use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 

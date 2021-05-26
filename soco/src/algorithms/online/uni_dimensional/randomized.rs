@@ -3,7 +3,7 @@ use crate::algorithms::online::uni_dimensional::probabilistic::{
 };
 use crate::config::Config;
 use crate::convert::RelaxableSchedule;
-use crate::online::{Online, Step};
+use crate::online::{IntegralStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;
@@ -20,7 +20,7 @@ pub fn randomized<'a>(
     xs: &mut IntegralSchedule,
     ms: &mut Vec<Memory<'a>>,
     _: &(),
-) -> Result<Step<i32, Memory<'a>>> {
+) -> Result<IntegralStep<Memory<'a>>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
