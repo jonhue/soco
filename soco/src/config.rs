@@ -156,7 +156,7 @@ where
 impl Mul<FractionalConfig> for f64 {
     type Output = FractionalConfig;
 
-    /// Dot product of transposed `self` with `other`.
+    /// Scales config with scalar.
     fn mul(self, other: FractionalConfig) -> Self::Output {
         other.iter().map(|&j| self * j).collect()
     }
