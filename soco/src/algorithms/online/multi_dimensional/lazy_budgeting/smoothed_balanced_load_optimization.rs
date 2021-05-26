@@ -42,6 +42,7 @@ pub fn lb(
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
     let epsilon = options.epsilon.unwrap_or(DEFAULT_EPSILON);
+
     let t = xs.t_end() + 1;
     let n = determine_sub_time_slots(&o.p, t, epsilon)?;
     let mut mod_o = Online {

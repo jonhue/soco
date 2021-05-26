@@ -1,9 +1,11 @@
 use bacon_sci::roots::bisection;
 
+use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
+    meta::{obd, Options as MetaOptions},
+    mirror_map::MirrorMap,
+    MAX_ITERATIONS, MAX_L_FACTOR,
+};
 use crate::algorithms::optimization::find_minimizer;
-use crate::algorithms::online::multi_dimensional::online_balanced_descent::{MAX_L_FACTOR, MAX_ITERATIONS};
-use crate::algorithms::online::multi_dimensional::online_balanced_descent::mirror_map::MirrorMap;
-use crate::algorithms::online::multi_dimensional::online_balanced_descent::online_balanced_descent::{obd, Options as MetaOptions};
 use crate::config::{Config, FractionalConfig};
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
