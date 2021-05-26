@@ -2,11 +2,13 @@
 
 #[derive(Debug)]
 pub enum Error {
+    Bisection(String),
     CostFnMustBeTotal,
     Integration(String),
     Invalid(String),
     LcpBoundComputationExceedsDomain,
     LcpBoundMismatch(f64, f64),
+    MatrixMustBeInvertible,
     MemoryShouldBePresent,
     MustBePowOf2,
     NlOpt(nlopt::FailState),

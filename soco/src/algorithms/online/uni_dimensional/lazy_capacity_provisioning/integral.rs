@@ -4,7 +4,7 @@ use crate::algorithms::online::uni_dimensional::lazy_capacity_provisioning::{
     find_initial_time, Memory,
 };
 use crate::config::Config;
-use crate::online::{Online, Step};
+use crate::online::{IntegralStep, Online, Step};
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;
@@ -23,7 +23,7 @@ pub fn lcp(
     xs: &mut IntegralSchedule,
     ms: &mut Vec<Memory<i32>>,
     options: &Options,
-) -> Result<Step<i32, Memory<i32>>> {
+) -> Result<IntegralStep<Memory<i32>>> {
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
     let t_start = if options.optimize_reference_time {

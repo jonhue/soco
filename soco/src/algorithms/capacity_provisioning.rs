@@ -1,7 +1,4 @@
-use nlopt::Algorithm;
-use nlopt::Nlopt;
-use nlopt::ObjFn;
-use nlopt::Target;
+use nlopt::{Algorithm, Nlopt, ObjFn, Target};
 
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
@@ -117,7 +114,7 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
         }
 
         let n = (self.t_end - t_start) as usize;
-        let mut xs = vec![0.0; n];
+        let mut xs = vec![0.; n];
         let mut opt = Nlopt::new(
             Algorithm::Bobyqa,
             n,

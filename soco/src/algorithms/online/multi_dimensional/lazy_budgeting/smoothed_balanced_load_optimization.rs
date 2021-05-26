@@ -7,10 +7,9 @@ use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
 };
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
 use crate::algorithms::offline::OfflineOptions;
-use crate::config::Config;
+use crate::config::{Config, IntegralConfig};
 use crate::cost::CostFn;
-use crate::online::Online;
-use crate::online::Step;
+use crate::online::{IntegralStep, Online, Step};
 use crate::problem::{
     IntegralSmoothedBalancedLoadOptimization, SmoothedBalancedLoadOptimization,
 };
@@ -39,7 +38,7 @@ pub fn lb(
     xs: &mut IntegralSchedule,
     ms: &mut Vec<Memory>,
     options: &Options,
-) -> Result<Step<i32, Memory>> {
+) -> Result<IntegralStep<Memory>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
     let epsilon = options.epsilon.unwrap_or(DEFAULT_EPSILON);
@@ -67,7 +66,7 @@ fn determine_config(
     xs: &IntegralSchedule,
     init_u: i32,
     n: i32,
-) -> Result<Config<i32>> {
+) -> Result<IntegralConfig> {
     let mut min_u = init_u;
     let mut min_c = hitting_cost(p, init_u, &xs[init_u as usize - 1])?;
     for u in init_u + 1..=init_u + n {
@@ -84,7 +83,7 @@ fn determine_config(
 fn hitting_cost(
     p: &IntegralSmoothedBalancedLoadOptimization,
     t: i32,
-    x: &Config<i32>,
+    x: &IntegralConfig,
 ) -> Result<f64> {
     let mut result = 0.;
     for k in 0..p.d as usize {
@@ -155,7 +154,7 @@ fn alg_b(
     xs: &mut IntegralSchedule,
     ms: &mut Vec<AlgBMemory>,
     options: &Options,
-) -> Result<Step<i32, AlgBMemory>> {
+) -> Result<IntegralStep<AlgBMemory>> {
     let t = xs.t_end() + 1;
     let opt_x = find_optimal_config(&o.p, options.use_approx)?;
     let mut m = vec![0; o.p.d as usize];
@@ -217,7 +216,7 @@ fn cumulative_idle_hitting_cost(
 fn find_optimal_config(
     p: &IntegralSmoothedBalancedLoadOptimization,
     use_approx: Option<&ApproxOptions>,
-) -> Result<Config<i32>> {
+) -> Result<IntegralConfig> {
     let ssco_p = p.to_ssco();
     let Path(xs, _) = match use_approx {
         None => {

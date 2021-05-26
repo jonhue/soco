@@ -1,16 +1,16 @@
 use crate::algorithms::online::uni_dimensional::probabilistic::{
     probabilistic, Memory as ProbMemory,
 };
-use crate::config::Config;
+use crate::config::{Config, FractionalConfig};
 use crate::convert::RelaxableSchedule;
-use crate::online::{Online, Step};
+use crate::online::{IntegralStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, frac, project, sample_uniform};
 
 /// Fractional number of servers as determined by `bansal::det`; memory of `bansal::det`.
-pub struct Memory<'a>(pub Config<f64>, pub ProbMemory<'a>);
+pub struct Memory<'a>(pub FractionalConfig, pub ProbMemory<'a>);
 
 /// Randomized Integral Relaxation
 ///
@@ -20,7 +20,7 @@ pub fn randomized<'a>(
     xs: &mut IntegralSchedule,
     ms: &mut Vec<Memory<'a>>,
     _: &(),
-) -> Result<Step<i32, Memory<'a>>> {
+) -> Result<IntegralStep<Memory<'a>>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 

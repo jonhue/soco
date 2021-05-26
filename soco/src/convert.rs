@@ -3,7 +3,7 @@
 use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
-use crate::config::Config;
+use crate::config::{Config, FractionalConfig, IntegralConfig};
 use crate::cost::CostFn;
 use crate::cost::{lazy, LoadCostFn};
 use crate::norm::NormFn;
@@ -48,22 +48,22 @@ impl RelaxableVector for Vec<i32> {
 
 pub trait DiscretizableCostFn<'a> {
     /// Discretize a fractional cost function.
-    fn to_i(&'a self) -> CostFn<'a, Config<i32>>;
+    fn to_i(&'a self) -> CostFn<'a, IntegralConfig>;
 }
 
-impl<'a> DiscretizableCostFn<'a> for CostFn<'a, Config<f64>> {
-    fn to_i(&'a self) -> CostFn<'a, Config<i32>> {
+impl<'a> DiscretizableCostFn<'a> for CostFn<'a, FractionalConfig> {
+    fn to_i(&'a self) -> CostFn<'a, IntegralConfig> {
         Arc::new(move |t, x| self(t, x.to_f()))
     }
 }
 
 pub trait RelaxableCostFn<'a> {
     /// Relax an integral cost function to the fractional setting.
-    fn to_f(&'a self) -> CostFn<'a, Config<f64>>;
+    fn to_f(&'a self) -> CostFn<'a, FractionalConfig>;
 }
 
-impl<'a> RelaxableCostFn<'a> for CostFn<'a, Config<i32>> {
-    fn to_f(&'a self) -> CostFn<'a, Config<f64>> {
+impl<'a> RelaxableCostFn<'a> for CostFn<'a, IntegralConfig> {
+    fn to_f(&'a self) -> CostFn<'a, FractionalConfig> {
         Arc::new(move |t, x| {
             assert!(x.d() == 1, "cannot relax multidimensional problems");
 
@@ -232,28 +232,28 @@ where
 
 pub trait DiscretizableConfig {
     /// Ceil all elements of a config.
-    fn ceil(&self) -> Config<i32>;
+    fn ceil(&self) -> IntegralConfig;
     /// Floor all elements of a config.
-    fn floor(&self) -> Config<i32>;
+    fn floor(&self) -> IntegralConfig;
 }
 
-impl DiscretizableConfig for Config<f64> {
-    fn ceil(&self) -> Config<i32> {
+impl DiscretizableConfig for FractionalConfig {
+    fn ceil(&self) -> IntegralConfig {
         Config::new(self.to_vec().ceil())
     }
 
-    fn floor(&self) -> Config<i32> {
+    fn floor(&self) -> IntegralConfig {
         Config::new(self.to_vec().floor())
     }
 }
 
 pub trait RelaxableConfig {
     /// Convert an integral config to a fractional config.
-    fn to_f(&self) -> Config<f64>;
+    fn to_f(&self) -> FractionalConfig;
 }
 
-impl RelaxableConfig for Config<i32> {
-    fn to_f(&self) -> Config<f64> {
+impl RelaxableConfig for IntegralConfig {
+    fn to_f(&self) -> FractionalConfig {
         Config::new(self.to_vec().to_f())
     }
 }

@@ -5,7 +5,7 @@ use std::collections::HashMap;
 
 use crate::algorithms::graph_search::{Path, Paths};
 use crate::algorithms::offline::OfflineOptions;
-use crate::config::Config;
+use crate::config::{Config, IntegralConfig};
 use crate::objective::scalar_movement;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
@@ -16,14 +16,14 @@ use crate::schedule::Schedule;
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct Vertice {
     t: i32,
-    config: Config<i32>,
+    config: IntegralConfig,
     powering_up: bool,
 }
 
 /// Graph-Based Integral Algorithm
 pub fn graph_search<'a>(
     p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
-    configs: &Vec<Config<i32>>,
+    configs: &Vec<IntegralConfig>,
     offline_options: &OfflineOptions,
 ) -> Result<Path> {
     let mut paths: Paths<Vertice> = HashMap::new();
@@ -113,7 +113,7 @@ pub fn graph_search<'a>(
 
 fn find_shortest_subpath(
     p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
-    configs: &Vec<Config<i32>>,
+    configs: &Vec<IntegralConfig>,
     inverted: bool,
     paths: &mut Paths<Vertice>,
     from: &Vec<Vertice>,
@@ -200,7 +200,7 @@ impl Vertice {
     fn successors(
         &self,
         p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
-        configs: &Vec<Config<i32>>,
+        configs: &Vec<IntegralConfig>,
         inverted: bool,
     ) -> Vec<(Vertice, OrderedFloat<f64>)> {
         let mut successors = vec![];
@@ -274,7 +274,10 @@ impl Vertice {
     }
 }
 
-fn collect_dimension_range(configs: &Vec<Config<i32>>, k: usize) -> Vec<i32> {
+fn collect_dimension_range(
+    configs: &Vec<IntegralConfig>,
+    k: usize,
+) -> Vec<i32> {
     let mut vs = vec![0; configs.len()];
     for (i, x) in configs.iter().enumerate() {
         vs[i] = x[k];
@@ -286,7 +289,7 @@ fn update_paths(
     paths: &mut Paths<Vertice>,
     from: &Vertice,
     to: &Vertice,
-    x: Config<i32>,
+    x: IntegralConfig,
     c: f64,
 ) -> Result<()> {
     let prev_xs = &paths.get(from).ok_or(Error::PathsShouldBeCached)?.0;

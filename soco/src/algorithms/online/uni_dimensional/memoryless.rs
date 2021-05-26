@@ -1,22 +1,20 @@
-use nlopt::Algorithm;
-use nlopt::Nlopt;
-use nlopt::Target;
+use nlopt::{Algorithm, Nlopt, Target};
 
 use crate::config::Config;
-use crate::online::{Online, Step};
+use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::PRECISION;
 
-/// Memoryless Algorithm
+/// Memoryless Algorithm. Special case of Primal Online Balanced Descent.
 pub fn memoryless(
     o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
     _: &(),
-) -> Result<Step<f64, ()>> {
+) -> Result<FractionalStep<()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
@@ -37,7 +35,7 @@ fn next(
         |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
             (o.p.hitting_cost)(t, Config::new(xs.to_vec())).unwrap()
         };
-    let mut xs = [0.0];
+    let mut xs = [0.];
     let mut opt = Nlopt::new(
         Algorithm::Bobyqa,
         1,

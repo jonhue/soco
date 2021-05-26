@@ -3,6 +3,8 @@
 use std::iter::FromIterator;
 use std::ops::Index;
 use std::ops::IndexMut;
+use std::ops::Mul;
+use std::ops::Sub;
 
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
@@ -12,6 +14,8 @@ use crate::vec_wrapper::VecWrapper;
 pub struct Config<T>(Vec<T>)
 where
     T: Value;
+pub type IntegralConfig = Config<i32>;
+pub type FractionalConfig = Config<f64>;
 
 impl<T> Config<T>
 where
@@ -105,5 +109,31 @@ where
             x.push(j);
         }
         x
+    }
+}
+
+impl<T> Sub for Config<T>
+where
+    T: Value,
+{
+    type Output = Self;
+
+    fn sub(self, other: Self) -> Self::Output {
+        self.iter()
+            .zip(other.iter())
+            .map(|(&x, &y)| x - y)
+            .collect()
+    }
+}
+
+impl<T> Mul for Config<T>
+where
+    T: Value,
+{
+    type Output = T;
+
+    /// Dot product of transposed `self` with `other`.
+    fn mul(self, other: Self) -> Self::Output {
+        self.iter().zip(other.iter()).map(|(&x, &y)| x * y).sum()
     }
 }

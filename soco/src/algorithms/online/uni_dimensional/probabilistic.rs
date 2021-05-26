@@ -1,12 +1,11 @@
 use bacon_sci::differentiate::second_derivative;
 use bacon_sci::integrate::integrate;
-use nlopt::Algorithm;
-use nlopt::Nlopt;
-use nlopt::Target;
+use nlopt::{Algorithm, Nlopt, Target};
 use std::sync::Arc;
 
+use crate::algorithms::optimization::find_minimizer;
 use crate::config::Config;
-use crate::online::{Online, Step};
+use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
@@ -16,15 +15,13 @@ use crate::PRECISION;
 /// Probability distribution over the number of servers.
 pub type Memory<'a> = Arc<dyn Fn(f64) -> f64 + 'a>;
 
-static STEP_SIZE: f64 = 1e-16;
-
 /// Probabilistic Algorithm
 pub fn probabilistic<'a>(
     o: &'a Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
     xs: &mut FractionalSchedule,
     ps: &mut Vec<Memory<'a>>,
     _: &(),
-) -> Result<Step<f64, Memory<'a>>> {
+) -> Result<FractionalStep<Memory<'a>>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
@@ -35,7 +32,8 @@ pub fn probabilistic<'a>(
         ps[ps.len() - 1].clone()
     };
 
-    let x_m = find_minimizer(o, t)?;
+    let x_m =
+        find_minimizer(t, &o.p.hitting_cost, &vec![(0., o.p.bounds[0])])?[0];
     let x_r = find_right_bound(o, t, &prev_p, x_m)?;
     let x_l = find_left_bound(o, t, &prev_p, x_m)?;
 
@@ -45,7 +43,7 @@ pub fn probabilistic<'a>(
                 + second_derivative(
                     |j: f64| (o.p.hitting_cost)(t, Config::single(j)).unwrap(),
                     j,
-                    STEP_SIZE,
+                    PRECISION,
                 ) / 2.
         } else {
             0.
@@ -54,32 +52,6 @@ pub fn probabilistic<'a>(
 
     let x = expected_value(&p, x_l, x_r)?;
     Ok(Step(Config::single(x), Some(p)))
-}
-
-/// Determines minimizer of `f` with a convex optimization.
-fn find_minimizer(
-    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
-    t: i32,
-) -> Result<f64> {
-    let objective_function =
-        |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            (o.p.hitting_cost)(t, Config::new(xs.to_vec())).unwrap()
-        };
-    let mut xs = [0.0];
-
-    let mut opt = Nlopt::new(
-        Algorithm::Bobyqa,
-        1,
-        objective_function,
-        Target::Minimize,
-        (),
-    );
-    opt.set_lower_bound(0.)?;
-    opt.set_upper_bound(o.p.bounds[0])?;
-    opt.set_xtol_rel(PRECISION)?;
-
-    opt.optimize(&mut xs)?;
-    Ok(xs[0])
 }
 
 /// Determines `x_r` with a convex optimization.
@@ -115,7 +87,7 @@ fn find_right_bound(
                             (o.p.hitting_cost)(t, Config::single(j)).unwrap()
                         },
                         j,
-                        STEP_SIZE,
+                        PRECISION,
                     )
                 },
                 PRECISION,
@@ -167,7 +139,7 @@ fn find_left_bound(
                             (o.p.hitting_cost)(t, Config::single(j)).unwrap()
                         },
                         j,
-                        STEP_SIZE,
+                        PRECISION,
                     )
                 },
                 PRECISION,

@@ -75,5 +75,5 @@ where
 /// Randomly samples a uniform value in `[0,1]`.
 pub fn sample_uniform() -> f64 {
     let mut rng = thread_rng();
-    rng.gen_range(0.0..=1.0)
+    rng.gen_range(0.0..=1.)
 }
