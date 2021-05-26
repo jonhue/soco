@@ -39,14 +39,14 @@ Above order is from most general to most specific.
 
 ### Optimal Competitiveness
 
-| Variant | Multi-Dimensional? | Integral? | Deterministic? | Memoryless? | Optimal Competitiveness                        |
-| ------- | ------------------ | --------- | -------------- | ----------- | ---------------------------------------------- |
-| 1       | ❌                 | ❌        | ✅             | ✅          | 3-competitive                                  |
-| 1       | ❌                 | ❌        | ✅             | ❌          | 2-competitive                                  |
-| 1       | ❌                 | ✅        | ✅             | ❌          | 3-competitive                                  |
-| 1       | ❌                 | ✅        | ❌             | ❌          | 2-competitive                                  |
-| 2, 3    | ✅                 | ✅        | ✅             | ❌          | 2d-competitive                                 |
-| 1       | ✅                 | ❌        | ❌             | ❌          | O(m^{-1/2})-competitive, for m to 0^+ \*\*\*\* |
+| Variant | Multi-Dimensional? | Integral? | Deterministic? | Memoryless? | Optimal Competitiveness                         |
+| ------- | ------------------ | --------- | -------------- | ----------- | ----------------------------------------------- |
+| 1       | ❌                 | ❌        | ✅             | ✅          | 3-competitive                                   |
+| 1       | ❌                 | ❌        | ✅             | ❌          | 2-competitive                                   |
+| 1       | ❌                 | ✅        | ✅             | ❌          | 3-competitive                                   |
+| 1       | ❌                 | ✅        | ❌             | ❌          | 2-competitive                                   |
+| 2, 3    | ✅                 | ✅        | ✅             | ❌          | 2d-competitive                                  |
+| 1       | ✅                 | ❌        | ❌             | ❌          | O(1/sqrt(m))-competitive, for m to 0^+ \*\*\*\* |
 
 ### References
 
