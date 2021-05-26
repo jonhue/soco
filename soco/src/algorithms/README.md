@@ -31,6 +31,8 @@
 3. Smoothed Load Optimization
 4. Smoothed Balanced-Load Optimization
 
+Above order is from most general to most specific.
+
 ### Optimal Competitiveness
 
 | Variant | Multi-Dimensional? | Integral? | Deterministic? | Memoryless? | Optimal Competitiveness |
