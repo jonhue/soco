@@ -3,12 +3,12 @@ use finitediff::FiniteDiff;
 
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
     meta::{obd, Options as MetaOptions},
-    mirror_map::MirrorMap,
     MAX_ITERATIONS, MAX_L_FACTOR,
 };
 use crate::algorithms::optimization::find_minimizer;
 use crate::config::{Config, FractionalConfig};
 use crate::norm::dual;
+use crate::norm::NormFn;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
@@ -20,15 +20,15 @@ pub struct Options<'a> {
     /// Balance parameter. `eta > 0`.
     pub eta: f64,
     /// Mirror map chosen based on the used norm.
-    pub mirror_map: MirrorMap<'a, FractionalConfig>,
+    pub mirror_map: NormFn<'a, FractionalConfig>,
 }
 
 /// Dual Online Balanced Descent
-pub fn dobd<'a>(
-    o: &'a Online<FractionalSmoothedConvexOptimization>,
+pub fn dobd(
+    o: &Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
-    options: &Options<'a>,
+    options: &Options,
 ) -> Result<FractionalStep<()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
@@ -74,14 +74,14 @@ pub fn dobd<'a>(
     )
 }
 
-fn balance_function<'a>(
-    o: &'a Online<FractionalSmoothedConvexOptimization>,
+fn balance_function(
+    o: &Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
     prev_x: &FractionalConfig,
     t: i32,
     l: f64,
     eta: f64,
-    mirror_map: &MirrorMap<'a, FractionalConfig>,
+    mirror_map: &NormFn<'_, FractionalConfig>,
 ) -> f64 {
     let Step(x, _) = obd(
         o,
@@ -95,8 +95,7 @@ fn balance_function<'a>(
     .unwrap();
     let f =
         |x: &Vec<f64>| (o.p.hitting_cost)(t, Config::new(x.clone())).unwrap();
-    let m =
-        |x: &Vec<f64>| mirror_map(&o.p.switching_cost, Config::new(x.clone()));
+    let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone()));
     let distance = dual(
         &o.p.switching_cost,
         Config::new(x.to_vec().central_diff(&m))

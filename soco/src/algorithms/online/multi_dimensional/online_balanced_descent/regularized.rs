@@ -2,33 +2,30 @@
 
 use std::sync::Arc;
 
-use crate::cost::CostFn;
-use crate::algorithms::online::multi_dimensional::online_balanced_descent::mirror_map::MirrorMap;
 use crate::algorithms::optimization::find_minimizer;
 use crate::config::{Config, FractionalConfig};
+use crate::cost::CostFn;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
-use crate::utils::{assert};
+use crate::utils::assert;
 
-pub struct Options<'a> {
+pub struct Options {
     /// Convexity parameter. Chosen such that `f_t(x) \geq f_t(v_t) + \frac{m}{2} \norm{x - v_t}_2^2` where `v_t` is the minimizer of `f_t`.
     pub m: f64,
     /// Convexity parameter of potential function of Bregman convergence.
     pub alpha: f64,
     /// Smoothness parameter of potential function of Bregman convergence.
     pub beta: f64,
-    /// Mirror map chosen based on the used norm.
-    pub mirror_map: MirrorMap<'a, FractionalConfig>,
 }
 
 /// Regularized Online Balanced Descent
-pub fn robd<'a>(
-    o: &'a Online<FractionalSmoothedConvexOptimization>,
+pub fn robd(
+    o: &Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
-    options: &Options<'a>,
+    options: &Options,
 ) -> Result<FractionalStep<()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 

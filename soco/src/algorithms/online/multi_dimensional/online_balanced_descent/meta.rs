@@ -1,7 +1,6 @@
 use finitediff::FiniteDiff;
 use nlopt::{Algorithm, Nlopt, Target};
 
-use crate::algorithms::online::multi_dimensional::online_balanced_descent::mirror_map::MirrorMap;
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::norm::NormFn;
@@ -16,15 +15,15 @@ pub struct Options<'a> {
     /// Determines the l-level set used in each step by the algorithm.
     pub l: f64,
     /// Mirror map chosen based on the used norm.
-    pub mirror_map: MirrorMap<'a, FractionalConfig>,
+    pub mirror_map: NormFn<'a, FractionalConfig>,
 }
 
 /// Online Balanced Descent (meta algorithm)
-pub fn obd<'a>(
-    o: &'a Online<FractionalSmoothedConvexOptimization>,
+pub fn obd(
+    o: &Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
-    options: &Options<'a>,
+    options: &Options,
 ) -> Result<FractionalStep<()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
@@ -34,7 +33,6 @@ pub fn obd<'a>(
 
     let x = bregman_projection(
         &options.mirror_map,
-        &o.p.switching_cost,
         &o.p.hitting_cost,
         t,
         options.l,
@@ -46,21 +44,18 @@ pub fn obd<'a>(
 /// Bregman projection of `x` onto a convex `l`-sublevel set `K` of `f`.
 ///
 /// `mirror_map` must be `m`-strongly convex and `M`-Lipschitz smooth for the norm function with fixed `m` and `M`.
-fn bregman_projection<'a>(
-    mirror_map: &MirrorMap<'a, FractionalConfig>,
-    norm: &NormFn<'a, FractionalConfig>,
+fn bregman_projection(
+    mirror_map: &NormFn<'_, FractionalConfig>,
     f: &CostFn<'_, FractionalConfig>,
     t: i32,
     l: f64,
     x: &FractionalConfig,
 ) -> Result<FractionalConfig> {
     let d = x.d() as usize;
-    let objective_function = |y: &[f64],
-                              _: Option<&mut [f64]>,
-                              _: &mut ()|
-     -> f64 {
-        bregman_divergence(mirror_map, norm, Config::new(y.to_vec()), x.clone())
-    };
+    let objective_function =
+        |y: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
+            bregman_divergence(mirror_map, Config::new(y.to_vec()), x.clone())
+        };
     let mut y = vec![0.; d];
     let mut opt = Nlopt::new(
         Algorithm::Bobyqa,
@@ -85,15 +80,14 @@ fn bregman_projection<'a>(
 }
 
 /// Bregman divergence between `x` and `y`.
-fn bregman_divergence<'a>(
-    mirror_map: &MirrorMap<'a, FractionalConfig>,
-    norm: &NormFn<'a, FractionalConfig>,
+fn bregman_divergence(
+    mirror_map: &NormFn<'_, FractionalConfig>,
     x: FractionalConfig,
     y: FractionalConfig,
 ) -> f64 {
-    let m = |x: &Vec<f64>| mirror_map(norm, Config::new(x.clone()));
-    let mx = mirror_map(norm, x.clone());
-    let my = mirror_map(norm, y.clone());
+    let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone()));
+    let mx = mirror_map(x.clone());
+    let my = mirror_map(y.clone());
     let grad = Config::new(y.to_vec().central_diff(&m));
     mx - my - grad * (x - y)
 }

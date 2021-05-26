@@ -2,11 +2,11 @@ use bacon_sci::roots::bisection;
 
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
     meta::{obd, Options as MetaOptions},
-    mirror_map::MirrorMap,
     MAX_ITERATIONS, MAX_L_FACTOR,
 };
 use crate::algorithms::optimization::find_minimizer;
 use crate::config::{Config, FractionalConfig};
+use crate::norm::NormFn;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
@@ -18,15 +18,15 @@ pub struct Options<'a> {
     /// The movement cost is at most `beta` times the hitting cost. `beta > 0`.
     pub beta: f64,
     /// Mirror map chosen based on the used norm.
-    pub mirror_map: MirrorMap<'a, FractionalConfig>,
+    pub mirror_map: NormFn<'a, FractionalConfig>,
 }
 
 /// Primal Online Balanced Descent
-pub fn pobd<'a>(
-    o: &'a Online<FractionalSmoothedConvexOptimization>,
+pub fn pobd(
+    o: &Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
-    options: &Options<'a>,
+    options: &Options<'_>,
 ) -> Result<FractionalStep<()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
@@ -75,13 +75,13 @@ pub fn pobd<'a>(
     )
 }
 
-fn balance_function<'a>(
-    o: &'a Online<FractionalSmoothedConvexOptimization>,
+fn balance_function(
+    o: &Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
     prev_x: &FractionalConfig,
     l: f64,
     beta: f64,
-    mirror_map: &MirrorMap<'a, FractionalConfig>,
+    mirror_map: &NormFn<'_, FractionalConfig>,
 ) -> f64 {
     let Step(x, _) = obd(
         o,

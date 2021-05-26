@@ -9,6 +9,5 @@ static MAX_L_FACTOR: f64 = 1_000.;
 pub mod dual;
 pub mod greedy;
 pub mod meta;
-pub mod mirror_map;
 pub mod primal;
 pub mod regularized;
