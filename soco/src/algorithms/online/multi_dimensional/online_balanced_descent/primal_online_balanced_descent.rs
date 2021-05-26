@@ -48,17 +48,14 @@ pub fn pobd<'a>(
     let l = bisection(
         (a, b),
         |l: f64| {
-            let Step(x, _) = obd(
+            balance_function(
                 o,
                 xs,
-                &mut vec![],
-                &MetaOptions {
-                    l,
-                    mirror_map: options.mirror_map.clone(),
-                },
+                &prev_x,
+                l,
+                options.beta,
+                &options.mirror_map,
             )
-            .unwrap();
-            (o.p.switching_cost)(x - prev_x.clone()) - options.beta * l
         },
         PRECISION,
         MAX_ITERATIONS,
@@ -74,4 +71,25 @@ pub fn pobd<'a>(
             mirror_map: options.mirror_map.clone(),
         },
     )
+}
+
+fn balance_function<'a>(
+    o: &'a Online<FractionalSmoothedConvexOptimization>,
+    xs: &mut FractionalSchedule,
+    prev_x: &Config<f64>,
+    l: f64,
+    beta: f64,
+    mirror_map: &MirrorMap<'a, Config<f64>>,
+) -> f64 {
+    let Step(x, _) = obd(
+        o,
+        xs,
+        &mut vec![],
+        &MetaOptions {
+            l,
+            mirror_map: mirror_map.clone(),
+        },
+    )
+    .unwrap();
+    (o.p.switching_cost)(x - prev_x.clone()) - beta * l
 }

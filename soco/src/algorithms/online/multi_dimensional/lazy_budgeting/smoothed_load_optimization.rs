@@ -5,8 +5,7 @@ use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
-use crate::online::Step;
-use crate::online::{IntegralStep, Online};
+use crate::online::{IntegralStep, Online, Step};
 use crate::problem::IntegralSmoothedLoadOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;

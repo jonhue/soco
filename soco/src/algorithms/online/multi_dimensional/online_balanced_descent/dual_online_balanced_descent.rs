@@ -46,37 +46,15 @@ pub fn dobd<'a>(
     let l = bisection(
         (a, b),
         |l: f64| {
-            let Step(x, _) = obd(
+            balance_function(
                 o,
                 xs,
-                &mut vec![],
-                &MetaOptions {
-                    l,
-                    mirror_map: options.mirror_map.clone(),
-                },
+                &prev_x,
+                t,
+                l,
+                options.eta,
+                &options.mirror_map,
             )
-            .unwrap();
-            let f = |x: &Vec<f64>| {
-                (o.p.hitting_cost)(t, Config::new(x.clone())).unwrap()
-            };
-            let m = |x: &Vec<f64>| {
-                (options.mirror_map)(
-                    &o.p.switching_cost,
-                    Config::new(x.clone()),
-                )
-            };
-            let distance = dual_norm(
-                &o.p.switching_cost,
-                Config::new(x.to_vec().central_diff(&m))
-                    - Config::new(prev_x.to_vec().central_diff(&m)),
-            )
-            .unwrap();
-            let hitting_cost = dual_norm(
-                &o.p.switching_cost,
-                Config::new(x.to_vec().central_diff(&f)),
-            )
-            .unwrap();
-            distance / hitting_cost - options.eta
         },
         PRECISION,
         MAX_ITERATIONS,
@@ -92,4 +70,41 @@ pub fn dobd<'a>(
             mirror_map: options.mirror_map.clone(),
         },
     )
+}
+
+fn balance_function<'a>(
+    o: &'a Online<FractionalSmoothedConvexOptimization>,
+    xs: &mut FractionalSchedule,
+    prev_x: &Config<f64>,
+    t: i32,
+    l: f64,
+    eta: f64,
+    mirror_map: &MirrorMap<'a, Config<f64>>,
+) -> f64 {
+    let Step(x, _) = obd(
+        o,
+        xs,
+        &mut vec![],
+        &MetaOptions {
+            l,
+            mirror_map: mirror_map.clone(),
+        },
+    )
+    .unwrap();
+    let f =
+        |x: &Vec<f64>| (o.p.hitting_cost)(t, Config::new(x.clone())).unwrap();
+    let m =
+        |x: &Vec<f64>| mirror_map(&o.p.switching_cost, Config::new(x.clone()));
+    let distance = dual_norm(
+        &o.p.switching_cost,
+        Config::new(x.to_vec().central_diff(&m))
+            - Config::new(prev_x.to_vec().central_diff(&m)),
+    )
+    .unwrap();
+    let hitting_cost = dual_norm(
+        &o.p.switching_cost,
+        Config::new(x.to_vec().central_diff(&f)),
+    )
+    .unwrap();
+    distance / hitting_cost - eta
 }

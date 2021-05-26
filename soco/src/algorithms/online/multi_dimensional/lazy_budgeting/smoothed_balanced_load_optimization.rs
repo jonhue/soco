@@ -9,8 +9,7 @@ use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::cost::CostFn;
-use crate::online::Step;
-use crate::online::{IntegralStep, Online};
+use crate::online::{IntegralStep, Online, Step};
 use crate::problem::{
     IntegralSmoothedBalancedLoadOptimization, SmoothedBalancedLoadOptimization,
 };
