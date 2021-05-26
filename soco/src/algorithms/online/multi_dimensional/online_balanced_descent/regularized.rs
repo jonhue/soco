@@ -24,12 +24,6 @@ pub struct Options<'a> {
 }
 
 /// Regularized Online Balanced Descent
-///
-/// Requirements:
-/// * switching cost must be tyhe Bregman divergence where the potential `h` and its Fenchel Conjugate `h^*` are differentiable. Further, `h` is `\alpha`-strongly convex and `\beta`-strongly smooth with respect to an underlying norm. (the squared l2-norm satisfies these requirements with `\alpha = \beta = 1`.)
-/// * hitting cost must be `m`-strongly convex
-///
-/// In the case of the squared euclidean norm, the competitiveness improves to `\Omega(1/m)`.
 pub fn robd<'a>(
     o: &'a Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,

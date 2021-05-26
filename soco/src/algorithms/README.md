@@ -1,32 +1,29 @@
 # List of Algorithms
 
-| Name                                                                                         | Variant | Multi-Dimensional? | Integral? | Online? | Approximation/Competitiveness*   | Complexity** |
-| -------------------------------------------------------------------------------------------- | ------- | ------------------ | --------- | ------- | -------------------------------- | ------------ |
-| `offline::uni_dimensional::capacity_provisioning::bcp` [1]                                   | 2       | ❌                 | ❌        | ❌      | optimal                          |              |
-| `offline::uni_dimensional::capacity_provisioning::fcp` [*]                                   | 2       | ❌                 | ✅        | ❌      | optimal                          | O(T log m)   |
-| `offline::multi_dimensional::optimal_graph_search::optimal_graph_search` [7]                 | 2       | ✅                 | ✅        | ❌      | optimal                          |              |
-| `offline::multi_dimensional::approx_graph_search::approx_graph_search` [7]                   | 2       | ✅                 | ✅        | ❌      | (2𝛾 - 1)-approximation           |              |
-| `online::uni_dimensional::lazy_capacity_provisioning::fractional::lcp` [1]                   | 2       | ❌                 | ❌        | ✅      | 3-competitive                    |              |
-| `online::uni_dimensional::lazy_capacity_provisioning::integral::lcp` [3]                     | 2       | ❌                 | ✅        | ✅      | 3-competitive                    |              |
-| `online::uni_dimensional::memoryless::memoryless` [2]                                        | 2       | ❌                 | ❌        | ✅      | 3-competitive                    |              |
-| `online::uni_dimensional::probabilistic::probabilistic` [2]                                  | 2       | ❌                 | ❌        | ✅      | 2-competitive                    |              |
-| `online::uni_dimensional::randomized::randomized` [3]                                        | 2       | ❌                 | ✅        | ✅      | 2-competitive                    |              |
-| `online::multi_dimensional::lazy_budgeting::smoothed_load_optimization::lb` [6]              | 3       | ✅                 | ✅        | ✅      | 2d-competitive                   |              |
-| `online::multi_dimensional::lazy_budgeting::smoothed_load_optimization::lb` (randomized) [6] | 3       | ✅                 | ✅        | ✅      | (e / (e - 1))d-competitive       |              |
-| `online::multi_dimensional::lazy_budgeting::smoothed_balanced_load_optimization::lb` [7]     | 4       | ✅                 | ✅        | ✅      | (2d + 1 + ε)-competitive         |              |
-| `online::multi_dimensional::online_balanced_descent::meta::obd` (meta algorithm) [4]         | 1       | ✅                 | ❌        | ✅      |                                  |              |
-| `online::multi_dimensional::online_balanced_descent::primal::pobd` [4]                       | 1       | ✅                 | ❌        | ✅      | O(sqrt(d))-competitive***        |              |
-| `online::multi_dimensional::online_balanced_descent::dual::dobd` [4]                         | 1       | ✅                 | ❌        | ✅      |                                  |              |
-| `online::multi_dimensional::online_balanced_descent::greedy::gobd` [5]                       | 1       | ✅                 | ❌        | ✅      | O(1/sqrt(m))-competitive\*\*\*\* |              |
-| `online::multi_dimensional::online_balanced_descent::regularized::robd` [5]                  | 1       | ✅                 | ❌        | ✅      | O(1/sqrt(m))-competitive\*\*\*\* |              |
+| Name                                                                                                           | Variant | Multi-Dimensional? | Integral? | Online? | Approximation/Competitiveness* | Complexity** | Notes |
+| -------------------------------------------------------------------------------------------------------------- | ------- | ------------------ | --------- | ------- | ------------------------------ | ------------ | ----- |
+| [Backward-Recurrent Capacity Provisioning](offline/uni_dimensional/capacity_provisioning.rs) [1]               | 2       | ❌                 | ❌        | ❌      | optimal                        |              |
+| [Forward-Recurrent Capacity Provisioning](offline/uni_dimensional/capacity_provisioning.rs) [*]                | 2       | ❌                 | ✅        | ❌      | optimal                        |              |
+| [Graph-Based Optimal Algorithm](offline/uni_dimensional/optimal_graph_search.rs) [3]                           | 2       | ❌                 | ✅        | ❌      | optimal                        | O(T log m)   |
+| [Graph-Based Optimal Algorithm](offline/multi_dimensional/optimal_graph_search.rs) [7]                         | 2       | ✅                 | ✅        | ❌      | optimal                        |              |
+| [Graph-Based Approximation Algorithm](offline/multi_dimensional/approx_graph_search.rs) [7]                    | 2       | ✅                 | ✅        | ❌      | (2𝛾 - 1)-approximation         |              | 𝛾 > 0 |
+| [Fractional Lazy Capacity Provisioing](online/uni_dimensional/lazy_capacity_provisioing/fractional.rs) [1]     | 2       | ❌                 | ❌        | ✅      | 3-competitive                  |              |
+| [Integral Lazy Capacity Provisioing](online/uni_dimensional/lazy_capacity_provisioing/integral.rs) [3]         | 2       | ❌                 | ✅        | ✅      | 3-competitive                  |              |
+| [Memoryless Algorithm](online/uni_dimensional/memoryless.rs) [2]                                               | 2       | ❌                 | ❌        | ✅      | 3-competitive                  |              |
+| [Probabilistic Algorithm](online/uni_dimensional/probabilistic.rs) [2]                                         | 2       | ❌                 | ❌        | ✅      | 2-competitive                  |              |
+| [Randomized Algorithm](online/uni_dimensional/randomized.rs) [3]                                               | 2       | ❌                 | ✅        | ✅      | 2-competitive                  |              |
+| [Lazy Budgeting for SLO](online/multi_dimensional/lazy_budgeting/smoothed_load_optimization.rs) [6]            | 3       | ✅                 | ✅        | ✅      | 2d-competitive                 |              |
+| [Randomized Lazy Budgeting for SLO](online/multi_dimensional/lazy_budgeting/smoothed_load_optimization.rs) [6] | 3       | ✅                 | ✅        | ✅      | (e / (e - 1))d-competitive     |              |
+| [Lazy Budgeting for SBLO](online/multi_dimensional/lazy_budgeting/smoothed_balanced_load_optimization.rs) [7]  | 4       | ✅                 | ✅        | ✅      | (2d + 1 + ε)-competitive       |              | ε > 0 |
+| [Online Balanced Descent (meta algorithm)](online/multi_dimensional/online_balanced_descent/meta.rs) [4]       | 1       | ✅                 | ❌        | ✅      |                                |              | Ω(m^{-2/3})-competitive for m-strongly convex hitting costs and l2-squared switching costs |
+| [Primal Online Balanced Descent](online/multi_dimensional/online_balanced_descent/primal.rs) [4]               | 1       | ✅                 | ❌        | ✅      | 3+O(1/𝛼)-competitive           |              | given competitiveness is for the l2-norm and locally 𝛼-polyhedral hitting costs, O(sqrt(d))-competitive for the l1-norm; mirror map must be m-strongly convex and M-Lipschitz smooth in the switching cost norm
+| [Dual Online Balanced Descent](online/multi_dimensional/online_balanced_descent/dual.rs) [4]                   | 1       | ✅                 | ❌        | ✅      |                                |              | mirror map must be m-strongly convex and M-Lipschitz smooth in the switching cost norm |
+| [Greedy Online Balanced Descent](online/multi_dimensional/online_balanced_descent/greedy.rs) [5]               | 1       | ✅                 | ❌        | ✅      | O(1/sqrt(m))-competitive       |              | for m-quasiconvex hitting costs and l2-squared switching costs |
+| [Regularized Online Balanced Descent](online/multi_dimensional/online_balanced_descent/regularized.rs) [5]     | 1       | ✅                 | ❌        | ✅      | O(1/sqrt(m))-competitive       |              | for m-strongly convex and differentiable hitting costs and switching costs modeled as the Bregman divergence where the potential function is 𝛼-strongly convex, 𝛽-strongly smooth, differentiable, and its Fenchel Conjugate is differentiable; Ω(1/m)-competitive for m-quasiconvex hitting costs and l2-squared switching costs |
 
 \* If online, the competitive ratio describes how much worse the algorithm performs compared to an optimal offline algorithm in the worst case.
 
 \*\* If online, complexity is with respect to one iteration of the algorithm.
-
-\*\*\* For the l1-norm, constant competitiveness for the l2-norm.
-
-\*\*\*\* hitting cost is `m`-strongly convex
 
 ### Problem Variants
 
@@ -39,14 +36,14 @@ Above order is from most general to most specific.
 
 ### Optimal Competitiveness
 
-| Variant | Multi-Dimensional? | Integral? | Deterministic? | Memoryless? | Optimal Competitiveness                         |
-| ------- | ------------------ | --------- | -------------- | ----------- | ----------------------------------------------- |
-| 1       | ❌                 | ❌        | ✅             | ✅          | 3-competitive                                   |
-| 1       | ❌                 | ❌        | ✅             | ❌          | 2-competitive                                   |
-| 1       | ❌                 | ✅        | ✅             | ❌          | 3-competitive                                   |
-| 1       | ❌                 | ✅        | ❌             | ❌          | 2-competitive                                   |
-| 2, 3    | ✅                 | ✅        | ✅             | ❌          | 2d-competitive                                  |
-| 1       | ✅                 | ❌        | ❌             | ❌          | O(1/sqrt(m))-competitive, for m to 0^+ \*\*\*\* |
+| Variant | Multi-Dimensional? | Integral? | Deterministic? | Memoryless? | Optimal Competitiveness              | Notes |
+| ------- | ------------------ | --------- | -------------- | ----------- | ------------------------------------ | ----- |
+| 1       | ❌                 | ❌        | ✅             | ✅          | 3-competitive                        |
+| 1       | ❌                 | ❌        | ✅             | ❌          | 2-competitive                        |
+| 1       | ❌                 | ✅        | ✅             | ❌          | 3-competitive                        |
+| 1       | ❌                 | ✅        | ❌             | ❌          | 2-competitive                        |
+| 2, 3    | ✅                 | ✅        | ✅             | ❌          | 2d-competitive                       |
+| 1       | ✅                 | ❌        | ❌             | ❌          | O(1/sqrt(m))-competitive as m to 0^+ | for m-strongly convex hitting costs and l2-squared switching costs |
 
 ### References
 

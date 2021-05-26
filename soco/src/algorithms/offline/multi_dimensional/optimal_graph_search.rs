@@ -6,7 +6,7 @@ use crate::config::{Config, IntegralConfig};
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 
-/// Graph-Based Optimal Integral Algorithm
+/// Graph-Based Optimal Algorithm
 pub fn optimal_graph_search<'a>(
     p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
     offline_options: &OfflineOptions,

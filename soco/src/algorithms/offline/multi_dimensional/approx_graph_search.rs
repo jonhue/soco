@@ -13,7 +13,7 @@ pub struct Options {
     pub gamma: Option<f64>,
 }
 
-/// Graph-Based Polynomial-Time Integral Approximation Algorithm
+/// Graph-Based Approximation Algorithm
 pub fn approx_graph_search<'a>(
     p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
     options: &Options,

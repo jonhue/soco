@@ -25,10 +25,6 @@ pub struct Options<'a> {
 }
 
 /// Greedy Online Balanced Descent
-///
-/// Requirements:
-/// * switching cost must be squared l2-norm.
-/// * hitting cost must be `m`-strongly convex.
 pub fn gobd<'a>(
     o: &'a Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,

@@ -22,7 +22,7 @@ pub struct Options {
     pub inverted: bool,
 }
 
-/// Graph-Based Optimal Integral Algorithm
+/// Graph-Based Optimal Algorithm
 pub fn optimal_graph_search(
     p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     options: &Options,
