@@ -1,7 +1,7 @@
 use bacon_sci::roots::bisection;
 use finitediff::FiniteDiff;
 
-use crate::norm::dual_norm;
+use crate::norm::dual;
 use crate::algorithms::optimization::find_minimizer;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::{MAX_L_FACTOR, MAX_ITERATIONS};
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::mirror_map::MirrorMap;
@@ -95,13 +95,13 @@ fn balance_function<'a>(
         |x: &Vec<f64>| (o.p.hitting_cost)(t, Config::new(x.clone())).unwrap();
     let m =
         |x: &Vec<f64>| mirror_map(&o.p.switching_cost, Config::new(x.clone()));
-    let distance = dual_norm(
+    let distance = dual(
         &o.p.switching_cost,
         Config::new(x.to_vec().central_diff(&m))
             - Config::new(prev_x.to_vec().central_diff(&m)),
     )
     .unwrap();
-    let hitting_cost = dual_norm(
+    let hitting_cost = dual(
         &o.p.switching_cost,
         Config::new(x.to_vec().central_diff(&f)),
     )

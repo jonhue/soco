@@ -6,7 +6,7 @@ use crate::config::Config;
 use crate::norm::NormFn;
 use crate::value::Value;
 
-/// Norm function.
+/// Mirror map of some norm function.
 pub type MirrorMap<'a, T> = Arc<dyn Fn(&NormFn<'a, T>, T) -> f64 + 'a>;
 
 /// Norm squared. `1`-strongly convex and `1`-Lipschitz smooth for the Euclidean norm and the Mahalanobis distance.

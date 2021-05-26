@@ -72,7 +72,7 @@ where
 }
 
 /// Computes the dual norm of `x` given some `norm`.
-pub fn dual_norm(
+pub fn dual(
     norm: &NormFn<'_, Config<f64>>,
     x: Config<f64>,
 ) -> Result<f64> {
