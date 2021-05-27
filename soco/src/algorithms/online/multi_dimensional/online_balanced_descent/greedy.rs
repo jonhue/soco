@@ -1,7 +1,5 @@
-use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
-    meta::{obd, Options as MetaOptions},
-    mirror_map::MirrorMap,
-};
+use crate::norm::NormFn;
+use crate::algorithms::online::multi_dimensional::online_balanced_descent::meta::{obd, Options as MetaOptions};
 use crate::algorithms::optimization::find_minimizer;
 use crate::config::FractionalConfig;
 use crate::online::{FractionalStep, Online, Step};
@@ -21,15 +19,15 @@ pub struct Options<'a> {
     /// Balance parameter in OBD. `gamma > 0`. Defaults to `1`.
     pub gamma: Option<f64>,
     /// Mirror map chosen based on the used norm.
-    pub mirror_map: MirrorMap<'a, FractionalConfig>,
+    pub mirror_map: NormFn<'a, FractionalConfig>,
 }
 
 /// Greedy Online Balanced Descent
-pub fn gobd<'a>(
-    o: &'a Online<FractionalSmoothedConvexOptimization>,
+pub fn gobd(
+    o: &Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
-    options: &Options<'a>,
+    options: &Options,
 ) -> Result<FractionalStep<()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 

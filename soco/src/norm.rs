@@ -71,6 +71,14 @@ where
     }))
 }
 
+/// Norm squared. `1`-strongly convex and `1`-Lipschitz smooth for the Euclidean norm and the Mahalanobis distance.
+pub fn norm_squared<'a, T>(norm: NormFn<'a, Config<T>>) -> NormFn<'a, Config<T>>
+where
+    T: Value + 'a,
+{
+    Arc::new(move |x: Config<T>| -> f64 { norm(x).powi(2) / 2. })
+}
+
 /// Computes the dual norm of `x` given some `norm`.
 pub fn dual(
     norm: &NormFn<'_, FractionalConfig>,
