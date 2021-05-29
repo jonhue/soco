@@ -52,7 +52,7 @@ fn next(prev_x: i32, prev_y: f64, y: f64) -> i32 {
             let prev_y_proj = project(prev_y, y.floor(), y.ceil());
             let p = (y - prev_y_proj) / (1. - frac(prev_y_proj));
 
-            let r = sample_uniform();
+            let r = sample_uniform(0., 1.);
             if r <= p {
                 y.ceil() as i32
             } else {
@@ -68,7 +68,7 @@ fn next(prev_x: i32, prev_y: f64, y: f64) -> i32 {
             let prev_y_proj = project(prev_y, y.floor(), y.ceil());
             let p = (prev_y_proj - y) / frac(prev_y_proj);
 
-            let r = sample_uniform();
+            let r = sample_uniform(0., 1.);
             if r <= p {
                 y.floor() as i32
             } else {
