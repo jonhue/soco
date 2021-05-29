@@ -37,7 +37,7 @@ pub struct Options<'a> {
 ///
 /// Sample gamma once before running the algorithm.
 pub fn sample_gamma() -> f64 {
-    let r = sample_uniform();
+    let r = sample_uniform(0., 1.);
     (r * (std::f64::consts::E - 1.) + 1.).ln()
 }
 

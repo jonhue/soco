@@ -86,8 +86,8 @@ where
     result
 }
 
-/// Randomly samples a uniform value in `[0,1]`.
-pub fn sample_uniform() -> f64 {
+/// Randomly samples a uniform value in `[a,b]`.
+pub fn sample_uniform(a: f64, b: f64) -> f64 {
     let mut rng = thread_rng();
-    rng.gen_range(0.0..=1.)
+    rng.gen_range(a..=b)
 }
