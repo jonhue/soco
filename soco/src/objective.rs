@@ -18,35 +18,40 @@ where
 {
     /// Objective Function. Calculates the cost of a schedule.
     fn objective_function(&self, xs: &Schedule<T>) -> Result<f64> {
-        self._objective_function(xs, false)
+        let default = self.default_config();
+        self.objective_function_with_default(xs, &default, false)
     }
 
     /// Inverted Objective Function. Calculates the cost of a schedule. Pays the
     /// switching cost for powering down rather than powering up.
     fn inverted_objective_function(&self, xs: &Schedule<T>) -> Result<f64> {
-        self._objective_function(xs, true)
+        let default = self.default_config();
+        self.objective_function_with_default(xs, &default, true)
     }
 
-    fn _objective_function(
+    fn objective_function_with_default(
         &self,
         xs: &Schedule<T>,
+        default: &Config<T>,
         inverted: bool,
     ) -> Result<f64>;
+
+    fn default_config(&self) -> Config<T>;
 }
 
 impl<'a, T> Objective<T> for SmoothedConvexOptimization<'a, T>
 where
     T: Value,
 {
-    fn _objective_function(
+    fn objective_function_with_default(
         &self,
         xs: &Schedule<T>,
+        default: &Config<T>,
         inverted: bool,
     ) -> Result<f64> {
-        let default_x = Config::<T>::repeat(NumCast::from(0).unwrap(), self.d);
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 2).unwrap_or(&default_x);
+            let prev_x = xs.get(t - 2).unwrap_or(default);
             let x = &xs[t as usize - 1];
             cost += (self.hitting_cost)(t as i32, x.clone())
                 .ok_or(Error::CostFnMustBeTotal)?;
@@ -55,21 +60,25 @@ where
         }
         Ok(cost)
     }
+
+    fn default_config(&self) -> Config<T> {
+        Config::repeat(NumCast::from(0).unwrap(), self.d)
+    }
 }
 
 impl<'a, T> Objective<T> for SimplifiedSmoothedConvexOptimization<'a, T>
 where
     T: Value,
 {
-    fn _objective_function(
+    fn objective_function_with_default(
         &self,
         xs: &Schedule<T>,
+        default: &Config<T>,
         inverted: bool,
     ) -> Result<f64> {
-        let default_x = Config::<T>::repeat(NumCast::from(0).unwrap(), self.d);
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 2).unwrap_or(&default_x);
+            let prev_x = xs.get(t - 2).unwrap_or(default);
             let x = &xs[t as usize - 1];
             cost += (self.hitting_cost)(t as i32, x.clone())
                 .ok_or(Error::CostFnMustBeTotal)?;
@@ -83,21 +92,25 @@ where
         }
         Ok(cost)
     }
+
+    fn default_config(&self) -> Config<T> {
+        Config::repeat(NumCast::from(0).unwrap(), self.d)
+    }
 }
 
 impl<T> Objective<T> for SmoothedLoadOptimization<T>
 where
     T: Value,
 {
-    fn _objective_function(
+    fn objective_function_with_default(
         &self,
         xs: &Schedule<T>,
+        default: &Config<T>,
         inverted: bool,
     ) -> Result<f64> {
-        let default_x = Config::<T>::repeat(NumCast::from(0).unwrap(), self.d);
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 2).unwrap_or(&default_x);
+            let prev_x = xs.get(t - 2).unwrap_or(default);
             let x = &xs[t as usize - 1];
             for k in 0..self.d as usize {
                 cost +=
@@ -111,23 +124,28 @@ where
         }
         Ok(cost)
     }
+
+    fn default_config(&self) -> Config<T> {
+        Config::repeat(NumCast::from(0).unwrap(), self.d)
+    }
 }
 
 impl<'a, T> Objective<T> for SmoothedBalancedLoadOptimization<'a, T>
 where
     T: Value,
 {
-    fn _objective_function(
+    fn objective_function_with_default(
         &self,
         xs: &Schedule<T>,
+        default: &Config<T>,
         inverted: bool,
     ) -> Result<f64> {
         let ssco_p = self.to_ssco();
-        if inverted {
-            ssco_p.inverted_objective_function(xs)
-        } else {
-            ssco_p.objective_function(xs)
-        }
+        ssco_p.objective_function_with_default(xs, default, inverted)
+    }
+
+    fn default_config(&self) -> Config<T> {
+        Config::repeat(NumCast::from(0).unwrap(), self.d)
     }
 }
 

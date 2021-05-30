@@ -3,7 +3,9 @@
 use num::NumCast;
 use rand::{thread_rng, Rng};
 
+use crate::config::Config;
 use crate::result::{Error, Result};
+use crate::schedule::Schedule;
 use crate::value::Value;
 
 /// Safely asserts `pred`.
@@ -90,4 +92,18 @@ where
 pub fn sample_uniform(a: f64, b: f64) -> f64 {
     let mut rng = thread_rng();
     rng.gen_range(a..=b)
+}
+
+/// Builds schedule from a slice.
+pub fn build_schedule<T>(d: i32, w: i32, raw_xs: &[T]) -> Schedule<T>
+where
+    T: Value,
+{
+    let mut xs = Schedule::empty();
+    for t in 0..=w as usize {
+        let i = d as usize * t;
+        let x = Config::new(raw_xs[i..i + d as usize].to_vec());
+        xs.push(x);
+    }
+    xs
 }
