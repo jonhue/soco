@@ -4,8 +4,9 @@ use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
 use crate::config::{Config, FractionalConfig, IntegralConfig};
+use crate::cost::data_center::load::Load;
+use crate::cost::data_center::{apply_loads, load_balance};
 use crate::cost::CostFn;
-use crate::cost::{lazy, LoadCostFn};
 use crate::norm::NormFn;
 use crate::online::Online;
 use crate::problem::{
@@ -187,19 +188,20 @@ where
 {
     /// Convert to an instance of Simplified Smoothed Convex Optimization.
     pub fn to_ssco(&'a self) -> SimplifiedSmoothedConvexOptimization<'a, T> {
-        let f: LoadCostFn<'a, T> = Arc::new(move |t, k, l| {
-            Arc::new(move |j| {
-                self.hitting_cost[k as usize](t, l / j).map(|hitting_cost| {
-                    ToPrimitive::to_f64(&j).unwrap() * hitting_cost
-                })
-            })
-        });
+        let f = load_balance(Arc::new(move |t, k, l| {
+            self.hitting_cost[k as usize](t, NumCast::from(l[0]).unwrap())
+        }));
+        let loads = self
+            .load
+            .iter()
+            .map(|l| Load::single(ToPrimitive::to_f64(l).unwrap()))
+            .collect();
         SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.clone(),
             switching_cost: self.switching_cost.clone(),
-            hitting_cost: lazy(self.d, f, &self.load),
+            hitting_cost: apply_loads(self.d, 1, f, loads),
         }
     }
 }
