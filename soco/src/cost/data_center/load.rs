@@ -1,14 +1,10 @@
 //! Definition of loads.
 
 use std::iter::FromIterator;
-// use std::ops::Add;
 use std::ops::Div;
 use std::ops::Index;
-// use std::ops::IndexMut;
 use std::ops::Mul;
-// use std::ops::Sub;
 
-// use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 
 /// For some time `t`, encapsulates the load of `e` types.
@@ -51,21 +47,6 @@ impl Index<usize> for Load {
     }
 }
 
-// impl<T> IndexMut<usize> for Config<T>
-// where
-//     T: Value,
-// {
-//     fn index_mut(&mut self, k: usize) -> &mut T {
-//         assert!(
-//             k < self.0.len(),
-//             "argument must denote one of {} dimensions, is {}",
-//             self.0.len(),
-//             k + 1
-//         );
-//         &mut self.0[k]
-//     }
-// }
-
 impl VecWrapper for Load {
     type Item = f64;
 
@@ -87,34 +68,6 @@ impl FromIterator<f64> for Load {
     }
 }
 
-// impl<T> Add for Config<T>
-// where
-//     T: Value,
-// {
-//     type Output = Self;
-
-//     fn add(self, other: Self) -> Self::Output {
-//         self.iter()
-//             .zip(other.iter())
-//             .map(|(&x, &y)| x + y)
-//             .collect()
-//     }
-// }
-
-// impl<T> Sub for Config<T>
-// where
-//     T: Value,
-// {
-//     type Output = Self;
-
-//     fn sub(self, other: Self) -> Self::Output {
-//         self.iter()
-//             .zip(other.iter())
-//             .map(|(&x, &y)| x - y)
-//             .collect()
-//     }
-// }
-
 impl Mul<Vec<f64>> for Load {
     type Output = Load;
 
@@ -123,15 +76,6 @@ impl Mul<Vec<f64>> for Load {
         self.iter().zip(&z).map(|(&l, &z)| l * z).collect::<Load>()
     }
 }
-
-// impl Mul<FractionalConfig> for f64 {
-//     type Output = FractionalConfig;
-
-//     /// Scales config with scalar.
-//     fn mul(self, other: FractionalConfig) -> Self::Output {
-//         other.iter().map(|&j| self * j).collect()
-//     }
-// }
 
 impl Div<f64> for Load {
     type Output = Load;
