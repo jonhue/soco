@@ -6,8 +6,7 @@ use crate::objective::Objective;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
-use crate::schedule::FractionalSchedule;
-use crate::utils::build_schedule;
+use crate::schedule::{FractionalSchedule, Schedule};
 use crate::PRECISION;
 
 /// Receding Horizon Control
@@ -77,4 +76,14 @@ fn next(
 
     opt.optimize(&mut xs)?;
     Ok(Config::new(xs[0..o.p.d as usize].to_vec()))
+}
+
+fn build_schedule(d: i32, w: i32, raw_xs: &[f64]) -> FractionalSchedule {
+    let mut xs = Schedule::empty();
+    for t in 0..=w as usize {
+        let i = d as usize * t;
+        let x = Config::new(raw_xs[i..i + d as usize].to_vec());
+        xs.push(x);
+    }
+    xs
 }
