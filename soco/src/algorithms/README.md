@@ -51,7 +51,7 @@ Above order is from most general to most specific.
 ### References
 
 1. Minghong Lin and Adam Wierman and Lachlan L. H. Andrew and Eno Thereska. _Dynamic right-sizing for power-proportional data centers_. 2011.
-2. Minghong Lin and Adam Wierman and Lachlan L. H. Andrew and Eno Thereska. _Dynamic right-sizing for power-proportional data centers_. 2011.
+2. Minghong Lin and Zhenhua Liu and Adam Wierman and Lachlan L. H. Andrew. _Online Algorithms for Geographical Load Balancing_. 2012.
 3. Nikhil Bansal and Anupam Gupta and Ravishankar Krishnaswamy and Kirk Pruhs and Kevin Schewior and Cliff Stein. _A 2-Competitive Algorithm For Online Convex Optimization With Switching Costs_. 2015.
 4. Lachlan L. H. Andrew and Siddharth Barman and Katrina Ligett and Minghong Lin and Adam Myerson and Alan Roytman and Adam Wierman. _A Tale of Two Metrics: Simultaneous Bounds on Competitiveness and Regret_. 2015.
 5. Susanne Albers and Jens Quedenfeld. _Optimal Algorithms for Right-Sizing Data Centers_. 2018.
