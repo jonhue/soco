@@ -2,6 +2,7 @@
 
 use std::iter::FromIterator;
 use std::ops::Add;
+use std::ops::Div;
 use std::ops::Index;
 use std::ops::IndexMut;
 use std::ops::Mul;
@@ -159,5 +160,14 @@ impl Mul<FractionalConfig> for f64 {
     /// Scales config with scalar.
     fn mul(self, other: FractionalConfig) -> Self::Output {
         other.iter().map(|&j| self * j).collect()
+    }
+}
+
+impl Div<f64> for FractionalConfig {
+    type Output = FractionalConfig;
+
+    /// Divides config by scalar.
+    fn div(self, other: f64) -> Self::Output {
+        self.iter().map(|&j| j / other).collect()
     }
 }

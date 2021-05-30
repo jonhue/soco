@@ -287,7 +287,14 @@ pub trait ResettableCostFn<'a, T> {
 
 impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T> {
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T> {
-        Arc::new(move |t, j| self(t + t_start, j))
+        Arc::new(move |t, j| {
+            let new_t = t + t_start;
+            if new_t >= 1 {
+                self(new_t, j)
+            } else {
+                Some(0.)
+            }
+        })
     }
 }
 
