@@ -72,9 +72,11 @@ where
     }))
 }
 
-/// A model that takes into account the energy consumption (modeled additively) and
+/// A model that takes into account the energy consumption (modeled additively)
+/// with some free energy for each server type (i.e. data center) and
 /// the revenue loss based on the average delay in a M/GI/1 Processor Sharing
-/// queue with service rate `1`.
+/// queue with service rate `service_rate` and some network delay between load
+/// type and data center.
 ///
 /// * `p` - cost of electricity per server of type `k`
 /// * `r` - number of servers of type `k` that can be powered by "free" energy generated on-site at time `t`
