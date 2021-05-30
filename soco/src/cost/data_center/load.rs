@@ -1,65 +1,87 @@
-//! Utilities modeling the cost of server load.
+//! Definition of loads.
 
-use std::sync::Arc;
+use std::iter::FromIterator;
+use std::ops::Div;
+use std::ops::Index;
+use std::ops::Mul;
 
-/// Function mapping the load of a server to some cost metric.
-pub type LoadFn<'a> = Arc<dyn Fn(f64) -> f64 + 'a>;
+use crate::vec_wrapper::VecWrapper;
 
-pub mod bansal {
-    //! Loss as described by Bansal et al.
+/// For some time `t`, encapsulates the load of `e` types.
+#[derive(Clone, Debug, PartialEq)]
+pub struct Load(Vec<f64>);
 
-    use std::sync::Arc;
+impl Load {
+    pub fn new(l: Vec<f64>) -> Load {
+        Load(l)
+    }
 
-    use crate::cost::data_center::load::LoadFn;
+    pub fn single(l: f64) -> Load {
+        Load(vec![l])
+    }
 
-    /// Returns the power consumed by a server as a function of load `l`
-    /// according to the formula `l^a + b` where `l^a` models the dynamic power
-    /// while `b` models the static/leakage power.
-    ///
-    /// * `a > 1`
-    /// * `b >= 0`
-    pub fn energy_loss(a: f64, b: f64) -> LoadFn<'static> {
-        Arc::new(move |l| l.powf(a) + b)
+    pub fn e(&self) -> i32 {
+        self.0.len() as i32
+    }
+
+    pub fn total(&self) -> f64 {
+        self.0.iter().copied().sum::<f64>()
+    }
+
+    pub fn to_vec(&self) -> Vec<f64> {
+        self.0.clone()
     }
 }
 
-pub mod lin {
-    //! Loss as described by Lin et al.
+impl Index<usize> for Load {
+    type Output = f64;
 
-    use std::sync::Arc;
-
-    use crate::cost::data_center::load::LoadFn;
-    use crate::utils::pos;
-
-    /// Returns the power consumed by a server as a function of load `l`
-    /// according to the formula `e_0 + e_1 * l` where `e_1 * l` models the dynamic power
-    /// while `e_0` models the static/leakage power.
-    pub fn energy_loss(e_0: f64, e_1: f64) -> LoadFn<'static> {
-        Arc::new(move |l| e_0 + e_1 * l)
+    fn index(&self, i: usize) -> &f64 {
+        assert!(
+            i < self.0.len(),
+            "argument must denote one of {} types, is {}",
+            self.0.len(),
+            i + 1
+        );
+        &self.0[i]
     }
+}
 
-    /// Returns the revenue loss given average delay `d` and load `l`
-    /// according to the formula `d_1 * l * (d - d_0)^+` where `d_0` is the minimum
-    /// delay users can detect and `d_1` is a constant.
-    pub fn revenue_loss<'a>(
-        d_0: f64,
-        d_1: f64,
-    ) -> Arc<dyn Fn(f64) -> LoadFn<'a>> {
-        Arc::new(move |d| Arc::new(move |l| d_1 * l * pos(d - d_0)))
+impl VecWrapper for Load {
+    type Item = f64;
+
+    fn to_vec(&self) -> &Vec<Self::Item> {
+        &self.0
     }
+}
 
-    /// Returns the average delay of a server modeled by an M/GI/1 Processor Sharing queue
-    /// where the service rate of ther server is assumed to be `1`.
-    pub fn avg_delay() -> LoadFn<'static> {
-        Arc::new(|l| 1. / (1. - l))
+impl FromIterator<f64> for Load {
+    fn from_iter<I>(iter: I) -> Self
+    where
+        I: IntoIterator<Item = f64>,
+    {
+        let mut l = vec![];
+        for j in iter {
+            l.push(j);
+        }
+        Load::new(l)
     }
+}
 
-    /// Given functions to compute revenue loss (`r`), energy loss (`e`), and average delay (`d`), returns the cumulative loss.
-    pub fn loss<'a>(
-        r: &'a Arc<dyn Fn(f64) -> LoadFn<'a>>,
-        e: &'a LoadFn<'a>,
-        d: &'a LoadFn<'a>,
-    ) -> LoadFn<'a> {
-        Arc::new(move |l| r(d(l))(l) + e(l))
+impl Mul<Vec<f64>> for Load {
+    type Output = Load;
+
+    /// Applies fractions to loads.
+    fn mul(self, z: Vec<f64>) -> Self::Output {
+        self.iter().zip(&z).map(|(&l, &z)| l * z).collect::<Load>()
+    }
+}
+
+impl Div<f64> for Load {
+    type Output = Load;
+
+    /// Divides loads by scalar.
+    fn div(self, other: f64) -> Self::Output {
+        self.iter().map(|&l| l / other).collect()
     }
 }
