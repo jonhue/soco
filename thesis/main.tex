@@ -41,15 +41,13 @@
 
 \input{thesis/chapters/01_introduction}
 \input{thesis/chapters/02_theory}
-\input{thesis/chapters/03_applications}
+\input{thesis/chapters/03_application}
 \input{thesis/chapters/04_offline_algorithms}
 \input{thesis/chapters/05_online_algorithms}
 \input{thesis/chapters/06_experiments}
 \input{thesis/chapters/07_conclusion}
-% TODO: add more chapters here
 
 % Examples
-Citation test~\parencite{latex}.
 
 \begin{figure}[htb]
     \centering
@@ -57,6 +55,16 @@ Citation test~\parencite{latex}.
     \caption{Caption}
     \label{fig:my_label}
 \end{figure}
+
+\begin{table}[]
+    \centering
+    \begin{tabular}{c|c}
+         &  \\
+         &
+    \end{tabular}
+    \caption{Caption}
+    \label{tab:my_label}
+\end{table}
 
 \begin{algorithm}[H]
     \caption{Algorithm}
@@ -75,7 +83,9 @@ Citation test~\parencite{latex}.
 \listofalgorithms{}
 \addcontentsline{toc}{chapter}{List of Algorithms}
 
-% \listoffigures{}
+\listoffigures{}
+
+\listoftables{}
 
 \printnoidxglossary[type=symbols,style=long,title={Notation}]
 
