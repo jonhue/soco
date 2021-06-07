@@ -46,7 +46,7 @@ We first consider the homogeneous setting. In the homogeneous case, we write $g_
 \end{align} Crucially, this is an approximation as we did not impose the restriction that job arrival rates must be integral which is required in practice.
 
 In the heterogeneous setting, it is easy to see that there is no single optimal dispatching rule. However, our analysis implies that even in the heterogeneous setting, within one server type the optimal dispatching strategy is to load balance \cite{Albers2021_2}. This observation leads us precisely to our previous definition of Smoothed Balanced Load Optimization (\autoref{problem:sblo}). To recapitulate, the operating cost for servers of type $k$ during time slot $t$ is given as \begin{align}\label{eq:heterogeneous_load_balancing_unit}
-    h_{t,k}(x,z) := \begin{cases}
+    h_{t,k}(x,z) := \begin{cases} 
         x g_{t,k}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
         \infty                                  & x = 0 \land l_{t,k} > 0 \\
         0                                       & x = 0 \land l_{t,k} = 0
@@ -62,7 +62,7 @@ The problem becomes harder when we consider heterogeneous loads. However, as we 
 \end{align*} where $\lambda_t := \sum_{i=1}^e \lambda_{t,i}$. Here, $z_{t,k,i}$ is the fraction of jobs of type $i$ assigned to servers of type $k$ during time slot $t$.
 
 We continue to use optimal load balancing similarly to \autoref{eq:heterogeneous_load_balancing_unit} to distribute load evenly across all servers of the same type. However, we introduce an additional cost that is paid per job of type $i$ that is processed on a server of type $k$. Our new operating cost for servers of type $k$ during time slot $t$ becomes \begin{align}\label{eq:multiple_load_types_load_balancing_unit}
-    h_{t,k}(x,z) := \begin{cases}
+    h_{t,k}(x,z) := \begin{cases} 
         x g_{t,k}\left(\frac{l_{t,k}}{x}\right) + \sum_{i=1}^e l_{t,k,i} q_{t,k,i}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
         \infty                                                                                                   & x = 0 \land l_{t,k} > 0 \\
         0                                                                                                        & x = 0 \land l_{t,k} = 0
@@ -93,7 +93,7 @@ Our next goal is to model the operating cost of servers in a data center and the
 
 Our goal is to model the energy cost $e_{t,k}(s)$ of a server of type $k$ during time slot $t$ based on its utilization $s$. To this end, we consider two function. First, let $\phi_k(s)$ denote the energy consumption of a server of type $k$ with utilization $s$. Second, let $\nu_t(p)$ be the energy cost of a server during time slot $t$ associated with an energy consumption of $p$. We then set $e_{t,k}(s) := \nu_t(\phi_k(s))$.
 
-\paragraph{Energy Cost} We begin by modeling the energy cost associated with a consumption of $p$ units of energy during time slot $t$. The simplest model is to assign each unit of energy a cost which we call $c$. We then obtain $\nu_t(p) := c p$. If we simply want to achieve power-proportionality of the data center, it suffices to set $c = 1$. In many practical applications we seek a more complex model which we present at the end of this section.
+\paragraph{Energy Cost} We begin by modeling the energy cost associated with a consumption of $p$ units of energy during time slot $t$. The simplest model is to assign each unit of energy the average cost during time slot $t$ which we call $c_t$. We then obtain $\nu_t(p) := c_t p$. If we simply want to achieve power-proportionality of the data center, it suffices to set $c \equiv 1$. In many practical applications we seek a more complex model which we present at the end of this section.
 
 \paragraph{Energy Consumption} There a variety of models for energy consumption in a data center. We give an overview over the most common models here, additional models can be found through the references. To rephrase our objective, we seek to model the energy consumption of a single server based on a utilization (also referred to as speed or frequency) $s$. The energy consumption $\phi_k(s)$ can be calculated as $\delta \Phi_k(s)$ where $\delta$ is the length of a time slot and $\Phi_k(s)$ is the power consumption of a server of type $k$ with utilization $s$ \cite{Dayarathna2016}. Models of power consumption can be categorized into linear and non-linear models \cite{Ismail2020}. In this work, we restrict our analysis to linear models of which the performance is highly dependent on the chosen parameters \cite{Ismail2020}. \citeauthor*{Ismail2020} also present more accurate non-linear and machine learning models \cite{Ismail2020}.
 
@@ -113,7 +113,7 @@ The above models of power consumption are additive. Another frequently used mode
 
 This simple model could be extended by considering quotas for multiple sources of energy, considering the gain of selling unused renewable energy back to the grid, or by using computing energy consumption based on the real utilization of active servers. We present one such model in \autoref{section:application:energy_quotas}.
 
-\paragraph{Economical and Ecological Cost} Our energy quota model can be extended to model a variety of incentives where the incentives are provided by our choice of the energy costs of energy source $i$ per unit of energy which are denoted by $c_i$. Contrary to initial intuition, the nature of these costs do not have to be purely economical. While it is reasonable to consider the cost of energy, we could extend our incentives by also considering the emission of $CO_2$ equivalents per unit of energy of each energy source. This policy could be used to guide towards a carbon-free make-up of energy sources across all data center locations. Such a model is of interest in many of current data center networks \cite{Hölzle2020, Miller2021}.
+\paragraph{Economical and Ecological Cost} Our energy quota model can be extended to model a variety of incentives where the incentives are provided by our choice of the average energy costs of energy source $i$ per unit of energy during time slot $t$ which are denoted by $c_{t,i}$. Contrary to initial intuition, the nature of these costs do not have to be purely economical. While it is reasonable to consider the cost of energy, we could extend our incentives by also considering the emission of $CO_2$ equivalents per unit of energy of each energy source. This policy could be used to guide towards a carbon-free make-up of energy sources across all data center locations. Such a model is of interest in many of current data center networks \cite{Hölzle2020, Miller2021}.
 
 \subsection{Delay}
 
@@ -163,8 +163,8 @@ We began discussing energy quotas in \autoref{section:application:operating_cost
 
 Given $x \in \mathcal{X}$, in data center $k$, the average utilization of active servers of type $j$ during time slot $t$ is given as $l_{t,(k,j)} / x_{(k,j)}$. Hence, we obtain the total energy consumption of data center $k$ with \begin{align*}
     \phi_k := \sum_{j=1}^{d_k} x_{(k,j)} \phi_{(k,j)}\left(\frac{l_{t,(k,j)}}{x_{(k,j)}}\right).
-\end{align*} The total energy cost of data center $k$ during time slot $t$ is therefore given as $e_{t,k} := \nu_t(\phi_k)$. $\nu_t$ now receives the entire energy consumption at a location during time slot $t$ as input. We are thus able to model more complex energy costs. For an example, consider by $p_{t,k}^{(i)}$ the energy from source $i \in \mathcal{I}$ available at data center $k$ during time slot $t$. We denote by $c_i$ the cost per unit of energy of energy source $i$ and assume without loss of generality that $c_1 \leq c_2 \leq \cdots$. A reasonable model of energy cost would then be given by \begin{align*}
-    \nu_{t,k}(p) := \sum_{i \in \mathcal{I}} c_i \min\{(p - \sum_{\substack{j \in \mathcal{I}, \\ j < i}} p_{t,k}^{(j)})^+, p_{t,k}^{(i)}\}
+\end{align*} The total energy cost of data center $k$ during time slot $t$ is therefore given as $e_{t,k} := \nu_t(\phi_k)$. $\nu_t$ now receives the entire energy consumption at a location during time slot $t$ as input. We are thus able to model more complex energy costs. For an example, consider by $p_{t,k}^{(i)}$ the energy from source $i \in \mathcal{I}$ available at data center $k$ during time slot $t$. We denote by $c_{t,i}$ the average cost per unit of energy of energy source $i$ during time slot $t$ and assume without loss of generality that $c_{t,1} \leq c_{t,2} \leq \cdots$ holds for all $t \in T$. A reasonable model of energy cost would then be given by \begin{align*}
+    \nu_{t,k}(p) := \sum_{i \in \mathcal{I}} c_{t,i} \min\{(p - \sum_{\substack{j \in \mathcal{I}, \\ j < i}} p_{t,k}^{(j)})^+, p_{t,k}^{(i)}\}
 \end{align*} where we assume that the energy sources supply is sufficient, i.e. $p \leq \sum_{i \in \mathcal{I}} p_{t,k}^{(i)}$.
 
 We have seen a cost model that supports a network of heterogeneous data centers with heterogeneous loads and flexible energy costs. This reaches our main goal for this chapter.
