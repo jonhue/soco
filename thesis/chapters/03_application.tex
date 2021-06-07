@@ -3,10 +3,168 @@
 
 \chapter{Application: Right-Sizing Data Centers}\label{chapter:application}
 
-\section{Server Infrastructures}
+In this chapter we seek to derive models for right-sizing data centers based on smoothed convex optimization. We then use these models to motivate the variations of smoothed convex optimization we discussed in \autoref{chapter:theory}. We begin by discussing general features of server infrastructures. Then, we examine the modeling of \textit{operating costs} (i.e. hitting costs) and \textit{switching costs} in detail.
 
-\section{Modeling Cost}
+Data centers are large scale, complex systems. Therefore, any model we examine in this chapter is an approximation. Our goal is to find models that generalize well across many data centers. When examining a specific data center, the models we discuss can be extended to yield better approximations.
 
-\subsection{Optimal Load Balancing}
+\section{Architectures}\label{section:application:architectures}
 
-\section{Dynamic Routing}
+We begin by revisiting the characteristics by which the design of data centers varies.
+
+\paragraph{Speed-Scalability} For our data center model it is natural to assume that the servers are speed scalable. That is, their utilization can vary from idling at 0\% utilization to full load at 100\% utilization. Furthermore, we assume that server utilization scales linearly with its load as that is required to maintain a constant quality of service \cite{Bansal2015}.
+
+\paragraph{Energy} There has been much recent work on modeling the energy consumption of a data center as a function of speed of the individual servers. We discuss these approaches in detail in \autoref{section:application:operating_cost:energy}. However, in many cases the ecological and economical cost of energy does not remain constant. It fluctuates over time, but more importantly, at no single point in time is energy cost a linear function of energy consumption. This is because many data centers have quotas for each energy source \cite{Miller2021}. For example, there may only be a limited supply of renewable energy. Once the energy consumption of our data center exceeds this supply it has to resort to different sources of energy with different costs. Recently, a trend has also been for data centers to produce their own renewable energy \cite{Lin2012}. In this case, this renewable energy is significantly cheaper than any energy that may be purchased after consumption exceeds productions. If, in contrast, more energy is produced than is consumed, some energy may even be sold depending on the state of the energy grid.
+
+\paragraph{Homogeneity and Heterogeneity} When the data center right-sizing problem was first introduced, approaches were focused on homogeneous data centers. In a \textit{homogeneous} data center, all servers are of the same type. We say that a server is of a different type than another server if their operating costs or switching costs differ significantly. In any such scenario where we have multiple server types, the data center is \textit{heterogeneous}. It is easy to see that each server type resembles one dimension in our smoothed optimization. While the model of a homogeneous data center is much simpler, in practice, most data centers are heterogeneous and this trend is projected to intensify \cite{Jin2016}. Heterogeneity may arise naturally as defect servers of a homogeneous data center are replaced by newer servers. The primary advantage of heterogeneous architectures is, however, that certain tasks can be delegated to specialized servers \cite{Jin2016}. For example, CPUs and GPUs may be used within the same data center but GPUs should only be used to perform massive parallel computations as CPUs are faster when tasks are more individual \cite{Shan2006}. The differing power-performance relationships of multiple server types are another benefit of heterogeneous architectures \cite{Jin2016}.
+
+\paragraph{Size} In principle, the right-sizing data center problem only admits integral solutions, that is at any time we can only run an integral number of servers of each type. However, if the size of our data center is large in each dimension it is reasonable to use fractional solutions as an approximation. Typically, data centers fulfill this requirement. Lately, the surge in hyperscale facilities underlines that there is even a trend towards larger data centers \cite{Jones2018}. For this reason, discuss integral as well as fractional solutions in our analysis.
+
+\paragraph{Reliability and Availability} Many services must satisfy certain requirements regarding reliability and availability, which are often key components of \textit{service level agreements} (SLAs) \cite{Lin2011}. In our model such requirements can be enforced as hard constraints using the decision space by requiring a minimum number of active servers per server type. As our model only chooses the number of servers of some type, the algorithm can then freely choose the active servers between all servers according to some guidelines to meet the requirements. However, choosing a decision space that is too tight, may reduce the cost saving potential. Therefore, an alternative approach is to use operating costs (discussed in \autoref{section:application:operating_cost}) as softer constraints, for example by enforcing a maximum utilization that is less than $\theta < 100\%$. Availability requirements for certain jobs can also be encoded into the revenue loss as a function of average job delay.
+
+\paragraph{Networks} Most of our analysis is focused on the case of a single data center. However, the problem of deciding where to route incoming loads within a network of data centers so as to minimize the overall cost is an acutely relevant problem \cite{Miller2021}. For example, if data centers produce their own renewable energy, the cost of energy at each individual data center is likely to vary drastically over time as weather conditions shift \cite{Lin2012}. Therefore, previous studies focusing on individual data centers found that due to the intermittency of wind and solar they can only be used with large-scale storage \cite{Gmach2010, Gmach2010_2}. Yet, it has been shown that by running a network of data centers in separate locations the negative effects of renewable energy production can largely be avoided as the availability of solar and wind can be aggregated across locations \cite{Lin2012}. In \autoref{section:application:dynamic_routing}, we show how our cost model can be extended to support geographical load balancing across a network of data centers.
+
+\section{Dispatching}\label{section:application:dispatching}
+
+The modeling of load is the core of our data center model. We say that a \textit{load profile} of our system during time slot $t$ is a vector $\lambda_t \in \mathbb{N}_0^e$ where $e$ is the number of \textit{load types}. In the subsequent sections we give more concrete examples of varying load types, but generally loads are of different types when their cost model is different. For now, we assume that the processing time of all jobs on any server type takes exactly one time slot. In \autoref{section:application:dynamic_duration} we discuss in detail how this approach can be extended to jobs with a dynamic duration (per server type).
+
+We denote by $m_k \in \mathbb{N}$ the maximum number of available servers of type $k$ and by $d$ the number of server types. Our decision space is therefore given as $\mathcal{X} := \mathbb{R}_{\geq 0, \leq m_0} \times \dots \times \mathbb{R}_{\geq 0, \leq m_d}$. Further, we denote by $l_k^{max}$ the maximum number of jobs a server of type $k$ can process in a single time slot.
+
+We call a load profile $\lambda_t$ \textit{feasible} if \begin{align}
+    \sum_{i=1}^e \lambda_{t,i} \leq \sum_{k=1}^d l_k^{max} m_k =: \lambda_t^{max}.
+\label{eq:feasible_load_profiles}
+\end{align} In other words, a load profile is feasible if we are able to process all incoming jobs by using all available servers. In our subsequent analysis, we assume that all load profiles are feasible. This is not a restriction. In practice, if a load profile is not feasible, one would have to delay a large-enough selection of jobs. This can be achieved by moving the selected jobs from the current to an upcoming load profile.
+
+\subsection{Optimal Load Balancing}\label{section:application:dispatching:optimal_load_balancing}
+
+To begin with, we consider a data center with homogeneous loads, so by \autoref{eq:feasible_load_profiles} we have $\lambda_t \in [\lambda_t^{max}]_0$. As we discussed, energy consumption depends on server speed which in turn depends on the number of available servers $x_t \in \mathcal{X}$ (determined by the algorithm) and the load profile $\lambda_t$ (determined by an adversary). Therefore, it is natural to ask how we can optimally distribute the load across the available servers. Let $g_{t,k} : [0,l_k^{max}] \to \mathbb{R}_{\geq 0}$ be a convex function representing the cost incurred by operating a server of type $k$ during time slot $t$ with a load of $l \in [0,l_k^{max}]$. We set $g_{t,k}(l) = \infty$ for $l > l_k^{max}$. The utilization (or speed of a server) with a load of $l$ is then given as $s = l / l_k^{max} \in [0,1]$.
+
+We first consider the homogeneous setting. In the homogeneous case, we write $g_t := g_{t,1}$. We discuss concrete functions in \autoref{section:application:operating_cost} but for this section we assume that $g_t$ can be any non-negative convex function. Disregarding switching costs, we obtain the following optimization for the homogeneous setting: \begin{align*}
+    \min_{x_t \in \mathcal{X}} \quad &\sum_{t=1}^T \sum_{i=1}^{x_t} g_t(l_{t,i}) \\
+    \text{subject to}        \quad &\sum_{i=1}^{x_t} l_{t,i} = \lambda_t
+\end{align*} where $l_{t,i} \in \mathbb{R}_{\geq 0}$ denotes the number of jobs processed by server $i$ during time slot $t$. \citeauthor*{Lin2011} observed that for fixed $x_t$ the remaining dispatching problem is convex \cite{Lin2011}. The optimal dispatching rule $l_{t,i}^*$ is $\lambda_t / x_t$ for all $i \in [x_t]$, implying that given $x_t$ it is optimal to balance load evenly across all servers \cite{Albers2021_2}. \citeauthor*{Albers2021_2} prove this fact using Jensen's inequality. We therefore define our overall operating cost as \begin{align}\label{eq:homogeneous_load_balancing}
+    f_t(x) := x g_t\left(\frac{\lambda_t}{x}\right).
+\end{align} Crucially, this is an approximation as we did not impose the restriction that job arrival rates must be integral which is required in practice.
+
+In the heterogeneous setting, it is easy to see that there is no single optimal dispatching rule. However, our analysis implies that even in the heterogeneous setting, within one server type the optimal dispatching strategy is to load balance \cite{Albers2021_2}. This observation leads us precisely to our previous definition of Smoothed Balanced Load Optimization (\autoref{problem:sblo}). To recapitulate, the operating cost for servers of type $k$ during time slot $t$ is given as \begin{align}\label{eq:heterogeneous_load_balancing_unit}
+    h_{t,k}(x,z) := \begin{cases}
+        x g_{t,k}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
+        \infty                                  & x = 0 \land l_{t,k} > 0 \\
+        0                                       & x = 0 \land l_{t,k} = 0
+    \end{cases}
+\end{align} where $l_{t,k} = \lambda_t z$, $x$ is the number of active servers of type $k$, and $z \in [0,1]$ is the fraction of the job volume $\lambda_t$ that is assigned to server type $k$ \cite{Albers2021_2}. Given the set of all possible job assignments to a collection of $d$ different server types $\mathcal{Z} := \{z \in [0,1]^d \mid \sum_{k=1}^d z_k = 1\}$, the overall operating cost can be defined as \begin{align}\label{eq:heterogeneous_load_balancing}
+    f_t(x) := \min_{z \in \mathcal{Z}} \sum_{k=1}^d h_{t,k}(x_k,z_k).
+\end{align} It is easy to see that \autoref{eq:homogeneous_load_balancing} is equivalent to \autoref{eq:heterogeneous_load_balancing} for $d = 1$.
+
+\subsection{Multiple Load Types}\label{section:application:dispatching:multiple_load_types}
+
+The problem becomes harder when we consider heterogeneous loads. However, as we have seen in \autoref{section:application:architectures}, multiple load types are often required in practice. For example, to distinguish different processing speeds CPUs and GPUs have for different tasks. Instead of determining the optimal assignment fractions of the total load to server types, we now need to determine the optimal assignment of fractions of individual load types to server types. To that end, we define the set of such assignments as \begin{align*}
+    \mathcal{Z}_t := \left\{z_t \in [0,1]^{e^d} \mid \forall i \in [e].\ \sum_{k=1}^d z_{t,k,i} = \frac{\lambda_{t,i}}{\lambda_t}\right\}
+\end{align*} where $\lambda_t := \sum_{i=1}^e \lambda_{t,i}$. Here, $z_{t,k,i}$ is the fraction of jobs of type $i$ assigned to servers of type $k$ during time slot $t$.
+
+We continue to use optimal load balancing similarly to \autoref{eq:heterogeneous_load_balancing_unit} to distribute load evenly across all servers of the same type. However, we introduce an additional cost that is paid per job of type $i$ that is processed on a server of type $k$. Our new operating cost for servers of type $k$ during time slot $t$ becomes \begin{align}\label{eq:multiple_load_types_load_balancing_unit}
+    h_{t,k}(x,z) := \begin{cases}
+        x g_{t,k}\left(\frac{l_{t,k}}{x}\right) + \sum_{i=1}^e l_{t,k,i} q_{t,k,i}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
+        \infty                                                                                                   & x = 0 \land l_{t,k} > 0 \\
+        0                                                                                                        & x = 0 \land l_{t,k} = 0
+    \end{cases}
+\end{align} where $l_{t,k,i} = \lambda_{t,i} z_i$, $l_{t,k} = \sum_{i=1}^e l_{t,k,i}$, $x$ is the number of active servers of type $k$, and $z \in [0,1]^e$ are the fractions of the job volumes $\lambda_{t,i}$ that are assigned to server type $k$. Here, $q_{t,k,i}(l)$ is the cost incurred of processing a job of type $i$ on a server of type $k$ when $l$ jobs are processed on this server. $g_{t,k}(l)$ remains the operating cost of a server of type $k$ under total load $l$. We still set $g_{t,k}(l) = \infty$ if $l > l_k^{max}$.
+
+We can now define the overall operating cost analogously to \autoref{eq:heterogeneous_load_balancing} as \begin{align}\label{eq:multiple_load_types_load_balancing}
+    f_t(x) := \min_{z \in \mathcal{Z}_t} \sum_{k=1}^d h_{t,k}(x_k,z_k).
+\end{align}
+
+Again, we observe that for $e = 1$ \autoref{eq:multiple_load_types_load_balancing} is equivalent to \autoref{eq:heterogeneous_load_balancing} by setting $q_{t,k,1} \equiv 0$. Henceforth, we restrict our analysis to the model from \autoref{eq:multiple_load_types_load_balancing}.
+
+\section{Operating Cost}\label{section:application:operating_cost}
+
+Our next goal is to model the operating cost of servers in a data center and the cost of powering up and powering down servers. Given our analysis from \autoref{section:application:dispatching}, we now seek to determine the server-dependent cost $g_{t,k}(l)$ and the job-dependent cost $q_{t,k,i}(l)$ given $l$ jobs are processed on servers of type $k$. As was already introduced in \autoref{chapter:introduction}, we interpret the server-dependent cost as the \textit{energy cost} and the job-dependent cost as \textit{revenue loss}.
+
+\paragraph{Energy Cost} Energy cost is a function of energy consumption which in turn is a function of server utilization. We have seen in \autoref{section:application:dispatching:optimal_load_balancing} that the server utilization of a server of type $k$ given a server load $l$ is $l / l_k^{max}$ where we defined $l_k^{max}$ as the maximum number of jobs a server of type $k$ can process in a single time slot. Let $e_{t,k}(s)$ be the energy cost of operating a server of type $k$ during time slot $t$ with utilization $s$. Then, \begin{align*}
+    g_{t,k}(l) := e_{t,k}\left(\frac{l}{l_k^{max}}\right).
+\end{align*} Some authors only consider energy cost as they assume the largest fraction of operating costs \cite{Bansal2015}.
+
+\paragraph{Revenue Loss} Revenue loss measures the lost revenue based on our distribution of incoming job types to server types. We can further divide revenue loss in a penalty $p_{t,k,i}$ for processing a job of type $i$ on a server of type $k$ during time slot $t$ and a function $r_{t,i}(d)$ that describes the domain-specific revenue loss of jobs of type $i$ during time slot $t$ given an average delay of $d$. We model the average delay $d$ of a job of type $i$ processed on a server of type $k$ during time slot $t$ where the total load on the server is $l$ as the function $d_{t,k,i}(l)$. Hence, we obtain \begin{align*}
+    q_{t,k,i}(l) := \gamma(r_{t,i}(d_{t,k,i}(l)) + p_{t,k,i}).
+\end{align*} for some weight $\gamma \in \mathbb{R}_{\geq 0}$ \cite{Lin2011}.
+
+\paragraph{}{In the subsequent sections we consider models for energy cost and delay, respectively.}
+
+\subsection{Energy}\label{section:application:operating_cost:energy}
+
+Our goal is to model the energy cost $e_{t,k}(s)$ of a server of type $k$ during time slot $t$ based on its utilization $s$. To this end, we consider two function. First, let $\phi_k(s)$ denote the energy consumption of a server of type $k$ with utilization $s$. Second, let $\nu_t(p)$ be the energy cost of a server during time slot $t$ associated with an energy consumption of $p$. We then set $e_{t,k}(s) := \nu_t(\phi_k(s))$.
+
+\paragraph{Energy Cost} We begin by modeling the energy cost associated with a consumption of $p$ units of energy during time slot $t$. The simplest model is to assign each unit of energy a cost which we call $c$. We then obtain $\nu_t(p) := c p$. If we simply want to achieve power-proportionality of the data center, it suffices to set $c = 1$. In many practical applications we seek a more complex model which we present at the end of this section.
+
+\paragraph{Energy Consumption} There a variety of models for energy consumption in a data center. We give an overview over the most common models here, additional models can be found through the references. To rephrase our objective, we seek to model the energy consumption of a single server based on a utilization (also referred to as speed or frequency) $s$. The energy consumption $\phi_k(s)$ can be calculated as $\delta \Phi_k(s)$ where $\delta$ is the length of a time slot and $\Phi_k(s)$ is the power consumption of a server of type $k$ with utilization $s$ \cite{Dayarathna2016}. Models of power consumption can be categorized into linear and non-linear models \cite{Ismail2020}. In this work, we restrict our analysis to linear models of which the performance is highly dependent on the chosen parameters \cite{Ismail2020}. \citeauthor*{Ismail2020} also present more accurate non-linear and machine learning models \cite{Ismail2020}.
+
+A first intuitive model of power consumption is discussed by \citeauthor*{Dayarathna2016, Ismail2020} is \begin{align*}
+    \Phi_k(s) = (\Phi_k^{max} - \Phi_k^{min})s + \Phi_k^{min}
+\end{align*} where $\Phi_k^{max}$ and $\Phi_k^{min}$ are the power a server of type $k$ consumes at full load and when idling, respectively \cite{Dayarathna2016, Ismail2020}. In linear power models we distinguish between the \textit{dynamic power}, here the first term $(\Phi_k^{max} - \Phi_k^{min})s$, and the \textit{static power} (or leakage power), $\Phi_k^{min}$. Following the findings of \citeauthor*{Barroso2007}, we can use that generally servers consume half of their peak power when idling to simplify the above model \cite{Barroso2007, Ismail2020}: \begin{align*}
+    \Phi_k(s) = \frac{1}{2} \Phi_k^{max} (1 + s).
+\end{align*}
+
+The above models of power consumption are additive. Another frequently used model is multiplicative and defined as \cite{Dayarathna2016}: \begin{align*}
+    \Phi_k(s) = \frac{s^{\alpha}}{\beta} + \Phi_k^{min}
+\end{align*} where $\alpha > 1$ and $\beta > 0$ are constants. Here, $s^{\alpha}/\beta$ is the dynamic power and $\Phi_k^{min}$ is the static power. A variant of this model is used by \citeauthor*{Bansal2015} \cite{Bansal2015}.
+
+\paragraph{Energy Quotas} We mentioned the prevalence of energy quotas in many practical applications in \autoref{section:application:architectures}. Previously, we have only considered a fixed energy price per unit of energy. When we consider energy quotas this setup changes. For example, we may produce a changing amount of renewable energy at a data center which is much cheaper than regular energy \cite{Lin2012}. It is easy to see that in such a scenario, computing the energy cost per server is not sufficient. Instead, we must adjust our model from \autoref{eq:multiple_load_types_load_balancing} to calculate the energy cost across all servers (of all server types) simultaneously. Once this adjustment is made, however, we can easily model more complex energy prices within our existing framework. For example, \citeauthor*{Lin2012} used a simplified model that does not take into account individual server utilization but assumes a quota of renewable energy that is assumed to be free of charge: \begin{align*}
+    e_t(x) = c_{t}(x - p_t)^+
+\end{align*} where $c_t$ is the average price per unit of energy during time slot $t$ and $p_t$ is the quota of free renewable energy during time slot $t$, considering only a single server type \cite{Lin2012}. In this model each active server consumes approximately one unit of energy. Note that here $e_{t,k}$ depends on $x$ allowing the consideration of quotas whereas in our model it solely depends on $l$.
+
+This simple model could be extended by considering quotas for multiple sources of energy, considering the gain of selling unused renewable energy back to the grid, or by using computing energy consumption based on the real utilization of active servers. We present one such model in \autoref{section:application:energy_quotas}.
+
+\paragraph{Economical and Ecological Cost} Our energy quota model can be extended to model a variety of incentives where the incentives are provided by our choice of the energy costs of energy source $i$ per unit of energy which are denoted by $c_i$. Contrary to initial intuition, the nature of these costs do not have to be purely economical. While it is reasonable to consider the cost of energy, we could extend our incentives by also considering the emission of $CO_2$ equivalents per unit of energy of each energy source. This policy could be used to guide towards a carbon-free make-up of energy sources across all data center locations. Such a model is of interest in many of current data center networks \cite{Hölzle2020, Miller2021}.
+
+\subsection{Delay}
+
+We use queueing theory to model the queueing delay of jobs in the system. Often, an M/GI/1 processor sharing queue is used to describe the job queue of a server \cite{Lin2011, Lin2012}. In this model, the server is subject to Poisson distributed arrivals of jobs. Then the average delay of jobs is given by \begin{align*}
+    d_{t,k,i}(l) := \frac{1}{\mu_k - l}
+\end{align*} where $\mu_k$ is the service rate of a server of type $k$ \cite{Lin2012}.
+
+Given average delay $d$, we use a natural model of the revenue loss similar to the proposal of \citeauthor*{Lin2011} which is given by $r_{t,i}(d) := (d - \delta_i)^+$ where $\delta_i$ denotes the minimal detected delay of jobs of type $i$ \cite{Lin2011}. For $\delta_i \equiv 0$, this model is the same as the model of \cite{Lin2012}.
+
+\section{Switching Cost}
+
+The switching cost can be understood as the cost of transitioning a server from a sleep state to the active state and vice versa. This switching cost is independent from time but may depend on the type of server that is transitioned. Hence, we naturally arrive at the restriction we imposed on Simplified Smoothed Convex Optimization (\autoref{problem:simplified_smoothed_convex_optimization}) where we introduced dimension-dependent transition costs $\beta_k$ and defined the total switching cost as \begin{align*}
+    \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+
+\end{align*} where $x_0 = x_{T+1} = \mathbf{0}$. Note that in this model we only pay the transition cost $\beta_k$ when a server is powered up. As all servers have to eventually arrive in the sleep state, we can fold the cost of powering down a server into $\beta_k$, i.e. $\beta_k$ represents the cost associated with powering up and powering down a server. Additionally, we assume that the operating cost associated with a sleeping server is $0$. This restriction is reasonable when we interpret the sleep state as a server that is fully powered down.
+
+\paragraph{Model} \citeauthor*{Lin2011} identify four costs contributing to the transition cost: First, (1) the additional energy consumed by toggling a server on and off $\epsilon_k$, (2) the delay in migrating connections or data $\delta_k$, for example when using virtual machines, (3) wear-and-tear costs of toggling a server $\tau_k$, and (4) the perceived risk $\rho_k$ associated with toggling a server of type $k$ \cite{Lin2011}. We thus model the transition cost as \begin{align*}
+    \beta_k := \nu_k(\epsilon_k) + \delta_k + \tau_k + \rho_k
+\end{align*} where $\nu_k$ is the average cost of energy for servers of type $k$.
+
+When only (1) and (2) are considered $\beta_k$ is on the order of migrating network state \cite{Chen2008}, storage state \cite{Thereska2009}, or a large virtual machine \cite{Clark2005} which roughly translates to the cost of operating a server of type $k$ for a few seconds to several minutes \cite{Lin2011}. Including (3) increases $\beta_k$ to the order of operating a server of type $k$ for an hour \cite{Bodik2008}. Our model of risk associated with toggling a server is the most vague. \citeauthor*{Lin2011} suggest that if this risk is included, $\beta_k$ is on the order of operating a server of type $k$ for several hours \cite{Lin2011}.
+
+We call $\xi_k := \beta_k / e_k(0)$ the \textit{normalized switching cost} where $e_k(0)$ is the energy consumption of an idling server of type $k$ in a single time slot. Hence, $\xi_k$ measures the duration a server must be asleep to outweigh the switching cost. The normalized switching cost can therefore be used to review how a chosen switching cost relates to the rest of the model.
+
+\section{Dynamic Duration}\label{section:application:dynamic_duration}
+
+In some scenarios, load types may not only incur different costs (as covered in \autoref{section:application:dispatching:multiple_load_types}) but also have varying duration. We denote by $\delta$ the length of a time slot and by $\delta_{k,i}$ the processing time of a job of type $i$ on a server of type $k$. We assume without loss of generality that $\delta_{k,i}$ are multiples of $\delta$.
+
+This can simply be represented in our model by keeping the number of jobs of type $i$ and their deadline in memory. Then, in each time slot $t$, the load profile is made up of newly arriving jobs as well as all jobs in memory whose deadlines do not lie in the past. Note, however, that this approach may result in a job being rerouted from one server type to another.
+
+If this rerouting should be avoided, we must keep track of which jobs $i$ are processed using which server type $k$ and choose the penalty $p_{t,k,i}$ defined in \autoref{section:application:operating_cost} such that $p_{t,k,i} = \infty$ if a job of type $i$ is rerouted from or to a server of type $k$.
+
+Moreover, when the processing duration of a load type $i$ varies by the server type $k$ jobs are processed on, it is reasonable to include a penalty for processing a job on an inefficient server type. One approach is to set the penalty to the number of time slots a job is kept in the system, i.e. $p_{t,k,i} := \delta_{k,i} / \delta$. It is important to note two drawbacks to this approach. First, it is only an approximation as it estimates future cost functions with the current cost function, however, future cost functions are not known. Second, its overall cost over the entire time horizon $T$ is proportionally larger for jobs executed on inefficient server types, i.e. in optimal solutions the penalty for running a job on an inefficient server type is larger than the model indicates.
+
+\section{Dynamic Routing}\label{section:application:dynamic_routing}
+
+For dynamic routing, also called \textit{geographical load balancing}, we consider a network of $l$ data centers. We are interested in dispatching incoming jobs from $e$ different locations to the data centers and simultaneously right-sizing each data center (i.e. determining the number of active servers) \cite{Lin2012}. Let $d_k$ be the number of server types of data center $k$. We observe that this problem can be translated to a pure data center right-sizing problem by considering $\prod_{k=1}^l d_k$ dimensions and $e$ load types.
+
+Costs can be modeled in the same way that was presented in \autoref{section:application:operating_cost}. Typically, a network delay based on the distance between job source and data center is added to the delay model, i.e. $d'_{t,(k,j),i}(l) := d_{t,(k,j),i}(l) + \delta_{t,k,i}$ where $\delta_{t,k,i}$ is the network delay incurred by routing a request from source $i$ to data center $k$ during time slot $t$ \cite{Lin2012}.
+
+\section{Energy Quotas}\label{section:application:energy_quotas}
+
+We began discussing energy quotas in \autoref{section:application:operating_cost:energy}. We are now ready to present a model that allows for the required flexibility when modeling energy cost. To be as general as possible, we continue to assume a network of $l$ data centers. Data center $k$ still has $d_k$ server types which means we have a total of $\prod_{k=1}^l d_k$ dimensions. We now extend our model from \autoref{eq:multiple_load_types_load_balancing} to \begin{align*}
+    f_t(x) := \min_{z \in \mathcal{Z}_t} \sum_{k=1}^l e_{t,k}(x_{(k,\cdot)},z_{(k,\cdot)}) + \sum_{j=1}^{d_k} h_{t,(k,j)}(x_{(k,j)},z_{(k,j)})
+\end{align*} where $e_{t,k}$ is the total energy cost of data center $k$ during time slot $t$. $h_{t,(k,j)}(x,z)$ reduces to \begin{align*}
+    \sum_{i=1}^e l_{t,(k,j),i} q_{t,(k,j),i}\left(\frac{l_{t,(k,j)}}{x}\right)
+\end{align*} for $x > 0$ where $l_{t,(k,j),i} = \lambda_{t,i} z_i$, $l_{t,(k,j)} = \sum_{i=1}^e l_{t,(k,j),i}$, the other cases remain as described in \autoref{eq:multiple_load_types_load_balancing_unit}.
+
+Given $x \in \mathcal{X}$, in data center $k$, the average utilization of active servers of type $j$ during time slot $t$ is given as $l_{t,(k,j)} / x_{(k,j)}$. Hence, we obtain the total energy consumption of data center $k$ with \begin{align*}
+    \phi_k := \sum_{j=1}^{d_k} x_{(k,j)} \phi_{(k,j)}\left(\frac{l_{t,(k,j)}}{x_{(k,j)}}\right).
+\end{align*} The total energy cost of data center $k$ during time slot $t$ is therefore given as $e_{t,k} := \nu_t(\phi_k)$. $\nu_t$ now receives the entire energy consumption at a location during time slot $t$ as input. We are thus able to model more complex energy costs. For an example, consider by $p_{t,k}^{(i)}$ the energy from source $i \in \mathcal{I}$ available at data center $k$ during time slot $t$. We denote by $c_i$ the cost per unit of energy of energy source $i$ and assume without loss of generality that $c_1 \leq c_2 \leq \cdots$. A reasonable model of energy cost would then be given by \begin{align*}
+    \nu_{t,k}(p) := \sum_{i \in \mathcal{I}} c_i \min\{(p - \sum_{\substack{j \in \mathcal{I}, \\ j < i}} p_{t,k}^{(j)})^+, p_{t,k}^{(i)}\}
+\end{align*} where we assume that the energy sources supply is sufficient, i.e. $p \leq \sum_{i \in \mathcal{I}} p_{t,k}^{(i)}$.
+
+We have seen a cost model that supports a network of heterogeneous data centers with heterogeneous loads and flexible energy costs. This reaches our main goal for this chapter.
