@@ -24,7 +24,7 @@ static regret, $L$-constrained regret, dynamic regret
 Given a time horizon $T \in \mathbb{N}$, a convex decision space $\mathcal{X} \subset \mathbb{R}^d$, a norm $\norm{\cdot}$ on $\mathbb{R}^d$, and a sequence of non-negative convex functions $f_t$ for $t \in [T]$ with $f_t(x) = \infty$ for all $x \not\in \mathcal{X}$, find $x \in \mathcal{X}$ minimizing \begin{align*}
     c_{SCO}(x) = \sum_{t=1}^T f_t(x_t) + \norm{x_t - x_{t-1}}
 \end{align*}
-where $x_0 = 0$.
+where $x_0 = \mathbf{0}$.
 \end{problem}
 
 In many practical applications of Smoothed Convex Optimization, we seek to find integral solutions minimizing hitting and switching costs. This is especially true within the context of resource allocation, for example for right-sizing data centers, where our resources are discrete. This observation motivates the definition of the following variant of SCO.
@@ -141,35 +141,34 @@ Our construction is total and polynomial in the size of $\mathcal{I}_{Min-KP}$. 
 
 We observe that the above reduction can be extended to Knapsack with arbitrary bounds $m_i$ by setting $\mathcal{X}$ of $\mathcal{I}_{Int-SCO}$ to $[m_1]_0 \times \dots \times [m_n]_0$.
 
-\subsection{Simplified Smoothed Convex Optimization}
-\label{section:theory:simplified_smoothed_convex_optimization}
+\subsection{Simplified Smoothed Convex Optimization}\label{section:theory:simplified_smoothed_convex_optimization}
 
 In many applications, for example for right-sizing data centers where we are interested in determining the optimal number of servers to run at a particular time, it suffices to restrict $\mathcal{X}$ to $[m_0]_0 \times \dots \times [m_d]_0$ for some upper bound in each dimension $m \in \mathbb{N}^d$ and the switching cost $\norm{\cdot}$ to a Manhattan norm which is scaled in each dimension independently from time. To that end, we first define a restricted variant of (fractional) SCO which we term \textit{Simplified Smoothed Convex Optimization}.
 
-\begin{problem}[Simplified Smoothed Convex Optimization (SSCO)]
+\begin{problem}[Simplified Smoothed Convex Optimization (SSCO)]\label{problem:simplified_smoothed_convex_optimization}
 Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, and a sequence of non-negative convex functions $f_t$ for $t \in [T]$, find $x \in \mathbb{R}_{\geq 0, \leq m_0} \times \dots \times \mathbb{R}_{\geq 0, \leq m_d}$ minimizing \begin{align*}
     c_{SSCO}(x) = \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+
 \end{align*}
-where $x_0 = 0$.
+where $x_0 = \mathbf{0}$.
 \end{problem}
 
 We observe that $c_{SSCO}$ pays the switching cost whenever $x$ increases. Decreasing $x$ does not increase the paid switching cost. This observation motivates the following lemma that shows that we could equivalently pay the switching cost for decreasing $x$.
 
 \begin{lemma}
 \label{lemma:inverse_switching_cost}
-For all $T \in \mathbb{N}$ and $ x_t \in \mathbb{R}$ where $x_0 = x_{t+1} = 0$, the following equivalence holds:
+For all $T \in \mathbb{N}$ and $ x_t \in \mathbb{R}$ where $x_0 = x_{T+1} = \mathbf{0}$, the following equivalence holds:
 \begin{align*}
     \sum_{t=1}^T (x_t - x_{t-1})^+ = \sum_{t=1}^T (x_t - x_{t+1})^+.
 \end{align*}
 \end{lemma}
 \begin{proof}
-The left side of the equation sums all increases in $x$ from $t \in \{0, \dots, T\}$ starting from $x_0 = 0$. The right side of the equation sums all decreases in $x$ from $t \in \{1, \dots, T+1\}$ ending with $x_{T+1} = 0$. It is easy to see that the two sums are equivalent.
+The left side of the equation sums all increases in $x$ from $t \in \{0, \dots, T\}$ starting from $x_0 = \mathbf{0}$. The right side of the equation sums all decreases in $x$ from $t \in \{1, \dots, T+1\}$ ending with $x_{T+1} = \mathbf{0}$. It is easy to see that the two sums are equivalent.
 \end{proof}
 
 To complete the proof that any instance of SSCO is an instance of SCO, we have to show that our switching cost is indeed a valid norm. Given an instance $\mathcal{I}_{SSCO} = (T, m, \beta, f)$ we define the corresponding instance of SCO as $\mathcal{I}_{SCO} = (T, \mathcal{X}, \norm{\cdot}, f)$ where $\mathcal{X} = \mathbb{R}_{\geq 0, \leq m_0} \times \dots \times \mathbb{R}_{\geq 0, \leq m_d}$ and $\norm{x} = \sum_{k=1}^d \frac{\beta_k}{2} |x_k|$ as the dimension-dependently scaled Manhattan norm of $x$. It is easy to see that $\norm{\cdot}$ is indeed a valid norm. The next lemma proves that $x \in \mathcal{X}$ is a solution to $\mathcal{I}_{SCO}$ if and only if it is a solution to $\mathcal{I}_{SSCO}$.
 
 \begin{lemma}
-For any $T \in \mathbb{N}, \beta \in \mathbb{R}_{>0}^d$, and $x_t \in \mathbb{R}^d$ with $x_0 = x_{T+1} = 0$, the following equivalence holds:
+For any $T \in \mathbb{N}, \beta \in \mathbb{R}_{>0}^d$, and $x_t \in \mathbb{R}^d$ with $x_0 = x_{T+1} = \mathbf{0}$, the following equivalence holds:
 \begin{align*}
     \sum_{t=1}^T \norm{x_t - x_{t-1}} = \sum_{t=1}^T \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+.
 \end{align*}
@@ -225,6 +224,10 @@ To show convexity of $f_1$, it suffices to show that $h(x) = n - \sum_{i=1}^n x_
 \end{align*} holds for any $x, y \in \{0,1\}^n$, proving the lemma.
 \end{proof}
 
-\subsection{Smoothed Balanced-Load Optimization}
+\subsection{Smoothed Balanced Load Optimization}
+
+\begin{problem}[Smoothed Balanced Load Optimization (SBLO)]
+\label{problem:sblo}
+\end{problem}
 
 \subsection{Smoothed Load Optimization}
