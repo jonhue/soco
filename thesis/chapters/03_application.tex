@@ -51,7 +51,7 @@ In the heterogeneous setting, it is easy to see that there is no single optimal 
         \infty                                  & x = 0 \land l_{t,k} > 0 \\
         0                                       & x = 0 \land l_{t,k} = 0
     \end{cases}
-\end{align} where $l_{t,k} = \lambda_t z$, $x$ is the number of active servers of type $k$, and $z \in [0,1]$ is the fraction of the job volume $\lambda_t$ that is assigned to server type $k$ \cite{Albers2021_2}. Given the set of all possible job assignments to a collection of $d$ different server types $\mathcal{Z} := \{z \in [0,1]^d \mid \sum_{k=1}^d z_k = 1\}$, the overall operating cost can be defined as \begin{align}\label{eq:heterogeneous_load_balancing}
+\end{align} where $l_{t,k} = \lambda_t z$, $x$ is the number of active servers of type $k$, and $z \in [0,1]$ is the fraction of the job volume $\lambda_t$ that is assigned to server type $k$ \cite{Albers2021_2}. Given the set of all possible job assignments to a collection of $d$ different server types $\mathcal{Z} := \{z \in [0,1]^d \mid \sum_{k=1}^d z_k = 1\}$, the overall operating cost can be defined as the convex optimization \begin{align}\label{eq:heterogeneous_load_balancing}
     f_t(x) := \min_{z \in \mathcal{Z}} \sum_{k=1}^d h_{t,k}(x_k,z_k).
 \end{align} It is easy to see that \autoref{eq:homogeneous_load_balancing} is equivalent to \autoref{eq:heterogeneous_load_balancing} for $d = 1$.
 
@@ -67,9 +67,9 @@ We continue to use optimal load balancing similarly to \autoref{eq:heterogeneous
         \infty                                                                                                   & x = 0 \land l_{t,k} > 0 \\
         0                                                                                                        & x = 0 \land l_{t,k} = 0
     \end{cases}
-\end{align} where $l_{t,k,i} = \lambda_{t,i} z_i$, $l_{t,k} = \sum_{i=1}^e l_{t,k,i}$, $x$ is the number of active servers of type $k$, and $z \in [0,1]^e$ are the fractions of the job volumes $\lambda_{t,i}$ that are assigned to server type $k$. Here, $q_{t,k,i}(l)$ is the cost incurred of processing a job of type $i$ on a server of type $k$ when $l$ jobs are processed on this server. $g_{t,k}(l)$ remains the operating cost of a server of type $k$ under total load $l$. We still set $g_{t,k}(l) = \infty$ if $l > l_k^{max}$.
+\end{align} where $l_{t,k,i} = \lambda_{t,i} z_i$, $l_{t,k} = \sum_{i=1}^e l_{t,k,i}$, $x$ is the number of active servers of type $k$, and $z \in [0,1]^e$ are the fractions of the job volumes $\lambda_{t,i}$ that are assigned to server type $k$. Here, $q_{t,k,i}(l)$ is the non-negative convex cost incurred of processing a job of type $i$ on a server of type $k$ when $l$ jobs are processed on this server. $g_{t,k}(l)$ remains the non-negative and convex operating cost of a server of type $k$ under total load $l$. We still set $g_{t,k}(l) = \infty$ if $l > l_k^{max}$.
 
-We can now define the overall operating cost analogously to \autoref{eq:heterogeneous_load_balancing} as \begin{align}\label{eq:multiple_load_types_load_balancing}
+We can now define the overall operating cost analogously to \autoref{eq:heterogeneous_load_balancing} as the convex optimization \begin{align}\label{eq:multiple_load_types_load_balancing}
     f_t(x) := \min_{z \in \mathcal{Z}_t} \sum_{k=1}^d h_{t,k}(x_k,z_k).
 \end{align}
 
@@ -161,10 +161,18 @@ We began discussing energy quotas in \autoref{section:application:operating_cost
     \sum_{i=1}^e l_{t,(k,j),i} q_{t,(k,j),i}\left(\frac{l_{t,(k,j)}}{x}\right)
 \end{align*} for $x > 0$ where $l_{t,(k,j),i} = \lambda_{t,i} z_i$, $l_{t,(k,j)} = \sum_{i=1}^e l_{t,(k,j),i}$, the other cases remain as described in \autoref{eq:multiple_load_types_load_balancing_unit}.
 
-Given $x \in \mathcal{X}$, in data center $k$, the average utilization of active servers of type $j$ during time slot $t$ is given as $l_{t,(k,j)} / x_{(k,j)}$. Hence, we obtain the total energy consumption of data center $k$ with \begin{align*}
+Given $x \in \mathcal{X}$ and $z \in \mathcal{Z}$, in data center $k$, the average utilization of active servers of type $j$ during time slot $t$ is given as $l_{t,(k,j)} / x_{(k,j)}$. Hence, using optimal load balancing, we obtain the total energy consumption of data center $k$ with \begin{align*}
     \phi_k := \sum_{j=1}^{d_k} x_{(k,j)} \phi_{(k,j)}\left(\frac{l_{t,(k,j)}}{x_{(k,j)}}\right).
-\end{align*} The total energy cost of data center $k$ during time slot $t$ is therefore given as $e_{t,k} := \nu_t(\phi_k)$. $\nu_t$ now receives the entire energy consumption at a location during time slot $t$ as input. We are thus able to model more complex energy costs. For an example, consider by $p_{t,k}^{(i)}$ the energy from source $i \in \mathcal{I}$ available at data center $k$ during time slot $t$. We denote by $c_{t,i}$ the average cost per unit of energy of energy source $i$ during time slot $t$ and assume without loss of generality that $c_{t,1} \leq c_{t,2} \leq \cdots$ holds for all $t \in T$. A reasonable model of energy cost would then be given by \begin{align*}
+\end{align*} The total energy cost of data center $k$ during time slot $t$ is therefore given as $e_{t,k} := \nu_t(\phi_k)$. $\nu_t$ now receives the entire energy consumption at a location during time slot $t$ as input. We are thus able to model more complex energy costs. For an example, consider by $p_{t,k}^{(i)}$ the energy from source $i \in \mathcal{I}$ available at data center $k$ during time slot $t$. We denote by $c_{t,i}$ the average cost per unit of energy of energy source $i$ during time slot $t$ and assume without loss of generality that $c_{t,1} \leq c_{t,2} \leq \cdots$ holds for all $t \in T$. A reasonable model of energy cost would then be to use the cheapest sources of energy completely until the energy demand is satisfied. This model is given by \begin{align*}
     \nu_{t,k}(p) := \sum_{i \in \mathcal{I}} c_{t,i} \min\{(p - \sum_{\substack{j \in \mathcal{I}, \\ j < i}} p_{t,k}^{(j)})^+, p_{t,k}^{(i)}\}
 \end{align*} where we assume that the energy sources supply is sufficient, i.e. $p \leq \sum_{i \in \mathcal{I}} p_{t,k}^{(i)}$.
 
-We have seen a cost model that supports a network of heterogeneous data centers with heterogeneous loads and flexible energy costs. This reaches our main goal for this chapter.
+Let's now assume that energy sources $j \in \mathcal{J} \subseteq \mathcal{I}$ are produced at data center $k$ and by selling unused supply we make an average profit of $u_{t,j}$ during time slot $t$. We set $u_{t,i} = 0$ for all $i \in \mathcal{I} \setminus \mathcal{J}$. Again, we assume without loss of generality that $c_{t,1} + u_{t,1} \leq c_{t,2} + u_{t,2} \leq \cdots$ holds for all $t \in T$. The energy cost of this extended model is then given by \begin{align*}
+    \nu_{t,k}(p) := \sum_{i \in \mathcal{I}} (c_{t,i} - u_{t,i}) \min\{(p - \sum_{\substack{j \in \mathcal{I}, \\ j < i}} p_{t,k}^{(j)})^+, p_{t,k}^{(i)}\}
+\end{align*} where we continue to assume that energy supply is sufficient.
+
+Suppose now that in addition for energy sources $s \in \mathcal{S}$ we impose a quota $q_{t,s} \in [0,1]$ requiring that energy from energy source $s$ must make up at least a fraction of $q_{t,s}$ of our total energy supply during time slot $t$. Naturally, the sum of all quotas must not exceed $1$, i.e. $\sum_{s \in \mathcal{S}} q_{t,s} \leq 1$ for all $t \in T$. We also assume that the energy supply is sufficient to fulfill the quotation, i.e. $p_{t,k}^{(s)} \geq q_{t,s} p_t$ where $p_{t,k}$ is the energy consumption of data center $k$ during time slot $t$. In our cost model we now first fulfill the imposed quotas and then fallback to our previous model: \begin{align*}
+    \nu_{t,k}(p) := \sum_{s \in \mathcal{S}} (c_{t,s} - u_{t,s}) q_{t,s} p + \sum_{i \in \mathcal{I}} (c_{t,i} - u_{t,i}) \min\{(p - \sum_{s \in \mathcal{S}} q_{t,s} p - \sum_{\substack{j \in \mathcal{I}, \\ j < i}} p_{t,k}^{(j)})^+, p_{t,k}^{(i)}\}.
+\end{align*} In most cases, however, it is beneficial to model tendencies towards some sources of energy using costs rather than strict quotas as that largely decouples the energy cost model from energy availability.
+
+We have seen a framework for cost models that specifically models data centers but is general enough to support a network of heterogeneous data centers with heterogeneous loads and flexible energy costs. This reaches our main goal for this chapter.
