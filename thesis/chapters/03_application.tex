@@ -25,7 +25,7 @@ We begin by revisiting the characteristics by which the design of data centers v
 
 \section{Dispatching}\label{section:application:dispatching}
 
-The modeling of load is the core of our data center model. We say that a \textit{load profile} of our system during time slot $t$ is a vector $\lambda_t \in \mathbb{N}_0^e$ where $e$ is the number of \textit{load types}. In the subsequent sections we give more concrete examples of varying load types, but generally loads are of different types when their cost model is different. For now, we assume that the processing time of all jobs on any server type takes exactly one time slot. In \autoref{section:application:dynamic_duration} we discuss in detail how this approach can be extended to jobs with a dynamic duration (per server type).
+The modeling of load is the core of our data center model. We say that a \textit{load profile} of our system during time slot $t$ is a vector $\lambda_t \in \mathbb{N}_0^e$ where $e$ is the number of \textit{load types}. In the subsequent sections we give more concrete examples of varying load types, but generally loads are of different types when their cost model is different. For now, we assume that the processing time of all jobs on any server type takes exactly one time slot. In \autoref{section:application:dynamic_duration}, we discuss in detail how this approach can be extended to jobs with a dynamic duration (per server type).
 
 We denote by $m_k \in \mathbb{N}$ the maximum number of available servers of type $k$ and by $d$ the number of server types. Our decision space is therefore given as $\mathcal{X} := \mathbb{R}_{\geq 0, \leq m_0} \times \dots \times \mathbb{R}_{\geq 0, \leq m_d}$. Further, we denote by $l_k^{max}$ the maximum number of jobs a server of type $k$ can process in a single time slot.
 
@@ -41,12 +41,12 @@ To begin with, we consider a data center with homogeneous loads, so by \autoref{
 We first consider the homogeneous setting. In the homogeneous case, we write $g_t := g_{t,1}$. We discuss concrete functions in \autoref{section:application:operating_cost} but for this section we assume that $g_t$ can be any non-negative convex function. Disregarding switching costs, we obtain the following optimization for the homogeneous setting: \begin{align*}
     \min_{x_t \in \mathcal{X}} \quad &\sum_{t=1}^T \sum_{i=1}^{x_t} g_t(l_{t,i}) \\
     \text{subject to}        \quad &\sum_{i=1}^{x_t} l_{t,i} = \lambda_t
-\end{align*} where $l_{t,i} \in \mathbb{R}_{\geq 0}$ denotes the number of jobs processed by server $i$ during time slot $t$. \citeauthor*{Lin2011} observed that for fixed $x_t$ the remaining dispatching problem is convex \cite{Lin2011}. The optimal dispatching rule $l_{t,i}^*$ is $\lambda_t / x_t$ for all $i \in [x_t]$, implying that given $x_t$ it is optimal to balance load evenly across all servers \cite{Albers2021_2}. \citeauthor*{Albers2021_2} prove this fact using Jensen's inequality. We therefore define our overall operating cost as \begin{align}\label{eq:homogeneous_load_balancing}
+\end{align*} where $l_{t,i} \in \mathbb{R}_{\geq 0}$ denotes the number of jobs processed by server $i$ during time slot $t$. \citeauthor*{Lin2011} observed that for fixed $x_t$ the remaining dispatching problem is convex \cite{Lin2011}. The optimal dispatching rule $l_{t,i}^*$ is $\lambda_t / x_t$ for all $i \in [x_t]$, implying that given $x_t$ it is optimal to balance load evenly across all servers. \citeauthor*{Albers2021_2} prove this fact using Jensen's inequality \cite{Albers2021_2}. We therefore define our overall operating cost as \begin{align}\label{eq:homogeneous_load_balancing}
     f_t(x) := x g_t\left(\frac{\lambda_t}{x}\right).
 \end{align} Crucially, this is an approximation as we did not impose the restriction that job arrival rates must be integral which is required in practice.
 
 In the heterogeneous setting, it is easy to see that there is no single optimal dispatching rule. However, our analysis implies that even in the heterogeneous setting, within one server type the optimal dispatching strategy is to load balance \cite{Albers2021_2}. This observation leads us precisely to our previous definition of Smoothed Balanced Load Optimization (\autoref{problem:sblo}). To recapitulate, the operating cost for servers of type $k$ during time slot $t$ is given as \begin{align}\label{eq:heterogeneous_load_balancing_unit}
-    h_{t,k}(x,z) := \begin{cases} 
+    h_{t,k}(x,z) := \begin{cases}
         x g_{t,k}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
         \infty                                  & x = 0 \land l_{t,k} > 0 \\
         0                                       & x = 0 \land l_{t,k} = 0
@@ -62,7 +62,7 @@ The problem becomes harder when we consider heterogeneous loads. However, as we 
 \end{align*} where $\lambda_t := \sum_{i=1}^e \lambda_{t,i}$. Here, $z_{t,k,i}$ is the fraction of jobs of type $i$ assigned to servers of type $k$ during time slot $t$.
 
 We continue to use optimal load balancing similarly to \autoref{eq:heterogeneous_load_balancing_unit} to distribute load evenly across all servers of the same type. However, we introduce an additional cost that is paid per job of type $i$ that is processed on a server of type $k$. Our new operating cost for servers of type $k$ during time slot $t$ becomes \begin{align}\label{eq:multiple_load_types_load_balancing_unit}
-    h_{t,k}(x,z) := \begin{cases} 
+    h_{t,k}(x,z) := \begin{cases}
         x g_{t,k}\left(\frac{l_{t,k}}{x}\right) + \sum_{i=1}^e l_{t,k,i} q_{t,k,i}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
         \infty                                                                                                   & x = 0 \land l_{t,k} > 0 \\
         0                                                                                                        & x = 0 \land l_{t,k} = 0

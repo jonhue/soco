@@ -3,22 +3,71 @@
 
 \chapter{Theory}\label{chapter:theory}
 
-\section{Performance Metrics}
-\label{section:theory:performance_metrics}
+In this chapter, we introduce the theoretical foundations for our subsequent work. We begin by formally introducing the metrics we use to assess the performance of the discussed algorithms. In the following, we introduce the problem of smoothed convex optimization and related problems that the examined algorithms address.
+
+\section{Performance Metrics}\label{section:theory:performance_metrics}
+
+We say that an algorithm is \textit{optimal} with respect to some performance metric if given its information it achieves an optimal score in the given metric. Crucially, optimality depends on the information given to the algorithm. We thus say that an offline algorithm of a minimization problem is optimal if its result always incurs the smallest possible cost while satisfying the given constraints. In contrast, an optimal online algorithm must not necessarily return the optimal offline solution. In fact, in many cases, online algorithms must necessarily perform worse than optimal offline algorithms due to the lack of provided information (in our case, the convex cost functions arrive over time). Naturally, these performance metrics also inform parts of our experimental analysis performed in \autoref{chapter:experiments}.
 
 \subsection{Approximations}
 
+We begin by considering the offline case. In most cases, we seek to find optimal solutions to the offline problem. However, for some problems where the computational complexity of optimal solutions is high for large instances, it is beneficial to consider efficient algorithms that achieve close to optimal performance motivating the definition of approximation algorithms. Note that we limit our definitions of performance metrics to minimization problems.
+
+\begin{definition}
+An \textit{$\alpha$-approximation algorithm} for a minimization problem $c$ is a polynomial time algorithm $ALG$ that for all instances of the problem produces a solution whose value is within a factor of $\alpha$ of the value of an optimal solution $OPT$, i.e. $c(ALG) \leq \alpha \cdot c(OPT)$. \cite{Williamson2011}.
+\end{definition}
+
+In other words, an $\alpha$-approximation guarantees that its results are at most a factor of $\alpha$ worse than the optimal solution. The integral smoothed convex optimization problem is such an example where important progress on approximation algorithms has recently been made by \citeauthor*{Kappelmann2017} and \citeauthor*{Albers2021_2} \cite{Kappelmann2017, Albers2021_2}.
+
 \subsection{Competitiveness}
 
-competitive difference, competitive ratio, $\alpha$-unfair competitive ratio
+For online algorithms it is natural to consider an adaptation of the idea of approximation algorithms. Here, we compare the result of an online algorithm with the optimal offline solution.
+
+\begin{definition}
+A $\rho(T)$-competitive online algorithm for a minimization problem $c$ is an algorithm $ALG$ that for all instances of the problem produces a solution whose value is within a factor of $\rho(T)$ of the value of an optimal offline solution $OPT$, i.e. $c(ALG) \leq \rho(T) \cdot c(OPT)$.
+\end{definition}
+
+We observe that this definition is analogous to our earlier definition of approximation algorithms in the offline case. However, in contrast to approximation algorithms where the limiting factor was the complexity of the algorithm, the competitiveness of online algorithms is fundamentally restricted by the information available to an online algorithm compared to its offline variants. In the case of smoothed convex optimization, considerable work has focused on finding online algorithms with a constant competitive ratio in the number of dimensions $d$.
 
 \subsection{Regret}
 
-static regret, $L$-constrained regret, dynamic regret
+Regret is another approach to measuring the performance of online algorithms.
+
+\begin{definition}
+The (static) regret of an online algorithm $ALG$ for a minimization problem $c$ is $\rho(T)$ if for all instances of the problem the difference between the result of the algorithm and the static optimal offline solution $OPT_s$ does not exceed $\rho(T)$, i.e. $c(ALG) - c(OPT_s) \leq \rho(T)$.
+\end{definition}
+
+Commonly, the literature considers this definition of regret where the online algorithm is compared against a static offline solution, i.e. a solution where the agent is not allowed to move in the decision space. We say that an algorithm achieves \textit{no-regret} if $\rho$ is sublinear in the time horizon $T$.
+
+Ideally, online algorithms perform well with respect to the competitive ratio and regret. In other words, our online algorithms should both perform well compared against an agent that is moving in the decision space with perfect knowledge of the future (competitive ratio) and perform well against an agent that picks one optimal location in the decision space. In the example of dynamically right-sizing a data center, our algorithms are obviously required to outperform a static number of servers. In contrast, to minimize energy waste and revenue loss, the strategies proposed by our algorithms must be as close as possible to the optimal dynamic strategies.
+
+However, \citeauthor*{Andrew2015} proved that no online algorithm for smoothed convex optimization can simultaneously achieve a constant competitive ratio and no-regret even when $d = 1$ and cost functions are linear \cite{Andrew2015}. For no-regret algorithms, the competitive ratio can be arbitrarily poor by oscillating the dynamic optimal solution between two points in the decision space. The no-regret algorithm will approach a static optimum which itself can be arbitrarily worse than the dynamic optimum. In contrast, a constant-competitive algorithm generally sticks to a point in the decision space until it knows that the cost of movement are outweighed by the reduced cost of some other point that it then moves to. Hence, for constant-competitive algorithms, the regret can be arbitrarily large as the algorithm oscillates between the two points in the decision space, in each step having an arbitrary distance to the static optimum. [TODO: add figure]
+
+There thus exist many variants of regret and the competitive ratio that are used to bridge between the two metrics. One approach is to consider an additive variant of the competitive ratio which is called \textit{competitive difference}.
+
+\begin{definition}
+The competitive difference of an online algorithm $ALG$ for a minimization problem $c$ is $\rho(T)$ if for all instances of the problem the difference between the result of the algorithm and the dynamic optimal offline solution $OPT$ does not exceed $\rho(T)$, i.e. $c(ALG) - c(OPT) \leq \rho(T)$ \cite{Chen2015}.
+\end{definition}
+
+This definition is also known as \textit{dynamic regret} \cite{Chen2018}. We next define a variant of regret that bridges between static and dynamic regret.
+
+\begin{definition}
+The $L$-constrained dynamic regret of an online algorithm $ALG$ for a minimization problem $c$ is $\rho(T)$ if for all instances of the problem the difference between the result of the algorithm and the $L$-constrained optimal offline solution $OPT_L$ does not exceed $\rho(T)$, i.e. $c(ALG) - c(OPT_L) \leq \rho(T)$ \cite{Chen2018}.
+
+The $L$-constrained optimal offline solution minimizes $c$ subject to the additional constraint \begin{align*}
+    \sum_{t=1}^T \norm{x_t - x_{t-1}} \leq L.
+\end{align*}
+\end{definition}
+
+We now observe that given the optimal offline solution $OPT$ with schedule $x_t^*$, the $l$-constrained dynamic regret is equivalent to dynamic regret for $l = \sum_{t=1}^T \norm{x_t^* - x_{t-1}^*}$. The literature also considers other metrics such as the \textit{$\alpha$-unfair competitive ratio} which are very similar to $L$-constrained dynamic regret \cite{Andrew2015}.
 
 \section{Problems}
 
+Now that we have an overview over the commonly used performance metrics, we introduce the problems that we consider in this work. We initially state the problems as offline problems but as all problems follow the same structure their online variant simply provides one of the convex cost functions at every time step. All other problem variables --- except for the time horizon $T$ --- such as the switching cost that penalizes movement in the decision space are known from the beginning.
+
 \subsection{Smoothed Convex Optimization}
+
+We begin by formally introducing the most general problem we consider and which we already motivated in \autoref{chapter:introduction}.
 
 \begin{problem}[Smoothed Convex Optimization (SCO)]
 Given a time horizon $T \in \mathbb{N}$, a convex decision space $\mathcal{X} \subset \mathbb{R}^d$, a norm $\norm{\cdot}$ on $\mathbb{R}^d$, and a sequence of non-negative convex functions $f_t$ for $t \in [T]$ with $f_t(x) = \infty$ for all $x \not\in \mathcal{X}$, find $x \in \mathcal{X}$ minimizing \begin{align*}
@@ -32,6 +81,12 @@ In many practical applications of Smoothed Convex Optimization, we seek to find 
 \begin{problem}[Integral Smoothed Convex Optimization (Int-SCO)]
 We define Integral Smoothed Convex Optimization analogously to SCO with the added restriction that the points $x$ in $d$-dimensional space must be discrete, that is $\mathcal{X} \subset \mathbb{Z}^d$.
 \end{problem}
+
+In \autoref{chapter:introduction}, we have seen that Int-SCO is subsumed by Metrical Task Systems. However, it was shown that in general the competitiveness of deterministic and randomized algorithms for Metrical Task Systems must be proportional to the size of the decision space \cite{Blum1992, Borodin1992}. Further, \citeauthor*{Chen2018} have shown that the competitiveness of any online algorithm for SCO is lower bounded by $\Omega(\sqrt{d})$ \cite{Chen2018}. Therefore, many of the online algorithms for SCO that we examine in \autoref{chapter:online_algorithms} further restrict the classes of hitting costs and switching costs.
+
+In the \textit{ski rental problem} skis can be bought for a cost of $b$ units or rented for a cost of one unit per day. Each day of the ski season the agent has to decide whether to rent the skis or end the sequence of decisions by buying the skis without knowing how long the ski season will last \cite{Shah2021}. Consider the uni-dimensional decision space $\{0,b\}$, the $\ell^2$-norm as switching cost, and the sequence of hitting costs $f_t(0) = 1$ and $f_t(b) = 0$. The solution to this instance of SCO is a solution to the corresponding ski rental problem, yielding that the ski rental problem is a special case of SCO. \citeauthor*{Karlin1990} showed that the best competitive ratio attainable by a randomized algorithm is $e/(e-1) \approx 1.58$, giving a lower bound for the competitive ratio of online algorithms for SCO \cite{Karlin1990}.
+
+\citeauthor*{Bansal2015} have shown that in the uni-dimensional setting the optimal competitive ratio that can be attained by a deterministic memoryless algorithm for SCO is 3 \cite{Bansal2015}.
 
 \subsubsection{Complexity of the Offline Problem}
 
@@ -69,7 +124,7 @@ Next we prove our main reduction from Min-KP to Int-SCO. To motivate this reduct
 \begin{lemma}
 \label{lemma:integer_minimization}
 Let $\mathcal{I}_{Min-KP} = (n, c, u, U)$ be an instance of Min-KP. $x$ is the solution to $\mathcal{I}_{Min-KP}$ if and only if $x$ minimizes \begin{align*}
-    c_{SCO}'(x) = \sum_{i=1}^n c_i x_i + M(U - \sum_{i=1}^n u_i x_i)^+
+    c_{SCO}'(x) = \sum_{i=1}^n c_i x_i + M\left(U - \sum_{i=1}^n u_i x_i\right)^+
 \end{align*} subject to $x \in \{0,1\}^n$ for some $M > \frac{n c_{max}}{u_{min}}$.
 \end{lemma}
 \begin{proof}
@@ -84,38 +139,38 @@ For our construction we need that $c_{SCO}'$ is convex.
 
 \begin{lemma}
 \label{lemma:integer_minimization_convexity}
-$c_{SCO}'$ is convex.
+$c_{SCO}'$ is convex on $\{0,1\}^n$.
 \end{lemma}
 \begin{proof}
-It is easy to see that $c$ is continuous. Therefore, to show the convexity of $c$ it suffices to prove midpoint-convexity, i.e. $c_{SCO}'(\frac{x+y}{2}) \leq \frac{c_{SCO}'(x)+c_{SCO}'(y)}{2}$ for all $x, y \in \mathbb{R}^n$.
+It is easy to see that $c_{SCO}'$ is continuous. Therefore, to show the convexity of $c_{SCO}'$ it suffices to prove midpoint-convexity, i.e. $c_{SCO}'\left(\frac{x+y}{2}\right) \leq \frac{c_{SCO}'(x)+c_{SCO}'(y)}{2}$ for all $x, y \in \mathbb{R}^n$.
 
 To simplify the notation let $C(x) = \sum_{i=1}^n c_i x_i$ and let $U(x) = \sum_{i=1}^n u_i x_i$. To further simplify the notation we define $\frac{x+y}{2}$ to be applied component-wise to elements $i \in [n]$ of $x$ and $y$. We then obtain \small{
 \begin{align*}
-         &c_{SCO}'(\frac{x+y}{2}) \leq \frac{c_{SCO}'(x)+c_{SCO}'(y)}{2} \\
-    \iff &C(\frac{x+y}{2}) + M(U - U(\frac{x+y}{2}))^+ \leq \frac{C(x) + M(U - U(x))^+ + C(y) + M(U - U(y))^+}{2} \\
-    \iff &C(x) + C(y) + 2M(U - U(\frac{x+y}{2}))^+ \leq C(x) + M(U - U(x))^+ + C(y) + M(U - U(y))^+ \\
-    \iff &2(U - U(\frac{x+y}{2}))^+ \leq (U - U(x))^+ + (U - U(y))^+.
+         &c_{SCO}'\left(\frac{x+y}{2}\right) \leq \frac{c_{SCO}'(x)+c_{SCO}'(y)}{2} \\
+    \iff &C\left(\frac{x+y}{2}\right) + M\left(U - U\left(\frac{x+y}{2}\right)\right)^+ \leq \frac{C(x) + M(U - U(x))^+ + C(y) + M(U - U(y))^+}{2} \\
+    \iff &C(x) + C(y) + 2M\left(U - U\left(\frac{x+y}{2}\right)\right)^+ \leq C(x) + M(U - U(x))^+ + C(y) + M(U - U(y))^+ \\
+    \iff &2\left(U - U\left(\frac{x+y}{2}\right)\right)^+ \leq (U - U(x))^+ + (U - U(y))^+.
 \end{align*}
 }\normalsize
 
 We immediately get the convexity of $U(\cdot)$ by the following equivalence. \begin{align*}
-    U(\frac{x+y}{2}) &= \sum_{i=1}^n u_i \frac{x_i + y_i}{2} \\
-                     &= \frac{\sum_{i=1}^n u_i x_i + \sum_{i=1}^n u_i y_i}{2} \\
-                     &= \frac{U(x) + U(y)}{2}.
+    U\left(\frac{x+y}{2}\right) &= \sum_{i=1}^n u_i \frac{x_i + y_i}{2} \\
+                                &= \frac{\sum_{i=1}^n u_i x_i + \sum_{i=1}^n u_i y_i}{2} \\
+                                &= \frac{U(x) + U(y)}{2}.
 \end{align*}
 
 Now, we consider three cases separately.
 
 \begin{enumerate}
-    \item If $U(x) > U$ and $U(y) > U$, then $U(\frac{x+y}{2}) > U$. Hence \begin{align*}
-        2(U - U(\frac{x+y}{2}))^+ = 0 = (U - U(x))^+ + (U - U(y))^+.
+    \item If $U(x) > U$ and $U(y) > U$, then $U\left(\frac{x+y}{2}\right) > U$. Hence \begin{align*}
+        2\left(U - U\left(\frac{x+y}{2}\right)\right)^+ = 0 = (U - U(x))^+ + (U - U(y))^+.
     \end{align*}
-    \item If $U(x) \leq U$ and $U(y) \leq U$, then $U(\frac{x+y}{2}) \leq U$. Hence \begin{align*}
-        2(U - U(\frac{x+y}{2}))^+ &= 2U - 2U(\frac{x+y}{2}) \\
-                                  &= 2U - U(x) - U(y) \\
-                                  &= (U - U(x))^+ + (U - U(y))^+.
+    \item If $U(x) \leq U$ and $U(y) \leq U$, then $U\left(\frac{x+y}{2}\right) \leq U$. Hence \begin{align*}
+        2\left(U - U\left(\frac{x+y}{2}\right)\right)^+ &= 2U - 2U\left(\frac{x+y}{2}\right) \\
+                                                        &= 2U - U(x) - U(y) \\
+                                                        &= (U - U(x))^+ + (U - U(y))^+.
     \end{align*}
-    \item For the only remaining case we assume w.l.o.g. that $U(x) \leq U$ and $U(y) > U$. If $U - U(x) < U(y) - U$, then $U(\frac{x+y}{2}) > U$ and we follow the first case. If, on the other hand, $U - U(x) \geq U(y) - U$, then $U(\frac{x+y}{2}) \leq U$ and we follow the second case.\qedhere
+    \item For the only remaining case we assume w.l.o.g. that $U(x) \leq U$ and $U(y) > U$. If $U - U(x) < U(y) - U$, then $U\left(\frac{x+y}{2}\right) > U$ and we follow the first case. If, on the other hand, $U - U(x) \geq U(y) - U$, then $U\left(\frac{x+y}{2}\right) \leq U$ and we follow the second case.\qedhere
 \end{enumerate}
 \end{proof}
 
@@ -140,6 +195,8 @@ Our construction is total and polynomial in the size of $\mathcal{I}_{Min-KP}$. 
 \end{proof}
 
 We observe that the above reduction can be extended to Knapsack with arbitrary bounds $m_i$ by setting $\mathcal{X}$ of $\mathcal{I}_{Int-SCO}$ to $[m_1]_0 \times \dots \times [m_n]_0$.
+
+\subsection{Convex Body Chasing}
 
 \subsection{Simplified Smoothed Convex Optimization}\label{section:theory:simplified_smoothed_convex_optimization}
 
@@ -186,6 +243,8 @@ With the same motivation we used for the restriction of SCO to Int-SCO, we now r
 We define Integral Simplified Smoothed Convex Optimization analogously to SSCO with the added restriction that the points $x$ in $d$-dimensional space must be discrete, that is $x \in [m_0]_0 \times \dots \times [m_d]_0$.
 \end{problem}
 
+\citeauthor*{Albers2018} have shown for Int-SSCO in the uni-dimensional setting that the optimal competitive ratio is 3 for deterministic algorithms and 2 for randomized algorithms \cite{Albers2018}. As Int-SSCO is subsumed by Int-SCO, these bounds also hold for Int-SCO.
+
 \subsubsection{Complexity of the Offline Problem}
 
 We next extend our proof of NP-hardness of Int-SCO for varying $d$ to Int-SSCO. We cannot reuse our original proof as the switching cost of SSCO is required to be positive.
@@ -215,19 +274,50 @@ Our construction is still total and polynomial in the size of $\mathcal{I}_{Min-
 
 \begin{lemma}
 \label{lemma:ssco_reduction_convexity}
-$f_1$ from \autoref{theorem:int_ssco_np_hardness} is convex.
+$f_1$ from \autoref{theorem:int_ssco_np_hardness} is convex on $\{0,1\}^n$.
 \end{lemma}
 \begin{proof}
 To show convexity of $f_1$, it suffices to show that $h(x) = n - \sum_{i=1}^n x_i$ is convex as the convexity of $c_{SCO}'$ was already established in \autoref{lemma:integer_minimization_convexity} and $f_1(x) = c_{SCO}'(x) + h(x)$. Further, it is enough to prove $h$ midpoint-convex as $h$ is continuous. We observe that \begin{align*}
-         &&h(\frac{x + y}{2}) &\leq \frac{h(x) + h(y)}{2} \\
+         &&h\left(\frac{x + y}{2}\right) &\leq \frac{h(x) + h(y)}{2} \\
     \iff &&n - \sum_{i=1}^n \frac{x_i + y_i}{2} &\leq n - \frac{\sum_{i=1}^n x_i + \sum_{i=1}^n y_i}{2}
 \end{align*} holds for any $x, y \in \{0,1\}^n$, proving the lemma.
 \end{proof}
 
 \subsection{Smoothed Balanced Load Optimization}
 
-\begin{problem}[Smoothed Balanced Load Optimization (SBLO)]
-\label{problem:sblo}
+We now turn to a variant of Int-SSCO introduced by \citeauthor*{Albers2021_2} that further restricts the structure of the convex cost functions \cite{Albers2021_2}. This restriction is motivated by the usual cost model of data centers we examine in detail in \autoref{chapter:application} where the incoming load (or set of jobs) is distributed equally among all active servers.
+
+Given a sequence of convex increasing non-negative costs $g_{t,k}(l)$ of each "instance" in dimension $k$ given its load $l$ during time slot $t$, the overall cost for dimension $k$ during time slot $t$ is given as \begin{align*}
+    h_{t,k}(x,z) := \begin{cases}
+        x g_{t,k}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
+        \infty                                  & x = 0 \land l_{t,k} > 0 \\
+        0                                       & x = 0 \land l_{t,k} = 0
+    \end{cases}
+\end{align*} where $l_{t,k} = \lambda_t z$ for some sequence of loads $\lambda_t \in \mathbb{N}_0$. Here, $x$ is the position in the decision space in dimension $k$, and $z \in [0,1]$ is the fraction of the load $\lambda_t$ that is "assigned" to dimension $k$ \cite{Albers2021_2}. Given the set of all possible assignments to $d$ dimensions $\mathcal{Z} := \{z \in [0,1]^d \mid \sum_{k=1}^d z_k = 1\}$, the overall hitting cost is defined as the convex optimization \begin{align}
+\label{eq:sblo_hitting_cost}
+    f_t(x) := \min_{z \in \mathcal{Z}} \sum_{k=1}^d h_{t,k}(x_k,z_k).
+\end{align} Intuitively, the loads $\lambda_t$ are balanced across all dimensions so as to minimize cost.
+
+\begin{problem}[Smoothed Balanced Load Optimization (SBLO)]\label{problem:sblo}
+Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of loads $\lambda_t \in \mathbb{N}_0$, and a sequence of convex increasing non-negative functions $g_{t,k}$ for $t \in [T], k \in [d]$, find $x \in [m_0]_0 \times \dots \times [m_d]_0$ minimizing \begin{align*}
+    c_{SBLO}(x) = \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+
+\end{align*}
+where $x_0 = \mathbf{0}$ and $f_t$ is given by \autoref{eq:sblo_hitting_cost}.
 \end{problem}
 
+It is easy to see that any instance of SBLO is in fact an instance of Int-SSCO.
+
 \subsection{Smoothed Load Optimization}
+
+Lastly, we consider an even simpler problem proposed by \citeauthor*{Albers2021} where we assume that each instance is only able to handle a single job during each time slot \cite{Albers2021}. Instead of using convex functions to model cost, we assume that cost increases linearly and independently from time with the number of active servers. In addition we impose the constraint that the number of servers must still be enough to handle the incoming load. Without this restriction the optimal strategy would always be to not run any servers at all.
+
+\begin{problem}[Smoothed Load Optimization (SLO)]\label{problem:sblo}
+Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of loads $\lambda_t \in \mathbb{N}_0$, and the non-negative operating costs $l_k \in \mathbb{R}_{\geq 0}$ for $k \in [d]$, find $x \in [m_0]_0 \times \dots \times [m_d]_0$ minimizing \begin{align*}
+    c_{SLO}(x) = \sum_{t=1}^T \sum_{k=1}^d l_k x_{t,k} + \beta_k (x_{t,k} - x_{t-1,k})^+
+\end{align*}
+where $x_0 = \mathbf{0}$ and $f_t$ is given by \autoref{eq:sblo_hitting_cost}.
+\end{problem}
+
+In contrast to our definition of SBLO, SLO balances the load implicitly among all active servers which is possible because we assume that each active server can only handle a single job during one time slot. Again, it is easy to see that SLO is an instance of SBLO by setting $g_{t,k}(l) := l_k l$.
+
+\citeauthor*{Albers2021} show that an online algorithm for SLO cannot attain a competitive ratio smaller than $2d$ \cite{Albers2021}.
