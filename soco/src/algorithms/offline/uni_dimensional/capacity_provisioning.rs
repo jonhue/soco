@@ -1,5 +1,3 @@
-use itertools::Either::{Left, Right};
-
 use crate::algorithms::capacity_provisioning::Bounded;
 use crate::config::Config;
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
@@ -11,31 +9,12 @@ use crate::utils::{assert, project};
 pub fn bcp(
     p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
 ) -> Result<FractionalSchedule> {
-    cp(p, false)
-}
-
-/// Forward-Recurrent Capacity Provisioning
-pub fn fcp(
-    p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
-) -> Result<FractionalSchedule> {
-    cp(p, true)
-}
-
-fn cp(
-    p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
-    forward: bool,
-) -> Result<FractionalSchedule> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
 
     let mut xs = Schedule::empty();
 
     let mut x = 0.;
-    let range = if forward {
-        Left(1..=p.t_end)
-    } else {
-        Right((1..=p.t_end).rev())
-    };
-    for t in range {
+    for t in (1..=p.t_end).rev() {
         x = next(p, t, x)?;
         xs.shift(Config::single(x));
     }
