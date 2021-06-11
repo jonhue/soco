@@ -37,17 +37,6 @@
 
 Above order is from most general to most specific.
 
-### Optimal Competitiveness
-
-| Variant | Multi-Dimensional? | Integral? | Deterministic? | Memoryless? | Optimal Competitiveness              | Notes |
-| ------- | ------------------ | --------- | -------------- | ----------- | ------------------------------------ | ----- |
-| 1       | ❌                 | ❌        | ✅             | ✅          | 3-competitive                        |
-| 1       | ❌                 | ❌        | ✅             | ❌          | 2-competitive                        |
-| 1       | ❌                 | ✅        | ✅             | ❌          | 3-competitive                        |
-| 1       | ❌                 | ✅        | ❌             | ❌          | 2-competitive                        |
-| 2, 3    | ✅                 | ✅        | ✅             | ❌          | 2d-competitive                       |
-| 1       | ✅                 | ❌        | ❌             | ❌          | O(1/sqrt(m))-competitive as m to 0^+ | for m-strongly convex hitting costs and l2-squared switching costs |
-
 ### References
 
 1. Minghong Lin and Adam Wierman and Lachlan L. H. Andrew and Eno Thereska. _Dynamic right-sizing for power-proportional data centers_. 2011.
