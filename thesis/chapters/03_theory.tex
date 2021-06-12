@@ -3,7 +3,7 @@
 
 \chapter{Theory}\label{chapter:theory}
 
-In this chapter, we introduce the theoretical foundations for our subsequent work. We begin by formally introducing the metrics we use to assess the performance of the discussed algorithms. In the following, we introduce the problem of smoothed convex optimization and related problems that the examined algorithms address.
+In this chapter, we introduce the theoretical foundations for our subsequent work. We begin by formally introducing the metrics we use to assess the performance of the discussed algorithms. We then introduce the problem of smoothed convex optimization and related variants that the examined algorithms address.
 
 \section{Performance Metrics}\label{section:theory:performance_metrics}
 
@@ -86,7 +86,7 @@ In \autoref{chapter:introduction}, we have seen that Int-SCO is subsumed by Metr
 
 In the \textit{ski rental problem} skis can be bought for a cost of $b$ units or rented for a cost of one unit per day. Each day of the ski season the agent has to decide whether to rent the skis or end the sequence of decisions by buying the skis without knowing how long the ski season will last \cite{Shah2021}. Consider the uni-dimensional decision space $\{0,b\}$, the $\ell_2$-norm as switching cost, and the sequence of hitting costs $f_t(0) = 1$ and $f_t(b) = 0$. The solution to this instance of SCO is a solution to the corresponding ski rental problem, yielding that the ski rental problem is a special case of SCO. \citeauthor*{Karlin1990} showed that the best competitive ratio attainable by a randomized algorithm is $e/(e-1) \approx 1.58$, giving a lower bound for the competitive ratio of online algorithms for SCO \cite{Karlin1990}.
 
-\citeauthor*{Goel2019} proved that for $m$-strongly convex hitting costs with respect to the $\ell_2$ norm and $\ell_2$-squared switching costs, the optimal competitiveness of any online algorithm is $\mathcal{O}(1/\sqrt{m})$ as $m \downarrow 0$ \cite{Goel2019} We discuss hitting costs and switching costs of this shape in greater detail in \autoref{section:online_algorithms:descent_methods}. \citeauthor*{Bansal2015} have shown that in the uni-dimensional setting the optimal competitive ratio that can be attained by a deterministic memoryless algorithm for SCO is 3 \cite{Bansal2015}.
+\citeauthor*{Goel2019} proved that for $m$-strongly convex hitting costs with respect to the $\ell_2$ norm and $\ell_2$-squared switching costs, the optimal competitiveness of any online algorithm is $\mathcal{O}(1/\sqrt{m})$ as $m \downarrow 0$ \cite{Goel2019} We discuss hitting costs and switching costs of this shape in greater detail in \autoref{section:online_algorithms:md:descent_methods}. \citeauthor*{Bansal2015} have shown that in the uni-dimensional setting the optimal competitive ratio that can be attained by a deterministic memoryless algorithm for SCO is 3 \cite{Bansal2015}.
 
 \subsubsection{Complexity of the Offline Problem}
 
@@ -285,7 +285,7 @@ To show convexity of $f_1$, it suffices to show that $h(x) = n - \sum_{i=1}^n x_
 
 \subsection{Smoothed Balanced Load Optimization}
 
-We now turn to a variant of Int-SSCO introduced by \citeauthor*{Albers2021_2} that further restricts the structure of the convex cost functions \cite{Albers2021_2}. This restriction is motivated by the usual cost model of data centers we examine in detail in \autoref{chapter:application} where the incoming load (or set of jobs) is distributed equally among all active servers.
+We now turn to a variant of Int-SSCO introduced by \citeauthor*{Albers2021_2} that further restricts the structure of the convex cost functions \cite{Albers2021_2}. This restriction is motivated by the usual cost model of heterogeneous data centers with homogeneous loads we examined in detail in \autoref{section:application:dispatching:optimal_load_balancing} where the incoming load (or set of jobs) is distributed equally among all active servers.
 
 Given a sequence of convex increasing non-negative costs $g_{t,k}(l)$ of each "instance" in dimension $k$ given its load $l$ during time slot $t$, the overall cost for dimension $k$ during time slot $t$ is given as \begin{align*}
     h_{t,k}(x,z) := \begin{cases}
@@ -296,7 +296,7 @@ Given a sequence of convex increasing non-negative costs $g_{t,k}(l)$ of each "i
 \end{align*} where $l_{t,k} = \lambda_t z$ for some sequence of loads $\lambda_t \in \mathbb{N}_0$. Here, $x$ is the position in the decision space in dimension $k$, and $z \in [0,1]$ is the fraction of the load $\lambda_t$ that is "assigned" to dimension $k$ \cite{Albers2021_2}. Given the set of all possible assignments to $d$ dimensions $\mathcal{Z} := \{z \in [0,1]^d \mid \sum_{k=1}^d z_k = 1\}$, the overall hitting cost is defined as the convex optimization \begin{align}
 \label{eq:sblo_hitting_cost}
     f_t(x) := \min_{z \in \mathcal{Z}} \sum_{k=1}^d h_{t,k}(x_k,z_k).
-\end{align} Intuitively, the loads $\lambda_t$ are balanced across all dimensions so as to minimize cost.
+\end{align} Intuitively, the loads $\lambda_t$ are balanced across all dimensions so as to minimize cost. We also observe that the formulation of $f_t$ from \autoref{eq:sblo_hitting_cost} is equivalent to our formulation from \autoref{eq:heterogeneous_load_balancing}.
 
 \begin{problem}[Smoothed Balanced Load Optimization (SBLO)]\label{problem:sblo}
 Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of loads $\lambda_t \in \mathbb{N}_0$, and a sequence of convex increasing non-negative functions $g_{t,k}$ for $t \in [T], k \in [d]$, find $x \in [m_0]_0 \times \dots \times [m_d]_0$ minimizing \begin{align*}
