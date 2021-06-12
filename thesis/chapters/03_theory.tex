@@ -7,7 +7,7 @@ In this chapter, we introduce the theoretical foundations for our subsequent wor
 
 \section{Performance Metrics}\label{section:theory:performance_metrics}
 
-We say that an algorithm is \textit{optimal} with respect to some performance metric if given its information it achieves an optimal score in the given metric. Crucially, optimality depends on the information given to the algorithm. We thus say that an offline algorithm of a minimization problem is optimal if its result always incurs the smallest possible cost while satisfying the given constraints. In contrast, an optimal online algorithm must not necessarily return the optimal offline solution. In fact, in many cases, online algorithms must necessarily perform worse than optimal offline algorithms due to the lack of provided information (in our case, the convex cost functions arrive over time). Naturally, these performance metrics also inform parts of our experimental analysis performed in \autoref{chapter:experiments}.
+We say that an algorithm is \textit{optimal} with respect to some performance metric if no algorithm can achieve a better score in the given metric given the same information. Crucially, optimality depends on the information given to the algorithm. We thus say that an offline algorithm of a minimization problem is optimal if its result always incurs the smallest possible cost while satisfying the given constraints. In contrast, an optimal online algorithm must not necessarily return the optimal offline solution. In fact, in many cases, online algorithms must necessarily perform worse than optimal offline algorithms due to the lack of provided information (in our case, the convex cost functions arrive over time). Naturally, these performance metrics also inform parts of our experimental analysis performed in \autoref{chapter:experiments}.
 
 \subsection{Approximations}
 
@@ -59,7 +59,7 @@ The $L$-constrained optimal offline solution minimizes $c$ subject to the additi
 \end{align*}
 \end{definition}
 
-We now observe that given the optimal offline solution $OPT$ with schedule $x_t^*$, the $l$-constrained dynamic regret is equivalent to dynamic regret for $l = \sum_{t=1}^T \norm{x_t^* - x_{t-1}^*}$. The literature also considers other metrics such as the \textit{$\alpha$-unfair competitive ratio} which are very similar to $L$-constrained dynamic regret \cite{Andrew2015}.
+We now observe that given the optimal offline solution $OPT$ with schedule $x_t^*$, the $L$-constrained dynamic regret is equivalent to dynamic regret for $L = \sum_{t=1}^T \norm{x_t^* - x_{t-1}^*}$. The literature also considers other metrics such as the \textit{$\alpha$-unfair competitive ratio} which are very similar to $L$-constrained dynamic regret \cite{Andrew2015}.
 
 \section{Problems}
 
