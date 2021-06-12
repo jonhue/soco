@@ -97,13 +97,13 @@ Our goal is to model the energy cost $e_{t,k}(s)$ of a server of type $k$ during
 
 \paragraph{Energy Consumption} There a variety of models for energy consumption in a data center. We give an overview over the most common models here, additional models can be found through the references. To rephrase our objective, we seek to model the energy consumption of a single server based on a utilization (also referred to as speed or frequency) $s$. The energy consumption $\phi_k(s)$ can be calculated as $\delta \Phi_k(s)$ where $\delta$ is the length of a time slot and $\Phi_k(s)$ is the power consumption of a server of type $k$ with utilization $s$ \cite{Dayarathna2016}. Models of power consumption can be categorized into linear and non-linear models \cite{Ismail2020}. In this work, we restrict our analysis to linear models of which the performance is highly dependent on the chosen parameters \cite{Ismail2020}. \citeauthor*{Ismail2020} also present more accurate non-linear and machine learning models \cite{Ismail2020}.
 
-A first intuitive model of power consumption is discussed by \citeauthor*{Dayarathna2016, Ismail2020} is \begin{align*}
+A first intuitive model of power consumption is discussed by \citeauthor*{Dayarathna2016} and \citeauthor*{Ismail2020} is \begin{align*}
     \Phi_k(s) = (\Phi_k^{max} - \Phi_k^{min})s + \Phi_k^{min}
 \end{align*} where $\Phi_k^{max}$ and $\Phi_k^{min}$ are the power a server of type $k$ consumes at full load and when idling, respectively \cite{Dayarathna2016, Ismail2020}. In linear power models we distinguish between the \textit{dynamic power}, here the first term $(\Phi_k^{max} - \Phi_k^{min})s$, and the \textit{static power} (or leakage power), $\Phi_k^{min}$. Following the findings of \citeauthor*{Barroso2007}, we can use that generally servers consume half of their peak power when idling to simplify the above model \cite{Barroso2007, Ismail2020}: \begin{align*}
     \Phi_k(s) = \frac{1}{2} \Phi_k^{max} (1 + s).
 \end{align*}
 
-The above models of power consumption are additive. Another frequently used model is multiplicative and defined as \cite{Dayarathna2016}: \begin{align*}
+The above models of power consumption are linear. Another frequently used model is non-linear and defined as \cite{Dayarathna2016}: \begin{align*}
     \Phi_k(s) = \frac{s^{\alpha}}{\beta} + \Phi_k^{min}
 \end{align*} where $\alpha > 1$ and $\beta > 0$ are constants. Here, $s^{\alpha}/\beta$ is the dynamic power and $\Phi_k^{min}$ is the static power. A variant of this model is used by \citeauthor*{Bansal2015} \cite{Bansal2015}.
 
@@ -125,11 +125,11 @@ A good model of the queueing discipline of a server is the \textit{Round Robin} 
 
 A single server modeled by the PS discipline and operating according to Poisson-distributed arrivals has the nice property that its queue length distribution is geometric irrespectively of the service time distribution \cite{Aalto2007}. In other words, the average delay in a PS queue is insensitive to the service time distribution.
 
-Let $X \sim Po(\lambda)$ be the number of arriving jobs per time unit with rate $\lambda$. The expected delay $E(T)$ of a PS queue is then given as \begin{align*}
+Let $X \sim Po(\lambda)$ be the number of arriving jobs per time unit with rate $\lambda$. The expected delay $E(T)$ of a PS queue is then given as \begin{align}\label{eq:avg_delay}
     E(T) = \frac{1/\mu}{1-\rho} = \frac{1}{\mu - \lambda}
-\end{align*} where $\mu = C / E(X) = C / \lambda$ is the service rate of the server and $\rho = \lambda / \mu$ is the parameter to the geometric queue length distribution \cite{Virtamo2007}. The PS discipline can be considered utmost egalitarian as the average delay of any job in our system is directly proportional to the total number of jobs but does not depend on the type of the job \cite{Virtamo2007}.
+\end{align} where $\mu = C / E(X) = C / \lambda$ is the service rate of the server and $\rho = \lambda / \mu$ is the parameter to the geometric queue length distribution \cite{Virtamo2007}. The PS discipline can be considered utmost egalitarian as the average delay of any job in our system is directly proportional to the total number of jobs but does not depend on the type of the job \cite{Virtamo2007}.
 
-Using this model, the average delay of jobs of type $i$ processed by servers of type $k$ during time slot $t$ is given by \begin{align*}
+Using the model from \autoref{eq:avg_delay}, the average delay of jobs of type $i$ processed by servers of type $k$ during time slot $t$ is given by \begin{align*}
     d_{t,k,i}(l) := \frac{1}{\mu_k - l}
 \end{align*} where $\mu_k$ is the service rate of a server of type $k$ and $l$ is the total number of jobs processed by the server.
 
@@ -175,16 +175,18 @@ We began discussing energy quotas in \autoref{section:application:operating_cost
 
 Given $x \in \mathcal{X}$ and $z \in \mathcal{Z}$, in data center $k$, the average utilization of active servers of type $j$ during time slot $t$ is given as $l_{t,(k,j)} / x_{(k,j)}$. Hence, using optimal load balancing, we obtain the total energy consumption of data center $k$ with \begin{align*}
     \phi_k := \sum_{j=1}^{d_k} x_{(k,j)} \phi_{(k,j)}\left(\frac{l_{t,(k,j)}}{x_{(k,j)}}\right).
-\end{align*} The total energy cost of data center $k$ during time slot $t$ is therefore given as $e_{t,k} := \nu_t(\phi_k)$. $\nu_t$ now receives the entire energy consumption at a location during time slot $t$ as input. We are thus able to model more complex energy costs. For an example, consider by $p_{t,k}^{(i)}$ the energy from source $i \in \mathcal{I}$ available at data center $k$ during time slot $t$. We denote by $c_{t,i}$ the average cost per unit of energy of energy source $i$ during time slot $t$ and assume without loss of generality that $c_{t,1} \leq c_{t,2} \leq \cdots$ holds for all $t \in T$. A reasonable model of energy cost would then be to use the cheapest sources of energy completely until the energy demand is satisfied. This model is given by \begin{align*}
+\end{align*} The total energy cost of data center $k$ during time slot $t$ is therefore given as $e_{t,k} := \nu_t(\phi_k)$. $\nu_t$ now receives the entire energy consumption at a location during time slot $t$ as input.
+
+\paragraph{Maximum Quotas} We are thus able to model more complex energy costs. For an example, consider by $p_{t,k}^{(i)}$ the energy from source $i \in \mathcal{I}$ available at data center $k$ during time slot $t$. We denote by $c_{t,i}$ the average cost per unit of energy of energy source $i$ during time slot $t$ and assume without loss of generality that $c_{t,1} \leq c_{t,2} \leq \cdots$ holds for all $t \in T$. A reasonable model of energy cost would then be to use the cheapest sources of energy completely until the energy demand is satisfied. This model is given by \begin{align*}
     \nu_{t,k}(p) := \sum_{i \in \mathcal{I}} c_{t,i} \min\{(p - \sum_{\substack{j \in \mathcal{I}, \\ j < i}} p_{t,k}^{(j)})^+, p_{t,k}^{(i)}\}
 \end{align*} where we assume that the energy sources supply is sufficient, i.e. $p \leq \sum_{i \in \mathcal{I}} p_{t,k}^{(i)}$.
 
-Let's now assume that energy sources $j \in \mathcal{J} \subseteq \mathcal{I}$ are produced at data center $k$ and by selling unused supply we make an average profit of $u_{t,j}$ during time slot $t$. We set $u_{t,i} = 0$ for all $i \in \mathcal{I} \setminus \mathcal{J}$. Again, we assume without loss of generality that $c_{t,1} + u_{t,1} \leq c_{t,2} + u_{t,2} \leq \cdots$ holds for all $t \in T$. The energy cost of this extended model is then given by \begin{align*}
+\paragraph{Making Profit} Let's now assume that energy sources $j \in \mathcal{J} \subseteq \mathcal{I}$ are produced at data center $k$ and by selling unused supply we make an average profit of $u_{t,j}$ during time slot $t$. We set $u_{t,i} = 0$ for all $i \in \mathcal{I} \setminus \mathcal{J}$. Again, we assume without loss of generality that $c_{t,1} + u_{t,1} \leq c_{t,2} + u_{t,2} \leq \cdots$ holds for all $t \in T$. The energy cost of this extended model is then given by \begin{align*}
     \nu_{t,k}(p) := \sum_{i \in \mathcal{I}} (c_{t,i} - u_{t,i}) \min\{(p - \sum_{\substack{j \in \mathcal{I}, \\ j < i}} p_{t,k}^{(j)})^+, p_{t,k}^{(i)}\}
 \end{align*} where we continue to assume that energy supply is sufficient.
 
-Suppose now that in addition for energy sources $s \in \mathcal{S}$ we impose a quota $q_{t,s} \in [0,1]$ requiring that energy from energy source $s$ must make up at least a fraction of $q_{t,s}$ of our total energy supply during time slot $t$. Naturally, the sum of all quotas must not exceed $1$, i.e. $\sum_{s \in \mathcal{S}} q_{t,s} \leq 1$ for all $t \in T$. We also assume that the energy supply is sufficient to fulfill the quotation, i.e. $p_{t,k}^{(s)} \geq q_{t,s} p_t$ where $p_{t,k}$ is the energy consumption of data center $k$ during time slot $t$. In our cost model we now first fulfill the imposed quotas and then fallback to our previous model: \begin{align*}
+\paragraph{Minimum Quotas} Suppose now that in addition for energy sources $s \in \mathcal{S}$ we impose a quota $q_{t,s} \in [0,1]$ requiring that energy from energy source $s$ must make up at least a fraction of $q_{t,s}$ of our total energy supply during time slot $t$. Naturally, the sum of all quotas must not exceed $1$, i.e. $\sum_{s \in \mathcal{S}} q_{t,s} \leq 1$ for all $t \in T$. We also assume that the energy supply is sufficient to fulfill the quotation, i.e. $p_{t,k}^{(s)} \geq q_{t,s} p_t$ where $p_{t,k}$ is the energy consumption of data center $k$ during time slot $t$. In our cost model we now first fulfill the imposed quotas and then fallback to our previous model: \begin{align*}
     \nu_{t,k}(p) := \sum_{s \in \mathcal{S}} (c_{t,s} - u_{t,s}) q_{t,s} p + \sum_{i \in \mathcal{I}} (c_{t,i} - u_{t,i}) \min\{(p - \sum_{s \in \mathcal{S}} q_{t,s} p - \sum_{\substack{j \in \mathcal{I}, \\ j < i}} p_{t,k}^{(j)})^+, p_{t,k}^{(i)}\}.
 \end{align*} In most cases, however, it is beneficial to model tendencies towards some sources of energy using costs rather than strict quotas as that largely decouples the energy cost model from energy availability.
 
-We have seen a framework for cost models that specifically models data centers but is general enough to support a network of heterogeneous data centers with heterogeneous loads and flexible energy costs. This reaches our main goal for this chapter.
+\paragraph{}{We have seen a framework for cost models that specifically models data centers but is general enough to support a network of heterogeneous data centers with heterogeneous loads and flexible energy costs. This reaches our main goal for this chapter.}
