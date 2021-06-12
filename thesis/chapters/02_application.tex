@@ -3,7 +3,7 @@
 
 \chapter{Application: Right-Sizing Data Centers}\label{chapter:application}
 
-In this chapter we seek to derive models for right-sizing data centers based on smoothed convex optimization. We then use these models to motivate the variations of smoothed convex optimization we discussed in \autoref{chapter:theory}. We begin by discussing general features of server infrastructures. Then, we examine the modeling of \textit{operating costs} (i.e. hitting costs) and \textit{switching costs} in detail.
+In this chapter we seek to derive models for right-sizing data centers based on smoothed convex optimization. We then use these models to motivate the variations of smoothed convex optimization we discuss in \autoref{chapter:theory}. We begin by discussing general features of server infrastructures. Then, we examine the modeling of \textit{operating costs} (i.e. hitting costs) and \textit{switching costs} in detail.
 
 Data centers are large scale, complex systems. Therefore, any model we examine in this chapter is an approximation. Our goal is to find models that generalize well across many data centers. When examining a specific data center, the models we discuss can be extended to yield better approximations.
 
@@ -45,7 +45,7 @@ We first consider the homogeneous setting. In the homogeneous case, we write $g_
     f_t(x) := x g_t\left(\frac{\lambda_t}{x}\right).
 \end{align} Crucially, this is an approximation as we did not impose the restriction that job arrival rates must be integral which is required in practice.
 
-In the heterogeneous setting, it is easy to see that there is no single optimal dispatching rule. However, our analysis implies that even in the heterogeneous setting, within one server type the optimal dispatching strategy is to load balance \cite{Albers2021_2}. This observation leads us precisely to our previous definition of Smoothed Balanced Load Optimization (\autoref{problem:sblo}). To recapitulate, the operating cost for servers of type $k$ during time slot $t$ is given as \begin{align}\label{eq:heterogeneous_load_balancing_unit}
+In the heterogeneous setting, it is easy to see that there is no single optimal dispatching rule. However, our analysis implies that even in the heterogeneous setting, within one server type the optimal dispatching strategy is to load balance \cite{Albers2021_2}. We define the operating cost for servers of type $k$ during time slot $t$ as \begin{align}\label{eq:heterogeneous_load_balancing_unit}
     h_{t,k}(x,z) := \begin{cases}
         x g_{t,k}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
         \infty                                  & x = 0 \land l_{t,k} > 0 \\
