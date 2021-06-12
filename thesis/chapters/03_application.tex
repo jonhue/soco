@@ -117,11 +117,23 @@ This simple model could be extended by considering quotas for multiple sources o
 
 \subsection{Delay}
 
-We use queueing theory to model the queueing delay of jobs in the system. Often, an M/GI/1 processor sharing queue is used to describe the job queue of a server \cite{Lin2011, Lin2012}. In this model, the server is subject to Poisson distributed arrivals of jobs. Then the average delay of jobs is given by \begin{align*}
-    d_{t,k,i}(l) := \frac{1}{\mu_k - l}
-\end{align*} where $\mu_k$ is the service rate of a server of type $k$ \cite{Lin2012}.
+We use queueing theory to model the queueing delay of jobs in the system. We are interested in the delay $d_{t,k,i}(l)$ of a job of type $i$ when this job is processed by a server of type $k$ with a total of $l$ serviced jobs during time slot $t$.
 
-Given average delay $d$, we use a natural model of the revenue loss similar to the proposal of \citeauthor*{Lin2011} which is given by $r_{t,i}(d) := (d - \delta_i)^+$ where $\delta_i$ denotes the minimal detected delay of jobs of type $i$ \cite{Lin2011}. For $\delta_i \equiv 0$, this model is the same as the model of \cite{Lin2012}.
+In our model we consider a single service channel, i.e. our server of type $k$. We further assume that the capacity of the queue is unlimited as is the potential number of job arrivals. The latter assumption is an approximation as, in principle, we can expect a total of $l$ arrivals during time slot $t$. It is natural to assume that the arrival of jobs is Markovian, i.e. Poisson-distributed. So the inter-arrival times of jobs follow the exponential distribution. To remain as general as possible, the only restriction we impose on service times is that we assume they are independent. Hence, our assumptions naturally lead us to model delay based on a M/GI/1 queue.
+
+A good model of the queueing discipline of a server is the \textit{Round Robin} (RR) scheduling algorithm where jobs are processed in turn but when processing of a job exceeds some time quantum it is moved to the back of the circular queue. In many cases, however, the idealized \textit{Processor Sharing} (PS) discipline is used as an approximation of RR \cite{Lin2011, Lin2012}. In a PS queue, each job in the system is processed simultaneously at a rate inversely proportional to the current number of jobs. The service rate is therefore given as $C / n$ where $C$ is the capacity of the server and $n$ is the current number of jobs. PS is an approximation of RR as, in general, the capacity of a server cannot be divided into real valued parts \cite{Virtamo2007}. However, note that this approximation echoes our simplification in \autoref{section:application:dispatching:optimal_load_balancing} leading to optimal load balancing on a per-server level.
+
+A single server modeled by the PS discipline and operating according to Poisson-distributed arrivals has the nice property that its queue length distribution is geometric irrespectively of the service time distribution \cite{Aalto2007}. In other words, the average delay in a PS queue is insensitive to the service time distribution.
+
+Let $X \sim Po(\lambda)$ be the number of arriving jobs per time unit with rate $\lambda$. The expected delay $E(T)$ of a PS queue is then given as \begin{align*}
+    E(T) = \frac{1/\mu}{1-\rho} = \frac{1}{\mu - \lambda}
+\end{align*} where $\mu = C / E(X) = C / \lambda$ is the service rate of the server and $\rho = \lambda / \mu$ is the parameter to the geometric queue length distribution \cite{Virtamo2007}. The PS discipline can be considered utmost egalitarian as the average delay of any job in our system is directly proportional to the total number of jobs but does not depend on the type of the job \cite{Virtamo2007}.
+
+Using this model, the average delay of jobs of type $i$ processed by servers of type $k$ during time slot $t$ is given by \begin{align*}
+    d_{t,k,i}(l) := \frac{1}{\mu_k - l}
+\end{align*} where $\mu_k$ is the service rate of a server of type $k$ and $l$ is the total number of jobs processed by the server.
+
+Given average delay $d$, we use a natural model of the revenue loss similar to the proposal of \citeauthor*{Lin2011} which is given by $r_{t,i}(d) := (d - \delta_i)^+$ where $\delta_i$ denotes the minimal detectable delay of jobs of type $i$ \cite{Lin2011}. For $\delta_i \equiv 0$, this model is the same as the model of \cite{Lin2012}.
 
 \section{Switching Cost}
 
