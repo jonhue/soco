@@ -7,14 +7,14 @@ In this chapter, we introduce the theoretical foundations for our subsequent wor
 
 \section{Performance Metrics}\label{section:theory:performance_metrics}
 
-We say that an algorithm is \textit{optimal} with respect to some performance metric if no algorithm can achieve a better score in the given metric given the same information. Crucially, optimality depends on the information given to the algorithm. We thus say that an offline algorithm of a minimization problem is optimal if its result always incurs the smallest possible cost while satisfying the given constraints. In contrast, an optimal online algorithm must not necessarily return the optimal offline solution. In fact, in many cases, online algorithms must necessarily perform worse than optimal offline algorithms due to the lack of provided information (in our case, the convex cost functions arrive over time). Naturally, these performance metrics also inform parts of our experimental analysis performed in \autoref{chapter:experiments}.
+We say that an algorithm is \textit{optimal}\index{optimal algorithm} with respect to some performance metric if no algorithm can achieve a better score in the given metric given the same information. Crucially, optimality depends on the information given to the algorithm. We thus say that an offline algorithm of a minimization problem is optimal if its result always incurs the smallest possible cost while satisfying the given constraints. In contrast, an optimal online algorithm must not necessarily return the optimal offline solution. In fact, in many cases, online algorithms must necessarily perform worse than optimal offline algorithms due to the lack of provided information (in our case, the convex cost functions arrive over time). Naturally, these performance metrics also inform parts of our experimental analysis performed in \autoref{chapter:experiments}.
 
 \subsection{Approximations}
 
 We begin by considering the offline case. In most cases, we seek to find optimal solutions to the offline problem. However, for some problems where the computational complexity of optimal solutions is high for large instances, it is beneficial to consider efficient algorithms that achieve close to optimal performance motivating the definition of approximation algorithms. Note that we limit our definitions of performance metrics to minimization problems.
 
-\begin{definition}
-An \textit{$\alpha$-approximation algorithm} for a minimization problem $c$ is a polynomial time algorithm $ALG$ that for all instances of the problem produces a solution whose value is within a factor of $\alpha$ of the value of an optimal solution $OPT$, i.e. $c(ALG) \leq \alpha \cdot c(OPT)$. \cite{Williamson2011}.
+\begin{definition}\index{approximation algorithm}
+An $\alpha$-approximation algorithm for a minimization problem $c$ is a polynomial time algorithm $ALG$ that for all instances of the problem produces a solution whose value is within a factor of $\alpha$ of the value of an optimal solution $OPT$, i.e. $c(ALG) \leq \alpha \cdot c(OPT)$. \cite{Williamson2011}.
 \end{definition}
 
 In other words, an $\alpha$-approximation guarantees that its results are at most a factor of $\alpha$ worse than the optimal solution. The integral smoothed convex optimization problem is such an example where important progress on approximation algorithms has recently been made by \citeauthor*{Kappelmann2017} and \citeauthor*{Albers2021_2} \cite{Kappelmann2017, Albers2021_2}.
@@ -23,7 +23,7 @@ In other words, an $\alpha$-approximation guarantees that its results are at mos
 
 For online algorithms it is natural to consider an adaptation of the idea of approximation algorithms. Here, we compare the result of an online algorithm with the optimal offline solution.
 
-\begin{definition}
+\begin{definition}\index{competitive algorithm}
 A $\rho(T)$-competitive online algorithm for a minimization problem $c$ is an algorithm $ALG$ that for all instances of the problem produces a solution whose value is within a factor of $\rho(T)$ of the value of an optimal offline solution $OPT$, i.e. $c(ALG) \leq \rho(T) \cdot c(OPT)$.
 \end{definition}
 
@@ -33,11 +33,11 @@ We observe that this definition is analogous to our earlier definition of approx
 
 Regret is another approach to measuring the performance of online algorithms.
 
-\begin{definition}
+\begin{definition}\index{regret (static)}
 The (static) regret of an online algorithm $ALG$ for a minimization problem $c$ is $\rho(T)$ if for all instances of the problem the difference between the result of the algorithm and the static optimal offline solution $OPT_s$ does not exceed $\rho(T)$, i.e. $c(ALG) - c(OPT_s) \leq \rho(T)$.
 \end{definition}
 
-Commonly, the literature considers this definition of regret where the online algorithm is compared against a static offline solution, i.e. a solution where the agent is not allowed to move in the decision space. We say that an algorithm achieves \textit{no-regret} if $\rho$ is sublinear in the time horizon $T$.
+Commonly, the literature considers this definition of regret where the online algorithm is compared against a static offline solution, i.e. a solution where the agent is not allowed to move in the decision space. We say that an algorithm achieves \textit{no-regret}\index{no-regret} if $\rho$ is sublinear in the time horizon $T$.
 
 Ideally, online algorithms perform well with respect to the competitive ratio and regret. In other words, our online algorithms should both perform well compared against an agent that is moving in the decision space with perfect knowledge of the future (competitive ratio) and perform well against an agent that picks one optimal location in the decision space. In the example of dynamically right-sizing a data center, our algorithms are obviously required to outperform a static number of servers. In contrast, to minimize energy waste and revenue loss, the strategies proposed by our algorithms must be as close as possible to the optimal dynamic strategies.
 
@@ -45,13 +45,13 @@ However, \citeauthor*{Andrew2015} proved that no online algorithm for smoothed c
 
 There thus exist many variants of regret and the competitive ratio that are used to bridge between the two metrics. One approach is to consider an additive variant of the competitive ratio which is called \textit{competitive difference}.
 
-\begin{definition}
+\begin{definition}\index{competitive difference}
 The competitive difference of an online algorithm $ALG$ for a minimization problem $c$ is $\rho(T)$ if for all instances of the problem the difference between the result of the algorithm and the dynamic optimal offline solution $OPT$ does not exceed $\rho(T)$, i.e. $c(ALG) - c(OPT) \leq \rho(T)$ \cite{Chen2015}.
 \end{definition}
 
-This definition is also known as \textit{dynamic regret} \cite{Chen2018}. We next define a variant of regret that bridges between static and dynamic regret.
+This definition is also known as \textit{dynamic regret}\index{dynamic regret} \cite{Chen2018}. We next define a variant of regret that bridges between static and dynamic regret.
 
-\begin{definition}
+\begin{definition}\index{$L$-constrained dynamic regret}
 The $L$-constrained dynamic regret of an online algorithm $ALG$ for a minimization problem $c$ is $\rho(T)$ if for all instances of the problem the difference between the result of the algorithm and the $L$-constrained optimal offline solution $OPT_L$ does not exceed $\rho(T)$, i.e. $c(ALG) - c(OPT_L) \leq \rho(T)$ \cite{Chen2018}.
 
 The $L$-constrained optimal offline solution minimizes $c$ subject to the additional constraint \begin{align*}
@@ -59,7 +59,7 @@ The $L$-constrained optimal offline solution minimizes $c$ subject to the additi
 \end{align*}
 \end{definition}
 
-We now observe that given the optimal offline solution $OPT$ with schedule $x_t^*$, the $L$-constrained dynamic regret is equivalent to dynamic regret for $L = \sum_{t=1}^T \norm{x_t^* - x_{t-1}^*}$. The literature also considers other metrics such as the \textit{$\alpha$-unfair competitive ratio} which are very similar to $L$-constrained dynamic regret \cite{Andrew2015}.
+We now observe that given the optimal offline solution $OPT$ with schedule $x_t^*$, the $L$-constrained dynamic regret is equivalent to dynamic regret for $L = \sum_{t=1}^T \norm{x_t^* - x_{t-1}^*}$. The literature also considers other metrics such as the \textit{$\alpha$-unfair competitive ratio}\index{$\alpha$-unfair competitive ratio} which are very similar to $L$-constrained dynamic regret \cite{Andrew2015}.
 
 \section{Problems}
 
@@ -69,7 +69,7 @@ Now that we have an overview over the commonly used performance metrics, we intr
 
 We begin by formally introducing the most general problem we consider and which we already motivated in \autoref{chapter:introduction}.
 
-\begin{problem}[Smoothed Convex Optimization (SCO)]
+\begin{problem}[Smoothed Convex Optimization (SCO)]\index{smoothed convex optimization}
 Given a time horizon $T \in \mathbb{N}$, a convex decision space $\mathcal{X} \subset \mathbb{R}^d$, a norm $\norm{\cdot}$ on $\mathbb{R}^d$, and a sequence of non-negative convex functions $f_t$ for $t \in [T]$ with $f_t(x) = \infty$ for all $x \not\in \mathcal{X}$, find $x \in \mathcal{X}$ minimizing \begin{align*}
     c_{SCO}(x) = \sum_{t=1}^T f_t(x_t) + \norm{x_t - x_{t-1}}
 \end{align*}
@@ -84,7 +84,7 @@ We define Integral Smoothed Convex Optimization analogously to SCO with the adde
 
 In \autoref{chapter:introduction}, we have seen that Int-SCO is subsumed by Metrical Task Systems. However, it was shown that in general the competitiveness of deterministic and randomized algorithms for Metrical Task Systems must be proportional to the size of the decision space \cite{Blum1992, Borodin1992}. Further, \citeauthor*{Chen2018} have shown that the competitiveness of any online algorithm for SCO is lower bounded by $\Omega(\sqrt{d})$ \cite{Chen2018}. Therefore, many of the online algorithms for SCO that we examine in \autoref{chapter:online_algorithms} further restrict the classes of hitting costs and switching costs.
 
-Yet another similar problem is the ski rental problem. In the \textit{ski rental problem}, skis can be bought for a cost of $b$ units or rented for a cost of one unit per day. Each day of the ski season the agent has to decide whether to rent the skis or end the sequence of decisions by buying the skis without knowing how long the ski season will last \cite{Shah2021}. Consider the uni-dimensional decision space $\{0,b\}$, the $\ell_2$-norm as switching cost, and the sequence of hitting costs $f_t(0) = 1$ and $f_t(b) = 0$. The solution to this instance of SCO is a solution to the corresponding ski rental problem, yielding that the ski rental problem is a special case of SCO. \citeauthor*{Karlin1990} showed that the best competitive ratio attainable by a randomized algorithm is $e/(e-1) \approx 1.58$, giving a lower bound for the competitive ratio of online algorithms for SCO \cite{Karlin1990}.
+Yet another similar problem is the ski rental problem. In the \textit{ski rental problem}\index{ski rental problem}, skis can be bought for a cost of $b$ units or rented for a cost of one unit per day. Each day of the ski season the agent has to decide whether to rent the skis or end the sequence of decisions by buying the skis without knowing how long the ski season will last \cite{Shah2021}. Consider the uni-dimensional decision space $\{0,b\}$, the $\ell_2$-norm as switching cost, and the sequence of hitting costs $f_t(0) = 1$ and $f_t(b) = 0$. The solution to this instance of SCO is a solution to the corresponding ski rental problem, yielding that the ski rental problem is a special case of SCO. \citeauthor*{Karlin1990} showed that the best competitive ratio attainable by a randomized algorithm is $e/(e-1) \approx 1.58$, giving a lower bound for the competitive ratio of online algorithms for SCO \cite{Karlin1990}.
 
 \citeauthor*{Goel2019} proved that for $m$-strongly convex hitting costs with respect to the $\ell_2$ norm and $\ell_2$-squared switching costs, the optimal competitiveness of any online algorithm is $\mathcal{O}(1/\sqrt{m})$ as $m \downarrow 0$ \cite{Goel2019} We discuss hitting costs and switching costs of this shape in greater detail in \autoref{section:online_algorithms:md:descent_methods} on descent methods. \citeauthor*{Bansal2015} have shown that in the uni-dimensional setting the optimal competitive ratio that can be attained by a deterministic memoryless algorithm for SCO is 3 \cite{Bansal2015}.
 
@@ -94,15 +94,15 @@ We now want to examine the complexity of Int-SCO in the offline case. That is, w
 
 Given a set of items with an associated value and weight and an upper bound to the total weight, Knapsack is the problem of determining the number of copies of each item that maximizes the total value and conforms to the given upper bound on total weight. Formally we define Knapsack as follows.
 
-\begin{problem}[Knapsack (KP)]
+\begin{problem}[Knapsack (KP)]\index{knapsack}
 Given a number of items $n \in \mathbb{N}$, a value of each item $v \in \mathbb{N}^n$, a weight of each item $w \in \mathbb{N}^n$, and an upper bound to the total weight $W \in \mathbb{N}$, find $x \in \{0,1\}^n$ satisfying $\sum_{i = 1}^n w_i x_i \leq W$ and maximizing $\sum_{i=1}^n v_i x_i$.
 \end{problem}
 
-This variant of Knapsack is commonly called \textit{0-1 Knapsack} and restricts the number of copies of each item to be either 0 or 1. It is, however, easy to see that our proof can be generalized to a setting where we allow $x_i \in [m_i]_0$ for $m \in \mathbb{N}^n$. TODO et al. show that the Knapsack decision problem is NP-complete and that the Knapsack optimization problem is NP-hard.
+This variant of Knapsack is commonly called \textit{0-1 Knapsack}\index{0-1 knapsack} and restricts the number of copies of each item to be either 0 or 1. It is, however, easy to see that our proof can be generalized to a setting where we allow $x_i \in [m_i]_0$ for $m \in \mathbb{N}^n$. TODO et al. show that the Knapsack decision problem is NP-complete and that the Knapsack optimization problem is NP-hard.
 
 Before reducing to Int-SCO, we reduce Knapsack to a related problem called Minimum Knapsack.
 
-\begin{problem}[Minimum Knapsack (Min-KP)]
+\begin{problem}[Minimum Knapsack (Min-KP)]\index{minimum knapsack}
 Given a number of items $n \in \mathbb{N}$, a cost of each item $c \in \mathbb{N}^n$, a utility of each item $u \in \mathbb{N}^n$, and a lower bound to the total utility $U \in \mathbb{N}$, find $x \in \{0,1\}^n$ satisfying $\sum_{i = 1}^n u_i x_i \geq U$ and minimizing $\sum_{i=1}^n c_i x_i$.
 \end{problem}
 
@@ -202,7 +202,7 @@ We observe that the above reduction can be extended to Knapsack with arbitrary b
 
 In many applications, for example for right-sizing data centers where we are interested in determining the optimal number of servers to run at a particular time, it suffices to restrict $\mathcal{X}$ to $[m_0]_0 \times \dots \times [m_d]_0$ for some upper bound in each dimension $m \in \mathbb{N}^d$ and the switching cost $\norm{\cdot}$ to a Manhattan norm which is scaled in each dimension independently from time. To that end, we first define a restricted variant of (fractional) SCO which we term \textit{Simplified Smoothed Convex Optimization}.
 
-\begin{problem}[Simplified Smoothed Convex Optimization (SSCO)]\label{problem:simplified_smoothed_convex_optimization}
+\begin{problem}[Simplified Smoothed Convex Optimization (SSCO)]\index{simplified smoothed convex optimization}\label{problem:simplified_smoothed_convex_optimization}
 Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, and a sequence of non-negative convex functions $f_t$ for $t \in [T]$, find $x \in \mathbb{R}_{\geq 0, \leq m_0} \times \dots \times \mathbb{R}_{\geq 0, \leq m_d}$ minimizing \begin{align*}
     c_{SSCO}(x) = \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+
 \end{align*}
@@ -298,7 +298,7 @@ Given a sequence of convex increasing non-negative costs $g_{t,k}(l)$ of each "i
     f_t(x) := \min_{z \in \mathcal{Z}} \sum_{k=1}^d h_{t,k}(x_k,z_k).
 \end{align} Intuitively, the load profiles $\lambda_t$ are balanced across all dimensions so as to minimize cost. We also observe that the formulation of $f_t$ from \autoref{eq:sblo_hitting_cost} is equivalent to our formulation from \autoref{eq:heterogeneous_load_balancing}.
 
-\begin{problem}[Smoothed Balanced Load Optimization (SBLO)]\label{problem:sblo}
+\begin{problem}[Smoothed Balanced Load Optimization (SBLO)]\index{smoothed balanced load optimization}\label{problem:sblo}
 Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of load profiles $\lambda_t \in \mathbb{N}_0$, and a sequence of convex increasing non-negative functions $g_{t,k}$ for $t \in [T], k \in [d]$, find $x \in [m_0]_0 \times \dots \times [m_d]_0$ minimizing \begin{align*}
     c_{SBLO}(x) = \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+
 \end{align*}
@@ -311,7 +311,7 @@ In the online variant of SBLO (and in its variants), load profiles and convex co
 
 Lastly, we consider an even simpler problem proposed by \citeauthor*{Albers2021} where we assume that each instance is only able to handle a single job during each time slot \cite{Albers2021}. Instead of using convex functions to model cost, we assume that cost increases linearly and independently from time with the number of active servers. In addition we impose the constraint that the number of servers must still be enough to handle the incoming load. Without this restriction the optimal strategy would always be to not run any servers at all.
 
-\begin{problem}[Smoothed Load Optimization (SLO)]\label{problem:sblo}
+\begin{problem}[Smoothed Load Optimization (SLO)]\index{smoothed load optimization}\label{problem:sblo}
 Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of load profiles $\lambda_t \in \mathbb{N}_0$, and the non-negative operating costs $c_k \in \mathbb{R}_{\geq 0}$ for $k \in [d]$, find $x \in [m_0]_0 \times \dots \times [m_d]_0$ minimizing \begin{align*}
     c_{SLO}(x) = \sum_{t=1}^T \sum_{k=1}^d c_k x_{t,k} + \beta_k (x_{t,k} - x_{t-1,k})^+
 \end{align*}
