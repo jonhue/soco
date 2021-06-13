@@ -1,5 +1,6 @@
 //! Definition of schedules.
 
+use num::NumCast;
 use std::iter::FromIterator;
 use std::ops::Index;
 
@@ -61,6 +62,39 @@ where
     /// Immutably Extends schedule with a new final config.
     pub fn extend(&self, x: Config<T>) -> Schedule<T> {
         Schedule([&self.0[..], &[x]].concat())
+    }
+
+    /// Builds a schedule from a raw (flat) encoding `raw_xs` (used for convex optimization).
+    /// `d` is the number of dimensions, `w` is the length of the time window.
+    /// The length of `raw_xs` must therefore be `d * (w + 1)`.
+    pub fn from_raw(d: i32, w: i32, raw_xs: &[T]) -> Schedule<T> {
+        assert_eq!(
+            raw_xs.len() as i32,
+            d * (w + 1),
+            "length of raw encoding does not match expected length"
+        );
+
+        let mut xs = Schedule::empty();
+        for t in 0..=w as usize {
+            let i = d as usize * t;
+            let x = Config::new(raw_xs[i..i + d as usize].to_vec());
+            xs.push(x);
+        }
+        xs
+    }
+
+    /// Builds a raw (flat) encoding of a schedule (used for convex optimization) by stretching a config across the time window `w`.
+    pub fn build_raw(w: i32, x: &Config<T>) -> Vec<T> {
+        let l = (x.d() * (w + 1)) as usize;
+
+        let mut raw_xs = vec![NumCast::from(0).unwrap(); l];
+        for t in 0..=w as usize {
+            let i = x.d() as usize * t;
+            for k in 0..x.d() as usize {
+                raw_xs[i + k] = x[k];
+            }
+        }
+        raw_xs
     }
 }
 

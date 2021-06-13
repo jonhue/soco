@@ -17,7 +17,7 @@ pub fn find_minimizer_of_hitting_cost(
     find_minimizer(f, bounds)
 }
 
-/// Determines the minimizer of `f` at time `t` with bounds `bounds`
+/// Determines the minimizer of a convex function `f` with bounds `bounds`
 pub fn find_minimizer(
     f: impl Fn(FractionalConfig) -> f64,
     bounds: &Vec<(f64, f64)>,

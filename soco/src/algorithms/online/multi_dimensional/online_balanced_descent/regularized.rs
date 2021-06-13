@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use crate::algorithms::optimization::find_minimizer_of_hitting_cost;
+use crate::algorithms::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::online::{FractionalStep, Online, Step};

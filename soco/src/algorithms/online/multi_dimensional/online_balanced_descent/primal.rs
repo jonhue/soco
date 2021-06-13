@@ -1,10 +1,10 @@
 use bacon_sci::roots::bisection;
 
+use crate::algorithms::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
     meta::{obd, Options as MetaOptions},
     MAX_ITERATIONS, MAX_L_FACTOR,
 };
-use crate::algorithms::optimization::find_minimizer_of_hitting_cost;
 use crate::config::{Config, FractionalConfig};
 use crate::norm::NormFn;
 use crate::online::{FractionalStep, Online, Step};
