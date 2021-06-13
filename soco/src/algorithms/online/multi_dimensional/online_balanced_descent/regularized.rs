@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use crate::algorithms::optimization::find_minimizer;
+use crate::algorithms::optimization::find_minimizer_of_hitting_cost;
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::online::{FractionalStep, Online, Step};
@@ -39,7 +39,7 @@ pub fn robd(
         xs.now().clone()
     };
 
-    let v = find_minimizer(t, &o.p.hitting_cost, &o.p.bounds)?;
+    let v = find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?;
     let regularization_function: CostFn<'_, FractionalConfig> =
         Arc::new(|t, x| {
             Some(
@@ -49,7 +49,11 @@ pub fn robd(
                     + lambda_2 * (o.p.switching_cost)(x - v.clone()),
             )
         });
-    let x = find_minimizer(t, &regularization_function, &o.p.bounds)?;
+    let x = find_minimizer_of_hitting_cost(
+        t,
+        &regularization_function,
+        &o.p.bounds,
+    )?;
     Ok(Step(x, None))
 }
 
