@@ -13,7 +13,7 @@ We say that an algorithm is \textit{optimal}\index{optimal algorithm} with respe
 
 We begin by considering the offline case. In most cases, we seek to find optimal solutions to the offline problem. However, for some problems where the computational complexity of optimal solutions is high for large instances, it is beneficial to consider efficient algorithms that achieve close to optimal performance motivating the definition of approximation algorithms. Note that we limit our definitions of performance metrics to minimization problems.
 
-\begin{definition}\index{approximation algorithm}
+\begin{definition}\index{approximation ratio}
 An $\alpha$-approximation algorithm for a minimization problem $c$ is a polynomial time algorithm $ALG$ that for all instances of the problem produces a solution whose value is within a factor of $\alpha$ of the value of an optimal solution $OPT$, i.e. $c(ALG) \leq \alpha \cdot c(OPT)$. \cite{Williamson2011}.
 \end{definition}
 
@@ -23,7 +23,7 @@ In other words, an $\alpha$-approximation guarantees that its results are at mos
 
 For online algorithms it is natural to consider an adaptation of the idea of approximation algorithms. Here, we compare the result of an online algorithm with the optimal offline solution.
 
-\begin{definition}\index{competitive algorithm}
+\begin{definition}\index{competitive ratio}
 A $\rho(T)$-competitive online algorithm for a minimization problem $c$ is an algorithm $ALG$ that for all instances of the problem produces a solution whose value is within a factor of $\rho(T)$ of the value of an optimal offline solution $OPT$, i.e. $c(ALG) \leq \rho(T) \cdot c(OPT)$.
 \end{definition}
 
@@ -94,15 +94,15 @@ We now want to examine the complexity of Int-SCO in the offline case. That is, w
 
 Given a set of items with an associated value and weight and an upper bound to the total weight, Knapsack is the problem of determining the number of copies of each item that maximizes the total value and conforms to the given upper bound on total weight. Formally we define Knapsack as follows.
 
-\begin{problem}[Knapsack (KP)]\index{knapsack}
+\begin{problem}[Knapsack (KP)]\index{knapsack problem}
 Given a number of items $n \in \mathbb{N}$, a value of each item $v \in \mathbb{N}^n$, a weight of each item $w \in \mathbb{N}^n$, and an upper bound to the total weight $W \in \mathbb{N}$, find $x \in \{0,1\}^n$ satisfying $\sum_{i = 1}^n w_i x_i \leq W$ and maximizing $\sum_{i=1}^n v_i x_i$.
 \end{problem}
 
-This variant of Knapsack is commonly called \textit{0-1 Knapsack}\index{0-1 knapsack} and restricts the number of copies of each item to be either 0 or 1. It is, however, easy to see that our proof can be generalized to a setting where we allow $x_i \in [m_i]_0$ for $m \in \mathbb{N}^n$. TODO et al. show that the Knapsack decision problem is NP-complete and that the Knapsack optimization problem is NP-hard.
+This variant of Knapsack is commonly called \textit{0-1 Knapsack} and restricts the number of copies of each item to be either 0 or 1. It is, however, easy to see that our proof can be generalized to a setting where we allow $x_i \in [m_i]_0$ for $m \in \mathbb{N}^n$. TODO et al. show that the Knapsack decision problem is NP-complete and that the Knapsack optimization problem is NP-hard.
 
 Before reducing to Int-SCO, we reduce Knapsack to a related problem called Minimum Knapsack.
 
-\begin{problem}[Minimum Knapsack (Min-KP)]\index{minimum knapsack}
+\begin{problem}[Minimum Knapsack (Min-KP)]\index{minimum knapsack problem}
 Given a number of items $n \in \mathbb{N}$, a cost of each item $c \in \mathbb{N}^n$, a utility of each item $u \in \mathbb{N}^n$, and a lower bound to the total utility $U \in \mathbb{N}$, find $x \in \{0,1\}^n$ satisfying $\sum_{i = 1}^n u_i x_i \geq U$ and minimizing $\sum_{i=1}^n c_i x_i$.
 \end{problem}
 

@@ -78,12 +78,10 @@
     $\iota \in \mathbb{N}$ & number of data centers \\
     $\zeta \in \mathbb{N}$ & number of geographically centered request sources \\
     $\delta_{t,j,s} \in \mathbb{R}_{\geq 0}$ & network delay incurred by routing a request from source $s$ to data center $j$ during time slot $t$ \\
-    $I$ & set of energy sources (with a maximum quota) \\
-    $J \subseteq I$ & set of energy sources where excess energy can be sold \\
-    $S$ & set of energy sources with a (positive) minimum quota \\
-    $p_{t,j}^{(i)} \in \mathbb{R}_{\geq 0} \cup \{\infty\}$ & energy from source $i$ available at data center $j$ during time slot $t$ \\
+    $I$ & set of energy sources \\
+    $p_{t,i,j} \in \mathbb{R}_{\geq 0} \cup \{\infty\}$ & energy from source $i$ available at data center $j$ during time slot $t$ \\
     $u_{t,i} \in \mathbb{R}_{\geq 0}$ & average profit per unit of energy from source $i$ during time slot $t$ \\
-    $q_{t,i} \in \mathbb{R}_{\geq 0}$ & minimum quota for energy from source $i$ during time slot $t$ \\
+    $q_{t,i} \in [0,1]$ & minimum fraction for energy from source $i$ during time slot $t$ \\
     $\delta_{t,i,j} \in \mathbb{R}_{\geq 0}$ & remaining energy requirement of data center $j$ during time slot $t$ after all energy sources up to source $i$ were used \\
 \end{tabularx}
 
