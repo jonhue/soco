@@ -1,12 +1,98 @@
-\chapter*{Notation}\label{chapter:notation}
-\addcontentsline{toc}{chapter}{\nameref{chapter:notation}}
+\addchap[Notation]{Notation}\label{chapter:notation}
 
-\subsection*{Miscellaneous}
+\section*{Problems}
 
-\begin{tabular}{ll}
+\begin{tabularx}{\textwidth}{lX}
+    $T \in \mathbb{N}$ & number of time slots \\
+    $\delta \in \mathbb{R}_{\geq 0}$ & length of a time slot \\
+    $d \in \mathbb{N}$ & number of dimensions \\
+    $\mathcal{X} \subset \mathbb{R}^d$ & decision space \\
+    $m_k \in \mathbb{N}$ & upper bound of dimension $k$ \\
+    $f_t(x) \in \mathbb{R}_{\geq 0}$ & hitting cost of action $x \in \mathcal{X}$ during time slot $t$ \\
+    $\beta_k \in \mathbb{R}_{>0}$ & switching cost of dimension $k$ \\
+    $\lambda_t \in \mathbb{N}_0^e$ & load profile during time slot $t$ \\
+    $c_k \in \mathbb{R}_{\geq 0}$ & time-independent hitting cost of dimension $k$ \\
+\end{tabularx}
+
+\section*{Data Center Model}
+
+\subsection*{Dispatching}
+
+\begin{tabularx}{\textwidth}{lX}
+    $m_k \in \mathbb{N}$ & maximum number of servers of type $k$ \\
+    $l_k^{max} \in \mathbb{N}$ & maximum number of jobs a server of type $k$ can process in a single time slot \\
+    $s_k(l) \in [0,1]$ & utilization (or speed) of a server of type $k$ with load $l$ \\
+    $e \in \mathbb{N}$ & number of load types \\
+    $\lambda_{t,i} \in \mathbb{N}_0$ & number of jobs of type $i$ during time slot $t$ \\
+    $\lambda_t \in \mathbb{N}_0$ & total load during time slot $t$ \\
+    $\lambda^{max} \in \mathbb{N}$ & maximum total load of feasible load profiles \\
+    $\mathcal{Z}$ & set of job assignments of jobs of individual load types to server types \\
+    $z_{t,k,i} \in [0,1]$ & fraction of jobs of type $i$ assigned to servers of type $k$ during time slot $t$ \\
+    $l_{t,k,i} \in [0,\lambda^{max}]$ & (fractional) number of jobs of type $i$ assigned to servers of type $k$ during time slot $t$ \\
+    $l_{t,k} \in [0,\lambda^{max}]$ & (fractional) number of jobs assigned to servers of type $k$ during time slot $t$ \\
+    $g_{t,k}(l) \in \mathbb{R}_{\geq 0}$ & operating cost of a server of type $k$ during time slot $t$ when $l$ jobs are processed on the server \\
+    $q_{t,k,i}(l) \in \mathbb{R}_{\geq 0}$ & cost of processing a job of type $i$ on a server of type $k$ during time slot $t$ when $l$ jobs are processed on the server \\
+\end{tabularx}
+
+\vspace{\fill}
+
+\subsection*{Energy Cost}
+
+\begin{tabularx}{\textwidth}{lX}
+    $e_{t,k}(s) \in \mathbb{R}_{\geq 0}$ & energy cost of a server of type $k$ with utilization $s$ during time slot $t$ \\
+    $\nu_{t,k}(p) \in \mathbb{R}_{\geq 0}$ & energy cost of a server of type $k$ with energy consumption $p$ during time slot $t$ \\
+    $\phi_k(s) \in \mathbb{R}_{\geq 0}$ & energy consumption of a server of type $k$ with utilization $s$ \\
+    $\Phi_k(s) \in \mathbb{R}_{\geq 0}$ & power consumption of a server of type $k$ with utilization $s$ \\
+    $\Phi_k^{max} \in \mathbb{R}_{\geq 0}$ & power consumption of a server of type $k$ on full load \\
+    $\Phi_k^{min} \in \mathbb{R}_{\geq 0}$ & power consumption of an idling server of type $k$ \\
+    $c_{t,i} \in \mathbb{R}_{\geq 0}$ & energy cost of energy source $i$ per unit of energy during time slot $t$ \\
+\end{tabularx}
+
+\subsection*{Revenue Loss}
+
+\begin{tabularx}{\textwidth}{lX}
+    $\gamma \in \mathbb{R}_{\geq 0}$ & weight of revenue loss as opposed to energy cost \\
+    $p_{t,k,i} \in \mathbb{R}_{\geq 0}$ & penalty for processing a job of type $i$ on a server of type $k$ during time slot $t$ \\
+    $r_{t,i}(d) \in \mathbb{R}_{\geq 0}$ & revenue loss of jobs of type $i$ with an average delay $d$ during time slot $t$ \\
+    $d_{t,k,i}(l) \in \mathbb{R}_{\geq 0}$ & average delay of a job of type $i$ processed on a server of type $k$ during time slot $t$ where the total load on the server is $l$ \\
+    $\mu_k \in \mathbb{R}_{\geq 0}$ & service rate of a server of type $k$ \\
+    $\delta_i \in \mathbb{R}_{\geq 0}$ & minimal detectable delay of jobs of type $i$ \\
+    $\delta_{k,i} \in \mathbb{R}_{\geq 0}$ & processing time of a job of type $i$ on a server of type $k$ \\
+\end{tabularx}
+
+\subsection*{Switching Cost}
+
+\begin{tabularx}{\textwidth}{lX}
+    $\epsilon_k \in \mathbb{R}_{\geq 0}$ & additional energy consumed by toggling a server of type $k$ on and off \\
+    $\delta_k \in \mathbb{R}_{\geq 0}$ & delay in migrating connections or data of a server of type $k$ before it can be powered down \\
+    $\tau_k \in \mathbb{R}_{\geq 0}$ & wear-and-tear costs of toggling a server \\
+    $\rho_k \in \mathbb{R}_{\geq 0}$ & perceived risk associated with toggling a server of type $k$ \\
+    $\xi_k \in \mathbb{R}_{>0}$ & normalized switching cost measuring the minimum duration a server of type $k$ must be asleep to outweigh the switching cost \\
+\end{tabularx}
+
+\vspace{\fill}
+
+\subsection*{Networks}
+
+\begin{tabularx}{\textwidth}{lX}
+    $\iota \in \mathbb{N}$ & number of data centers \\
+    $\zeta \in \mathbb{N}$ & number of geographically centered request sources \\
+    $\delta_{t,j,s} \in \mathbb{R}_{\geq 0}$ & network delay incurred by routing a request from source $s$ to data center $j$ during time slot $t$ \\
+    $I$ & set of energy sources (with a maximum quota) \\
+    $J \subseteq I$ & set of energy sources where excess energy can be sold \\
+    $S$ & set of energy sources with a (positive) minimum quota \\
+    $p_{t,j}^{(i)} \in \mathbb{R}_{\geq 0} \cup \{\infty\}$ & energy from source $i$ available at data center $j$ during time slot $t$ \\
+    $u_{t,i} \in \mathbb{R}_{\geq 0}$ & average profit per unit of energy from source $i$ during time slot $t$ \\
+    $q_{t,i} \in \mathbb{R}_{\geq 0}$ & minimum quota for energy from source $i$ during time slot $t$ \\
+    $\delta_{t,i,j} \in \mathbb{R}_{\geq 0}$ & remaining energy requirement of data center $j$ during time slot $t$ after all energy sources up to source $i$ were used \\
+\end{tabularx}
+
+\section*{Miscellaneous}
+
+\begin{tabularx}{\textwidth}{lX}
     $[n] := \{1, \dots, n\}$ & range of natural numbers from $1$ to $n$ \\
     $[n]_0 := \{0\} \cup [n]$ & range of integers from $0$ to $n$ \\
     $(x)^+ := \max\{0, x\}$ & for $x \in \mathbb{R}$ \\
     $x_{min}$ & smallest entry of the vector $x$ \\
     $x_{max}$ & largest entry of the vector $x$ \\
-\end{tabular}
+\end{tabularx}
