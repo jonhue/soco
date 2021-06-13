@@ -43,11 +43,9 @@ fn next(
     t: i32,
     prev_xs: &FractionalSchedule,
 ) -> Result<FractionalConfig> {
-    let d = (o.p.d * (o.w + 1)) as usize;
-    let mut xs = vec![0.; d];
-
     let objective_function =
-        |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
+        |raw_xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
+            let xs = Schedule::from_raw(o.p.d, o.w, raw_xs);
             let prev_x = if prev_xs.t_end() - k > 0 {
                 prev_xs[(prev_xs.t_end() - k - 1) as usize].clone()
             } else {
@@ -55,17 +53,14 @@ fn next(
             };
             let p = o.p.reset(t - k);
 
-            p.objective_function_with_default(
-                &build_schedule(o.p.d, o.w, xs),
-                &prev_x,
-                false,
-            )
-            .unwrap()
+            p.objective_function_with_default(&xs, &prev_x, false)
+                .unwrap()
         };
+    let mut raw_xs = Schedule::build_raw(o.w, &Config::repeat(0., o.p.d));
 
     let mut opt = Nlopt::new(
         Algorithm::Bobyqa,
-        d,
+        raw_xs.len(),
         objective_function,
         Target::Minimize,
         (),
@@ -74,16 +69,6 @@ fn next(
     opt.set_upper_bound(o.p.bounds[0])?;
     opt.set_xtol_rel(PRECISION)?;
 
-    opt.optimize(&mut xs)?;
-    Ok(Config::new(xs[0..o.p.d as usize].to_vec()))
-}
-
-fn build_schedule(d: i32, w: i32, raw_xs: &[f64]) -> FractionalSchedule {
-    let mut xs = Schedule::empty();
-    for t in 0..=w as usize {
-        let i = d as usize * t;
-        let x = Config::new(raw_xs[i..i + d as usize].to_vec());
-        xs.push(x);
-    }
-    xs
+    opt.optimize(&mut raw_xs)?;
+    Ok(Config::new(raw_xs[0..o.p.d as usize].to_vec()))
 }

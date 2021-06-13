@@ -1,8 +1,8 @@
 //! Algorithms.
 
 mod capacity_provisioning;
+mod convex_optimization;
 mod graph_search;
-mod optimization;
 
 pub mod offline;
 pub mod online;

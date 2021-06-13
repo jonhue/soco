@@ -3,6 +3,7 @@
 | Name                                                                                                           | Variant | Multi-Dimensional? | Integral? | Online? | Approximation/Competitiveness* | Complexity** | Notes |
 | -------------------------------------------------------------------------------------------------------------- | ------- | ------------------ | --------- | ------- | ------------------------------ | ------------ | ----- |
 | [Backward-Recurrent Capacity Provisioning](offline/uni_dimensional/capacity_provisioning.rs) [1]               | 2       | ❌                 | ❌        | ❌      | optimal                        |              |
+| [Convex Optimization](offline/multi_dimensional/convex_optimization.rs) [*]                                    | 1       | ✅                 | ❌        | ❌      | optimal                        |              |
 | [Graph-Based Optimal Algorithm](offline/uni_dimensional/optimal_graph_search.rs) [5]                           | 2       | ❌                 | ✅        | ❌      | optimal                        | O(T log m)   |
 | [Graph-Based Optimal Algorithm](offline/multi_dimensional/optimal_graph_search.rs) [9]                         | 2       | ✅                 | ✅        | ❌      | optimal                        |              |
 | [Graph-Based Approximation Algorithm](offline/multi_dimensional/approx_graph_search.rs) [9]                    | 2       | ✅                 | ✅        | ❌      | (2𝛾 - 1)-approximation         |              | 𝛾 > 0 |
