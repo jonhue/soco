@@ -1,7 +1,5 @@
 //! Objective function.
 
-use num::{NumCast, ToPrimitive};
-
 use crate::config::Config;
 use crate::problem::{
     SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
@@ -11,6 +9,7 @@ use crate::result::{Error, Result};
 use crate::schedule::Schedule;
 use crate::utils::pos;
 use crate::value::Value;
+use num::{NumCast, ToPrimitive};
 
 pub trait Objective<T>
 where

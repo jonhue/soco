@@ -1,6 +1,3 @@
-use finitediff::FiniteDiff;
-use nlopt::{Algorithm, Nlopt, Target};
-
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::norm::NormFn;
@@ -10,6 +7,8 @@ use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::PRECISION;
+use finitediff::FiniteDiff;
+use nlopt::{Algorithm, Nlopt, Target};
 
 pub struct Options<'a> {
     /// Determines the l-level set used in each step by the algorithm.

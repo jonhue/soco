@@ -1,6 +1,5 @@
 mod lcp {
     use std::sync::Arc;
-
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::fractional::{Options, lcp};
     use soco::convert::DiscretizableSchedule;
     use soco::online::Online;

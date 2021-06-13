@@ -1,8 +1,3 @@
-use num::ToPrimitive;
-use ordered_float::OrderedFloat;
-use pathfinding::prelude::astar;
-use std::collections::HashMap;
-
 use crate::algorithms::graph_search::{Path, Paths};
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
@@ -10,6 +5,10 @@ use crate::objective::scalar_movement;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::Schedule;
+use num::ToPrimitive;
+use ordered_float::OrderedFloat;
+use pathfinding::prelude::astar;
+use std::collections::HashMap;
 
 /// Vertice in the graph denoting time `t` and the value `x` at time `t`.
 /// The boolean flag indicates whether the vertice belongs to the powering up (`true`) or powering down (`false`) phase.

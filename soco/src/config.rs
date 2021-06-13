@@ -1,5 +1,7 @@
 //! Definition of configurations.
 
+use crate::value::Value;
+use crate::vec_wrapper::VecWrapper;
 use std::iter::FromIterator;
 use std::ops::Add;
 use std::ops::Div;
@@ -7,9 +9,6 @@ use std::ops::Index;
 use std::ops::IndexMut;
 use std::ops::Mul;
 use std::ops::Sub;
-
-use crate::value::Value;
-use crate::vec_wrapper::VecWrapper;
 
 /// For some time `t`, assigns each dimension `d` a unique value.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

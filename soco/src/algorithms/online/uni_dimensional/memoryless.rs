@@ -1,5 +1,3 @@
-use nlopt::{Algorithm, Nlopt, Target};
-
 use crate::config::Config;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
@@ -7,6 +5,7 @@ use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::PRECISION;
+use nlopt::{Algorithm, Nlopt, Target};
 
 /// Memoryless Algorithm. Special case of Primal Online Balanced Descent.
 pub fn memoryless(

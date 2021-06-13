@@ -1,10 +1,9 @@
 //! Utilities.
 
-use num::NumCast;
-use rand::{thread_rng, Rng};
-
 use crate::result::{Error, Result};
 use crate::value::Value;
+use num::NumCast;
+use rand::{thread_rng, Rng};
 
 /// Safely asserts `pred`.
 pub fn assert(pred: bool, error: Error) -> Result<()> {

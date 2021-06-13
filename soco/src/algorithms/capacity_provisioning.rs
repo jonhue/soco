@@ -1,5 +1,3 @@
-use nlopt::{Algorithm, Nlopt, ObjFn, Target};
-
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
     approx_graph_search, Options as ApproxOptions,
@@ -18,6 +16,7 @@ use crate::problem::{
 use crate::result::{Error, Result};
 use crate::utils::{assert, is_pow_of_2};
 use crate::PRECISION;
+use nlopt::{Algorithm, Nlopt, ObjFn, Target};
 
 pub trait Bounded<T> {
     /// Computes the number of servers at time `t` starting from `t_start` simulating up to time `t_end` resulting in the lowest possible cost.

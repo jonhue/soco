@@ -1,5 +1,3 @@
-use nlopt::{Algorithm, Nlopt, Target};
-
 use crate::config::{Config, FractionalConfig};
 use crate::convert::ResettableProblem;
 use crate::objective::Objective;
@@ -8,6 +6,7 @@ use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 use crate::schedule::{FractionalSchedule, Schedule};
 use crate::PRECISION;
+use nlopt::{Algorithm, Nlopt, Target};
 
 /// Receding Horizon Control
 pub fn rhc(

@@ -1,14 +1,13 @@
 //! Norms.
 
-use nalgebra::{DMatrix, DVector, RealField};
-use nlopt::{Algorithm, Nlopt, Target};
-use num::ToPrimitive;
-use std::sync::Arc;
-
 use crate::config::{Config, FractionalConfig};
 use crate::result::{Error, Result};
 use crate::value::Value;
 use crate::PRECISION;
+use nalgebra::{DMatrix, DVector, RealField};
+use nlopt::{Algorithm, Nlopt, Target};
+use num::ToPrimitive;
+use std::sync::Arc;
 
 /// Norm function.
 pub type NormFn<'a, T> = Arc<dyn Fn(T) -> f64 + 'a>;

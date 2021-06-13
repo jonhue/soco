@@ -1,11 +1,10 @@
 //! Definition of loads.
 
+use crate::vec_wrapper::VecWrapper;
 use std::iter::FromIterator;
 use std::ops::Div;
 use std::ops::Index;
 use std::ops::Mul;
-
-use crate::vec_wrapper::VecWrapper;
 
 /// For some time `t`, encapsulates the load of `e` types.
 #[derive(Clone, Debug, PartialEq)]

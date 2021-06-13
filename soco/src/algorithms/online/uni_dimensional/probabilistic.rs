@@ -1,8 +1,3 @@
-use bacon_sci::differentiate::second_derivative;
-use bacon_sci::integrate::integrate;
-use nlopt::{Algorithm, Nlopt, Target};
-use std::sync::Arc;
-
 use crate::algorithms::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::config::Config;
 use crate::online::{FractionalStep, Online, Step};
@@ -11,6 +6,10 @@ use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::PRECISION;
+use bacon_sci::differentiate::second_derivative;
+use bacon_sci::integrate::integrate;
+use nlopt::{Algorithm, Nlopt, Target};
+use std::sync::Arc;
 
 /// Probability distribution over the number of servers.
 pub type Memory<'a> = Arc<dyn Fn(f64) -> f64 + 'a>;

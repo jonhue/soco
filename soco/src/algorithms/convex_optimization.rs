@@ -1,11 +1,10 @@
 //! Optimization utils.
 
-use nlopt::{Algorithm, Nlopt, Target};
-
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::result::Result;
 use crate::PRECISION;
+use nlopt::{Algorithm, Nlopt, Target};
 
 /// Determines the minimizer of `hitting_cost` at time `t` with bounds `bounds`
 pub fn find_minimizer_of_hitting_cost(

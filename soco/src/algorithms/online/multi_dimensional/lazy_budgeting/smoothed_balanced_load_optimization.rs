@@ -1,6 +1,3 @@
-use ordered_float::OrderedFloat;
-use std::sync::Arc;
-
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
     approx_graph_search, Options as ApproxOptions,
@@ -16,6 +13,8 @@ use crate::problem::{
 use crate::result::{Error, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::assert;
+use ordered_float::OrderedFloat;
+use std::sync::Arc;
 
 static DEFAULT_EPSILON: f64 = 0.25;
 

@@ -1,5 +1,3 @@
-use nlopt::{Algorithm, Nlopt, Target};
-
 use crate::config::{Config, FractionalConfig};
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
@@ -7,6 +5,7 @@ use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, sample_uniform};
 use crate::PRECISION;
+use nlopt::{Algorithm, Nlopt, Target};
 
 static DEFAULT_THETA: f64 = 1.;
 

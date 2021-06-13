@@ -1,8 +1,5 @@
 //! Functions to check that values satisfy the imposed constraints.
 
-use num::NumCast;
-use std::fmt::Debug;
-
 use crate::config::Config;
 use crate::cost::CostFn;
 use crate::online::Online;
@@ -15,6 +12,8 @@ use crate::schedule::Schedule;
 use crate::utils::assert;
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
+use num::NumCast;
+use std::fmt::Debug;
 
 pub trait VerifiableCostFn<'a, T> {
     fn verify(&self, t: i32, x: T) -> Result<()>;

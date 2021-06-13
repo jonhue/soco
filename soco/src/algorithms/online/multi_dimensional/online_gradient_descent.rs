@@ -1,6 +1,3 @@
-use finitediff::FiniteDiff;
-use std::sync::Arc;
-
 use crate::algorithms::convex_optimization::find_minimizer;
 use crate::config::{Config, FractionalConfig};
 use crate::norm::euclidean;
@@ -9,6 +6,8 @@ use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
+use finitediff::FiniteDiff;
+use std::sync::Arc;
 
 pub struct Options<'a> {
     /// Learning rates in each time step.

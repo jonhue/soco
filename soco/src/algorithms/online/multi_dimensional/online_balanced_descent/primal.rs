@@ -1,5 +1,3 @@
-use bacon_sci::roots::bisection;
-
 use crate::algorithms::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
     meta::{obd, Options as MetaOptions},
@@ -13,6 +11,7 @@ use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::PRECISION;
+use bacon_sci::roots::bisection;
 
 pub struct Options<'a> {
     /// The movement cost is at most `beta` times the hitting cost. `beta > 0`.

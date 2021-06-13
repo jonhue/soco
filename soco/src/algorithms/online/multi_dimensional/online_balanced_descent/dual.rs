@@ -1,6 +1,3 @@
-use bacon_sci::roots::bisection;
-use finitediff::FiniteDiff;
-
 use crate::algorithms::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
     meta::{obd, Options as MetaOptions},
@@ -15,6 +12,8 @@ use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::PRECISION;
+use bacon_sci::roots::bisection;
+use finitediff::FiniteDiff;
 
 pub struct Options<'a> {
     /// Balance parameter. `eta > 0`.

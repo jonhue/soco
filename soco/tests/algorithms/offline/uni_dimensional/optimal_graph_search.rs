@@ -1,12 +1,11 @@
 #![allow(clippy::float_cmp)]
 
 mod make_pow_of_2 {
-    use std::sync::Arc;
-
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::make_pow_of_2;
     use soco::config::Config;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::verifiers::VerifiableProblem;
+    use std::sync::Arc;
 
     #[test]
     fn _1() {
@@ -46,8 +45,6 @@ mod make_pow_of_2 {
 mod optimal_graph_search {
     use rand::prelude::*;
     use rand_pcg::Pcg64;
-    use std::sync::Arc;
-
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::{
         make_pow_of_2, optimal_graph_search, Options,
     };
@@ -56,6 +53,7 @@ mod optimal_graph_search {
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
+    use std::sync::Arc;
 
     #[test]
     fn _1() {

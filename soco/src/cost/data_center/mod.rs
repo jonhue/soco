@@ -1,14 +1,13 @@
 //! Utilities to build cost functions for right-sizing data centers.
 
-use nlopt::{Algorithm, Nlopt, Target};
-use num::ToPrimitive;
-use std::sync::Arc;
-
 use crate::config::Config;
 use crate::cost::{CostFn, SingleCostFn};
 use crate::utils::access;
 use crate::value::Value;
 use crate::PRECISION;
+use nlopt::{Algorithm, Nlopt, Target};
+use num::ToPrimitive;
+use std::sync::Arc;
 
 use load::Load;
 

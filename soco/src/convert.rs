@@ -1,8 +1,5 @@
 //! Functions to convert between problem instances.
 
-use num::{NumCast, ToPrimitive};
-use std::sync::Arc;
-
 use crate::config::{Config, FractionalConfig, IntegralConfig};
 use crate::cost::data_center::load::Load;
 use crate::cost::data_center::{apply_loads, load_balance};
@@ -18,6 +15,8 @@ use crate::problem::{
 use crate::schedule::{FractionalSchedule, IntegralSchedule};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
+use num::{NumCast, ToPrimitive};
+use std::sync::Arc;
 
 pub trait DiscretizableVector {
     /// Ceil all elements of a vector.

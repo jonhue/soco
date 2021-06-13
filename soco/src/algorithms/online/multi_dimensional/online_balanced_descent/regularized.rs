@@ -1,7 +1,5 @@
 #![allow(clippy::float_cmp)]
 
-use std::sync::Arc;
-
 use crate::algorithms::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
@@ -10,6 +8,7 @@ use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
+use std::sync::Arc;
 
 pub struct Options {
     /// Convexity parameter. Chosen such that `f_t(x) \geq f_t(v_t) + \frac{m}{2} \norm{x - v_t}_2^2` where `v_t` is the minimizer of `f_t`.

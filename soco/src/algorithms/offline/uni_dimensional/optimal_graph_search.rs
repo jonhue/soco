@@ -1,7 +1,3 @@
-use num::ToPrimitive;
-use std::collections::HashMap;
-use std::sync::Arc;
-
 use crate::algorithms::graph_search::{Path, Paths};
 use crate::config::{Config, IntegralConfig};
 use crate::objective::scalar_movement;
@@ -12,6 +8,9 @@ use crate::problem::{
 use crate::result::{Error, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::{assert, is_pow_of_2};
+use num::ToPrimitive;
+use std::collections::HashMap;
+use std::sync::Arc;
 
 /// Vertice in the graph denoting time `t` and the value `j` at time `t`.
 #[derive(Eq, Hash, PartialEq)]

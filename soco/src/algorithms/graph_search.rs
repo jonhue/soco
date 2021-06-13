@@ -1,6 +1,5 @@
-use std::collections::HashMap;
-
 use crate::schedule::IntegralSchedule;
+use std::collections::HashMap;
 
 /// The minimal cost from some initial vertice alongside the shortest path to the final vertice.
 #[derive(Clone, Debug, PartialEq)]

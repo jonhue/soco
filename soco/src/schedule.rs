@@ -1,13 +1,12 @@
 //! Definition of schedules.
 
-use num::NumCast;
-use std::iter::FromIterator;
-use std::ops::Index;
-
 use crate::config::Config;
 use crate::utils::access;
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
+use num::NumCast;
+use std::iter::FromIterator;
+use std::ops::Index;
 
 /// Includes all configurations from time `1` to time `t_end`.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]

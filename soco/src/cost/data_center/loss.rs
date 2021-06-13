@@ -3,12 +3,11 @@
 //! This module contains a number of models with varying complexity and the
 //! building blocks they are made up of.
 
-use num::ToPrimitive;
-use std::sync::Arc;
-
 use crate::cost::data_center::{load_balance, LoadCostFn};
 use crate::utils::pos;
 use crate::value::Value;
+use num::ToPrimitive;
+use std::sync::Arc;
 
 /// Multiplicative energy loss. Returns the power consumed by a server as a
 /// function of load `l` according to the formula `l^a + b` where `l^a` models

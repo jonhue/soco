@@ -1,6 +1,5 @@
 mod lcp {
     use std::sync::Arc;
-
     use soco::algorithms::offline::multi_dimensional::approx_graph_search::{Options as ApproxOptions};
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::integral::{Options, lcp};
     use soco::online::Online;

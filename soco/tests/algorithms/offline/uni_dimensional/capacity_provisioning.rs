@@ -1,14 +1,13 @@
 #![allow(clippy::float_cmp)]
 
 mod bcp {
-    use std::sync::Arc;
-
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::bcp;
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
+    use std::sync::Arc;
 
     #[test]
     fn _1() {
