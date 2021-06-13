@@ -1,6 +1,6 @@
 use crate::norm::NormFn;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::meta::{obd, Options as MetaOptions};
-use crate::algorithms::optimization::find_minimizer;
+use crate::algorithms::optimization::find_minimizer_of_hitting_cost;
 use crate::config::FractionalConfig;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
@@ -36,7 +36,7 @@ pub fn gobd(
 
     let t = xs.t_end() + 1;
 
-    let v = find_minimizer(t, &o.p.hitting_cost, &o.p.bounds)?;
+    let v = find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?;
     let Step(y, _) = obd(
         o,
         xs,

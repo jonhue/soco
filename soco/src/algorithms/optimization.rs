@@ -7,19 +7,27 @@ use crate::cost::CostFn;
 use crate::result::Result;
 use crate::PRECISION;
 
+/// Determines the minimizer of `hitting_cost` at time `t` with bounds `bounds`
+pub fn find_minimizer_of_hitting_cost(
+    t: i32,
+    hitting_cost: &CostFn<'_, FractionalConfig>,
+    bounds: &Vec<(f64, f64)>,
+) -> Result<FractionalConfig> {
+    let f = |x: FractionalConfig| hitting_cost(t, x).unwrap();
+    find_minimizer(f, bounds)
+}
+
 /// Determines the minimizer of `f` at time `t` with bounds `bounds`
 pub fn find_minimizer(
-    t: i32,
-    f: &CostFn<'_, FractionalConfig>,
+    f: impl Fn(FractionalConfig) -> f64,
     bounds: &Vec<(f64, f64)>,
 ) -> Result<FractionalConfig> {
     let d = bounds.len();
     let (lower, upper): (Vec<_>, Vec<_>) = bounds.iter().cloned().unzip();
 
-    let objective_function =
-        |x: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            f(t, Config::new(x.to_vec())).unwrap()
-        };
+    let objective_function = |x: &[f64], _: Option<&mut [f64]>, _: &mut ()| {
+        f(Config::new(x.to_vec()))
+    };
     let mut x = lower.clone();
 
     let mut opt = Nlopt::new(

@@ -3,7 +3,7 @@ use bacon_sci::integrate::integrate;
 use nlopt::{Algorithm, Nlopt, Target};
 use std::sync::Arc;
 
-use crate::algorithms::optimization::find_minimizer;
+use crate::algorithms::optimization::find_minimizer_of_hitting_cost;
 use crate::config::Config;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
@@ -32,8 +32,11 @@ pub fn probabilistic<'a>(
         ps[ps.len() - 1].clone()
     };
 
-    let x_m =
-        find_minimizer(t, &o.p.hitting_cost, &vec![(0., o.p.bounds[0])])?[0];
+    let x_m = find_minimizer_of_hitting_cost(
+        t,
+        &o.p.hitting_cost,
+        &vec![(0., o.p.bounds[0])],
+    )?[0];
     let x_r = find_right_bound(o, t, &prev_p, x_m)?;
     let x_l = find_left_bound(o, t, &prev_p, x_m)?;
 
