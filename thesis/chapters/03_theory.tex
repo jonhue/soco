@@ -293,31 +293,31 @@ Given a sequence of convex increasing non-negative costs $g_{t,k}(l)$ of each "i
         \infty                                  & x = 0 \land l_{t,k} > 0 \\
         0                                       & x = 0 \land l_{t,k} = 0
     \end{cases}
-\end{align*} where $l_{t,k} = \lambda_t z$ for some sequence of loads $\lambda_t \in \mathbb{N}_0$. Here, $x$ is the position in the decision space in dimension $k$, and $z \in [0,1]$ is the fraction of the load $\lambda_t$ that is "assigned" to dimension $k$ \cite{Albers2021_2}. Given the set of all possible assignments to $d$ dimensions $\mathcal{Z} := \{z \in [0,1]^d \mid \sum_{k=1}^d z_k = 1\}$, the overall hitting cost is defined as the convex optimization \begin{align}
+\end{align*} where $l_{t,k} = \lambda_t z$ for some sequence of load profiles $\lambda_t \in \mathbb{N}_0$. Here, $x$ is the position in the decision space in dimension $k$, and $z \in [0,1]$ is the fraction of the load $\lambda_t$ that is "assigned" to dimension $k$ \cite{Albers2021_2}. Given the set of all possible assignments to $d$ dimensions $\mathcal{Z} := \{z \in [0,1]^d \mid \sum_{k=1}^d z_k = 1\}$, the overall hitting cost is defined as the convex optimization \begin{align}
 \label{eq:sblo_hitting_cost}
     f_t(x) := \min_{z \in \mathcal{Z}} \sum_{k=1}^d h_{t,k}(x_k,z_k).
-\end{align} Intuitively, the loads $\lambda_t$ are balanced across all dimensions so as to minimize cost. We also observe that the formulation of $f_t$ from \autoref{eq:sblo_hitting_cost} is equivalent to our formulation from \autoref{eq:heterogeneous_load_balancing}.
+\end{align} Intuitively, the load profiles $\lambda_t$ are balanced across all dimensions so as to minimize cost. We also observe that the formulation of $f_t$ from \autoref{eq:sblo_hitting_cost} is equivalent to our formulation from \autoref{eq:heterogeneous_load_balancing}.
 
 \begin{problem}[Smoothed Balanced Load Optimization (SBLO)]\label{problem:sblo}
-Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of loads $\lambda_t \in \mathbb{N}_0$, and a sequence of convex increasing non-negative functions $g_{t,k}$ for $t \in [T], k \in [d]$, find $x \in [m_0]_0 \times \dots \times [m_d]_0$ minimizing \begin{align*}
+Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of load profiles $\lambda_t \in \mathbb{N}_0$, and a sequence of convex increasing non-negative functions $g_{t,k}$ for $t \in [T], k \in [d]$, find $x \in [m_0]_0 \times \dots \times [m_d]_0$ minimizing \begin{align*}
     c_{SBLO}(x) = \sum_{t=1}^T f_t(x_t) + \sum_{k=1}^d \beta_k (x_{t,k} - x_{t-1,k})^+
 \end{align*}
 where $x_0 = \mathbf{0}$ and $f_t$ is given by \autoref{eq:sblo_hitting_cost}.
 \end{problem}
 
-It is easy to see that any instance of SBLO is in fact an instance of Int-SSCO.
+In the online variant of SBLO (and in its variants), load profiles and convex cost functions arrive over time. It is easy to see that any instance of SBLO is in fact an instance of Int-SSCO.
 
 \subsection{Smoothed Load Optimization}
 
 Lastly, we consider an even simpler problem proposed by \citeauthor*{Albers2021} where we assume that each instance is only able to handle a single job during each time slot \cite{Albers2021}. Instead of using convex functions to model cost, we assume that cost increases linearly and independently from time with the number of active servers. In addition we impose the constraint that the number of servers must still be enough to handle the incoming load. Without this restriction the optimal strategy would always be to not run any servers at all.
 
 \begin{problem}[Smoothed Load Optimization (SLO)]\label{problem:sblo}
-Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of loads $\lambda_t \in \mathbb{N}_0$, and the non-negative operating costs $l_k \in \mathbb{R}_{\geq 0}$ for $k \in [d]$, find $x \in [m_0]_0 \times \dots \times [m_d]_0$ minimizing \begin{align*}
-    c_{SLO}(x) = \sum_{t=1}^T \sum_{k=1}^d l_k x_{t,k} + \beta_k (x_{t,k} - x_{t-1,k})^+
+Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of load profiles $\lambda_t \in \mathbb{N}_0$, and the non-negative operating costs $c_k \in \mathbb{R}_{\geq 0}$ for $k \in [d]$, find $x \in [m_0]_0 \times \dots \times [m_d]_0$ minimizing \begin{align*}
+    c_{SLO}(x) = \sum_{t=1}^T \sum_{k=1}^d c_k x_{t,k} + \beta_k (x_{t,k} - x_{t-1,k})^+
 \end{align*}
 where $x_0 = \mathbf{0}$ and $f_t$ is given by \autoref{eq:sblo_hitting_cost}.
 \end{problem}
 
-In contrast to our definition of SBLO, SLO balances the load implicitly among all active servers which is possible because we assume that each active server can only handle a single job during one time slot. Again, it is easy to see that SLO is an instance of SBLO by setting $g_{t,k}(l) := l_k l$.
+In contrast to our definition of SBLO, SLO balances the load implicitly among all active servers which is possible because we assume that each active server can only handle a single job during one time slot. Again, it is easy to see that SLO is an instance of SBLO by setting $g_{t,k}(l) := c_k l$.
 
 \citeauthor*{Albers2021} show that an online algorithm for SLO cannot attain a competitive ratio smaller than $2d$ \cite{Albers2021}.
