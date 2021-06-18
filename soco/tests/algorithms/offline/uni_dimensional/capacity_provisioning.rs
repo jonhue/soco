@@ -1,7 +1,7 @@
 #![allow(clippy::float_cmp)]
 
 mod bcp {
-    use soco::algorithms::offline::uni_dimensional::capacity_provisioning::bcp;
+    use soco::algorithms::offline::uni_dimensional::capacity_provisioning::brcp;
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
@@ -22,7 +22,7 @@ mod bcp {
         };
         p.verify().unwrap();
 
-        let result = bcp(&p).unwrap();
+        let result = brcp(&p).unwrap();
         result.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(

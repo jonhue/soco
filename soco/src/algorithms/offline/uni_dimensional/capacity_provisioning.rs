@@ -6,7 +6,7 @@ use crate::schedule::{FractionalSchedule, Schedule};
 use crate::utils::{assert, project};
 
 /// Backward-Recurrent Capacity Provisioning
-pub fn bcp(
+pub fn brcp(
     p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
 ) -> Result<FractionalSchedule> {
     assert(p.d == 1, Error::UnsupportedProblemDimension)?;
