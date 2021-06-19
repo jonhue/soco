@@ -15,7 +15,6 @@ use crate::problem::{
     IntegralSimplifiedSmoothedConvexOptimization,
 };
 use crate::result::{Error, Result};
-use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, is_pow_of_2};
 
 pub trait Bounded<T> {
@@ -55,13 +54,13 @@ impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
             ),
         )?;
 
-        let f = |xs: &[f64]| -> f64 {
+        let objective = |xs: &[f64]| -> f64 {
             self.objective_function(
                 &xs.iter().map(|&x| Config::single(x)).collect(),
             )
             .unwrap()
         };
-        self.find_bound(f, t, t_start)
+        self.find_bound(objective, t, t_start)
     }
 
     fn find_upper_bound(
@@ -78,20 +77,20 @@ impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
             ),
         )?;
 
-        let f = |xs: &[f64]| -> f64 {
+        let objective = |xs: &[f64]| -> f64 {
             self.inverted_objective_function(
                 &xs.iter().map(|&x| Config::single(x)).collect(),
             )
             .unwrap()
         };
-        self.find_bound(f, t, t_start)
+        self.find_bound(objective, t, t_start)
     }
 }
 
 impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
     fn find_bound(
         &self,
-        f: impl Fn(&[f64]) -> f64,
+        objective: impl Fn(&[f64]) -> f64,
         t: i32,
         t_start: i32,
     ) -> Result<f64> {
@@ -102,12 +101,9 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
             return Ok(0.);
         }
 
-        let bounds = vec![
-            (0., self.bounds[0]);
-            FractionalSchedule::raw_encoding_len(1, self.t_end - t_start)
-                as usize
-        ];
-        let (xs, _) = find_minimizer(f, &bounds)?;
+        let bounds =
+            vec![(0., self.bounds[0]); (self.t_end - t_start) as usize];
+        let (xs, _) = find_minimizer(objective, &bounds)?;
         Ok(xs[(t - t_start) as usize - 1])
     }
 }
