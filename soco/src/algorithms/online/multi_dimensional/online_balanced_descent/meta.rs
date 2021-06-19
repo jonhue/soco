@@ -1,4 +1,5 @@
 use crate::config::{Config, FractionalConfig};
+use crate::convex_optimization::find_unbounded_minimizer;
 use crate::cost::CostFn;
 use crate::norm::NormFn;
 use crate::online::{FractionalStep, Online, Step};
@@ -6,9 +7,8 @@ use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
-use crate::PRECISION;
 use finitediff::FiniteDiff;
-use nlopt::{Algorithm, Nlopt, Target};
+use std::sync::Arc;
 
 pub struct Options<'a> {
     /// Determines the l-level set used in each step by the algorithm.
@@ -50,31 +50,15 @@ fn bregman_projection(
     l: f64,
     x: &FractionalConfig,
 ) -> Result<FractionalConfig> {
-    let d = x.d() as usize;
-    let objective_function =
-        |y: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            bregman_divergence(mirror_map, Config::new(y.to_vec()), x.clone())
-        };
-    let mut y = vec![0.; d];
-    let mut opt = Nlopt::new(
-        Algorithm::Bobyqa,
-        d,
-        objective_function,
-        Target::Minimize,
-        (),
-    );
-    opt.set_xtol_rel(PRECISION)?;
-
+    let g = |y: &[f64]| -> f64 {
+        bregman_divergence(mirror_map, Config::new(y.to_vec()), x.clone())
+    };
     // `l`-sublevel set of `f`
-    opt.add_inequality_constraint(
-        |y: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            f(t, Config::new(y.to_vec())).unwrap() - l
-        },
-        (),
-        PRECISION,
-    )?;
+    let h = Arc::new(|y: &[f64]| -> f64 {
+        f(t, Config::new(y.to_vec())).unwrap() - l
+    });
 
-    opt.optimize(&mut y)?;
+    let (y, _) = find_unbounded_minimizer(g, x.d(), vec![h], vec![])?;
     Ok(Config::new(y))
 }
 

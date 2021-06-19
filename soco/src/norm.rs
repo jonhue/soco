@@ -1,11 +1,10 @@
 //! Norms.
 
 use crate::config::{Config, FractionalConfig};
+use crate::convex_optimization::find_unbounded_minimizer;
 use crate::result::{Error, Result};
 use crate::value::Value;
-use crate::PRECISION;
 use nalgebra::{DMatrix, DVector, RealField};
-use nlopt::{Algorithm, Nlopt, Target};
 use num::ToPrimitive;
 use std::sync::Arc;
 
@@ -83,31 +82,9 @@ pub fn dual(
     norm: &NormFn<'_, FractionalConfig>,
     x: FractionalConfig,
 ) -> Result<f64> {
-    let d = x.d() as usize;
+    let f = |z: &[f64]| -> f64 { Config::new(z.to_vec()) * x.clone() };
+    let g = Arc::new(|z: &[f64]| -> f64 { norm(Config::new(z.to_vec())) - 1. });
 
-    let objective_function =
-        |z: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            Config::new(z.to_vec()) * x.clone()
-        };
-    let mut z = vec![0.; d];
-
-    let mut opt = Nlopt::new(
-        Algorithm::Bobyqa,
-        d,
-        objective_function,
-        Target::Maximize,
-        (),
-    );
-    opt.set_xtol_rel(PRECISION)?;
-
-    opt.add_inequality_constraint(
-        |z: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            norm(Config::new(z.to_vec())) - 1.
-        },
-        (),
-        PRECISION,
-    )?;
-
-    opt.optimize(&mut z)?;
-    Ok(Config::new(z.to_vec()) * x.clone())
+    let (z, _) = find_unbounded_minimizer(f, x.d(), vec![g], vec![])?;
+    Ok(Config::new(z) * x.clone())
 }

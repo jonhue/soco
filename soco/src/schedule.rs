@@ -69,7 +69,7 @@ where
     pub fn from_raw(d: i32, w: i32, raw_xs: &[T]) -> Schedule<T> {
         assert_eq!(
             raw_xs.len() as i32,
-            d * (w + 1),
+            Schedule::<T>::raw_encoding_len(d, w),
             "length of raw encoding does not match expected length"
         );
 
@@ -84,7 +84,7 @@ where
 
     /// Builds a raw (flat) encoding of a schedule (used for convex optimization) by stretching a config across the time window `w`.
     pub fn build_raw(w: i32, x: &Config<T>) -> Vec<T> {
-        let l = (x.d() * (w + 1)) as usize;
+        let l = Schedule::<T>::raw_encoding_len(x.d(), w) as usize;
 
         let mut raw_xs = vec![NumCast::from(0).unwrap(); l];
         for t in 0..=w as usize {
@@ -94,6 +94,11 @@ where
             }
         }
         raw_xs
+    }
+
+    /// Returns the length of the raw encoding of `d` dimensions across time window `w`.
+    pub fn raw_encoding_len(d: i32, w: i32) -> i32 {
+        d * (w + 1)
     }
 }
 

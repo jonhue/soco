@@ -1,12 +1,11 @@
 use crate::config::{Config, FractionalConfig};
 use crate::convert::ResettableProblem;
+use crate::convex_optimization::find_minimizer;
 use crate::objective::Objective;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 use crate::schedule::{FractionalSchedule, Schedule};
-use crate::PRECISION;
-use nlopt::{Algorithm, Nlopt, Target};
 
 /// Receding Horizon Control
 pub fn rhc(
@@ -42,32 +41,23 @@ fn next(
     t: i32,
     prev_xs: &FractionalSchedule,
 ) -> Result<FractionalConfig> {
-    let objective_function =
-        |raw_xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            let xs = Schedule::from_raw(o.p.d, o.w, raw_xs);
-            let prev_x = if prev_xs.t_end() - k > 0 {
-                prev_xs[(prev_xs.t_end() - k - 1) as usize].clone()
-            } else {
-                Config::repeat(0., o.p.d)
-            };
-            let p = o.p.reset(t - k);
-
-            p.objective_function_with_default(&xs, &prev_x, false)
-                .unwrap()
+    let bounds = vec![
+        (0., o.p.bounds[0]);
+        FractionalSchedule::raw_encoding_len(o.p.d, o.w) as usize
+    ];
+    let f = |raw_xs: &[f64]| -> f64 {
+        let xs = Schedule::from_raw(o.p.d, o.w, raw_xs);
+        let prev_x = if prev_xs.t_end() - k > 0 {
+            prev_xs[(prev_xs.t_end() - k - 1) as usize].clone()
+        } else {
+            Config::repeat(0., o.p.d)
         };
-    let mut raw_xs = Schedule::build_raw(o.w, &Config::repeat(0., o.p.d));
+        let p = o.p.reset(t - k);
 
-    let mut opt = Nlopt::new(
-        Algorithm::Bobyqa,
-        raw_xs.len(),
-        objective_function,
-        Target::Minimize,
-        (),
-    );
-    opt.set_lower_bound(0.)?;
-    opt.set_upper_bound(o.p.bounds[0])?;
-    opt.set_xtol_rel(PRECISION)?;
+        p.objective_function_with_default(&xs, &prev_x, false)
+            .unwrap()
+    };
 
-    opt.optimize(&mut raw_xs)?;
+    let (raw_xs, _) = find_minimizer(f, &bounds)?;
     Ok(Config::new(raw_xs[0..o.p.d as usize].to_vec()))
 }

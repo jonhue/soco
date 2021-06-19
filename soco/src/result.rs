@@ -4,6 +4,7 @@
 pub enum Error {
     Bisection(String),
     CostFnMustBeTotal,
+    DimensionInconsistent,
     Integration(String),
     Invalid(String),
     LcpBoundComputationExceedsDomain,
