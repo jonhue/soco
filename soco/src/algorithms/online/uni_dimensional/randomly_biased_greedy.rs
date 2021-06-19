@@ -46,13 +46,13 @@ fn next(
     r: f64,
     theta: f64,
 ) -> Result<f64> {
-    let f = |raw_x: &[f64]| -> f64 {
+    let objective = |raw_x: &[f64]| -> f64 {
         let x = Config::new(raw_x.to_vec());
         w(o, t - 1, theta, x.clone()).unwrap()
             + r * theta * (o.p.switching_cost)(x)
     };
 
-    let (x, _) = find_minimizer(f, &o.p.bounds)?;
+    let (x, _) = find_minimizer(objective, &o.p.bounds)?;
     Ok(x[0])
 }
 

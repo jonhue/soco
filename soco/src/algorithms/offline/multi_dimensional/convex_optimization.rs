@@ -16,11 +16,11 @@ pub fn co(
         .into_iter()
         .zip(extended_upper.into_iter())
         .collect();
-    let f = |raw_xs: &[f64]| {
+    let objective = |raw_xs: &[f64]| {
         let xs = Schedule::from_raw(p.d, p.t_end, raw_xs);
         p.objective_function(&xs).unwrap()
     };
 
-    let (raw_xs, _) = find_minimizer(f, &bounds)?;
+    let (raw_xs, _) = find_minimizer(objective, &bounds)?;
     Ok(Schedule::from_raw(p.d, p.t_end, &raw_xs))
 }

@@ -65,8 +65,8 @@ fn find_right_bound(
     x_m: f64,
 ) -> Result<f64> {
     let bounds = vec![(0., o.p.bounds[0])];
-    let f = |xs: &[f64]| xs[0];
-    let g = Arc::new(|xs: &[f64]| -> f64 {
+    let objective = |xs: &[f64]| xs[0];
+    let constraint = Arc::new(|xs: &[f64]| -> f64 {
         let l = integrate(
             x_m,
             xs[0],
@@ -86,7 +86,8 @@ fn find_right_bound(
     });
     let init = vec![x_m];
 
-    let (xs, _) = maximize(f, &bounds, Some(init), vec![], vec![g])?;
+    let (xs, _) =
+        maximize(objective, &bounds, Some(init), vec![], vec![constraint])?;
     Ok(xs[0])
 }
 
@@ -98,8 +99,8 @@ fn find_left_bound(
     x_m: f64,
 ) -> Result<f64> {
     let bounds = vec![(0., o.p.bounds[0])];
-    let f = |xs: &[f64]| xs[0];
-    let g = Arc::new(|xs: &[f64]| -> f64 {
+    let objective = |xs: &[f64]| xs[0];
+    let constraint = Arc::new(|xs: &[f64]| -> f64 {
         let l = integrate(
             xs[0],
             x_m,
@@ -120,7 +121,8 @@ fn find_left_bound(
     });
     let init = vec![x_m];
 
-    let (xs, _) = minimize(f, &bounds, Some(init), vec![], vec![g])?;
+    let (xs, _) =
+        minimize(objective, &bounds, Some(init), vec![], vec![constraint])?;
     Ok(xs[0])
 }
 

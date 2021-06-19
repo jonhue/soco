@@ -1,7 +1,7 @@
 //! Norms.
 
 use crate::config::{Config, FractionalConfig};
-use crate::convex_optimization::find_unbounded_minimizer;
+use crate::convex_optimization::find_unbounded_maximizer;
 use crate::result::{Error, Result};
 use crate::value::Value;
 use nalgebra::{DMatrix, DVector, RealField};
@@ -82,9 +82,11 @@ pub fn dual(
     norm: &NormFn<'_, FractionalConfig>,
     x: FractionalConfig,
 ) -> Result<f64> {
-    let f = |z: &[f64]| -> f64 { Config::new(z.to_vec()) * x.clone() };
-    let g = Arc::new(|z: &[f64]| -> f64 { norm(Config::new(z.to_vec())) - 1. });
+    let objective = |z: &[f64]| -> f64 { Config::new(z.to_vec()) * x.clone() };
+    let constraint =
+        Arc::new(|z: &[f64]| -> f64 { norm(Config::new(z.to_vec())) - 1. });
 
-    let (z, _) = find_unbounded_minimizer(f, x.d(), vec![g], vec![])?;
-    Ok(Config::new(z) * x.clone())
+    let (z, _) =
+        find_unbounded_maximizer(objective, x.d(), vec![constraint], vec![])?;
+    Ok(Config::new(z) * x)
 }

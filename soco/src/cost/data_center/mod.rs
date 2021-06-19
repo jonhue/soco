@@ -35,8 +35,8 @@ where
     Arc::new(move |t, x| {
         let l = access(&ls, t - 1)?;
 
-        let opt_d = (d * e) as usize;
-        let bounds = vec![(0., 1.); opt_d];
+        let solver_d = (d * e) as usize;
+        let bounds = vec![(0., 1.); solver_d];
         let objective = |zs: &[f64]| -> f64 {
             x.to_vec()
                 .iter()
@@ -64,7 +64,7 @@ where
         };
 
         // assigns each dimension a fraction of each load type
-        let init = vec![1. / opt_d as f64; opt_d];
+        let init = vec![1. / solver_d as f64; solver_d];
 
         // ensure that the fractions across all dimensions of each load type sum to `1`
         let mut equality_constraints: Vec<Constraint> = vec![];

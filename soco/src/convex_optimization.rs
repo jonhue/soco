@@ -47,10 +47,30 @@ pub fn find_unbounded_minimizer(
     equality_constraints: Vec<Constraint>,
 ) -> Result<OptimizationResult> {
     let bounds = build_empty_bounds(d);
+    let init = vec![0.; d as usize];
     minimize(
         f,
         &bounds,
-        None,
+        Some(init),
+        inequality_constraints,
+        equality_constraints,
+    )
+}
+
+/// Determines the maximizer of a convex function `f` in `d` dimensions with
+/// `inequality_constraints` and `equality_constraints`.
+pub fn find_unbounded_maximizer(
+    f: impl Fn(&[f64]) -> f64,
+    d: i32,
+    inequality_constraints: Vec<Constraint>,
+    equality_constraints: Vec<Constraint>,
+) -> Result<OptimizationResult> {
+    let bounds = build_empty_bounds(d);
+    let init = vec![0.; d as usize];
+    maximize(
+        f,
+        &bounds,
+        Some(init),
         inequality_constraints,
         equality_constraints,
     )

@@ -31,14 +31,14 @@ fn next(
     prev_x: f64,
 ) -> Result<f64> {
     let bounds = vec![(0., o.p.bounds[0])];
-    let f = |xs: &[f64]| -> f64 {
+    let objective = |xs: &[f64]| -> f64 {
         (o.p.hitting_cost)(t, Config::new(xs.to_vec())).unwrap()
     };
-    let g = Arc::new(|xs: &[f64]| -> f64 {
+    let constraint = Arc::new(|xs: &[f64]| -> f64 {
         (xs[0] - prev_x).abs()
             - (o.p.hitting_cost)(t, Config::new(xs.to_vec())).unwrap() / 2.
     });
 
-    let (xs, _) = minimize(f, &bounds, None, vec![g], vec![])?;
+    let (xs, _) = minimize(objective, &bounds, None, vec![constraint], vec![])?;
     Ok(xs[0])
 }

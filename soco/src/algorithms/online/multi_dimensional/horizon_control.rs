@@ -45,7 +45,7 @@ fn next(
         (0., o.p.bounds[0]);
         FractionalSchedule::raw_encoding_len(o.p.d, o.w) as usize
     ];
-    let f = |raw_xs: &[f64]| -> f64 {
+    let objective = |raw_xs: &[f64]| -> f64 {
         let xs = Schedule::from_raw(o.p.d, o.w, raw_xs);
         let prev_x = if prev_xs.t_end() - k > 0 {
             prev_xs[(prev_xs.t_end() - k - 1) as usize].clone()
@@ -58,6 +58,6 @@ fn next(
             .unwrap()
     };
 
-    let (raw_xs, _) = find_minimizer(f, &bounds)?;
+    let (raw_xs, _) = find_minimizer(objective, &bounds)?;
     Ok(Config::new(raw_xs[0..o.p.d as usize].to_vec()))
 }

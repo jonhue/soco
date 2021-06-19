@@ -50,15 +50,16 @@ fn bregman_projection(
     l: f64,
     x: &FractionalConfig,
 ) -> Result<FractionalConfig> {
-    let g = |y: &[f64]| -> f64 {
+    let objective = |y: &[f64]| -> f64 {
         bregman_divergence(mirror_map, Config::new(y.to_vec()), x.clone())
     };
     // `l`-sublevel set of `f`
-    let h = Arc::new(|y: &[f64]| -> f64 {
+    let constraint = Arc::new(|y: &[f64]| -> f64 {
         f(t, Config::new(y.to_vec())).unwrap() - l
     });
 
-    let (y, _) = find_unbounded_minimizer(g, x.d(), vec![h], vec![])?;
+    let (y, _) =
+        find_unbounded_minimizer(objective, x.d(), vec![constraint], vec![])?;
     Ok(Config::new(y))
 }
 
