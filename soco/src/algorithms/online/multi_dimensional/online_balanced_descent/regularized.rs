@@ -1,7 +1,7 @@
 #![allow(clippy::float_cmp)]
 
-use crate::algorithms::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::config::{Config, FractionalConfig};
+use crate::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::cost::CostFn;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
@@ -38,7 +38,9 @@ pub fn robd(
         xs.now().clone()
     };
 
-    let v = find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?;
+    let v = Config::new(
+        find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
+    );
     let regularization_function: CostFn<'_, FractionalConfig> =
         Arc::new(|t, x| {
             Some(
@@ -48,11 +50,14 @@ pub fn robd(
                     + lambda_2 * (o.p.switching_cost)(x - v.clone()),
             )
         });
-    let x = find_minimizer_of_hitting_cost(
-        t,
-        &regularization_function,
-        &o.p.bounds,
-    )?;
+    let x = Config::new(
+        find_minimizer_of_hitting_cost(
+            t,
+            &regularization_function,
+            &o.p.bounds,
+        )?
+        .0,
+    );
     Ok(Step(x, None))
 }
 

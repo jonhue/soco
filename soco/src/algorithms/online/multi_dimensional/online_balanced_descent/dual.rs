@@ -1,9 +1,9 @@
-use crate::algorithms::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
     meta::{obd, Options as MetaOptions},
     MAX_ITERATIONS, MAX_L_FACTOR,
 };
 use crate::config::{Config, FractionalConfig};
+use crate::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::norm::dual;
 use crate::norm::NormFn;
 use crate::online::{FractionalStep, Online, Step};
@@ -38,7 +38,9 @@ pub fn dobd(
         xs.now().clone()
     };
 
-    let v = find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?;
+    let v = Config::new(
+        find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
+    );
     let minimal_hitting_cost =
         (o.p.hitting_cost)(t, v).ok_or(Error::CostFnMustBeTotal)?;
 

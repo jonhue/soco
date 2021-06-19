@@ -1,11 +1,10 @@
 //! Utilities to build cost functions for right-sizing data centers.
 
 use crate::config::Config;
+use crate::convex_optimization::{minimize, Constraint};
 use crate::cost::{CostFn, SingleCostFn};
 use crate::utils::access;
 use crate::value::Value;
-use crate::PRECISION;
-use nlopt::{Algorithm, Nlopt, Target};
 use num::ToPrimitive;
 use std::sync::Arc;
 
@@ -36,65 +35,59 @@ where
     Arc::new(move |t, x| {
         let l = access(&ls, t - 1)?;
 
-        let objective_function =
-            |zs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-                x.to_vec()
-                    .iter()
-                    .enumerate()
-                    .map(|(k, &j)| {
-                        let z = zs[k * e as usize..k * e as usize + e as usize]
-                            .to_vec();
-                        let prim_j = ToPrimitive::to_f64(&j)?;
-                        let sum_l = l.total();
-                        let sum_z: f64 = z.iter().sum();
+        let solver_d = (d * e) as usize;
+        let bounds = vec![(0., 1.); solver_d];
+        let objective = |zs: &[f64]| -> f64 {
+            x.to_vec()
+                .iter()
+                .enumerate()
+                .map(|(k, &j)| {
+                    let z = zs[k * e as usize..k * e as usize + e as usize]
+                        .to_vec();
+                    let prim_j = ToPrimitive::to_f64(&j)?;
+                    let sum_l = l.total();
+                    let sum_z: f64 = z.iter().sum();
 
-                        if prim_j > 0. {
-                            let l_frac = l.clone() * z;
-                            f(t, k, l_frac)(j)
-                        } else if prim_j == 0. && sum_l * sum_z > 0. {
-                            Some(f64::INFINITY)
-                        } else if prim_j == 0. && sum_l * sum_z == 0. {
-                            Some(0.)
-                        } else {
-                            None
-                        }
-                    })
-                    .sum::<Option<f64>>()
-                    .unwrap()
-            };
+                    if prim_j > 0. {
+                        let l_frac = l.clone() * z;
+                        f(t, k, l_frac)(j)
+                    } else if prim_j == 0. && sum_l * sum_z > 0. {
+                        Some(f64::INFINITY)
+                    } else if prim_j == 0. && sum_l * sum_z == 0. {
+                        Some(0.)
+                    } else {
+                        None
+                    }
+                })
+                .sum::<Option<f64>>()
+                .unwrap()
+        };
 
         // assigns each dimension a fraction of each load type
-        let mut zs = vec![1. / (d * e) as f64; (d * e) as usize];
-
-        // minimize cost across all possible server to load matchings
-        let mut opt = Nlopt::new(
-            Algorithm::Bobyqa,
-            d as usize,
-            objective_function,
-            Target::Minimize,
-            (),
-        );
-        opt.set_lower_bound(0.).ok()?;
-        opt.set_upper_bound(1.).ok()?;
-        opt.set_xtol_rel(PRECISION).ok()?;
+        let init = vec![1. / solver_d as f64; solver_d];
 
         // ensure that the fractions across all dimensions of each load type sum to `1`
+        let mut equality_constraints: Vec<Constraint> = vec![];
         for j in 0..e as usize {
-            opt.add_equality_constraint(
-                |zs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-                    let mut result = 0.;
-                    for k in 0..d as usize {
-                        result += zs[k * j];
-                    }
-                    result - 1.
-                },
-                (),
-                PRECISION,
-            )
-            .ok()?;
+            equality_constraints.push(Arc::new(move |zs: &[f64]| -> f64 {
+                let mut result = 0.;
+                for k in 0..d as usize {
+                    result += zs[k * j];
+                }
+                result - 1.
+            }));
         }
 
-        Some(opt.optimize(&mut zs).ok()?.1)
+        // minimize cost across all possible server to load matchings
+        let (_, opt) = minimize(
+            objective,
+            &bounds,
+            Some(init),
+            vec![],
+            equality_constraints,
+        )
+        .ok()?;
+        Some(opt)
     })
 }
 

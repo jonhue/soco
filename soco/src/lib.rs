@@ -17,6 +17,7 @@ pub mod result;
 pub mod schedule;
 pub mod verifiers;
 
+mod convex_optimization;
 mod utils;
 mod value;
 mod vec_wrapper;

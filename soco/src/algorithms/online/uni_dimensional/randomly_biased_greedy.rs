@@ -1,11 +1,10 @@
 use crate::config::{Config, FractionalConfig};
+use crate::convex_optimization::find_minimizer;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, sample_uniform};
-use crate::PRECISION;
-use nlopt::{Algorithm, Nlopt, Target};
 
 static DEFAULT_THETA: f64 = 1.;
 
@@ -47,26 +46,13 @@ fn next(
     r: f64,
     theta: f64,
 ) -> Result<f64> {
-    let objective_function =
-        |raw_x: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            let x = Config::new(raw_x.to_vec());
-            w(o, t - 1, theta, x.clone()).unwrap()
-                + r * theta * (o.p.switching_cost)(x)
-        };
-    let mut x = [0.];
+    let objective = |raw_x: &[f64]| -> f64 {
+        let x = Config::new(raw_x.to_vec());
+        w(o, t - 1, theta, x.clone()).unwrap()
+            + r * theta * (o.p.switching_cost)(x)
+    };
 
-    let mut opt = Nlopt::new(
-        Algorithm::Bobyqa,
-        1,
-        objective_function,
-        Target::Minimize,
-        (),
-    );
-    opt.set_lower_bound(o.p.bounds[0].0)?;
-    opt.set_upper_bound(o.p.bounds[0].1)?;
-    opt.set_xtol_rel(PRECISION)?;
-
-    opt.optimize(&mut x)?;
+    let (x, _) = find_minimizer(objective, &o.p.bounds)?;
     Ok(x[0])
 }
 
@@ -79,27 +65,14 @@ fn w(
     if t == 0 {
         Ok(theta * (o.p.switching_cost)(x))
     } else {
-        let objective_function =
-            |raw_y: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-                let y = Config::new(raw_y.to_vec());
-                w(o, t - 1, theta, y.clone()).unwrap()
-                    + (o.p.hitting_cost)(t, y.clone()).unwrap()
-                    + theta * (o.p.switching_cost)(x.clone() - y)
-            };
-        let mut y = [0.];
+        let f = |raw_y: &[f64]| -> f64 {
+            let y = Config::new(raw_y.to_vec());
+            w(o, t - 1, theta, y.clone()).unwrap()
+                + (o.p.hitting_cost)(t, y.clone()).unwrap()
+                + theta * (o.p.switching_cost)(x.clone() - y)
+        };
 
-        let mut opt = Nlopt::new(
-            Algorithm::Bobyqa,
-            1,
-            objective_function,
-            Target::Minimize,
-            (),
-        );
-        opt.set_lower_bound(o.p.bounds[0].0)?;
-        opt.set_upper_bound(o.p.bounds[0].1)?;
-        opt.set_xtol_rel(PRECISION)?;
-
-        opt.optimize(&mut y)?;
+        let (y, _) = find_minimizer(f, &o.p.bounds)?;
         Ok(y[0])
     }
 }

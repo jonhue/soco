@@ -1,5 +1,6 @@
-use crate::algorithms::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::config::Config;
+use crate::convex_optimization::find_minimizer_of_hitting_cost;
+use crate::convex_optimization::{maximize, minimize};
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
@@ -8,7 +9,6 @@ use crate::utils::assert;
 use crate::PRECISION;
 use bacon_sci::differentiate::second_derivative;
 use bacon_sci::integrate::integrate;
-use nlopt::{Algorithm, Nlopt, Target};
 use std::sync::Arc;
 
 /// Probability distribution over the number of servers.
@@ -35,7 +35,8 @@ pub fn probabilistic<'a>(
         t,
         &o.p.hitting_cost,
         &vec![(0., o.p.bounds[0])],
-    )?[0];
+    )?
+    .0[0];
     let x_r = find_right_bound(o, t, &prev_p, x_m)?;
     let x_l = find_left_bound(o, t, &prev_p, x_m)?;
 
@@ -63,48 +64,30 @@ fn find_right_bound(
     prev_p: &Memory<'_>,
     x_m: f64,
 ) -> Result<f64> {
-    let objective_function =
-        |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 { xs[0] };
-    let mut xs = [x_m];
-
-    let mut opt = Nlopt::new(
-        Algorithm::Bobyqa,
-        1,
-        objective_function,
-        Target::Maximize,
-        (),
-    );
-    opt.set_lower_bound(0.)?;
-    opt.set_upper_bound(o.p.bounds[0])?;
-    opt.set_xtol_rel(PRECISION)?;
-
-    opt.add_equality_constraint(
-        |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            let l = integrate(
-                x_m,
-                xs[0],
-                |j: f64| {
-                    second_derivative(
-                        |j: f64| {
-                            (o.p.hitting_cost)(t, Config::single(j)).unwrap()
-                        },
-                        j,
-                        PRECISION,
-                    )
-                },
-                PRECISION,
-            )
+    let bounds = vec![(0., o.p.bounds[0])];
+    let objective = |xs: &[f64]| xs[0];
+    let constraint = Arc::new(|xs: &[f64]| -> f64 {
+        let l = integrate(
+            x_m,
+            xs[0],
+            |j: f64| {
+                second_derivative(
+                    |j: f64| (o.p.hitting_cost)(t, Config::single(j)).unwrap(),
+                    j,
+                    PRECISION,
+                )
+            },
+            PRECISION,
+        )
+        .unwrap();
+        let r = integrate(xs[0], f64::INFINITY, |j: f64| prev_p(j), PRECISION)
             .unwrap();
-            let r =
-                integrate(xs[0], f64::INFINITY, |j: f64| prev_p(j), PRECISION)
-                    .unwrap();
-            l / 2. - r
-        },
-        (),
-        PRECISION,
-    )?;
+        l / 2. - r
+    });
+    let init = vec![x_m];
 
-    opt.optimize(&mut xs)?;
+    let (xs, _) =
+        maximize(objective, &bounds, Some(init), vec![], vec![constraint])?;
     Ok(xs[0])
 }
 
@@ -115,52 +98,31 @@ fn find_left_bound(
     prev_p: &Memory<'_>,
     x_m: f64,
 ) -> Result<f64> {
-    let objective_function =
-        |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 { xs[0] };
-    let mut xs = [x_m];
+    let bounds = vec![(0., o.p.bounds[0])];
+    let objective = |xs: &[f64]| xs[0];
+    let constraint = Arc::new(|xs: &[f64]| -> f64 {
+        let l = integrate(
+            xs[0],
+            x_m,
+            |j: f64| {
+                second_derivative(
+                    |j: f64| (o.p.hitting_cost)(t, Config::single(j)).unwrap(),
+                    j,
+                    PRECISION,
+                )
+            },
+            PRECISION,
+        )
+        .unwrap();
+        let r =
+            integrate(f64::NEG_INFINITY, xs[0], |j: f64| prev_p(j), PRECISION)
+                .unwrap();
+        l / 2. - r
+    });
+    let init = vec![x_m];
 
-    let mut opt = Nlopt::new(
-        Algorithm::Bobyqa,
-        1,
-        objective_function,
-        Target::Minimize,
-        (),
-    );
-    opt.set_lower_bound(0.)?;
-    opt.set_upper_bound(o.p.bounds[0])?;
-    opt.set_xtol_rel(PRECISION)?;
-
-    opt.add_equality_constraint(
-        |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| -> f64 {
-            let l = integrate(
-                xs[0],
-                x_m,
-                |j: f64| {
-                    second_derivative(
-                        |j: f64| {
-                            (o.p.hitting_cost)(t, Config::single(j)).unwrap()
-                        },
-                        j,
-                        PRECISION,
-                    )
-                },
-                PRECISION,
-            )
-            .unwrap();
-            let r = integrate(
-                f64::NEG_INFINITY,
-                xs[0],
-                |j: f64| prev_p(j),
-                PRECISION,
-            )
-            .unwrap();
-            l / 2. - r
-        },
-        (),
-        PRECISION,
-    )?;
-
-    opt.optimize(&mut xs)?;
+    let (xs, _) =
+        minimize(objective, &bounds, Some(init), vec![], vec![constraint])?;
     Ok(xs[0])
 }
 

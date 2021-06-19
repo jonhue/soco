@@ -1,5 +1,5 @@
-use crate::algorithms::convex_optimization::find_minimizer;
 use crate::config::{Config, FractionalConfig};
+use crate::convex_optimization::find_minimizer;
 use crate::norm::euclidean;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
@@ -46,5 +46,5 @@ fn project(
     y: FractionalConfig,
 ) -> Result<FractionalConfig> {
     let f = |x: &[f64]| euclidean(Config::new(x.to_vec()) - y.clone());
-    find_minimizer(f, bounds)
+    Ok(Config::new(find_minimizer(f, bounds)?.0))
 }

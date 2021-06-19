@@ -8,6 +8,7 @@ use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::Config;
 use crate::convert::ResettableProblem;
+use crate::convex_optimization::find_minimizer;
 use crate::objective::Objective;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
@@ -15,8 +16,6 @@ use crate::problem::{
 };
 use crate::result::{Error, Result};
 use crate::utils::{assert, is_pow_of_2};
-use crate::PRECISION;
-use nlopt::{Algorithm, Nlopt, ObjFn, Target};
 
 pub trait Bounded<T> {
     /// Computes the number of servers at time `t` starting from `t_start` simulating up to time `t_end` resulting in the lowest possible cost.
@@ -55,17 +54,13 @@ impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
             ),
         )?;
 
-        let objective_function =
-            |xs: &[f64],
-             _: Option<&mut [f64]>,
-             p: &mut &FractionalSimplifiedSmoothedConvexOptimization<'_>|
-             -> f64 {
-                p.objective_function(
-                    &xs.iter().map(|&x| Config::single(x)).collect(),
-                )
-                .unwrap()
-            };
-        self.find_bound(objective_function, t, t_start)
+        let objective = |xs: &[f64]| -> f64 {
+            self.objective_function(
+                &xs.iter().map(|&x| Config::single(x)).collect(),
+            )
+            .unwrap()
+        };
+        self.find_bound(objective, t, t_start)
     }
 
     fn find_upper_bound(
@@ -82,26 +77,20 @@ impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
             ),
         )?;
 
-        let objective_function =
-            |xs: &[f64],
-             _: Option<&mut [f64]>,
-             p: &mut &FractionalSimplifiedSmoothedConvexOptimization<'_>|
-             -> f64 {
-                p.inverted_objective_function(
-                    &xs.iter().map(|&x| Config::single(x)).collect(),
-                )
-                .unwrap()
-            };
-        self.find_bound(objective_function, t, t_start)
+        let objective = |xs: &[f64]| -> f64 {
+            self.inverted_objective_function(
+                &xs.iter().map(|&x| Config::single(x)).collect(),
+            )
+            .unwrap()
+        };
+        self.find_bound(objective, t, t_start)
     }
 }
 
 impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
-    fn find_bound<'a>(
-        &'a self,
-        objective_function: impl ObjFn<
-            &'a FractionalSimplifiedSmoothedConvexOptimization<'a>,
-        >,
+    fn find_bound(
+        &self,
+        objective: impl Fn(&[f64]) -> f64,
         t: i32,
         t_start: i32,
     ) -> Result<f64> {
@@ -112,20 +101,9 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
             return Ok(0.);
         }
 
-        let n = (self.t_end - t_start) as usize;
-        let mut xs = vec![0.; n];
-        let mut opt = Nlopt::new(
-            Algorithm::Bobyqa,
-            n,
-            objective_function,
-            Target::Minimize,
-            self,
-        );
-        opt.set_lower_bound(0.)?;
-        opt.set_upper_bound(self.bounds[0])?;
-        opt.set_xtol_rel(PRECISION)?;
-
-        opt.optimize(&mut xs)?;
+        let bounds =
+            vec![(0., self.bounds[0]); (self.t_end - t_start) as usize];
+        let (xs, _) = find_minimizer(objective, &bounds)?;
         Ok(xs[(t - t_start) as usize - 1])
     }
 }
