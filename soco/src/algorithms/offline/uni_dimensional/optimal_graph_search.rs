@@ -51,7 +51,7 @@ pub fn optimal_graph_search(
     Ok(result)
 }
 
-/// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `iopt`.
+/// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `optimal_graph_search`.
 pub fn make_pow_of_2<'a>(
     p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
 ) -> Result<IntegralSimplifiedSmoothedConvexOptimization<'a>> {
