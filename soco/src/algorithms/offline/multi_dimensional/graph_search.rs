@@ -1,6 +1,8 @@
 use crate::algorithms::graph_search::{Path, Paths};
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
+use crate::convert::RelaxableProblem;
+use crate::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::objective::scalar_movement;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
@@ -58,29 +60,31 @@ pub fn graph_search<'a>(
     }
 
     // intermediate time steps (1 < t < T)
-    for t in 2..p.t_end {
-        for config in configs {
-            let to = Vertice {
-                t: t + 1,
-                config: config.clone(),
-                powering_up: true,
-            };
-            let from = configs
-                .iter()
-                .map(|config| Vertice {
-                    t,
+    if p.t_end > 2 {
+        for t in 2..p.t_end {
+            for config in configs {
+                let to = Vertice {
+                    t: t + 1,
                     config: config.clone(),
                     powering_up: true,
-                })
-                .collect();
-            find_shortest_subpath(
-                p,
-                configs,
-                offline_options.inverted,
-                &mut paths,
-                &from,
-                &to,
-            )?;
+                };
+                let from = configs
+                    .iter()
+                    .map(|config| Vertice {
+                        t,
+                        config: config.clone(),
+                        powering_up: true,
+                    })
+                    .collect();
+                find_shortest_subpath(
+                    p,
+                    configs,
+                    offline_options.inverted,
+                    &mut paths,
+                    &from,
+                    &to,
+                )?;
+            }
         }
     }
 
@@ -110,6 +114,19 @@ pub fn graph_search<'a>(
         .clone())
 }
 
+/// computes the minimum hitting cost of the relaxed problem
+fn find_minimum_hitting_cost(
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
+    t: i32,
+) -> Result<f64> {
+    let relaxed_p = p.to_f();
+    let bounds = vec![0.; relaxed_p.bounds.len()]
+        .into_iter()
+        .zip(relaxed_p.bounds.into_iter())
+        .collect();
+    Ok(find_minimizer_of_hitting_cost(t, &relaxed_p.hitting_cost, &bounds)?.1)
+}
+
 fn find_shortest_subpath(
     p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     configs: &Vec<IntegralConfig>,
@@ -118,6 +135,9 @@ fn find_shortest_subpath(
     from: &Vec<Vertice>,
     to: &Vertice,
 ) -> Result<()> {
+    // find minimum hitting cost of relaxed problem to under-approximate distance to the goal
+    let minimum_hitting_cost = find_minimum_hitting_cost(p, to.t - 1)?;
+
     let mut picked_source = &from[0];
     let mut picked_cost = f64::INFINITY;
     let mut picked_vs = vec![];
@@ -125,7 +145,7 @@ fn find_shortest_subpath(
         let (vs, cost) = astar(
             source,
             |v| v.successors(p, configs, inverted),
-            |v| v.heuristic(to, p, inverted),
+            |v| v.heuristic(to, p, minimum_hitting_cost, inverted),
             |v| *v == *to,
         )
         .ok_or(Error::SubpathShouldBePresent)?;
@@ -153,30 +173,34 @@ impl Vertice {
     ///
     /// This function exploits the observation that
     /// * each dimension must be powered up to match the value in the goal config;
-    /// * the only allowed vertice in layer `t + 1` is the goal; and that
-    /// * at the powering down vertice, the value in each dimension must be greater equals the goal config.
+    /// * hitting costs must be paid once; and that
+    /// * the only allowed vertice in layer `t + 1` is the goal.
     fn heuristic(
         &self,
         to: &Vertice,
         p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
+        minimum_hitting_cost: f64,
         inverted: bool,
     ) -> OrderedFloat<f64> {
         assert!(to.powering_up, "Only vertices from the powering up phase may be used as goals with this heuristic function.");
 
-        let mut cost = 0.;
-
-        // allow only one vertice in layer `t + 1`
-        if self.t == to.t && *self != *to {
-            return OrderedFloat(f64::INFINITY);
+        if self.t == to.t {
+            if *self == *to {
+                return OrderedFloat(0.);
+            } else {
+                // allow only one vertice in layer `t + 1`
+                return OrderedFloat(f64::INFINITY);
+            }
         }
 
-        // when already powering down, the value in each dimension must be greater equals the goal config
-        if !self.powering_up {
-            for k in 0..p.d as usize {
-                if self.config[k] < to.config[k] {
-                    return OrderedFloat(f64::INFINITY);
-                }
-            }
+        let mut cost = 0.;
+
+        // hitting costs
+        if self.powering_up {
+            // one could also add the smallest hitting cost of any of the configurations
+            // which result from powering-up additional servers (i.e. using the current configuration as a lower bound),
+            // but that may be very inefficient.
+            cost += minimum_hitting_cost;
         }
 
         // switching costs
@@ -189,9 +213,6 @@ impl Vertice {
             .unwrap();
             cost += p.switching_cost[k] * delta;
         }
-
-        // one could also add the smallest hitting cost of any of the configurations,
-        // but depending on the computational complexity of the convex cost function that may be very inefficient.
 
         OrderedFloat(cost)
     }
