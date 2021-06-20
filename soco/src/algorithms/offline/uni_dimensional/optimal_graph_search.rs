@@ -123,11 +123,8 @@ fn find_schedule(
         let path = paths
             .get(&Vertice(p.t_end, i))
             .ok_or(Error::PathsShouldBeCached)?;
-        let cost = if inverted {
-            p.switching_cost[0] * i as f64
-        } else {
-            0.
-        };
+        let cost = p.switching_cost[0]
+            * ToPrimitive::to_f64(&scalar_movement(0, i, inverted)).unwrap();
         let picked_cost = path.1 + cost;
         if picked_cost < result.1 {
             result = Path(path.0.clone(), picked_cost);
