@@ -4,7 +4,7 @@
 
 \begin{tabularx}{\textwidth}{lX}
     $T \in \mathbb{N}$ & number of time slots \\
-    $\delta \in \mathbb{R}_{\geq 0}$ & length of a time slot \\
+    $\delta \in \mathbb{R}_{>0}$ & length of a time slot \\
     $d \in \mathbb{N}$ & number of dimensions \\
     $\mathcal{X} \subset \mathbb{R}^d$ & decision space \\
     $m_k \in \mathbb{N}$ & upper bound of dimension $k$ \\
@@ -21,7 +21,6 @@
 \begin{tabularx}{\textwidth}{lX}
     $m_k \in \mathbb{N}$ & maximum number of servers of type $k$ \\
     $l_k^{max} \in \mathbb{N}$ & maximum number of jobs a server of type $k$ can process in a single time slot \\
-    $s_k(l) \in [0,1]$ & utilization (or speed) of a server of type $k$ with load $l$ \\
     $e \in \mathbb{N}$ & number of load types \\
     $\lambda_{t,i} \in \mathbb{N}_0$ & number of jobs of type $i$ during time slot $t$ \\
     $\lambda_t \in \mathbb{N}_0$ & total load during time slot $t$ \\
@@ -30,6 +29,8 @@
     $z_{t,k,i} \in [0,1]$ & fraction of jobs of type $i$ assigned to servers of type $k$ during time slot $t$ \\
     $l_{t,k,i} \in [0,\lambda^{max}]$ & (fractional) number of jobs of type $i$ assigned to servers of type $k$ during time slot $t$ \\
     $l_{t,k} \in [0,\lambda^{max}]$ & (fractional) number of jobs assigned to servers of type $k$ during time slot $t$ \\
+    $s_k(l) \in [0,1]$ & utilization (or speed) of a server of type $k$ with load $l$ \\
+    $\theta_k \in [0,1]$ & maximum allowed utilization of a server of type $k$ \\
     $g_{t,k}(l) \in \mathbb{R}_{\geq 0}$ & operating cost of a server of type $k$ during time slot $t$ when $l$ jobs are processed on the server \\
     $q_{t,k,i}(l) \in \mathbb{R}_{\geq 0}$ & cost of processing a job of type $i$ on a server of type $k$ during time slot $t$ when $l$ jobs are processed on the server \\
 \end{tabularx}
@@ -85,12 +86,21 @@
     $\delta_{t,i,j} \in \mathbb{R}_{\geq 0}$ & remaining energy requirement of data center $j$ during time slot $t$ after all energy sources up to source $i$ were used \\
 \end{tabularx}
 
+\section*{Complexity}
+
+\begin{tabularx}{\textwidth}{lX}
+    $\mathcal{O}(C)$ & complexity of computing the hitting costs $f_t$ \\
+    $\mathcal{O}(M_{\epsilon})$ & convergence rate of a convex optimization finding an $\epsilon$-optimal solution \\
+\end{tabularx}
+
 \section*{Miscellaneous}
 
 \begin{tabularx}{\textwidth}{lX}
     $[n] := \{1, \dots, n\}$ & range of natural numbers from $1$ to $n$ \\
     $[n]_0 := \{0\} \cup [n]$ & range of integers from $0$ to $n$ \\
-    $(x)^+ := \max\{0, x\}$ & for $x \in \mathbb{R}$ \\
+    $(x)_a^b := \max\{a, \min\{b, x\}\}$ & projection of $x \in \mathbb{R}$ onto $[a,b]$ \\
+    $(x)^+ := \max\{0, x\}$ & projection of $x \in \mathbb{R}$ onto $[0, \infty)$ \\
     $x_{min}$ & smallest entry of the vector $x$ \\
     $x_{max}$ & largest entry of the vector $x$ \\
+    $x^*$ & optimal value of $x$ with respect to some optimization \\
 \end{tabularx}
