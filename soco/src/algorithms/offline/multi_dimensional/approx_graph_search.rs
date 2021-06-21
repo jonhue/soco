@@ -43,7 +43,7 @@ fn build_configs(
 }
 
 fn build_values(bound: i32, gamma: f64) -> Vec<i32> {
-    if (bound as f64).log(gamma) < bound as f64 {
+    if (bound as f64) < gamma.powi(bound) {
         build_values_via_exp(bound, gamma)
     } else {
         build_values_via_log(bound, gamma)
@@ -84,9 +84,11 @@ fn build_values_via_log(bound: i32, gamma: f64) -> Vec<i32> {
     let mut vs: Vec<i32> = vec![0, 1];
 
     for j in 2..=bound {
-        let l = (j as f64 - 1.).log(gamma).floor() as i32;
-        let u = (j as f64 + 1.).log(gamma).floor() as i32;
-        if l != u {
+        let l = (j as f64 - 1.).log(gamma);
+        let u = (j as f64 + 1.).log(gamma);
+        if l.floor() as i32 != u.floor() as i32
+            || l.ceil() as i32 != u.ceil() as i32
+        {
             vs.push(j);
         }
     }

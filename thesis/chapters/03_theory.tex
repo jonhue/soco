@@ -76,13 +76,13 @@ Given a time horizon $T \in \mathbb{N}$, a convex decision space $\mathcal{X} \s
 where $x_0 = \mathbf{0}$.
 \end{problem}
 
-In many practical applications of Smoothed Convex Optimization, we seek to find integral solutions minimizing hitting and switching costs. This is especially true within the context of resource allocation, for example for right-sizing data centers, where our resources are discrete. This observation motivates the definition of the following variant of SCO.
+In many practical applications of smoothed convex optimization, we seek to find integral solutions minimizing hitting and switching costs. This is especially true within the context of resource allocation, for example for right-sizing data centers, where our resources are discrete. This observation motivates the definition of the following variant of SCO.
 
 \begin{problem}[Integral Smoothed Convex Optimization (Int-SCO)]
-We define Integral Smoothed Convex Optimization analogously to SCO with the added restriction that the points $x$ in $d$-dimensional space must be discrete, that is $\mathcal{X} \subset \mathbb{Z}^d$.
+We define integral smoothed convex optimization analogously to SCO with the added restriction that the points $x$ in $d$-dimensional space must be discrete, that is $\mathcal{X} \subset \mathbb{Z}^d$.
 \end{problem}
 
-In \autoref{chapter:introduction}, we have seen that Int-SCO is subsumed by Metrical Task Systems. However, it was shown that in general the competitiveness of deterministic and randomized algorithms for Metrical Task Systems must be proportional to the size of the decision space \cite{Blum1992, Borodin1992}. Further, \citeauthor*{Chen2018} have shown that the competitiveness of any online algorithm for SCO is lower bounded by $\Omega(\sqrt{d})$ \cite{Chen2018}. Therefore, many of the online algorithms for SCO that we examine in \autoref{chapter:online_algorithms} further restrict the classes of hitting costs and switching costs.
+In \autoref{chapter:introduction}, we have seen that Int-SCO is subsumed by metrical task systems. However, it was shown that in general the competitiveness of deterministic and randomized algorithms for metrical task systems must be proportional to the size of the decision space \cite{Blum1992, Borodin1992}. Further, \citeauthor*{Chen2018} have shown that the competitiveness of any online algorithm for SCO is lower bounded by $\Omega(\sqrt{d})$ \cite{Chen2018}. Therefore, many of the online algorithms for SCO that we examine in \autoref{chapter:online_algorithms} further restrict the classes of hitting costs and switching costs.
 
 Yet another similar problem is the ski rental problem. In the \textit{ski rental problem}\index{ski rental problem}, skis can be bought for a cost of $b$ units or rented for a cost of one unit per day. Each day of the ski season the agent has to decide whether to rent the skis or end the sequence of decisions by buying the skis without knowing how long the ski season will last \cite{Shah2021}. Consider the uni-dimensional decision space $\{0,b\}$, the $\ell_2$-norm as switching cost, and the sequence of hitting costs $f_t(0) = 1$ and $f_t(b) = 0$. The solution to this instance of SCO is a solution to the corresponding ski rental problem, yielding that the ski rental problem is a special case of SCO. \citeauthor*{Karlin1990} showed that the best competitive ratio attainable by a randomized algorithm is $e/(e-1) \approx 1.58$, giving a lower bound for the competitive ratio of online algorithms for SCO \cite{Karlin1990}.
 
@@ -90,7 +90,7 @@ Yet another similar problem is the ski rental problem. In the \textit{ski rental
 
 \subsubsection{Complexity of the Offline Problem}
 
-We now want to examine the complexity of Int-SCO in the offline case. That is, we know all arriving convex cost functions $f_t$ in advance. We prove Int-SCO NP-hard for varying $d$ by giving a polynomial-time reduction from the Knapsack problem. In \autoref{section:theory:simplified_smoothed_convex_optimization} we extend this proof of NP-hardness to the Integral Simplified Smoothed Convex Optimization problem which further restricts the decision space and switching cost.
+We now want to examine the complexity of Int-SCO in the offline case. That is, we know all arriving convex cost functions $f_t$ in advance. We prove Int-SCO NP-hard for varying $d$ by giving a polynomial-time reduction from the Knapsack problem. In \autoref{section:theory:simplified_smoothed_convex_optimization} we extend this proof of NP-hardness to the integral simplified smoothed convex optimization problem which further restricts the decision space and switching cost.
 
 Given a set of items with an associated value and weight and an upper bound to the total weight, Knapsack is the problem of determining the number of copies of each item that maximizes the total value and conforms to the given upper bound on total weight. Formally we define Knapsack as follows.
 
@@ -200,7 +200,7 @@ We observe that the above reduction can be extended to Knapsack with arbitrary b
 
 \subsection{Simplified Smoothed Convex Optimization}\label{section:theory:simplified_smoothed_convex_optimization}
 
-In many applications, for example for right-sizing data centers where we are interested in determining the optimal number of servers to run at a particular time, it suffices to restrict $\mathcal{X}$ to $[m_0]_0 \times \dots \times [m_d]_0$ for some upper bound in each dimension $m \in \mathbb{N}^d$ and the switching cost $\norm{\cdot}$ to a Manhattan norm which is scaled in each dimension independently from time. To that end, we first define a restricted variant of (fractional) SCO which we term \textit{Simplified Smoothed Convex Optimization}.
+In many applications, for example for right-sizing data centers where we are interested in determining the optimal number of servers to run at a particular time, it suffices to restrict $\mathcal{X}$ to $[m_0]_0 \times \dots \times [m_d]_0$ for some upper bound in each dimension $m \in \mathbb{N}^d$ and the switching cost $\norm{\cdot}$ to a Manhattan norm which is scaled in each dimension independently from time. To that end, we first define a restricted variant of (fractional) SCO which we term \textit{simplified smoothed convex optimization}.
 
 \begin{problem}[Simplified Smoothed Convex Optimization (SSCO)]\index{simplified smoothed convex optimization}\label{problem:simplified_smoothed_convex_optimization}
 Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, and a sequence of non-negative convex functions $f_t$ for $t \in [T]$, find $x \in \mathbb{R}_{\geq 0, \leq m_0} \times \dots \times \mathbb{R}_{\geq 0, \leq m_d}$ minimizing \begin{align*}
@@ -240,7 +240,7 @@ It is easy to see that this equivalence always holds.
 With the same motivation we used for the restriction of SCO to Int-SCO, we now restrict SSCO to an integral variant.
 
 \begin{problem}[Integral Simplified Smoothed Convex Optimization (Int-SSCO)]
-We define Integral Simplified Smoothed Convex Optimization analogously to SSCO with the added restriction that the points $x$ in $d$-dimensional space must be discrete, that is $x \in [m_0]_0 \times \dots \times [m_d]_0$.
+We define integral simplified smoothed convex optimization analogously to SSCO with the added restriction that the points $x$ in $d$-dimensional space must be discrete, that is $x \in [m_0]_0 \times \dots \times [m_d]_0$.
 \end{problem}
 
 \citeauthor*{Albers2018} have shown for Int-SSCO in the uni-dimensional setting that the optimal competitive ratio is 3 for deterministic algorithms and 2 for randomized algorithms \cite{Albers2018}. As Int-SSCO is subsumed by Int-SCO, these bounds also hold for Int-SCO.
@@ -321,3 +321,5 @@ where $x_0 = \mathbf{0}$ and $f_t$ is given by \autoref{eq:sblo_hitting_cost}.
 In contrast to our definition of SBLO, SLO balances the load implicitly among all active servers which is possible because we assume that each active server can only handle a single job during one time slot. Again, it is easy to see that SLO is an instance of SBLO by setting $g_{t,k}(l) := c_k l$.
 
 \citeauthor*{Albers2021} show that an online algorithm for SLO cannot attain a competitive ratio smaller than $2d$ \cite{Albers2021}.
+
+\section{Beyond Convexity}
