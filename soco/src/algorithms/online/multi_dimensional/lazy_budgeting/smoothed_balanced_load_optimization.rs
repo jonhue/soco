@@ -218,7 +218,7 @@ fn find_optimal_config(
     use_approx: Option<&ApproxOptions>,
 ) -> Result<IntegralConfig> {
     let ssco_p = p.to_ssco();
-    let Path(xs, _) = match use_approx {
+    let Path { xs, .. } = match use_approx {
         None => {
             optimal_graph_search(&ssco_p, &OfflineOptions { inverted: false })?
         }

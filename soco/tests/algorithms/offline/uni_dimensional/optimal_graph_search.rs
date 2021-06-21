@@ -70,19 +70,19 @@ mod optimal_graph_search {
 
         let result =
             optimal_graph_search(&p, &Options { inverted: false }).unwrap();
-        result.0.verify(p.t_end, &p.bounds).unwrap();
+        result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result =
             optimal_graph_search(&p, &Options { inverted: true }).unwrap();
-        inv_result.0.verify(p.t_end, &p.bounds).unwrap();
+        inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.0, inv_result.0);
-        assert_eq!(result.1, inv_result.1);
+        assert_eq!(result.xs, inv_result.xs);
+        assert_eq!(result.cost, inv_result.cost);
         assert_eq!(
-            result.0,
+            result.xs,
             Schedule::new(vec![Config::single(1), Config::single(1)])
         );
-        assert_eq!(result.1, 1.);
-        assert_eq!(result.1, p.objective_function(&result.0).unwrap());
+        assert_eq!(result.cost, 1.);
+        assert_eq!(result.cost, p.objective_function(&result.xs).unwrap());
     }
 
     #[test]
@@ -103,14 +103,14 @@ mod optimal_graph_search {
 
         let result =
             optimal_graph_search(&p, &Options { inverted: false }).unwrap();
-        result.0.verify(p.t_end, &p.bounds).unwrap();
+        result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result =
             optimal_graph_search(&p, &Options { inverted: true }).unwrap();
-        inv_result.0.verify(p.t_end, &p.bounds).unwrap();
+        inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.0, inv_result.0);
-        assert_eq!(result.1, inv_result.1);
-        assert_eq!(result.1, p.objective_function(&result.0).unwrap());
+        assert_eq!(result.xs, inv_result.xs);
+        assert_eq!(result.cost, inv_result.cost);
+        assert_eq!(result.cost, p.objective_function(&result.xs).unwrap());
     }
 
     #[test]
@@ -134,22 +134,22 @@ mod optimal_graph_search {
             optimal_graph_search(&transformed_p, &Options { inverted: false })
                 .unwrap();
         result
-            .0
+            .xs
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
         let inv_result =
             optimal_graph_search(&transformed_p, &Options { inverted: true })
                 .unwrap();
         inv_result
-            .0
+            .xs
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
 
-        assert_eq!(result.0, inv_result.0);
-        assert_eq!(result.1, inv_result.1);
+        assert_eq!(result.xs, inv_result.xs);
+        assert_eq!(result.cost, inv_result.cost);
         assert_eq!(
-            result.1,
-            transformed_p.objective_function(&result.0).unwrap()
+            result.cost,
+            transformed_p.objective_function(&result.xs).unwrap()
         );
     }
 }

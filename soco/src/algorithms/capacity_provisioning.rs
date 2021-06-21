@@ -144,7 +144,7 @@ impl IntegralSimplifiedSmoothedConvexOptimization<'_> {
         }
 
         let mut p = self.reset(t_start);
-        let Path(xs, _) = match use_approx {
+        let Path { xs, .. } = match use_approx {
             None => {
                 if !is_pow_of_2(self.bounds[0]) {
                     p = make_pow_of_2(self)?;
