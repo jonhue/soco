@@ -37,10 +37,10 @@ fn build_all_values(
 }
 
 fn build_values(bound: i32, gamma: f64) -> Vec<i32> {
-    if (bound as f64) < gamma.powi(bound) {
-        build_values_via_exp(bound, gamma)
-    } else {
+    if bound as f64 >= gamma.powi(bound) && gamma < 2. {
         build_values_via_log(bound, gamma)
+    } else {
+        build_values_via_exp(bound, gamma)
     }
 }
 
@@ -91,4 +91,29 @@ fn build_values_via_log(bound: i32, gamma: f64) -> Vec<i32> {
     }
 
     vs
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{build_values_via_exp, build_values_via_log};
+
+    #[test]
+    fn test_build_values() {
+        let bounds = vec![1, 2, 5, 10, 100, 100_000];
+        let gammas = vec![
+            1.005, 1.1, 1.2, 1.3, 1.4, 1.45, 1.5, 1.6, 1.7, 1.8, 1.9, 1.99,
+        ];
+
+        for bound in bounds {
+            for &gamma in gammas.iter() {
+                assert_eq!(
+                    build_values_via_exp(bound, gamma),
+                    build_values_via_log(bound, gamma),
+                    "bound={}, gamma={}",
+                    bound,
+                    gamma
+                );
+            }
+        }
+    }
 }
