@@ -74,17 +74,8 @@ pub fn graph_search<'a>(
 }
 
 struct HandleLayerState {
-    k: usize,
+    k: i32,
     configs: Vec<InternalConfig>,
-}
-
-impl Default for HandleLayerState {
-    fn default() -> Self {
-        HandleLayerState {
-            k: 0,
-            configs: vec![],
-        }
-    }
 }
 
 fn handle_layer(
@@ -96,15 +87,17 @@ fn handle_layer(
     paths: &mut Paths<Vertice>,
     state_: Option<HandleLayerState>,
 ) -> Result<()> {
-    let mut state = state_.unwrap_or_default();
+    let mut state = state_.unwrap_or_else(|| {
+        let configs = vec![build_base_config(all_values, powering_up)];
+        if powering_up {
+            HandleLayerState { k: 1, configs }
+        } else {
+            HandleLayerState { k: p.d, configs }
+        }
+    });
 
-    if state.k as i32 >= p.d {
+    if state.k < 1 || state.k > p.d {
         return Ok(());
-    }
-    if state.configs.is_empty() {
-        state
-            .configs
-            .push(build_base_config(all_values, powering_up));
     }
     let mut added_configs = vec![];
 
@@ -117,7 +110,7 @@ fn handle_layer(
                 inverted,
                 t,
                 powering_up,
-                state.k,
+                state.k as usize - 1,
                 &config,
                 all_values,
             )?;
@@ -145,7 +138,7 @@ fn handle_layer(
                 },
                 &all_values,
                 &config,
-                state.k,
+                state.k as usize - 1,
             ) {
                 None => break,
                 Some(config) => {
@@ -157,7 +150,11 @@ fn handle_layer(
     }
 
     state.configs.append(&mut added_configs);
-    state.k += 1;
+    if powering_up {
+        state.k += 1
+    } else {
+        state.k -= 1
+    };
     handle_layer(p, inverted, t, powering_up, all_values, paths, Some(state))
 }
 
@@ -234,7 +231,7 @@ fn find_immediate_predecessors(
         predecessors.push(inaction);
     }
 
-    for l in dimension_iter(k, powering_up) {
+    for l in 0..=k {
         let prev_config = build_config(
             if powering_up {
                 Direction::Previous
@@ -272,19 +269,6 @@ fn find_immediate_predecessors(
     }
 
     Ok(predecessors)
-}
-
-/// iterates dimensions from `0` through `k` when powering up and from `k` through `0` when powering down
-fn dimension_iter(
-    k: usize,
-    powering_up: bool,
-) -> itertools::Either<impl Iterator<Item = usize>, impl Iterator<Item = usize>>
-{
-    if powering_up {
-        itertools::Either::Left(0..=k)
-    } else {
-        itertools::Either::Right((0..=k).rev())
-    }
 }
 
 fn find_optimal_predecessor(
@@ -328,7 +312,7 @@ fn update_paths(
             let prev = &paths
                 .get(&predecessor.from)
                 .ok_or(Error::PathsShouldBeCached)?;
-            let xs = if !to.powering_up {
+            let xs = if predecessor.from.powering_up && !to.powering_up {
                 prev.xs.extend(to.config.config.clone())
             } else {
                 prev.xs.clone()
