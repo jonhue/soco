@@ -66,7 +66,7 @@ pub fn graph_search<'a>(
 
     Ok(paths
         .get(&Vertice {
-            config: build_base_config(p.d),
+            config: build_base_config(&all_values, true),
             powering_up: false,
         })
         .ok_or(Error::PathsShouldBeCached)?
@@ -102,20 +102,15 @@ fn handle_layer(
         return Ok(());
     }
     if state.configs.is_empty() {
-        state.configs.push(build_base_config(p.d));
+        state
+            .configs
+            .push(build_base_config(all_values, powering_up));
     }
     let mut added_configs = vec![];
 
     for base_config in state.configs.iter() {
-        for i in 0..all_values[state.k].len() {
-            // build the next considered config
-            let config = build_next_config(
-                base_config,
-                state.k,
-                &all_values[state.k],
-                i,
-            );
-
+        let mut config = base_config.clone();
+        loop {
             // find all immediate predecessors
             let predecessors = find_immediate_predecessors(
                 p,
@@ -129,7 +124,7 @@ fn handle_layer(
 
             // determine shortest path
             let opt_predecessor =
-                find_optimal_predecessor(predecessors, paths)?;
+                find_optimal_predecessor(inverted, predecessors, paths)?;
 
             // update paths
             update_paths(
@@ -141,7 +136,23 @@ fn handle_layer(
                 },
             )?;
 
-            added_configs.push(config);
+            // build the next considered config
+            config = match build_config(
+                if powering_up {
+                    Direction::Next
+                } else {
+                    Direction::Previous
+                },
+                &all_values,
+                &config,
+                state.k,
+            ) {
+                None => break,
+                Some(config) => {
+                    added_configs.push(config.clone());
+                    config
+                }
+            };
         }
     }
 
@@ -150,42 +161,50 @@ fn handle_layer(
     handle_layer(p, inverted, t, powering_up, all_values, paths, Some(state))
 }
 
-fn build_base_config(d: i32) -> InternalConfig {
-    InternalConfig {
-        config: IntegralConfig::repeat(0, d),
-        indices: Config::repeat(0, d),
+fn build_base_config(all_values: &Values, bottom: bool) -> InternalConfig {
+    let mut config = IntegralConfig::empty();
+    let mut indices = Config::empty();
+    for values in all_values {
+        let i = if bottom { 0 } else { values.len() - 1 };
+        config.push(values[i]);
+        indices.push(i);
     }
+    InternalConfig { config, indices }
 }
 
-/// selects the previous config w.r.t. some dimension based on a given config
-fn build_previous_config(
+enum Direction {
+    Next,
+    Previous,
+}
+
+/// selects the next config w.r.t. some dimension based on a given config in a given direction
+fn build_config(
+    dir: Direction,
     all_values: &Values,
     current_config: &InternalConfig,
     k: usize,
 ) -> Option<InternalConfig> {
     let mut config = current_config.clone();
-    let i = if current_config.indices[k] == 0 {
-        return None;
-    } else {
-        current_config.indices[k] - 1
+    let i = match dir {
+        Direction::Next => {
+            if current_config.indices[k] == all_values[k].len() - 1 {
+                return None;
+            } else {
+                current_config.indices[k] + 1
+            }
+        }
+        Direction::Previous => {
+            if current_config.indices[k] == 0 {
+                return None;
+            } else {
+                current_config.indices[k] - 1
+            }
+        }
     };
 
     config.config[k] = all_values[k][i];
     config.indices[k] = i;
     Some(config)
-}
-
-/// given a config, a dimension, and the next value of that dimension, returns the updated config
-fn build_next_config(
-    prev_config: &InternalConfig,
-    k: usize,
-    values: &Vec<i32>,
-    i: usize,
-) -> InternalConfig {
-    let mut config = prev_config.clone();
-    config.config[k] = values[i];
-    config.indices[k] = i;
-    config
 }
 
 fn find_immediate_predecessors(
@@ -215,8 +234,17 @@ fn find_immediate_predecessors(
         predecessors.push(inaction);
     }
 
-    for l in 0..k {
-        let prev_config = build_previous_config(all_values, config, l);
+    for l in dimension_iter(k, powering_up) {
+        let prev_config = build_config(
+            if powering_up {
+                Direction::Previous
+            } else {
+                Direction::Next
+            },
+            all_values,
+            config,
+            l,
+        );
         match prev_config {
             None => (),
             Some(prev_config) => {
@@ -246,7 +274,21 @@ fn find_immediate_predecessors(
     Ok(predecessors)
 }
 
+/// iterates dimensions from `0` through `k` when powering up and from `k` through `0` when powering down
+fn dimension_iter(
+    k: usize,
+    powering_up: bool,
+) -> itertools::Either<impl Iterator<Item = usize>, impl Iterator<Item = usize>>
+{
+    if powering_up {
+        itertools::Either::Left(0..=k)
+    } else {
+        itertools::Either::Right((0..=k).rev())
+    }
+}
+
 fn find_optimal_predecessor(
+    inverted: bool,
     predecessors: Vec<Edge>,
     paths: &mut Paths<Vertice>,
 ) -> Result<Option<Edge>> {
@@ -258,11 +300,13 @@ fn find_optimal_predecessor(
             .cost;
         let new_cost = prev_cost + predecessor.cost;
 
-        if new_cost
-            < picked_predecessor.clone().map_or_else(
-                || f64::INFINITY,
-                |picked_predecessor| picked_predecessor.cost,
-            )
+        // take smallest possible action if costs are equal
+        let picked_cost = picked_predecessor.clone().map_or_else(
+            || f64::INFINITY,
+            |picked_predecessor| picked_predecessor.cost,
+        );
+        if !inverted && new_cost < picked_cost
+            || inverted && new_cost <= picked_cost
         {
             picked_predecessor = Some(predecessor);
         }
@@ -272,25 +316,26 @@ fn find_optimal_predecessor(
 
 fn update_paths(
     paths: &mut Paths<Vertice>,
-    edge: Option<Edge>,
+    predecessor: Option<Edge>,
     to: &Vertice,
 ) -> Result<()> {
-    let path = match edge {
+    let path = match predecessor {
         None => Path {
             xs: IntegralSchedule::empty(),
             cost: 0.,
         },
-        Some(edge) => {
-            let prev_xs =
-                &paths.get(&edge.from).ok_or(Error::PathsShouldBeCached)?.xs;
+        Some(predecessor) => {
+            let prev = &paths
+                .get(&predecessor.from)
+                .ok_or(Error::PathsShouldBeCached)?;
             let xs = if !to.powering_up {
-                prev_xs.extend(to.config.config.clone())
+                prev.xs.extend(to.config.config.clone())
             } else {
-                prev_xs.clone()
+                prev.xs.clone()
             };
             Path {
                 xs,
-                cost: edge.cost,
+                cost: prev.cost + predecessor.cost,
             }
         }
     };
