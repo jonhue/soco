@@ -43,7 +43,7 @@ mod lcp {
             d: 1,
             t_end: 1,
             bounds: vec![5],
-            switching_cost: vec![10000.],
+            switching_cost: vec![1.],
             hitting_cost: Arc::new(|t, j| {
                 Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
             }),
