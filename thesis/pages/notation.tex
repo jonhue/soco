@@ -8,11 +8,15 @@
     $d \in \mathbb{N}$ & number of dimensions \\
     $\mathcal{X} \subset \mathbb{R}^d$ & decision space \\
     $m_k \in \mathbb{N}$ & upper bound of dimension $k$ \\
+    $M_k \subset \mathbb{N}_0$ & allowed values of dimension $k$ (in the discrete case) \\
+    $\mathcal{M} = \mathbb{X}$ & set of all configurations (in the discrete case) \\
     $f_t(x) \in \mathbb{R}_{\geq 0}$ & hitting cost of action $x \in \mathcal{X}$ during time slot $t$ \\
     $\beta_k \in \mathbb{R}_{>0}$ & switching cost of dimension $k$ \\
     $\lambda_t \in \mathbb{N}_0^e$ & load profile during time slot $t$ \\
     $c_k \in \mathbb{R}_{\geq 0}$ & time-independent hitting cost of dimension $k$ \\
 \end{tabularx}
+
+\vspace{\fill}
 
 \section*{Data Center Model}
 
@@ -35,8 +39,6 @@
     $q_{t,k,i}(l) \in \mathbb{R}_{\geq 0}$ & cost of processing a job of type $i$ on a server of type $k$ during time slot $t$ when $l$ jobs are processed on the server \\
 \end{tabularx}
 
-\vspace{\fill}
-
 \subsection*{Energy Cost}
 
 \begin{tabularx}{\textwidth}{lX}
@@ -48,6 +50,8 @@
     $\Phi_k^{min} \in \mathbb{R}_{\geq 0}$ & power consumption of an idling server of type $k$ \\
     $c_{t,i} \in \mathbb{R}_{\geq 0}$ & energy cost of energy source $i$ per unit of energy during time slot $t$ \\
 \end{tabularx}
+
+\vspace{\fill}
 
 \subsection*{Revenue Loss}
 
@@ -71,8 +75,6 @@
     $\xi_k \in \mathbb{R}_{>0}$ & normalized switching cost measuring the minimum duration a server of type $k$ must be asleep to outweigh the switching cost \\
 \end{tabularx}
 
-\vspace{\fill}
-
 \subsection*{Networks}
 
 \begin{tabularx}{\textwidth}{lX}
@@ -93,6 +95,18 @@
     $\mathcal{O}(M_{\epsilon})$ & convergence rate of a convex optimization finding an $\epsilon$-optimal solution \\
 \end{tabularx}
 
+\vspace{\fill}
+
+\section*{Algorithms}
+
+\begin{tabularx}{\textwidth}{lX}
+    $\hat{x}$ & optimal value of $x$ with respect to some optimization \\
+    $X \in \mathcal{X}^t$ & schedule, i.e. sequence of configurations over the time horizon $t$ \\
+    $x, y \in \mathcal{X}$ & configuration \\
+    $i, j \in [m_k]_0$ & value of dimension $k$ \\
+    $x_{k \gets j}$ & configuration $x$ after updating dimension $k$ to $j$ \\
+\end{tabularx}
+
 \section*{Miscellaneous}
 
 \begin{tabularx}{\textwidth}{lX}
@@ -100,7 +114,6 @@
     $[n]_0 := \{0\} \cup [n]$ & range of integers from $0$ to $n$ \\
     $(x)_a^b := \max\{a, \min\{b, x\}\}$ & projection of $x \in \mathbb{R}$ onto $[a,b]$ \\
     $(x)^+ := \max\{0, x\}$ & projection of $x \in \mathbb{R}$ onto $[0, \infty)$ \\
-    $x_{min}$ & smallest entry of the vector $x$ \\
-    $x_{max}$ & largest entry of the vector $x$ \\
-    $x^*$ & optimal value of $x$ with respect to some optimization \\
+    $x_{\text{min}}$ & smallest entry of the vector $x$ \\
+    $x_{\text{max}}$ & largest entry of the vector $x$ \\
 \end{tabularx}

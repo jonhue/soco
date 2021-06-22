@@ -1,15 +1,15 @@
 use crate::algorithms::graph_search::Path;
-use crate::algorithms::offline::multi_dimensional::duplicate_and_push_to_all;
-use crate::algorithms::offline::multi_dimensional::graph_search::graph_search;
+use crate::algorithms::offline::multi_dimensional::graph_search::{
+    graph_search, Values,
+};
 use crate::algorithms::offline::OfflineOptions;
-use crate::config::{Config, IntegralConfig};
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 
 static DEFAULT_GAMMA: f64 = 1.1;
 
 pub struct Options {
-    /// `gamma > 1`. Default is `2`.
+    /// `gamma > 1`. Default is `1.1`.
     pub gamma: Option<f64>,
 }
 
@@ -20,26 +20,20 @@ pub fn approx_graph_search<'a>(
     offline_options: &OfflineOptions,
 ) -> Result<Path> {
     let gamma = options.gamma.unwrap_or(DEFAULT_GAMMA);
-    let configs = build_configs(p, gamma);
-    graph_search(p, &configs, offline_options)
+    let all_values = build_all_values(p, gamma);
+    graph_search(p, all_values, offline_options)
 }
 
-/// Computes all configurations examined by the approximation algorithm.
-fn build_configs(
+/// Computes all values allowed by the approximation algorithm.
+fn build_all_values(
     p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     gamma: f64,
-) -> Vec<IntegralConfig> {
-    let mut configs: Vec<IntegralConfig> = vec![Config::empty()];
+) -> Values {
+    let mut all_values = vec![];
     for k in 0..p.d {
-        let vs = build_values(p.bounds[k as usize], gamma);
-
-        let base = configs.clone();
-        configs = vec![];
-        for v in vs {
-            duplicate_and_push_to_all(&mut configs, &base, v);
-        }
+        all_values.push(build_values(p.bounds[k as usize], gamma));
     }
-    configs
+    all_values
 }
 
 fn build_values(bound: i32, gamma: f64) -> Vec<i32> {

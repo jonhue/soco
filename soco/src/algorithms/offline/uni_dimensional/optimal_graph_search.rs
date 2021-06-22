@@ -42,7 +42,7 @@ pub fn optimal_graph_search(
         for k in k_init - 1..=0 {
             result = find_schedule(
                 p,
-                select_next_rows(p, &result.0, k),
+                select_next_rows(p, &result.xs, k),
                 options.inverted,
             )?;
         }
@@ -106,7 +106,10 @@ fn find_schedule(
 ) -> Result<Path> {
     let mut paths: Paths<Vertice> = HashMap::new();
     let initial_vertice = Vertice(0, 0);
-    let initial_path = Path(Schedule::empty(), 0.);
+    let initial_path = Path {
+        xs: Schedule::empty(),
+        cost: 0.,
+    };
     paths.insert(initial_vertice, initial_path);
 
     let mut prev_rows = vec![0];
@@ -118,16 +121,21 @@ fn find_schedule(
         prev_rows = rows;
     }
 
-    let mut result = Path(Schedule::empty(), f64::INFINITY);
+    let mut result = Path {
+        xs: Schedule::empty(),
+        cost: f64::INFINITY,
+    };
     for i in prev_rows {
         let path = paths
             .get(&Vertice(p.t_end, i))
             .ok_or(Error::PathsShouldBeCached)?;
-        let cost = p.switching_cost[0]
-            * ToPrimitive::to_f64(&scalar_movement(0, i, inverted)).unwrap();
-        let picked_cost = path.1 + cost;
-        if picked_cost < result.1 {
-            result = Path(path.0.clone(), picked_cost);
+        let cost = p.switching_cost[0] * scalar_movement(0, i, inverted) as f64;
+        let picked_cost = path.cost + cost;
+        if picked_cost < result.cost {
+            result = Path {
+                xs: path.xs.clone(),
+                cost: picked_cost,
+            };
         }
     }
     Ok(result)
@@ -147,7 +155,7 @@ fn find_shortest_subpath(
         let prev_cost = paths
             .get(&Vertice(t - 1, source))
             .ok_or(Error::PathsShouldBeCached)?
-            .1;
+            .cost;
         let cost = build_cost(p, t, source, to, inverted)?;
         let new_cost = prev_cost + cost;
         if new_cost < picked_cost {
@@ -177,13 +185,13 @@ fn update_paths(
     t: i32,
     i: i32,
     j: i32,
-    c: f64,
+    cost: f64,
 ) -> Result<()> {
     let u = Vertice(t - 1, i);
     let v = Vertice(t, j);
-    let prev_xs = &paths.get(&u).ok_or(Error::PathsShouldBeCached)?.0;
+    let prev_xs = &paths.get(&u).ok_or(Error::PathsShouldBeCached)?.xs;
     let xs = prev_xs.extend(Config::single(j));
 
-    paths.insert(v, Path(xs, c));
+    paths.insert(v, Path { xs, cost });
     Ok(())
 }
