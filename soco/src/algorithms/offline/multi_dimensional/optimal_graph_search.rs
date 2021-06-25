@@ -1,6 +1,6 @@
 use crate::algorithms::graph_search::Path;
-use crate::algorithms::offline::multi_dimensional::graph_search::{
-    graph_search, Values,
+use crate::algorithms::offline::multi_dimensional::{
+    graph_search::graph_search, Values,
 };
 use crate::algorithms::offline::OfflineOptions;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
@@ -11,21 +11,10 @@ pub fn optimal_graph_search<'a>(
     p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
     offline_options: &OfflineOptions,
 ) -> Result<Path> {
-    let all_values = build_all_values(p);
-    graph_search(p, all_values, offline_options)
-}
-
-/// Computes all values.
-fn build_all_values(
-    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
-) -> Values {
-    let mut all_values = vec![];
-    for k in 0..p.d as usize {
-        let mut values = vec![];
-        for j in 0..=p.bounds[k] {
-            values.push(j);
-        }
-        all_values.push(values);
-    }
-    all_values
+    let max_bound = p.bounds.iter().max().unwrap();
+    let values = Values {
+        values: (0..=*max_bound).collect(),
+        bound_indices: (0..=*max_bound as usize).collect(),
+    };
+    graph_search(p, values, offline_options)
 }
