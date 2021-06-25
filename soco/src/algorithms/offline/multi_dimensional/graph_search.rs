@@ -1,15 +1,12 @@
 use crate::algorithms::graph_search::{Path, Paths};
+use crate::algorithms::offline::multi_dimensional::Values;
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
 use crate::objective::scalar_movement;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;
-use crate::utils::assert;
 use std::collections::HashMap;
-
-/// Lists for each dimension the number of possible values of a config, from smallest to largest.
-pub type Values = Vec<Vec<i32>>;
 
 /// Tracks the value as well as the index in which the value appears in the respective dimension.
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
@@ -37,11 +34,9 @@ struct Edge {
 /// Graph-Based Integral Algorithm
 pub fn graph_search<'a>(
     p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
-    all_values: Values,
+    values: Values,
     offline_options: &OfflineOptions,
 ) -> Result<Path> {
-    assert(all_values.len() as i32 == p.d, Error::DimensionInconsistent)?;
-
     let mut paths: Paths<Vertice> = HashMap::new();
     for t in 1..=p.t_end {
         handle_layer(
@@ -49,7 +44,7 @@ pub fn graph_search<'a>(
             offline_options.inverted,
             t,
             true,
-            &all_values,
+            &values,
             &mut paths,
             None,
         )?;
@@ -58,7 +53,7 @@ pub fn graph_search<'a>(
             offline_options.inverted,
             t,
             false,
-            &all_values,
+            &values,
             &mut paths,
             None,
         )?;
@@ -66,7 +61,7 @@ pub fn graph_search<'a>(
 
     Ok(paths
         .get(&Vertice {
-            config: build_base_config(&all_values, true),
+            config: build_base_config(p.d, &p.bounds, &values, true),
             powering_up: false,
         })
         .ok_or(Error::PathsShouldBeCached)?
@@ -83,12 +78,13 @@ fn handle_layer(
     inverted: bool,
     t: i32,
     powering_up: bool,
-    all_values: &Values,
+    values: &Values,
     paths: &mut Paths<Vertice>,
     state_: Option<HandleLayerState>,
 ) -> Result<()> {
     let mut state = state_.unwrap_or_else(|| {
-        let configs = vec![build_base_config(all_values, powering_up)];
+        let configs =
+            vec![build_base_config(p.d, &p.bounds, values, powering_up)];
         if powering_up {
             HandleLayerState { k: 1, configs }
         } else {
@@ -112,7 +108,7 @@ fn handle_layer(
                 powering_up,
                 state.k as usize - 1,
                 &config,
-                all_values,
+                values,
             )?;
 
             // determine shortest path
@@ -136,7 +132,7 @@ fn handle_layer(
                 } else {
                     Direction::Previous
                 },
-                &all_values,
+                &values,
                 &config,
                 state.k as usize - 1,
             ) {
@@ -155,18 +151,26 @@ fn handle_layer(
     } else {
         state.k -= 1
     };
-    handle_layer(p, inverted, t, powering_up, all_values, paths, Some(state))
+    handle_layer(p, inverted, t, powering_up, values, paths, Some(state))
 }
 
-fn build_base_config(all_values: &Values, bottom: bool) -> InternalConfig {
-    let mut config = IntegralConfig::empty();
-    let mut indices = Config::empty();
-    for values in all_values {
-        let i = if bottom { 0 } else { values.len() - 1 };
-        config.push(values[i]);
-        indices.push(i);
+fn build_base_config(
+    d: i32,
+    bounds: &Vec<i32>,
+    values: &Values,
+    bottom: bool,
+) -> InternalConfig {
+    if bottom {
+        InternalConfig {
+            config: IntegralConfig::repeat(0, d),
+            indices: Config::repeat(0, d),
+        }
+    } else {
+        InternalConfig {
+            config: IntegralConfig::new(bounds.clone()),
+            indices: Config::new(values.bound_indices.clone()),
+        }
     }
-    InternalConfig { config, indices }
 }
 
 enum Direction {
@@ -177,14 +181,14 @@ enum Direction {
 /// selects the next config w.r.t. some dimension based on a given config in a given direction
 fn build_config(
     dir: Direction,
-    all_values: &Values,
+    values: &Values,
     current_config: &InternalConfig,
     k: usize,
 ) -> Option<InternalConfig> {
     let mut config = current_config.clone();
     let i = match dir {
         Direction::Next => {
-            if current_config.indices[k] == all_values[k].len() - 1 {
+            if current_config.indices[k] == values.bound_indices[k] {
                 return None;
             } else {
                 current_config.indices[k] + 1
@@ -199,7 +203,7 @@ fn build_config(
         }
     };
 
-    config.config[k] = all_values[k][i];
+    config.config[k] = values.values[i];
     config.indices[k] = i;
     Some(config)
 }
