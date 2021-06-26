@@ -1,5 +1,10 @@
-//! Lazy Capacity Provisioning.
-
+use crate::algorithms::capacity_provisioning::Bounded;
+use crate::config::Config;
+use crate::online::{Online, Step};
+use crate::problem::Problem;
+use crate::result::{Error, Result};
+use crate::schedule::Schedule;
+use crate::utils::{assert, project};
 use crate::value::Value;
 use num::NumCast;
 
@@ -13,9 +18,35 @@ where
     pub upper: (Option<T>, T),
 }
 
+/// Fractional Lazy Capacity Provisioning
+pub fn lcp<T, U>(
+    o: &Online<U>,
+    xs: &mut Schedule<T>,
+    ms: &mut Vec<Memory<T>>,
+    _: &(),
+) -> Result<Step<T, Memory<T>>>
+where
+    T: Value,
+    U: Bounded<T> + Problem,
+{
+    assert(o.p.d() == 1, Error::UnsupportedProblemDimension)?;
+
+    let (t_start, x_start) = find_initial_time(o.p.t_end(), ms);
+
+    let i = if xs.is_empty() {
+        NumCast::from(0).unwrap()
+    } else {
+        xs.now()[0]
+    };
+    let l = o.p.find_lower_bound(o.p.t_end(), t_start, x_start)?;
+    let u = o.p.find_upper_bound(o.p.t_end(), t_start, x_start)?;
+    let j = project(i, l, u);
+    Ok(Step(Config::single(j), Some(new_memory(ms, l, u))))
+}
+
 /// Finds a valid reference time and initial condition to base the optimization
 /// on (alternatively to time `0`).
-pub fn find_initial_time<T>(final_t: i32, ms: &Vec<Memory<T>>) -> (i32, T)
+fn find_initial_time<T>(final_t: i32, ms: &Vec<Memory<T>>) -> (i32, T)
 where
     T: Value,
 {
@@ -26,7 +57,7 @@ where
         }
     }
 
-    (0, NumCast::from(0.).unwrap())
+    (0, NumCast::from(0).unwrap())
 }
 
 /// Returns `true` if the time `t` with current bounds `m` and previous bounds
@@ -54,6 +85,3 @@ where
         upper: (prev_u, u),
     }
 }
-
-pub mod fractional;
-pub mod integral;
