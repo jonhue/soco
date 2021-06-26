@@ -7,8 +7,7 @@
 | [Graph-Based Optimal Algorithm](offline/uni_dimensional/optimal_graph_search.rs) [5]                           | 2       | ❌                 | ✅        | ❌      | optimal                        | O(T log m)   |
 | [Graph-Based Optimal Algorithm](offline/multi_dimensional/optimal_graph_search.rs) [9]                         | 2       | ✅                 | ✅        | ❌      | optimal                        |              |
 | [Graph-Based Approximation Algorithm](offline/multi_dimensional/approx_graph_search.rs) [9]                    | 2       | ✅                 | ✅        | ❌      | (2𝛾 - 1)-approximation         |              | 𝛾 > 0 |
-| [Fractional Lazy Capacity Provisioing](online/uni_dimensional/lazy_capacity_provisioing/fractional.rs) [1]     | 2       | ❌                 | ❌        | ✅      | 3-competitive                  |              |
-| [Integral Lazy Capacity Provisioing](online/uni_dimensional/lazy_capacity_provisioing/integral.rs) [5]         | 2       | ❌                 | ✅        | ✅      | 3-competitive                  |              |
+| [Lazy Capacity Provisioing](online/uni_dimensional/lazy_capacity_provisioing.rs) [1,5]                         | 2       | ❌                 | ❌/✅     | ✅      | 3-competitive                  |              |
 | [Memoryless Algorithm](online/uni_dimensional/memoryless.rs) [3]                                               | 2       | ❌                 | ❌        | ✅      | 3-competitive                  |              |
 | [Probabilistic Algorithm](online/uni_dimensional/probabilistic.rs) [3]                                         | 2       | ❌                 | ❌        | ✅      | 2-competitive                  |              |
 | [Randomized Integral Relaxation](online/uni_dimensional/randomized.rs) [5]                                     | 2       | ❌                 | ✅        | ✅      | 2-competitive                  |              |
