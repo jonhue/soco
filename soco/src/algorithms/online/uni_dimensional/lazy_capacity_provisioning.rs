@@ -18,7 +18,7 @@ where
     pub upper: (Option<T>, T),
 }
 
-/// Fractional Lazy Capacity Provisioning
+/// Lazy Capacity Provisioning
 pub fn lcp<T, U>(
     o: &Online<U>,
     xs: &mut Schedule<T>,
