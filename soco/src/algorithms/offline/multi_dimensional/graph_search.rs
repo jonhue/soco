@@ -64,8 +64,7 @@ pub fn graph_search<'a>(
             config: build_base_config(p.d, &p.bounds, &values, true),
             powering_up: false,
         })
-        .ok_or(Error::PathsShouldBeCached)
-        .unwrap()
+        .ok_or(Error::PathsShouldBeCached)?
         .clone())
 }
 
@@ -156,7 +155,7 @@ fn handle_config(
     )?;
 
     // determine shortest path
-    let opt_predecessor = find_optimal_predecessor(predecessors, paths);
+    let opt_predecessor = find_optimal_predecessor(predecessors, paths)?;
 
     // update paths
     update_paths(
@@ -296,13 +295,12 @@ fn find_immediate_predecessors(
 fn find_optimal_predecessor(
     predecessors: Vec<Edge>,
     paths: &mut Paths<Vertice>,
-) -> Option<(Edge, Path)> {
+) -> Result<Option<(Edge, Path)>> {
     let mut picked: Option<(Edge, Path)> = None;
     for predecessor in predecessors {
         let path = paths
             .get(&predecessor.from)
-            .ok_or(Error::PathsShouldBeCached)
-            .unwrap();
+            .ok_or(Error::PathsShouldBeCached)?;
         let new_cost = path.cost + predecessor.cost;
 
         // take smallest possible action if costs are equal
@@ -314,7 +312,7 @@ fn find_optimal_predecessor(
             picked = Some((predecessor, path.clone()));
         }
     }
-    picked
+    Ok(picked)
 }
 
 fn update_paths(
