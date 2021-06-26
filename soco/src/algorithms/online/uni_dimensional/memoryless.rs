@@ -36,7 +36,7 @@ fn next(
     };
     let constraint = Arc::new(|xs: &[f64]| -> f64 {
         (xs[0] - prev_x).abs()
-            - (o.p.hitting_cost)(t, Config::new(xs.to_vec())).unwrap() / 2.
+            - (o.p.hitting_cost)(t, Config::single(xs[0])).unwrap() / 2.
     });
 
     let (xs, _) = minimize(objective, &bounds, None, vec![constraint], vec![])?;
