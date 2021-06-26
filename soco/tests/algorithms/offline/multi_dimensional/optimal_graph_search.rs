@@ -1,5 +1,3 @@
-#![allow(clippy::float_cmp)]
-
 mod optimal_graph_search {
     use rand::prelude::*;
     use rand_pcg::Pcg64;
@@ -37,7 +35,7 @@ mod optimal_graph_search {
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.xs, inv_result.xs);
-        assert_eq!(result.cost, inv_result.cost);
+        assert_abs_diff_eq!(result.cost, inv_result.cost);
         assert_eq!(
             result.xs,
             Schedule::new(vec![
@@ -45,8 +43,8 @@ mod optimal_graph_search {
                 Config::new(vec![0, 1])
             ])
         );
-        assert_eq!(result.cost, 1.);
-        assert_eq!(result.cost, p.objective_function(&result.xs).unwrap());
+        assert_abs_diff_eq!(result.cost, 1.);
+        assert_abs_diff_eq!(result.cost, p.objective_function(&result.xs).unwrap());
     }
 
     #[test]
@@ -84,8 +82,8 @@ mod optimal_graph_search {
                 .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.cost, inv_result.cost);
-        assert_eq!(result.cost, p.objective_function(&result.xs).unwrap());
+        assert_abs_diff_eq!(result.cost, inv_result.cost);
+        assert_abs_diff_eq!(result.cost, p.objective_function(&result.xs).unwrap());
     }
 
     #[test]
@@ -133,10 +131,11 @@ mod optimal_graph_search {
                 .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.cost.round() as i32, inv_result.cost.round() as i32);
-        assert_eq!(
-            result.cost.round() as i32,
-            p.objective_function(&result.xs).unwrap().round() as i32
+        assert_abs_diff_eq!(result.cost, inv_result.cost, epsilon = 1.);
+        assert_abs_diff_eq!(
+            result.cost,
+            p.objective_function(&result.xs).unwrap(),
+            epsilon = 1.
         );
     }
 }

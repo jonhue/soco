@@ -518,6 +518,7 @@ checksum = "cbce6d4507c7e4a3962091436e56e95290cb71fa302d0d270e32130b75fbff27"
 name = "soco"
 version = "0.1.0"
 dependencies = [
+ "approx 0.5.0",
  "bacon-sci",
  "finitediff",
  "itertools",
