@@ -18,7 +18,7 @@ We begin by returning to the notion of capacity provisioning that we introduced 
         0 & \tau \leq 0 \\
         (X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U} & \tau \geq 1
     \end{cases}
-\end{align*} where $(X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$ is the projection of $X_{\tau-1}$ onto $[X_{\tau,\tau}^L, X_{\tau,\tau}^U]$ \cite{Lin2011}. [TODO: add figure comparing to brcp and link from section on brcp]. The resulting algorithm is described in \autoref{alg:lcp}. Similarly to the offline algorithm, we are able to use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(\tau C O_{\epsilon})$ for $\epsilon$-optimal upper and lower bounds. This complexity is worrying as it depends on $\tau$ which may grow to be very large. However, \citeauthor*{Lin2011} prove the following lemma which implies that it suffices to compute the lower and upper bounds using only the history since the last time slot where the bounds were either both decreased or both increased.
+\end{align*} where $(X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$ is the projection of $X_{\tau-1}$ onto $[X_{\tau,\tau}^L, X_{\tau,\tau}^U]$ \cite{Lin2011}. [TODO: add figure comparing to brcp and link from section on brcp]. The resulting algorithm is described in \autoref{alg:ud:lcp}. Similarly to the offline algorithm, we are able to use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(\tau C O_{\epsilon})$ for $\epsilon$-optimal upper and lower bounds. This complexity is worrying as it depends on $\tau$ which may grow to be very large. However, \citeauthor*{Lin2011} prove the following lemma which implies that it suffices to compute the lower and upper bounds using only the history since the last time slot where the bounds were either both decreased or both increased.
 
 \begin{lemma}
 If there exists an index $t \in [1, \tau-1]$ such that $X_{\tau,t+1}^U < X_{\tau,t}^U$ or $X_{\tau,t+1}^L > X_{\tau,t}^L$, then $(\hat{X}_{\tau,1},\dots,\hat{X}_{\tau,t}) := (X_{\tau,1}^L,\dots,X_{\tau,t}^L) = (X_{\tau,1}^U,\dots,X_{\tau,t}^U)$, and no matter what the future arrival is, solving the optimization in $[1,\tau']$ for $\tau' > \tau$ is equivalent to solving two optimizations: one over $[1,t]$ with initial condition $X_0$ and final condition $\hat{X}_{\tau,t}$ and the second over $[t+1,\tau']$ with initial condition $\hat{X}_{\tau,t}$ \cite{Lin2011}.
@@ -27,7 +27,7 @@ If there exists an index $t \in [1, \tau-1]$ such that $X_{\tau,t+1}^U < X_{\tau
 While not changing the worst-case complexity, this significantly improves the practical complexity in the application of right-sizing data centers as diurnal load patterns typically ensure that less than a day needs to be considered \cite{Lin2011}. We denote by $X_{\tau}^{L,(t,x_0)}$ and $X_{\tau}^{U,(t,x_0)}$ the bounds resulting from optimizations beginning at time slot $t$ with initial condition $x_0$. \citeauthor*{Lin2011} showed that lazy capacity provisioning is tightly $3$-competitive \cite{Lin2011}.
 
 \begin{algorithm}
-    \caption{Lazy Capacity Provisioning \cite{Lin2011}}\label{alg:lcp}
+    \caption{Lazy Capacity Provisioning \cite{Lin2011}}\label{alg:ud:lcp}
     \SetKwInOut{Input}{Input}
     \Input{$\mathcal{I}_{\text{SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau})$}
     $t_0 \gets 0$\;
@@ -44,15 +44,29 @@ While not changing the worst-case complexity, this significantly improves the pr
 
 \subsubsection{Integral Algorithm}
 
-\citeauthor*{Albers2018} applied lazy capacity provisioning to the integral variant Int-SSCO using their graph-based offline algorithm discussed in \autoref{section:offline_algorithms:ud:graph_based} to compute the integral lower and upper bounds \cite{Albers2018}. It is apparent, that this immediately yields a deterministic online algorithm for Int-SSCO. \citeauthor*{Albers2018} showed that similar to lazy capacity provisioning their algorithm is $3$-competitive \cite{Albers2018}. Due to the changed method of determining the bounds its runtime is $\mathcal{O}(\tau C \log_2 m)$. By using the same method of shortening the used history that was proposed by \citeauthor*{Lin2011} we are able to reduce this time complexity drastically in practice (for large $\tau$). Thus, the adopted algorithm is still described by \autoref{alg:lcp}. We simply need to slightly modify the graph-based algorithm computing optimal offline solutions to allow for initial conditions other than $0$.
+\citeauthor*{Albers2018} applied lazy capacity provisioning to the integral variant Int-SSCO using their graph-based offline algorithm discussed in \autoref{section:offline_algorithms:ud:graph_based} to compute the integral lower and upper bounds \cite{Albers2018}. It is apparent, that this immediately yields a deterministic online algorithm for Int-SSCO. \citeauthor*{Albers2018} showed that similar to lazy capacity provisioning their algorithm is $3$-competitive \cite{Albers2018}. Due to the changed method of determining the bounds its runtime is $\mathcal{O}(\tau C \log_2 m)$. By using the same method of shortening the used history that was proposed by \citeauthor*{Lin2011} we are able to reduce this time complexity drastically in practice (for large $\tau$). Thus, the adopted algorithm is still described by \autoref{alg:ud:lcp}. We simply need to slightly modify the graph-based algorithm computing optimal offline solutions to allow for initial conditions other than $0$.
 
 \subsection{Memoryless Algorithm}
 
+\citeauthor*{Bansal2015} showed that for SSCO a competitive ratio of $3$ can also be attained by a memoryless algorithm \cite{Bansal2015}. In a memoryless online algorithm for smoothed convex optimization, the configuration $X_{\tau}$ only depends on the preceding configuration $X_{\tau-1}$ and the current hitting cost $f_{\tau}$. This generally allows for a more space and time efficient algorithm. This is important when we want to choose a small time slot length $\delta$ so as to be more responsive to changes in load.
+
+The algorithm proposed by \citeauthor*{Bansal2015} works as follows. Let $\hat{X}_{\tau}$ be the minimizer of $f_{\tau}(X)$. The algorithm moves into the direction of the minimizer until it either reaches $\hat{X}_{\tau}$, or it reaches a configuration $X$ where its switching cost equals twice the hitting cost of $X$. [TODO: add figure depicting search space of convex optimization]. We observe that this is equivalent to the following convex optimization: \begin{align}\label{eq:md:memoryless}\begin{aligned}
+    &\min_{X \in \mathcal{X}} &&f_{\tau}(X) \\
+    &\text{subject to}        &&|X - X_{\tau-1}| \leq \frac{f_{\tau}(X)}{2}.
+\end{aligned}\end{align} The resulting algorithm is simply given by determining $\hat{X}$ based on the convex optimization in \autoref{eq:md:memoryless}, see \autoref{alg:ud:memoryless}. Thus, the time (and space) complexity of this memoryless algorithm is $\mathcal{O}(C O_{\epsilon})$.
+
+\begin{algorithm}
+    \caption{Memoryless algorithm \cite{Bansal2015}}\label{alg:ud:memoryless}
+    \SetKwInOut{Input}{Input}
+    \Input{$\mathcal{I}_{\text{SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau})$}
+    \Return $\hat{X}$ such that that $\hat{X}$ is the result of the optimization in \autoref{eq:md:memoryless}\;
+\end{algorithm}
+
 \subsection{Probabilistic Algorithm}
 
-\subsection{Randomly Biased Greedy Algorithm}
-
 \subsection{Randomized Integral Relaxation}
+
+\subsection{Randomly Biased Greedy Algorithm}
 
 \section{Multi-Dimensional}\label{section:online_algorithms:md}
 
@@ -89,7 +103,7 @@ A natural model to allow incorporating predictions is the use of a finite predic
     \end{cases}
 \end{align*}
 
-The assumption of perfect knowledge of the future is certain to be violated when an online algorithm is used in practice, still \citeauthor*{Lin2011} show and we confirm in [TODO: add reference] that lazy capacity provisioning with a prediction window is robust to this assumption in practice \cite{Lin2011}. Unfortunately, \citeauthor*{Lin2011} and \citeauthor*{Albers2018} showed that using a finite prediction window does not improve the worst-case performance of the online algorithm for the fractional and integral case, respectively \cite{Lin2011, Albers2018}. In other words, the optimal competitive ratio of any deterministic online algorithm is $3$ regardless of whether it uses a finite prediction window. In practice, however, we observe that a prediction window already significantly improves the performance of the algorithm [TODO: add reference].
+The assumption of perfect knowledge of the future is certain to be violated when an online algorithm is used in practice, still \citeauthor*{Lin2011} show and we confirm in [TODO: add reference] that lazy capacity provisioning with a prediction window is robust to this assumption in practice \cite{Lin2011}. Unfortunately, \citeauthor*{Lin2011} and \citeauthor*{Albers2018} showed that using a finite prediction window does not improve the worst-case performance of the online algorithm for the fractional and integral case, respectively \cite{Lin2011, Albers2018}. In other words, the competitive ratio of lazy capacity provisioning is $3$ regardless of whether it uses a finite prediction window. In practice, however, we observe that a prediction window already significantly improves the performance of the algorithm [TODO: add reference].
 
 There are two main drawbacks to using a finite prediction window. First, predictions windows are finite and typically constrained to a short period of time as they are assumed to be perfect. In contrast, predictions can be made for much longer time horizons, albeit with a decreasing accuracy. Second, it completely disregards any knowledge or assumptions of the certainty and noise of the predictions by assuming the predictions to be perfect. Therefore, for the remainder of this section, it will be our goal to devise better algorithms that use this information to make more informed decisions.
 
