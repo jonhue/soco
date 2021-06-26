@@ -26,22 +26,22 @@ We have seen a general method of solving high-dimensional (fractional) SCO, thou
 
 We now limit our attention to the uni-dimensional setting, i.e. $\mathcal{X} \subset \mathbb{R}$.
 
-\subsection{Backward-Recurrent Capacity Provisioning}
+\subsection{Backward-Recurrent Capacity Provisioning}\label{section:offline_algorithms:ud:capacity_provisioning}
 
 Before we begin discussing algorithms for Int-SSCO, we discuss a simple backward-recurrent algorithm for SSCO proposed by \citeauthor*{Lin2011} based on the idea of capacity provisioning \cite{Lin2011}. They extend this idea to formulate an online algorithm which we discuss in \autoref{section:online_algorithms:ud:lazy_capacity_provisioning}.
 
-\citeauthor*{Lin2011} observed that the optimal offline solution can be characterized by two bounds which correspond to charging the switching cost for powering-up and powering-down servers, respectively. Let $\tau \in [T]$ be a time slot. Then the optimal offline solution $\hat{X}_{\tau}$ during time slot $\tau$ is lower bounded by $X_{\tau}^L$ where $X^L$ is the smallest vector minimizing \begin{align*}
+\citeauthor*{Lin2011} observed that the optimal offline solution can be characterized by two bounds which correspond to charging the switching cost for powering-up and powering-down servers, respectively. Let $\tau \in [T]$ be a time slot. Then the optimal offline solution $\hat{X}_{\tau}$ during time slot $\tau$ is lower bounded by $X_{\tau,\tau}^L$ where $X_{\tau}^L$ is the smallest vector minimizing \begin{align*}
     c_{\tau}^L(X) = \sum_{t=1}^{\tau} f_t(X_t) + \beta (X_t - X_{t-1})^+.
-\end{align*} Conversely, $\hat{X}_{\tau}$ is upper bounded by $X_{\tau}^U$ where $X^U$ is the largest vector minimizing \begin{align*}
+\end{align*} Conversely, $\hat{X}_{\tau}$ is upper bounded by $X_{\tau,\tau}^U$ where $X_{\tau}^U$ is the largest vector minimizing \begin{align*}
     c_{\tau}^L(X) = \sum_{t=1}^{\tau} f_t(X_t) + \beta (X_{t-1} - X_t)^+.
-\end{align*} Overall we have $X_{\tau}^L \leq \hat{X}_{\tau} \leq X_{\tau}^U$ \cite{Lin2011}. Note that in the case of the lower bound the switching cost is paid for powering-up a server while in the case of the upper bound the switching cost is paid for powering-down a server. Further, it is easy to see that the bounds for time slot $\tau$ do not depend on any time slots $t > \tau$.
+\end{align*} Overall we have $X_{\tau,\tau}^L \leq \hat{X}_{\tau} \leq X_{\tau,\tau}^U$ \cite{Lin2011}. Note that in the case of the lower bound the switching cost is paid for powering-up a server while in the case of the upper bound the switching cost is paid for powering-down a server. Further, it is easy to see that the bounds for time slot $\tau$ do not depend on any time slots $t > \tau$.
 
 An optimal offline algorithm can therefore be described as determining the optimal schedule moving backwards in time. We begin by setting $\hat{X}_{T+1} = 0$. For each previous time slot $\tau$, we set $\hat{X}_{\tau} = \hat{X}_{\tau + 1}$ unless this violates the bounds, in which case we make the smallest possible change: \begin{align*}
     \hat{X}_{\tau} = \begin{cases}
         0 & \tau > T \\
-        (\hat{X}_{\tau+1})_{X_{\tau}^L}^{X_{\tau}^U} & \tau \leq T
+        (\hat{X}_{\tau+1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U} & \tau \leq T
     \end{cases}
-\end{align*} where $(\hat{X}_{\tau+1})_{X_{\tau}^L}^{X_{\tau}^U}$ is the projection of $\hat{X}_{\tau+1}$ onto $[X_{\tau}^L, X_{\tau}^U]$ \cite{Lin2011}. The resulting algorithm is described in \autoref{alg:brcp}. We are able to use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(T^2 C O_{\epsilon})$ for $\epsilon$-optimal upper and lower bounds.
+\end{align*} where $(\hat{X}_{\tau+1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$ is the projection of $\hat{X}_{\tau+1}$ onto $[X_{\tau,\tau}^L, X_{\tau,\tau}^U]$ \cite{Lin2011}. The resulting algorithm is described in \autoref{alg:brcp}. We are able to use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(T^2 C O_{\epsilon})$ for $\epsilon$-optimal upper and lower bounds.
 
 \begin{algorithm}
     \caption{Backward-Recurrent Capacity Provisioning \cite{Lin2011}}\label{alg:brcp}
@@ -49,12 +49,12 @@ An optimal offline algorithm can therefore be described as determining the optim
     \Input{$\mathcal{I}_{\text{SSCO}} = (T \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_T) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^T)$}
     $\hat{X}_{T+1} \gets 0$\;
     \For{$\tau \gets T$ \KwTo $1$}{
-        $\hat{X}_{\tau} \gets (\hat{X}_{\tau+1})_{X_{\tau}^L}^{X_{\tau}^U}$\;
+        $\hat{X}_{\tau} \gets (\hat{X}_{\tau+1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$\;
     }
     \Return $\hat{X}$\;
 \end{algorithm}
 
-\subsection{Graph-Based Optimal Integral Algorithm}
+\subsection{Graph-Based Optimal Integral Algorithm}\label{section:offline_algorithms:ud:graph_based}
 
 We now turn to the uni-dimensional integral case of simplified smoothed convex optimization, i.e. our decision space is given as $\mathcal{X} := [m]_0$ where $m \in \mathbb{N}$ is the maximum number of servers a data center can employ at the same time. As our decision space is discrete and finite, it is natural to model our problem as a weighted directed graph which is comprised of vertices $v_{t,j}$ for each $t \in [T]$ and $j \in [m]_0$ describing the state that during time slot $t$ exactly $j$ servers are active. For the initial and final state $X_0 = X_{T+1} = 0$ we have two additional vertices $v_{0,0}$ and $v_{T+1,0}$. For each vertice associated with time slot $t \in [T]_0$ we add an edge to all vertices associated with the subsequent time slot $t + 1$. With each edge from $v_{t,i}$ to $v_{t+1,j}$ we associate the switching cost incurred by the represented action, i.e. $\beta (j - i)^+$, and the hitting cost incurred by the state represented by the vertice $v_{t+1,j}$, i.e. $f_{t+1}(j)$. The structure of this graph is presented in [TODO: add figure].
 
@@ -177,7 +177,7 @@ $x_{k \gets j}$ denotes the update of configuration $x$ in dimension $k$ to the 
     \Return $(\hat{X}, \hat{c})$\;
 \end{function}
 
-The \autoref{proc:md:optimal_graph_search:update_paths} determines the shortest path to $v$ through its predecessors $E$ and updates the optimal schedule $\hat{X}^v$ (if necessary) and optimal cost $\hat{c}^v$.
+The \autoref{proc:md:optimal_graph_search:update_paths} determines the shortest path to $v$ through its predecessors $E$ and updates the optimal schedule $\hat{X}^v$ (if necessary) and optimal cost $\hat{c}^v$. [TODO: add figure depicting graph with an optimal schedule as an example]
 
 \ref{proc:md:optimal_graph_search:update_paths} runs in $\mathcal{O}(|E|)$ time. Assuming $d$ is a constant, $|E| \in \mathcal{O}(1)$ and thus \ref{proc:md:optimal_graph_search:handle_first_layer} runs in $\mathcal{O}(|\mathcal{M}|)$ time while \ref{proc:md:optimal_graph_search:handle_second_layer} runs in $\mathcal{O}(|\mathcal{M}| C)$ time. Therefore, the overall time complexity of \autoref{alg:md:optimal_graph_search} is in $\mathcal{O}(T |\mathcal{M}| C)$ where $\mathcal{O}(T |\mathcal{M}|)$ is the size of the underlying graph. Note, that this running time is not polynomial in the size of the problem instance which is given by $\mathcal{O}(T + \sum_{k=1}^d \log_2 m_k)$ as $|\mathcal{M}| \in \mathcal{O}(\prod_{k=1}^d m_k)$. For this reason, \citeauthor*{Albers2021_2} developed an approximation algorithm which we discuss next.
 
@@ -186,10 +186,10 @@ The \autoref{proc:md:optimal_graph_search:update_paths} determines the shortest 
 \citeauthor*{Albers2021_2} extend the graph-based algorithm from the previous section to a polynomial-time approximation scheme \cite{Albers2021_2}. Their algorithm is a generalization of an approximation algorithm that was previously proposed by \citeauthor*{Kappelmann2017} \cite{Kappelmann2017}. The idea is to restrict the possible values of $x_{t,k}$. In addition to requiring $x_{t,k} \in [m_k]_0$, we also require $x_{t,k}$ to be a power of some $\gamma > 1$. The possible numbers of active servers of type $k$ is now given as \begin{align*}
     M_k^{\gamma} := &\{0, m_k\} \cup \{\lfloor\gamma^i\rfloor \in [m_k]_0 \mid i \in \mathbb{N}\} \cup \{\lceil\gamma^i\rceil \in [m_k]_0 \mid i \in \mathbb{N}\} \\
                     &\{0, \lfloor\gamma^1\rfloor, \lceil\gamma^1\rceil, \lfloor\gamma^2\rfloor, \lceil\gamma^2\rceil, \dots, m_k\}.
-\end{align*} It is easy to see that the ratio between two consecutive values in the ordered set $M_k^{\gamma}$ is not larger than $\gamma$. Also, $|M_k^{\gamma}| \in \mathcal{O}(\log_{\gamma} m_k)$. We define $\mathcal{M}^{\gamma} := M_1^{\gamma} \times \dots \times M_d^{\gamma}$ which results in $|\mathcal{M}^{\gamma}| \in \mathcal{O}(\prod_{k=1}^d \log_{\gamma} m_k)$.
+\end{align*} It is easy to see that the ratio between two consecutive values in the ordered set $M_k^{\gamma}$ is not larger than $\gamma$. Also, $|M_k^{\gamma}| \in \mathcal{O}(\log_{\gamma} m_k)$. We define $\mathcal{M}^{\gamma} := M_1^{\gamma} \times \dots \times M_d^{\gamma}$ which results in $|\mathcal{M}^{\gamma}| \in \mathcal{O}(\prod_{k=1}^d \log_{\gamma} m_k)$. [TODO: add figure showing the optimal schedule vs a schedule using $\gamma = 2$]
 
 Let $G^{\gamma}$ be the described graph parametrized by $\gamma > 1$. \citeauthor*{Albers2021_2} show that given a shortest path $P^{\gamma}$ in $G^{\gamma}$, its induced schedule $X^{P^{\gamma}}$ is a $(2\gamma + 1)$-approximation of the optimal schedule $\hat{x}$ \cite{Albers2021_2}. Further, the total number of vertices in $G^{\gamma}$ is \begin{align*}
     \mathcal{O}(T |\mathcal{M}|^{\gamma}) = \mathcal{O}(T \prod_{k=1}^d \log_{1+\epsilon} m_k)
 \end{align*} as $|M_k^{\gamma}| \in \mathcal{O}(\log_{\gamma} m_k) = \mathcal{O}(\log_{1 + \epsilon} m_k)$. Using the same graph search algorithm that was described in the previous section we are able to find $X^{P^{\gamma}}$ in $\mathcal{O}(T C \prod_{k=1}^d \log_{1 + \epsilon} m_k)$ time. Hence, setting $\gamma = 1 + \epsilon / 2$ for some $\epsilon > 0$ yields a $(1+\epsilon)$-approximation.
 
-One important question regarding the approximation algorithm remains. Namely, how to compute the powers of gamma $\gamma^i$ such that $\lfloor\gamma^i\rfloor \in [m_k]$ or $\lceil\gamma^i\rceil \in [m_k]$ for some $k \in [d]$. The simplest solution is to iteratively increase $i \in \mathbb{N}$ until $\gamma^i$ is greater than $m_k$. We then keep track of all $\lfloor\gamma^i\rfloor$ and $\lceil\gamma^i\rceil$ that were generated in this way. We observe that this simple approach takes $\mathcal{O}(\log_{\gamma} m_k)$, not altering the runtime of the algorithm. We have thus discussed a polynomial time approximation scheme for multi-dimensional instances of Int-SSCO.
+One important question regarding the approximation algorithm remains. Namely, how to compute the powers of gamma $\gamma^i$ such that $\lfloor\gamma^i\rfloor \in [m_k]$ or $\lceil\gamma^i\rceil \in [m_k]$ for some $k \in [d]$. The simplest solution is to iteratively increase $i \in \mathbb{N}$ until $\gamma^i$ is greater than $\max_{k \in [d]} m_k$. We then keep track of all $\lfloor\gamma^i\rfloor$ and $\lceil\gamma^i\rceil$ that were generated in this way. We observe that this simple approach takes $\mathcal{O}(\log_{\gamma} m_k)$, not altering the runtime of the algorithm. We have thus discussed a polynomial time approximation scheme for multi-dimensional instances of Int-SSCO.

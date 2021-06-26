@@ -232,7 +232,7 @@ For any $T \in \mathbb{N}, \beta \in \mathbb{R}_{>0}^d$, and $X_t \in \mathbb{R}
 \end{lemma}
 \begin{proof}
 By \autoref{lemma:inverse_switching_cost}, the above equivalence holds iff \begin{align*}
-    \sum_{t=1}^T \sum_{k=1}^d \beta_k |X_{t,k}| = \sum_{t=1}^T \sum_{k=1}^d \beta_k ((X_{t,k} - X_{t-1,k})^+ + (X_{t,k} - X_{t+1,k})^+).
+    \sum_{t=1}^T \sum_{k=1}^d \beta_k |X_{t,k} - X_{t-1,k}| = \sum_{t=1}^T \sum_{k=1}^d \beta_k ((X_{t,k} - X_{t-1,k})^+ + (X_{t,k} - X_{t+1,k})^+).
 \end{align*}
 It is easy to see that this equivalence always holds.
 \end{proof}

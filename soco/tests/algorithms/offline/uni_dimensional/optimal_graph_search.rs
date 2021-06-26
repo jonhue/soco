@@ -66,11 +66,23 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result =
-            optimal_graph_search(&p, &Options { inverted: false }).unwrap();
+        let result = optimal_graph_search(
+            &p,
+            &Options {
+                inverted: false,
+                x_start: None,
+            },
+        )
+        .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result =
-            optimal_graph_search(&p, &Options { inverted: true }).unwrap();
+        let inv_result = optimal_graph_search(
+            &p,
+            &Options {
+                inverted: true,
+                x_start: None,
+            },
+        )
+        .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.xs, inv_result.xs);
@@ -102,11 +114,23 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result =
-            optimal_graph_search(&p, &Options { inverted: false }).unwrap();
+        let result = optimal_graph_search(
+            &p,
+            &Options {
+                inverted: false,
+                x_start: None,
+            },
+        )
+        .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result =
-            optimal_graph_search(&p, &Options { inverted: true }).unwrap();
+        let inv_result = optimal_graph_search(
+            &p,
+            &Options {
+                inverted: true,
+                x_start: None,
+            },
+        )
+        .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.xs, inv_result.xs);
@@ -134,16 +158,26 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let transformed_p = make_pow_of_2(&p).unwrap();
-        let result =
-            optimal_graph_search(&transformed_p, &Options { inverted: false })
-                .unwrap();
+        let result = optimal_graph_search(
+            &transformed_p,
+            &Options {
+                inverted: false,
+                x_start: None,
+            },
+        )
+        .unwrap();
         result
             .xs
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
-        let inv_result =
-            optimal_graph_search(&transformed_p, &Options { inverted: true })
-                .unwrap();
+        let inv_result = optimal_graph_search(
+            &transformed_p,
+            &Options {
+                inverted: true,
+                x_start: None,
+            },
+        )
+        .unwrap();
         inv_result
             .xs
             .verify(transformed_p.t_end, &transformed_p.bounds)
@@ -154,6 +188,45 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(
             result.cost,
             transformed_p.objective_function(&result.xs).unwrap()
+        );
+    }
+
+    #[test]
+    fn _4() {
+        let p = SimplifiedSmoothedConvexOptimization {
+            d: 1,
+            t_end: 2,
+            bounds: vec![2],
+            switching_cost: vec![1.],
+            hitting_cost: Arc::new(|t, j| {
+                Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
+            }),
+        };
+        p.verify().unwrap();
+
+        let result = optimal_graph_search(
+            &p,
+            &Options {
+                inverted: false,
+                x_start: Some(2),
+            },
+        )
+        .unwrap();
+        result.xs.verify(p.t_end, &p.bounds).unwrap();
+
+        assert_eq!(
+            result.xs,
+            Schedule::new(vec![Config::single(1), Config::single(1)])
+        );
+        assert_abs_diff_eq!(result.cost, 0.);
+        assert_abs_diff_eq!(
+            result.cost,
+            p.objective_function_with_default(
+                &result.xs,
+                &Config::single(2),
+                false
+            )
+            .unwrap()
         );
     }
 }

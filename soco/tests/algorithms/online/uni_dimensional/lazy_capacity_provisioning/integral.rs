@@ -1,7 +1,6 @@
 mod lcp {
     use std::sync::Arc;
-    use soco::algorithms::offline::multi_dimensional::approx_graph_search::{Options as ApproxOptions};
-    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::integral::{Options, lcp};
+    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::integral::lcp;
     use soco::online::Online;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::config::Config;
@@ -21,16 +20,7 @@ mod lcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o
-            .stream(
-                lcp,
-                |_, _, _| false,
-                &Options {
-                    optimize_reference_time: true,
-                    use_approx: None,
-                },
-            )
-            .unwrap();
+        let result = o.stream(lcp, |_, _, _| false, &()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         assert_eq!(result.0, Schedule::new(vec![Config::single(0)]));
@@ -38,7 +28,6 @@ mod lcp {
 
     #[test]
     fn _2() {
-        let approx_options = ApproxOptions { gamma: None };
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -51,16 +40,7 @@ mod lcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o
-            .stream(
-                lcp,
-                |_, _, _| false,
-                &Options {
-                    optimize_reference_time: true,
-                    use_approx: Some(&approx_options),
-                },
-            )
-            .unwrap();
+        let result = o.stream(lcp, |_, _, _| false, &()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         assert_eq!(result.0, Schedule::new(vec![Config::single(0)]));
@@ -81,16 +61,7 @@ mod lcp {
         o.verify().unwrap();
 
         let t_end = 2;
-        let result = o
-            .offline_stream(
-                lcp,
-                t_end,
-                &Options {
-                    optimize_reference_time: true,
-                    use_approx: None,
-                },
-            )
-            .unwrap();
+        let result = o.offline_stream(lcp, t_end, &()).unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
         assert_eq!(
@@ -101,7 +72,6 @@ mod lcp {
 
     #[test]
     fn _4() {
-        let approx_options = ApproxOptions { gamma: None };
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -115,16 +85,7 @@ mod lcp {
         o.verify().unwrap();
 
         let t_end = 2;
-        let result = o
-            .offline_stream(
-                lcp,
-                t_end,
-                &Options {
-                    optimize_reference_time: true,
-                    use_approx: Some(&approx_options),
-                },
-            )
-            .unwrap();
+        let result = o.offline_stream(lcp, t_end, &()).unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
         assert_eq!(

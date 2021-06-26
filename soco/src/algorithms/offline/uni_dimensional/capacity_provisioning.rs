@@ -27,8 +27,8 @@ fn next(
     t: i32,
     x: f64,
 ) -> Result<f64> {
-    let l = p.find_lower_bound(t, 0, None)?;
-    let u = p.find_upper_bound(t, 0, None)?;
+    let l = p.find_lower_bound(t, 0, 0.)?;
+    let u = p.find_upper_bound(t, 0, 0.)?;
 
     Ok(project(x, l, u))
 }
