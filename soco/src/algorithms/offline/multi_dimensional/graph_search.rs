@@ -64,7 +64,8 @@ pub fn graph_search<'a>(
             config: build_base_config(p.d, &p.bounds, &values, true),
             powering_up: false,
         })
-        .ok_or(Error::PathsShouldBeCached)?
+        .ok_or(Error::PathsShouldBeCached)
+        .unwrap()
         .clone())
 }
 
@@ -82,14 +83,10 @@ fn handle_layer(
     paths: &mut Paths<Vertice>,
     state_: Option<HandleLayerState>,
 ) -> Result<()> {
-    let mut state = state_.unwrap_or_else(|| {
-        let configs =
-            vec![build_base_config(p.d, &p.bounds, values, powering_up)];
-        if powering_up {
-            HandleLayerState { k: 1, configs }
-        } else {
-            HandleLayerState { k: p.d, configs }
-        }
+    let base_k = 1;
+    let mut state = state_.unwrap_or_else(|| HandleLayerState {
+        k: base_k,
+        configs: vec![build_base_config(p.d, &p.bounds, values, powering_up)],
     });
 
     if state.k < 1 || state.k > p.d {
@@ -97,45 +94,32 @@ fn handle_layer(
     }
     let mut added_configs = vec![];
 
+    let dir = if powering_up {
+        Direction::Next
+    } else {
+        Direction::Previous
+    };
     for base_config in state.configs.iter() {
-        let mut config = base_config.clone();
+        let mut config = if state.k == base_k {
+            base_config.clone()
+        } else {
+            build_config(dir, &values, &base_config, state.k)
+                .ok_or(Error::BoundMustBeGreaterThanZero)?
+        };
+        if state.k != base_k {
+            added_configs.push(config.clone());
+        }
         loop {
-            // find all immediate predecessors
-            let predecessors = find_immediate_predecessors(
+            handle_config(
                 p,
                 inverted,
                 t,
-                powering_up,
-                state.k as usize - 1,
-                &config,
+                state.k,
+                (powering_up, &config),
                 values,
-            )?;
-
-            // determine shortest path
-            let opt_predecessor =
-                find_optimal_predecessor(inverted, predecessors, paths)?;
-
-            // update paths
-            update_paths(
                 paths,
-                opt_predecessor,
-                &Vertice {
-                    config: config.clone(),
-                    powering_up,
-                },
             )?;
-
-            // build the next considered config
-            config = match build_config(
-                if powering_up {
-                    Direction::Next
-                } else {
-                    Direction::Previous
-                },
-                &values,
-                &config,
-                state.k as usize - 1,
-            ) {
+            config = match build_config(dir, &values, &config, state.k) {
                 None => break,
                 Some(config) => {
                     added_configs.push(config.clone());
@@ -146,12 +130,44 @@ fn handle_layer(
     }
 
     state.configs.append(&mut added_configs);
-    if powering_up {
-        state.k += 1
-    } else {
-        state.k -= 1
-    };
+    state.k += 1;
     handle_layer(p, inverted, t, powering_up, values, paths, Some(state))
+}
+
+/// updates paths up to vertex representing some config; then returns next config
+fn handle_config(
+    p: &IntegralSimplifiedSmoothedConvexOptimization,
+    inverted: bool,
+    t: i32,
+    k: i32,
+    (powering_up, config): (bool, &InternalConfig),
+    values: &Values,
+    paths: &mut Paths<Vertice>,
+) -> Result<()> {
+    // find all immediate predecessors
+    let predecessors = find_immediate_predecessors(
+        p,
+        inverted,
+        t,
+        powering_up,
+        k,
+        &config,
+        values,
+    )?;
+
+    // determine shortest path
+    let opt_predecessor = find_optimal_predecessor(predecessors, paths);
+
+    // update paths
+    update_paths(
+        paths,
+        opt_predecessor,
+        &Vertice {
+            config: config.clone(),
+            powering_up,
+        },
+    );
+    Ok(())
 }
 
 fn build_base_config(
@@ -173,6 +189,7 @@ fn build_base_config(
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 enum Direction {
     Next,
     Previous,
@@ -183,8 +200,9 @@ fn build_config(
     dir: Direction,
     values: &Values,
     current_config: &InternalConfig,
-    k: usize,
+    k_: i32,
 ) -> Option<InternalConfig> {
+    let k = k_ as usize - 1;
     let mut config = current_config.clone();
     let i = match dir {
         Direction::Next => {
@@ -213,7 +231,7 @@ fn find_immediate_predecessors(
     inverted: bool,
     t: i32,
     powering_up: bool,
-    k: usize,
+    k: i32,
     config: &InternalConfig,
     all_values: &Values,
 ) -> Result<Vec<Edge>> {
@@ -235,7 +253,7 @@ fn find_immediate_predecessors(
         predecessors.push(inaction);
     }
 
-    for l in 0..=k {
+    for l in 1..=k {
         let prev_config = build_config(
             if powering_up {
                 Direction::Previous
@@ -257,10 +275,10 @@ fn find_immediate_predecessors(
                     cost: if powering_up && !inverted
                         || !powering_up && inverted
                     {
-                        p.switching_cost[l]
+                        p.switching_cost[l as usize - 1]
                             * scalar_movement(
-                                config.config[l],
-                                prev_config.config[l],
+                                config.config[l as usize - 1],
+                                prev_config.config[l as usize - 1],
                                 inverted,
                             ) as f64
                     } else {
@@ -276,57 +294,50 @@ fn find_immediate_predecessors(
 }
 
 fn find_optimal_predecessor(
-    inverted: bool,
     predecessors: Vec<Edge>,
     paths: &mut Paths<Vertice>,
-) -> Result<Option<Edge>> {
-    let mut picked_predecessor: Option<Edge> = None;
+) -> Option<(Edge, Path)> {
+    let mut picked: Option<(Edge, Path)> = None;
     for predecessor in predecessors {
-        let prev_cost = paths
+        let path = paths
             .get(&predecessor.from)
-            .ok_or(Error::PathsShouldBeCached)?
-            .cost;
-        let new_cost = prev_cost + predecessor.cost;
+            .ok_or(Error::PathsShouldBeCached)
+            .unwrap();
+        let new_cost = path.cost + predecessor.cost;
 
         // take smallest possible action if costs are equal
-        let picked_cost = picked_predecessor.clone().map_or_else(
+        let picked_cost = picked.clone().map_or_else(
             || f64::INFINITY,
-            |picked_predecessor| picked_predecessor.cost,
+            |(picked_predecessor, path)| path.cost + picked_predecessor.cost,
         );
-        if !inverted && new_cost < picked_cost
-            || inverted && new_cost <= picked_cost
-        {
-            picked_predecessor = Some(predecessor);
+        if new_cost < picked_cost {
+            picked = Some((predecessor, path.clone()));
         }
     }
-    Ok(picked_predecessor)
+    picked
 }
 
 fn update_paths(
     paths: &mut Paths<Vertice>,
-    predecessor: Option<Edge>,
+    predecessor: Option<(Edge, Path)>,
     to: &Vertice,
-) -> Result<()> {
+) {
     let path = match predecessor {
         None => Path {
             xs: IntegralSchedule::empty(),
             cost: 0.,
         },
-        Some(predecessor) => {
-            let prev = &paths
-                .get(&predecessor.from)
-                .ok_or(Error::PathsShouldBeCached)?;
+        Some((predecessor, path)) => {
             let xs = if predecessor.from.powering_up && !to.powering_up {
-                prev.xs.extend(to.config.config.clone())
+                path.xs.extend(to.config.config.clone())
             } else {
-                prev.xs.clone()
+                path.xs.clone()
             };
             Path {
                 xs,
-                cost: prev.cost + predecessor.cost,
+                cost: path.cost + predecessor.cost,
             }
         }
     };
     paths.insert(to.clone(), path);
-    Ok(())
 }

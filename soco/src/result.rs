@@ -3,6 +3,7 @@
 #[derive(Debug)]
 pub enum Error {
     Bisection(String),
+    BoundMustBeGreaterThanZero,
     CostFnMustBeTotal,
     DimensionInconsistent,
     Integration(String),

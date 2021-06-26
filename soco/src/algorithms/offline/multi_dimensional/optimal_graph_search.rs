@@ -14,7 +14,7 @@ pub fn optimal_graph_search<'a>(
     let max_bound = p.bounds.iter().max().unwrap();
     let values = Values {
         values: (0..=*max_bound).collect(),
-        bound_indices: (0..=*max_bound as usize).collect(),
+        bound_indices: p.bounds.iter().map(|&m| m as usize).collect(),
     };
     graph_search(p, values, offline_options)
 }
