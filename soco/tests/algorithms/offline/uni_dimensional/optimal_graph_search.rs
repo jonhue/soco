@@ -20,7 +20,10 @@ mod make_pow_of_2 {
 
         assert_eq!(transformed_p.t_end, p.t_end);
         assert_eq!(transformed_p.bounds[0], 128);
-        assert_abs_diff_eq!(transformed_p.switching_cost[0], p.switching_cost[0]);
+        assert_abs_diff_eq!(
+            transformed_p.switching_cost[0],
+            p.switching_cost[0]
+        );
 
         for t in 1..=transformed_p.t_end {
             for j in 0..=transformed_p.bounds[0] {
@@ -77,7 +80,10 @@ mod optimal_graph_search {
             Schedule::new(vec![Config::single(1), Config::single(1)])
         );
         assert_abs_diff_eq!(result.cost, 1.);
-        assert_abs_diff_eq!(result.cost, p.objective_function(&result.xs).unwrap());
+        assert_abs_diff_eq!(
+            result.cost,
+            p.objective_function(&result.xs).unwrap()
+        );
     }
 
     #[test]
@@ -105,7 +111,10 @@ mod optimal_graph_search {
 
         assert_eq!(result.xs, inv_result.xs);
         assert_abs_diff_eq!(result.cost, inv_result.cost);
-        assert_abs_diff_eq!(result.cost, p.objective_function(&result.xs).unwrap());
+        assert_abs_diff_eq!(
+            result.cost,
+            p.objective_function(&result.xs).unwrap()
+        );
     }
 
     #[test]
