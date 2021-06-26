@@ -1,3 +1,5 @@
+#![allow(clippy::float_cmp)]
+
 mod optimal_graph_search {
     use rand::prelude::*;
     use rand_pcg::Pcg64;

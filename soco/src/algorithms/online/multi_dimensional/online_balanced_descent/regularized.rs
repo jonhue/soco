@@ -1,5 +1,3 @@
-#![allow(clippy::float_cmp)]
-
 use crate::config::{Config, FractionalConfig};
 use crate::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::cost::CostFn;

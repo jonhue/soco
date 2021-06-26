@@ -1,5 +1,3 @@
-#![allow(clippy::float_cmp)]
-
 mod bcp {
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::brcp;
     use soco::config::Config;
