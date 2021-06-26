@@ -1,5 +1,3 @@
-#![allow(clippy::float_cmp)]
-
 mod make_pow_of_2 {
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::make_pow_of_2;
     use soco::config::Config;
@@ -22,20 +20,20 @@ mod make_pow_of_2 {
 
         assert_eq!(transformed_p.t_end, p.t_end);
         assert_eq!(transformed_p.bounds[0], 128);
-        assert_eq!(transformed_p.switching_cost[0], p.switching_cost[0]);
+        assert_abs_diff_eq!(
+            transformed_p.switching_cost[0],
+            p.switching_cost[0]
+        );
 
         for t in 1..=transformed_p.t_end {
             for j in 0..=transformed_p.bounds[0] {
-                assert_eq!(
+                assert_abs_diff_eq!(
                     (transformed_p.hitting_cost)(t, Config::single(j)).unwrap(),
                     if j <= p.bounds[0] {
                         1.
                     } else {
                         j as f64 * (1. + std::f64::EPSILON)
-                    },
-                    "f is wrongly defined for t={}, j={}",
-                    t,
-                    j
+                    }
                 );
             }
         }
@@ -76,13 +74,16 @@ mod optimal_graph_search {
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.xs, inv_result.xs);
-        assert_eq!(result.cost, inv_result.cost);
+        assert_abs_diff_eq!(result.cost, inv_result.cost);
         assert_eq!(
             result.xs,
             Schedule::new(vec![Config::single(1), Config::single(1)])
         );
-        assert_eq!(result.cost, 1.);
-        assert_eq!(result.cost, p.objective_function(&result.xs).unwrap());
+        assert_abs_diff_eq!(result.cost, 1.);
+        assert_abs_diff_eq!(
+            result.cost,
+            p.objective_function(&result.xs).unwrap()
+        );
     }
 
     #[test]
@@ -109,8 +110,11 @@ mod optimal_graph_search {
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.xs, inv_result.xs);
-        assert_eq!(result.cost, inv_result.cost);
-        assert_eq!(result.cost, p.objective_function(&result.xs).unwrap());
+        assert_abs_diff_eq!(result.cost, inv_result.cost);
+        assert_abs_diff_eq!(
+            result.cost,
+            p.objective_function(&result.xs).unwrap()
+        );
     }
 
     #[test]
@@ -146,8 +150,8 @@ mod optimal_graph_search {
             .unwrap();
 
         assert_eq!(result.xs, inv_result.xs);
-        assert_eq!(result.cost, inv_result.cost);
-        assert_eq!(
+        assert_abs_diff_eq!(result.cost, inv_result.cost);
+        assert_abs_diff_eq!(
             result.cost,
             transformed_p.objective_function(&result.xs).unwrap()
         );

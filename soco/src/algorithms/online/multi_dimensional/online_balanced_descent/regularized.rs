@@ -1,5 +1,3 @@
-#![allow(clippy::float_cmp)]
-
 use crate::config::{Config, FractionalConfig};
 use crate::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::cost::CostFn;
@@ -73,7 +71,7 @@ fn build_parameters(m: f64, alpha: f64, beta: f64) -> (f64, f64) {
     let mut lambda_2 = 0.;
     let mut lambda_1 =
         2. / (1. + (1. + 4. * beta.powi(2) / (alpha * m)).sqrt());
-    if f_lambda_2(lambda_1) == lambda_2 {
+    if (f_lambda_2(lambda_1) - lambda_2).abs() < f64::EPSILON {
         return (lambda_1, lambda_2);
     }
 

@@ -1,5 +1,3 @@
-#![allow(clippy::float_cmp)]
-
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::{
     graph_search::graph_search, Values,
@@ -28,12 +26,11 @@ pub fn approx_graph_search<'a>(
 
 /// Computes all values allowed by the approximation algorithm.
 fn cache_bound_indices(
-    build_values: impl Fn(i32, f64) -> Vec<i32>,
+    build_values: impl Fn(&Vec<i32>, f64) -> Vec<i32>,
     bounds: &Vec<i32>,
     gamma: f64,
 ) -> Values {
-    let max_bound = bounds.iter().max().unwrap();
-    let values = build_values(*max_bound, gamma);
+    let values = build_values(bounds, gamma);
     let bound_indices = bounds
         .iter()
         .map(|m| values.iter().position(|j| j == m).unwrap())
@@ -44,13 +41,14 @@ fn cache_bound_indices(
     }
 }
 
-fn build_values(bound: i32, gamma: f64) -> Vec<i32> {
+fn build_values(bounds: &Vec<i32>, gamma: f64) -> Vec<i32> {
+    let max_bound = *bounds.iter().max().unwrap();
     let mut vs: Vec<i32> = vec![0];
 
     let mut i = 1;
     loop {
         let l = gamma.powi(i).floor() as i32;
-        if l > bound {
+        if l > max_bound {
             break;
         }
         if !vs.contains(&l) {
@@ -58,7 +56,7 @@ fn build_values(bound: i32, gamma: f64) -> Vec<i32> {
         }
 
         let u = gamma.powi(i).ceil() as i32;
-        if u > bound {
+        if u > max_bound {
             break;
         }
         if !vs.contains(&u) {
@@ -67,9 +65,12 @@ fn build_values(bound: i32, gamma: f64) -> Vec<i32> {
 
         i += 1;
     }
-    if !vs.contains(&bound) {
-        vs.push(bound);
+    for &bound in bounds {
+        if !vs.contains(&bound) {
+            vs.push(bound);
+        }
     }
 
+    vs.sort_unstable();
     vs
 }
