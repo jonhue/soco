@@ -3,15 +3,48 @@
 
 \chapter{Online Algorithms}\label{chapter:online_algorithms}
 
-\section{Uni-Dimensional}
+In this chapter, we discuss the online algorithms we implemented in our work. Similarly, to the previous chapter on offline algorithms, we begin our discussion in \autoref{section:online_algorithms:ud} with algorithms for the uni-dimensional setting. As was discussed in \autoref{chapter:theory}, these algorithms give strong guarantees yielding a constant competitive ratio. Next in \autoref{section:online_algorithms:md}, we extend our discussion to the multi-dimensional setting. Here, the guarantees are not as strong. We thus begin in \autoref{section:online_algorithms:md:lazy_budgeting} by considering lazy budgeting algorithms for smoothed convex optimization problems with very specific cost functions. As mentioned previously in \autoref{chapter:theory}, while there are algorithms with sublinear regret (gradient descent) there cannot be any algorithms achieving a dimension-independent constant competitive ratio unless the class of allowed cost functions is restricted \cite{Chen2018}. In \autoref{section:online_algorithms:md:descent_methods}, we therefore discuss gradient methods that have been shown to be able to perform well with regard to either the competitive ratio or regret with a restricted class of cost functions. Still, sublinear regret and a constant competitive ratio cannot be achieved at the same time, even for linear cost functions \cite{Andrew2015}. We therefore end this chapter in \autoref{section:online_algorithms:md:predictions} with a discussion of algorithms that make use of predictions to circumvent this fundamental limitation.
+
+Throughout this chapter, we denote by $\tau \in [T]$ the current time slot. In contrast to offline algorithms that know the hitting costs $f_t$ for all $t \in [T]$, an online algorithm only knows the hitting costs $f_t$ up to $\tau$, i.e. $t \in [\tau]$.
+
+\section{Uni-Dimensional}\label{section:online_algorithms:ud}
 
 \subsection{Lazy Capacity Provisioning}\label{section:online_algorithms:ud:lazy_capacity_provisioning}
 
-[TODO: add figure comparing to brcp and link from section on brcp]
-
 \subsubsection{Fractional Algorithm}
 
+We begin by returning to the notion of capacity provisioning that we introduced in \autoref{section:offline_algorithms:ud:capacity_provisioning} yielding a backward-recurrent algorithm finding an optimal schedule for SSCO. This algorithm computed bounds $X_{\tau}^L$ and $X_{\tau}^U$ on the optimal solution which only depend on the schedule up to time slot $\tau$. However, the optimal offline algorithm stayed within these bounds moving backwards in time which is not possible for an online algorithm. \citeauthor*{Lin2011} present a similar algorithm moving forward in time called \emph{lazy capacity provisioning} \cite{Lin2011}. We computes the schedule $X_{\tau}$ during time slot $\tau$ by setting $X_{\tau} = X_{\tau-1}$ unless this violates the bounds in which case we make the smallest possible change: \begin{align*}
+    X_{\tau} = \begin{cases}
+        0 & \tau \leq 0 \\
+        (X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U} & \tau \geq 1
+    \end{cases}
+\end{align*} where $(X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$ is the projection of $X_{\tau-1}$ onto $[X_{\tau,\tau}^L, X_{\tau,\tau}^U]$ \cite{Lin2011}. [TODO: add figure comparing to brcp and link from section on brcp]. The resulting algorithm is described in \autoref{alg:lcp}. Similarly to the offline algorithm, we are able to use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(\tau C O_{\epsilon})$ for $\epsilon$-optimal upper and lower bounds. This complexity is worrying as it depends on $\tau$ which may grow to be very large. However, \citeauthor*{Lin2011} prove the following lemma which implies that it suffices to compute the lower and upper bounds using only the history since the last time slot where the bounds were either both decreased or both increased.
+
+\begin{lemma}
+If there exists an index $t \in [1, \tau-1]$ such that $X_{\tau,t+1}^U < X_{\tau,t}^U$ or $X_{\tau,t+1}^L > X_{\tau,t}^L$, then $(\hat{X}_{\tau,1},\dots,\hat{X}_{\tau,t}) := (X_{\tau,1}^L,\dots,X_{\tau,t}^L) = (X_{\tau,1}^U,\dots,X_{\tau,t}^U)$, and no matter what the future arrival is, solving the optimization in $[1,\tau']$ for $\tau' > \tau$ is equivalent to solving two optimizations: one over $[1,t]$ with initial condition $X_0$ and final condition $\hat{X}_{\tau,t}$ and the second over $[t+1,\tau']$ with initial condition $\hat{X}_{\tau,t}$ \cite{Lin2011}.
+\end{lemma}
+
+While not changing the worst-case complexity, this significantly improves the practical complexity in the application of right-sizing data centers as diurnal load patterns typically ensure that less than a day needs to be considered \cite{Lin2011}. We denote by $X_{\tau}^{L,(t,x_0)}$ and $X_{\tau}^{U,(t,x_0)}$ the bounds resulting from optimizations beginning at time slot $t$ with initial condition $x_0$. \citeauthor*{Lin2011} showed that lazy capacity provisioning is tightly $3$-competitive \cite{Lin2011}.
+
+\begin{algorithm}
+    \caption{Lazy Capacity Provisioning \cite{Lin2011}}\label{alg:lcp}
+    \SetKwInOut{Input}{Input}
+    \Input{$\mathcal{I}_{\text{SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau})$}
+    $t_0 \gets 0$\;
+    $x_0 \gets 0$\;
+    \For{$t \gets \tau-1$ \KwTo $2$}{
+        \If{$X_{t,t}^U < X_{t,t-1}^U \lor X_{t,t}^L > X_{t,t-1}^L$}{
+            $t_0 \gets t$\;
+            $x_0 \gets X_{t,t-1}^U$\;
+            \KwBreak
+        }
+    }
+    \Return $(X_{\tau-1})_{X_{\tau,\tau}^{L,(t_0,x_0)}}^{X_{\tau,\tau}^{U,(t_0,x_0)}}$\;
+\end{algorithm}
+
 \subsubsection{Integral Algorithm}
+
+\citeauthor*{Albers2018} applied lazy capacity provisioning to the integral variant Int-SSCO using their graph-based offline algorithm discussed in \autoref{section:offline_algorithms:ud:graph_based} to compute the integral lower and upper bounds \cite{Albers2018}. It is apparent, that this immediately yields a deterministic online algorithm for Int-SSCO. \citeauthor*{Albers2018} showed that similar to lazy capacity provisioning their algorithm is $3$-competitive \cite{Albers2018}. Due to the changed method of determining the bounds its runtime is $\mathcal{O}(\tau C \log_2 m)$. By using the same method of shortening the used history that was proposed by \citeauthor*{Lin2011} we are able to reduce this time complexity drastically in practice (for large $\tau$). Thus, the adopted algorithm is still described by \autoref{alg:lcp}. We simply need to slightly modify the graph-based algorithm computing optimal offline solutions to allow for initial conditions other than $0$.
 
 \subsection{Memoryless Algorithm}
 
@@ -21,9 +54,9 @@
 
 \subsection{Randomized Integral Relaxation}
 
-\section{Multi-Dimensional}
+\section{Multi-Dimensional}\label{section:online_algorithms:md}
 
-\subsection{Lazy Budgeting}
+\subsection{Lazy Budgeting}\label{section:online_algorithms:md:lazy_budgeting}
 
 \subsubsection{Lazy Budgeting for Smoothed Load Optimization}
 
@@ -39,14 +72,31 @@
 
 \subsubsection{Online Balanced Descent}
 
-\section{Predicting}
+\section{Predicting}\label{section:online_algorithms:md:predictions}
+
+\subsection{Making Predictions}
 
 \subsection{Prediction Window}
 
+A natural model to allow incorporating predictions is the use of a finite prediction window $w$. A prediction window bridges the gap between offline and online algorithms. Whereas an online algorithm only knows the hitting costs $f_t$ for $t \in [\tau]$ and an offline algorithm knows the hitting costs $f_t$ for all $t \in [T]$, an online algorithm with \emph{prediction window}\index{prediction window} of length $w$ knows all hitting costs $f_t$ up to $\tau + w$, i.e. $t \in [\tau + w]$. In other words, the prediction window $w$ represents the number of upcoming time slots the algorithm has perfect knowledge of the future.
+
 \subsubsection{Lazy Capacity Provisioning with Prediction Window}
+
+\citeauthor*{Lin2011} extend their algorithm lazy capacity provisioning to support the prediction window by changing the update rule to \begin{align*}
+    X_{\tau} = \begin{cases}
+        0 & \tau \leq 0 \\
+        (X_{\tau-1})_{X_{\tau+w,\tau}^L}^{X_{\tau+w,\tau}^U} & \tau \geq 1
+    \end{cases}
+\end{align*}
+
+The assumption of perfect knowledge of the future is certain to be violated when an online algorithm is used in practice, still \citeauthor*{Lin2011} show and we confirm in [TODO: add reference] that lazy capacity provisioning with a prediction window is robust to this assumption in practice \cite{Lin2011}. Unfortunately, \citeauthor*{Lin2011} and \citeauthor*{Albers2018} showed that using a finite prediction window does not improve the worst-case performance of the online algorithm for the fractional and integral case, respectively \cite{Lin2011, Albers2018}. In other words, the optimal competitive ratio of any deterministic online algorithm is $3$ regardless of whether it uses a finite prediction window. In practice, however, we observe that a prediction window already significantly improves the performance of the algorithm [TODO: add reference].
+
+There are two main drawbacks to using a finite prediction window. First, predictions windows are finite and typically constrained to a short period of time as they are assumed to be perfect. In contrast, predictions can be made for much longer time horizons, albeit with a decreasing accuracy. Second, it completely disregards any knowledge or assumptions of the certainty and noise of the predictions by assuming the predictions to be perfect. Therefore, for the remainder of this section, it will be our goal to devise better algorithms that use this information to make more informed decisions.
 
 \subsection{Model Predictive Control}
 
 \subsubsection{Receding Horizon Control}
 
 \subsubsection{Fixed Horizon Control}
+
+\section{Taxonomy}

@@ -19,6 +19,8 @@ struct Vertice(i32, i32);
 pub struct Options {
     /// Compute inverted cost.
     pub inverted: bool,
+    /// Value at initial time `0`. Defaults to `0`.
+    pub x_start: Option<i32>,
 }
 
 /// Graph-Based Optimal Algorithm
@@ -34,9 +36,10 @@ pub fn optimal_graph_search(
     } else {
         0
     };
+    let x_start = options.x_start.unwrap_or(0);
 
     let mut result =
-        find_schedule(p, select_initial_rows(p), options.inverted)?;
+        find_schedule(p, select_initial_rows(p), options.inverted, x_start)?;
 
     if k_init > 0 {
         for k in k_init - 1..=0 {
@@ -44,6 +47,7 @@ pub fn optimal_graph_search(
                 p,
                 select_next_rows(p, &result.xs, k),
                 options.inverted,
+                x_start,
             )?;
         }
     }
@@ -103,16 +107,17 @@ fn find_schedule(
     p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     select_rows: impl Fn(i32) -> Vec<i32>,
     inverted: bool,
+    x_start: i32,
 ) -> Result<Path> {
     let mut paths: Paths<Vertice> = HashMap::new();
-    let initial_vertice = Vertice(0, 0);
+    let initial_vertice = Vertice(0, x_start);
     let initial_path = Path {
         xs: Schedule::empty(),
         cost: 0.,
     };
     paths.insert(initial_vertice, initial_path);
 
-    let mut prev_rows = vec![0];
+    let mut prev_rows = vec![x_start];
     for t in 1..=p.t_end {
         let rows = select_rows(t);
         for &j in &rows {
