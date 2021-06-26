@@ -42,7 +42,8 @@
 
 \DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
 
-\declaretheorem[name=Theorem]{theorem}
+\newcounter{common}
+\declaretheorem[name=Theorem,sibling=common]{theorem}
 \declaretheorem[name=Lemma,sibling=theorem]{lemma}
 \declaretheorem[name=Definition,sibling=theorem]{definition}
 \declaretheorem[name=Problem,sibling=theorem]{problem}
@@ -51,8 +52,12 @@
   \protect\numberline{\theproblem}\thmt@shortoptarg
 }
 \makeatother
-
-\renewcommand{\thealgocf}{\arabic{theorem}}
+% share counter between amsthm and algorithm2e
+\makeatletter
+\let\c@algocf\relax % drop existing counter "theorem" (you might not need this)
+\makeatother
+\usepackage{aliascnt}
+\newaliascnt{algocf}{common} % let "algorithm" be an alias for "common"
 
 \bibliography{sources}
 
