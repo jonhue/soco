@@ -7,10 +7,31 @@ use crate::value::Value;
 
 /// Trait implemented by all finite-time-horizon problems.
 pub trait Problem {
+    /// Number of dimensions.
+    fn d(&self) -> i32;
     /// Finite, positive time horizon.
     fn t_end(&self) -> i32;
     /// Increases the time horizon by one time step.
     fn inc_t_end(&mut self);
+}
+
+macro_rules! impl_problem {
+    ($T:ty) => {
+        impl<'a, T> Problem for $T
+        where
+            T: Value,
+        {
+            fn d(&self) -> i32 {
+                self.d
+            }
+            fn t_end(&self) -> i32 {
+                self.t_end
+            }
+            fn inc_t_end(&mut self) {
+                self.t_end += 1
+            }
+        }
+    };
 }
 
 /// Smoothed Convex Optimization.
@@ -29,17 +50,7 @@ where
     /// Non-negative convex cost functions.
     pub hitting_cost: CostFn<'a, Config<T>>,
 }
-impl<'a, T> Problem for SmoothedConvexOptimization<'a, T>
-where
-    T: Value,
-{
-    fn t_end(&self) -> i32 {
-        self.t_end
-    }
-    fn inc_t_end(&mut self) {
-        self.t_end += 1
-    }
-}
+impl_problem!(SmoothedConvexOptimization<'a, T>);
 pub type FractionalSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, f64>;
 
@@ -59,21 +70,11 @@ where
     /// Non-negative convex cost functions.
     pub hitting_cost: CostFn<'a, Config<T>>,
 }
+impl_problem!(SimplifiedSmoothedConvexOptimization<'a, T>);
 pub type IntegralSimplifiedSmoothedConvexOptimization<'a> =
     SimplifiedSmoothedConvexOptimization<'a, i32>;
 pub type FractionalSimplifiedSmoothedConvexOptimization<'a> =
     SimplifiedSmoothedConvexOptimization<'a, f64>;
-impl<'a, T> Problem for SimplifiedSmoothedConvexOptimization<'a, T>
-where
-    T: Value,
-{
-    fn t_end(&self) -> i32 {
-        self.t_end
-    }
-    fn inc_t_end(&mut self) {
-        self.t_end += 1
-    }
-}
 
 /// Smoothed Load Optimization
 pub struct SmoothedLoadOptimization<T>
@@ -94,18 +95,8 @@ where
     /// Non-negative load at each time step `t`.
     pub load: Vec<T>,
 }
+impl_problem!(SmoothedLoadOptimization<T>);
 pub type IntegralSmoothedLoadOptimization = SmoothedLoadOptimization<i32>;
-impl<T> Problem for SmoothedLoadOptimization<T>
-where
-    T: Value,
-{
-    fn t_end(&self) -> i32 {
-        self.t_end
-    }
-    fn inc_t_end(&mut self) {
-        self.t_end += 1
-    }
-}
 
 /// Smoothed Balanced-Load Optimization
 pub struct SmoothedBalancedLoadOptimization<'a, T>
@@ -125,16 +116,6 @@ where
     /// Non-negative load at each time step `t`.
     pub load: Vec<T>,
 }
+impl_problem!(SmoothedBalancedLoadOptimization<'a, T>);
 pub type IntegralSmoothedBalancedLoadOptimization<'a> =
     SmoothedBalancedLoadOptimization<'a, i32>;
-impl<'a, T> Problem for SmoothedBalancedLoadOptimization<'a, T>
-where
-    T: Value,
-{
-    fn t_end(&self) -> i32 {
-        self.t_end
-    }
-    fn inc_t_end(&mut self) {
-        self.t_end += 1
-    }
-}
