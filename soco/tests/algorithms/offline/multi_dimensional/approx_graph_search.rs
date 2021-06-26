@@ -151,10 +151,10 @@ mod approx_graph_search {
         .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.cost.round(), inv_result.cost.round());
+        assert_eq!(result.cost.round() as i32, inv_result.cost.round() as i32);
         assert_eq!(
-            result.cost.round(),
-            p.objective_function(&result.xs).unwrap().round()
+            result.cost.round() as i32,
+            p.objective_function(&result.xs).unwrap().round() as i32
         );
     }
 }
