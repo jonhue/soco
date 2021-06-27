@@ -50,21 +50,140 @@ While not changing the worst-case complexity, this significantly improves the pr
 
 \citeauthor*{Bansal2015} showed that for SSCO a competitive ratio of $3$ can also be attained by a memoryless algorithm \cite{Bansal2015}. In a memoryless online algorithm for smoothed convex optimization, the configuration $X_{\tau}$ only depends on the preceding configuration $X_{\tau-1}$ and the current hitting cost $f_{\tau}$. This generally allows for a more space and time efficient algorithm. This is important when we want to choose a small time slot length $\delta$ so as to be more responsive to changes in load.
 
-The algorithm proposed by \citeauthor*{Bansal2015} works as follows. Let $\hat{X}_{\tau}$ be the minimizer of $f_{\tau}(X)$. The algorithm moves into the direction of the minimizer until it either reaches $\hat{X}_{\tau}$, or it reaches a configuration $X$ where its switching cost equals twice the hitting cost of $X$. [TODO: add figure depicting search space of convex optimization]. We observe that this is equivalent to the following convex optimization: \begin{align}\label{eq:md:memoryless}\begin{aligned}
-    &\min_{X \in \mathcal{X}} &&f_{\tau}(X) \\
-    &\text{subject to}        &&|X - X_{\tau-1}| \leq \frac{f_{\tau}(X)}{2}.
-\end{aligned}\end{align} The resulting algorithm is simply given by determining $\hat{X}$ based on the convex optimization in \autoref{eq:md:memoryless}, see \autoref{alg:ud:memoryless}. Thus, the time (and space) complexity of this memoryless algorithm is $\mathcal{O}(C O_{\epsilon})$.
+The algorithm proposed by \citeauthor*{Bansal2015} works as follows. Let $x_m$ be the minimizer of $f_{\tau}(x)$, i.e. $x_m = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. The algorithm moves into the direction of the minimizer until it either reaches $x_m$, or it reaches a configuration $x$ where its switching cost equals twice the hitting cost of $x$. [TODO: add figure depicting search space of convex optimization]. We observe that this is equivalent to the following convex optimization: \begin{align}\label{eq:ud:memoryless}\begin{aligned}
+    &\min_{x \in \mathcal{X}} &&f_{\tau}(x) \\
+    &\text{subject to}        &&|x - X_{\tau-1}| \leq \frac{f_{\tau}(x)}{2}.
+\end{aligned}\end{align} The resulting algorithm is simply given by determining $\hat{x}$ based on the convex optimization in \autoref{eq:ud:memoryless}, see \autoref{alg:ud:memoryless}. Thus, the time (and space) complexity of this memoryless algorithm is $\mathcal{O}(C O_{\epsilon})$ for finding $\epsilon$-optimal solutions.
 
 \begin{algorithm}
     \caption{Memoryless algorithm \cite{Bansal2015}}\label{alg:ud:memoryless}
     \SetKwInOut{Input}{Input}
     \Input{$\mathcal{I}_{\text{SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau})$}
-    \Return $\hat{X}$ such that that $\hat{X}$ is the result of the optimization in \autoref{eq:md:memoryless}\;
+    \Return $\hat{x}$ such that that $\hat{x}$ is the result of the optimization in \autoref{eq:ud:memoryless}\;
 \end{algorithm}
 
-\subsection{Probabilistic Algorithm}
+\subsection{Probabilistic Algorithm}\label{section:online_algorithms:ud:probabilistic}
+
+Next, we discuss a $2$-competitive algorithm developed by \citeauthor*{Bansal2015} which works by maintaining a probability distribution over configurations \cite{Bansal2015}. Using this probability distribution they describe a randomized algorithm which they subsequently translate into a deterministic algorithm. We begin our description by describing how to gather first a randomized and then a deterministic algorithm from a probability distribution. Then, we describe how \citeauthor*{Bansal2015} determine the probability distribution and how it can be computed in practice.
+
+\subsubsection{From Probability Distribution to Deterministic Algorithm}
+
+Let's suppose we have given a probability distribution $p$ over configurations $x \in \mathcal{X}$. A randomized algorithm is then described by initially picking a number $\gamma \in [0,1]$ uniformly at random and then maintaining the invariant that at time $\tau$ the chosen configuration $x_{\tau}$ has the property that the probability mass to the left of $x_{\tau}$ with respect to $p$ is exactly $\gamma$ \cite{Bansal2015}. Crucially, this approach only works in the fractional setting. Also note that $\gamma$ is chosen only once prior to running the algorithm. This describes how we obtain a randomized algorithm from a probability distribution over configurations.
+
+Next, \citeauthor*{Bansal2015} show the following theorem which describes how we can obtain a deterministic algorithm from a randomized algorithm. \begin{theorem}
+    For the problem of (fractional) online convex optimization, if there exists a $\rho$-competitive randomized algorithm $\mathcal{R}$ then there exists a $\rho$-competitive deterministic algorithm $\mathcal{D}$ \cite{Bansal2015}.
+\end{theorem}
+\begin{proof}
+\citeauthor*{Bansal2015} prove this theorem using Jensen's inequality. In the setting of a probability space, \textit{Jensen's inequality}\index{Jensen's inequality} claims that given a convex function $\varphi$ and a random variable $X$ we have \begin{align}
+    E(\varphi(X)) \geq \varphi(E X)
+\end{align} provided both expectations exist, i.e. $E |X|$ and $E |\varphi(X)| < \infty$ \cite{Durrett2010}.
+
+Let $X_{\tau}$ be a random variable denoting the configuration of the randomized algorithm $\mathcal{R}$ at time $\tau$. Then, the deterministic algorithm $\mathcal{D}$ of \citeauthor*{Bansal2015} sets their configuration to $x_{\tau} = E X_{\tau}$. The cost of $\mathcal{D}$ is then given by $f_{\tau}(x_{\tau}) + (x_{\tau} - x_{\tau-1})^+$ and the cost of $\mathcal{R}$ is given by $E(f_{\tau}(X_{\tau})) + E((X_{\tau} - X_{\tau-1})^+)$. We observe that both $f_{\tau}$ and $(\cdot)^+$ are convex functions, implying that the cost of $\mathcal{R}$ is at least $f_{\tau}(E X_{\tau}) + (E X_{\tau} - E X_{\tau-1})^+$ which equals the cost of $\mathcal{D}$. Summing over all $t$ completes the proof \cite{Bansal2015}.
+\end{proof}
+
+Hence, we have seen that a deterministic algorithm can be obtained from a randomized algorithm by, in each time slot, choosing the expected configuration of the randomized algorithm. [TODO: add figure depicting probability distribution].
+
+\subsubsection{The Probability Distribution}
+
+For the description of this algorithm we assume that $f_{\tau}$ has well defined first and second order derivatives. Further, we assume that the minimizer $x_m$ of $f_{\tau}$ is unique and bounded. In \autoref{section:theory:beyond_convexity}, we discussed the assumption of differentiability and how it relates to our data center model. The second assumption, namely that the minimizer of the hitting cost, is natural in the setting of a data center as revenue loss increases for small configurations whereas energy costs increase for large configurations. \citeauthor*{Bansal2015} describe how these assumptions can be discharged, but this prohibits a general implementation of the algorithm for arbitrary convex cost functions as the specific shape of the cost function needs to be taken into account \cite{Bansal2015}.
+
+For any time $\tau$, the algorithm maintains a probability distribution $p_{\tau}$ over configurations $x \in \mathcal{X}$. So $\int_a^b p_{\tau}(x) \,dx$ represents the probability that $X_{\tau} \in [a,b]$ for any two $a, b \in \mathcal{X}$. At each time step $\tau$ we first find the minimizer of $f_{\tau}$, $x_m = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. Then, we find a point $x_r \geq x_m$ such that \begin{align}\label{eq:ud:probabilistic:right}
+    \frac{1}{2} \int_{x_m}^{x_r} \diff[2]{f_{\tau}}{y}(y) \,dy = \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy
+\end{align} and a point $x_l \leq x_m$ such that \begin{align}\label{eq:ud:probabilistic:left}
+    \frac{1}{2} \int_{x_l}^{x_m} \diff[2]{f_{\tau}}{y}(y) \,dy = \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy.
+\end{align} We then update the probability distribution as follows: \begin{align}\label{eq:ud:probabilistic:update}
+    p_{\tau}(x) = \begin{cases}
+        p_{\tau-1}(x) + \frac{1}{2} \diff[2]{f_{\tau}}{x}(x) & x \in [x_l,x_r] \\
+        0 & \text{otherwise}
+    \end{cases}
+\end{align} where $p_0$ assigns all probability mass to the configuration $0$, i.e. $p_0 = \delta$ where \begin{align*}
+    \delta(x) = \begin{cases}
+        \infty & x = 0 \\
+        0 & x \neq 0
+    \end{cases}
+\end{align*} is the \textit{Dirac delta function}\index{Dirac delta function} used as a generalized probability density function \cite{Salasnich2015}.
+
+\subsubsection{The Algorithm}
+
+We observe that, using the fundamental theorem of calculus, $x_r$ constrained by \autoref{eq:ud:probabilistic:right} can be found with the following optimization: \begin{align}\label{eq:ud:probabilistic:right:opt}\begin{aligned}
+    &\max_{x \in \mathcal{X}} &&x \\
+    &\text{subject to}        &&\frac{1}{2} \left(\diff{f_{\tau}}{x}(x) - \diff{f_{\tau}}{x}(x_m)\right) = \int_{x}^{\infty} p_{\tau-1}(y) \,dy \\
+    &                         &&x \geq x_m.
+\end{aligned}\end{align} Let the above constraint be represented by $g(x) = h(x)$. It is easy to see that $g$ is monotonically increasing as the first order derivative of the convex function $f_{\tau}$ is monotonically increasing and $x \geq x_m$. Moreover, $h$ is monotonically decreasing as it is the negative of the cumulative distribution function of the probability distribution $p_{\tau-1}$. Hence, $g(x) - h(x)$ is monotonically increasing and as such convex. Thus, the optimization described in \autoref{eq:ud:probabilistic:right:opt} is convex.
+
+With a similar argument we are able to determine $x_l$ constrained by \autoref{eq:ud:probabilistic:left} using the optimization: \begin{align}\label{eq:ud:probabilistic:left:opt}\begin{aligned}
+    &\min_{x \in \mathcal{X}} &&x \\
+    &\text{subject to}        &&\frac{1}{2} \left(\diff{f_{\tau}}{x}(x_m) - \diff{f_{\tau}}{x}(x)\right) = \int_{-\infty}^{x} p_{\tau-1}(y) \,dy \\
+    &                         &&x \leq x_m.
+\end{aligned}\end{align} Again, let the above constraint be represented by $g(x) = h(x)$. Recall that the first order derivative of $f_{\tau}$ is monotonically increasing. Therefore, $g$ must now be monotonically decreasing as $x_m \geq x$. Further, $h$ is monotonically increasing as it is the cumulative distribution function of the probability distribution $p_{\tau-1}$. Hence, $h(x) - g(x)$ is monotonically increasing and as such convex. This argument shows that also the optimization described in \autoref{eq:ud:probabilistic:left:opt} is convex.
+
+We use the \textit{five-point stencil}\index{five-point stencil} \begin{align*}
+    \diff{f_{\tau}}{x}(x) \approx \frac{-f_{\tau}(x - 2h) + 8 f_{\tau}(x + h) - 8 f_{\tau}(x - h) + f_{\tau}(x - 2h)}{12h}
+\end{align*} to find a finite difference approximation of order $\mathcal{O}(h)$ of the first order derivative of $f_{\tau}$ at configurations $x \in \mathcal{X}$ \cite{Sauer2011}. To match the accuracy of our convex optimizations we set $h := \epsilon$. To approximate the second order derivative of $f_{\tau}$ at a configuration $x \in \mathcal{X}$ we use \begin{align*}
+    \diff[2]{f_{\tau}}{x}(x) \approx \frac{-f_{\tau}(x + 2h) + 16 f_{\tau}(x+h) - 30 f_{\tau}(x) + 16 f_{\tau}(x-h) - f_{\tau}(x - 2h)}{12 h^2}
+\end{align*} which yields an approximation of order $\mathcal{O}(h^4)$ \cite{Sauer2011}. Thus, we set $h := \epsilon^{-1/4}$. We are thus able to compute these approximations in $\mathcal{O}(C)$ time.
+
+We use the \textit{double exponential method}\index{double exponential method} (also known as Tanh-sinh quadrature) to compute the integrals over the probability distribution $p$. \citeauthor*{Bailey2005} describe the convergence and error of this method in more detail \cite{Bailey2005}. They conclude that "overall, the tanh-sinh scheme appears to be the best
+for integrands of the type most often encountered in experimental math research" and highlight that it has "excellent accuracy and runtime performance" \cite{Bailey2005}. As this integration scheme is not universal, there potentially exist probability distributions for which the double exponential method is unable to find the integral. In such a case one would have to resort to another integration scheme. We denote the convergence rate of approximating the integral with tolerance $\epsilon$ by $\mathcal{O}(I_{\epsilon})$.
+
+Note that the computation of $p_{\tau}$ requires $\mathcal{O}(\tau)$ many approximations of the second order derivative of $f_{t}$. Therefore, any evaluation of $p_{\tau}$ requires $\mathcal{O}(\tau C)$ time and we are thus able to compute the $\epsilon$-optimal integral in $\mathcal{O}(\tau C I_{\epsilon})$ time. Overall, the described convex optimizations can be solved $\epsilon$-optimally in $\mathcal{O}(\tau C I_{\epsilon} O_{\epsilon})$ time. This is also the time complexity of the algorithm. This shows that similarly to lazy capacity provisioning, the computational complexity grows linearly with time. However, unlike for lazy capacity provisioning, we do not have a method of regularly resetting the history, rendering this algorithm computationally inefficient in practice. The algorithm is described in \autoref{alg:ud:probabilistic}.
+
+\begin{algorithm}
+    \caption{Probabilistic algorithm \cite{Bansal2015}}\label{alg:ud:probabilistic}
+    \SetKwInOut{Input}{Input}
+    \Input{$\mathcal{I}_{\text{SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau})$}
+    $x_m \gets \argmin_{x \in \mathcal{X}} f_{\tau}(x)$\;
+    find $x_r$ using the optimization described by \autoref{eq:ud:probabilistic:right:opt}\;
+    find $x_l$ using the optimization described by \autoref{eq:ud:probabilistic:left:opt}\;
+    set $p_{\tau}$ based on the update rule in \autoref{eq:ud:probabilistic:update}\;
+    \Return $\int_{x_l}^{x_r} y \cdot p_{\tau}(y) \,dy$\;
+\end{algorithm}
+
+Updating the probability distribution $p$ can be done in constant time as this does not require any function evaluations. As discussed in the beginning of this subsection, given a uniformly picked $\gamma \in [0,1]$, the randomized algorithm chooses $X_{\tau}$ (randomly) such that $\int_{-\infty}^{X_{\tau}} p_{\tau}(y) \,dy = \gamma$. In other words, $P_{\tau}(X_{\tau}) \sim \text{Unif}(0,1)$ where $P_{\tau}$ is the cumulative distribution function of $p_{\tau}$. By the universality of the uniform, $X_{\tau}$ is $P_{\tau}$-distributed, i.e. $X_{\tau} \sim P_{\tau}$. Hence, $E X_{\tau} = \int_{x_l}^{x_r} y \cdot p_{\tau}(y) \,dy$ computes the configuration for time slot $\tau$ as $p_{\tau}(y) = 0$ for $y \not\in [x_l, x_r]$. Similarly to the previously discussed integrals, this integral can be computed $\epsilon$-optimally in $\mathcal{O}(\tau C I_{\epsilon})$ time, not affecting the asymptotic time complexity of the algorithm.
 
 \subsection{Randomized Integral Relaxation}
+
+\citeauthor*{Albers2018} use the probabilistic algorithm described in \autoref{section:online_algorithms:ud:probabilistic} in their randomized algorithm for Int-SSCO achieving the optimal competitive ratio $2$ \cite{Albers2018}. Roughly, the algorithm works by solving the relaxed problem using the probabilistic algorithm of \citeauthor*{Bansal2015} and then randomly round the resulting fractional schedule.
+
+Let $\bar{\mathcal{I}}$ be the fractional relaxation of the instance $\mathcal{I}$ of Int-SSCO and let $\bar{\mathcal{X}}$ denote the decision space of $\bar{\mathcal{I}}$. We denote by $\bar{x}_{\tau} \in \bar{\mathcal{X}}$ the configuration at time $\tau$ chosen by \autoref{alg:ud:probabilistic}. Further, let $\text{frac}(x) = x - \lfloor x \rfloor$ be the fractional part of $x$ and let $\bar{x}'_{\tau-1} = (\bar{x}_{\tau-1})_{\lfloor\bar{x}_{\tau}\rfloor}^{\lceil\bar{x}_{\tau}\rceil}$ be the projection of the preceding configuration onto the discrete interval of the current configuration.
+
+The randomized algorithm distinguishes between time slots where the configuration is increased and time slots where the configuration is decreased. In the first case, i.e. $\bar{x}_{\tau-1} \leq \bar{x}_{\tau}$, if $x_{\tau-1} = \lceil\bar{x}_{\tau}\rceil$  the configuration remains unchanged. Otherwise, $x_{\tau}$ is set to $\lceil\bar{x}_{\tau}\rceil$ with probability \begin{align*}
+    p_{\tau}^{\uparrow} := \frac{\bar{x}_{\tau} - \bar{x}'_{\tau-1}}{1 - \text{frac}(\bar{x}'_{\tau-1})}
+\end{align*} and to $\lfloor\bar{x}_{\tau}\rfloor$ with probability $1 - p_{\tau}^{\uparrow}$. Conversely, if $\bar{x}_{\tau-1} > \bar{x}_{\tau}$, the configuration remains unchanged if $x_{\tau-1} = \lfloor\bar{x}_{\tau}\rfloor$, and otherwise with probability \begin{align*}
+    p_{\tau}^{\downarrow} := \frac{\bar{x}'_{\tau-1} - \bar{x}_{\tau}}{\text{frac}(\bar{x}'_{\tau-1})}
+\end{align*} the configuration is set to $\lfloor\bar{x}_{\tau}\rfloor$ and with probability $p_{\tau}^{\downarrow}$ the configuration is set to $\lceil\bar{x}_{\tau}\rceil$. The resulting algorithm is shown in \autoref{alg:ud:randomized}.
+
+\begin{algorithm}
+    \caption{Randomized integral relaxation \cite{Albers2018}}\label{alg:ud:randomized}
+    \SetKwInOut{Input}{Input}
+    \Input{$\mathcal{I}_{\text{Int-SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{N}_0 \to \mathbb{R}_{\geq 0})^{\tau})$}
+    $\bar{x}_{\tau} \gets \text{\autoref{alg:ud:probabilistic}}(\bar{\mathcal{I}}_{\text{Int-SSCO}})$\;
+    \eIf{$\bar{x}_{\tau-1} \leq \bar{x}_{\tau}$}{
+        \eIf{$x_{\tau-1} = \lceil\bar{x}_{\tau}\rceil$}{
+            \Return $\lceil\bar{x}_{\tau}\rceil$\;
+        }{
+            $\gamma \sim \text{Unif}(0,1)$\;
+            \eIf{$\gamma \leq p_{\tau}^{\uparrow}$}{
+                \Return $\lceil\bar{x}_{\tau}\rceil$\;
+            }{
+                \Return $\lfloor\bar{x}_{\tau}\rfloor$\;
+            }
+        }
+    }{
+        \eIf{$x_{\tau-1} = \lfloor\bar{x}_{\tau}\rfloor$}{
+            \Return $\lfloor\bar{x}_{\tau}\rfloor$\;
+        }{
+            $\gamma \sim \text{Unif}(0,1)$\;
+            \eIf{$\gamma \leq p_{\tau}^{\downarrow}$}{
+                \Return $\lfloor\bar{x}_{\tau}\rfloor$\;
+            }{
+                \Return $\lceil\bar{x}_{\tau}\rceil$\;
+            }
+        }
+    }
+\end{algorithm}
+
+We use the universality of the uniform to simulate Bernoulli-distributed random variables with parameters $p_{\tau}^{\uparrow}$ and $p_{\tau}^{\downarrow}$, respectively. Any pseudo-random number generator can be used to produce the uniformly distributed $\gamma$.
 
 \subsection{Randomly Biased Greedy Algorithm}
 
@@ -96,7 +215,7 @@ A natural model to allow incorporating predictions is the use of a finite predic
 
 \subsubsection{Lazy Capacity Provisioning with Prediction Window}
 
-\citeauthor*{Lin2011} extend their algorithm lazy capacity provisioning to support the prediction window by changing the update rule to \begin{align*}
+\citeauthor*{Lin2011} extend their algorithm lazy capacity provisioning which we discussed in \autoref{section:online_algorithms:ud:lazy_capacity_provisioning} to support the prediction window by changing the update rule to \begin{align*}
     X_{\tau} = \begin{cases}
         0 & \tau \leq 0 \\
         (X_{\tau-1})_{X_{\tau+w,\tau}^L}^{X_{\tau+w,\tau}^U} & \tau \geq 1

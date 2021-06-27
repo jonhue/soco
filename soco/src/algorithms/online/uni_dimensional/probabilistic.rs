@@ -15,6 +15,8 @@ use std::sync::Arc;
 pub type Memory<'a> = Arc<dyn Fn(f64) -> f64 + 'a>;
 
 /// Probabilistic Algorithm
+///
+/// Assumes that the hitting costs are differentiable and smooth and that the minimizer is unique and bounded.
 pub fn probabilistic<'a>(
     o: &'a Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
     xs: &mut FractionalSchedule,
@@ -26,7 +28,7 @@ pub fn probabilistic<'a>(
 
     let t = xs.t_end() + 1;
     let prev_p = if ps.is_empty() {
-        Arc::new(|j| if j == 0. { 1. } else { 0. })
+        Arc::new(|j| if j == 0. { f64::INFINITY } else { 0. })
     } else {
         ps[ps.len() - 1].clone()
     };
