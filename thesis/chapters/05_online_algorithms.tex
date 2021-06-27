@@ -143,7 +143,7 @@ Updating the probability distribution $p$ can be done in constant time as this d
 
 \subsection{Randomized Integral Relaxation}
 
-\citeauthor*{Albers2018} use the probabilistic algorithm described in \autoref{section:online_algorithms:ud:probabilistic} in their randomized algorithm for Int-SSCO achieving the optimal competitive ratio $2$ \cite{Albers2018}. Roughly, the algorithm works by solving the relaxed problem using the probabilistic algorithm of \citeauthor*{Bansal2015} and then randomly round the resulting fractional schedule.
+\citeauthor*{Albers2018} use the probabilistic algorithm described in \autoref{section:online_algorithms:ud:probabilistic} in their randomized algorithm for Int-SSCO achieving the optimal competitive ratio $2$ \cite{Albers2018}. Roughly, the algorithm works by solving the relaxed problem using the probabilistic algorithm of \citeauthor*{Bansal2015} and then randomly rounding the resulting fractional schedule.
 
 Let $\bar{\mathcal{I}}$ be the fractional relaxation of the instance $\mathcal{I}$ of Int-SSCO and let $\bar{\mathcal{X}}$ denote the decision space of $\bar{\mathcal{I}}$. We denote by $\bar{x}_{\tau} \in \bar{\mathcal{X}}$ the configuration at time $\tau$ chosen by \autoref{alg:ud:probabilistic}. Further, let $\text{frac}(x) = x - \lfloor x \rfloor$ be the fractional part of $x$ and let $\bar{x}'_{\tau-1} = (\bar{x}_{\tau-1})_{\lfloor\bar{x}_{\tau}\rfloor}^{\lceil\bar{x}_{\tau}\rceil}$ be the projection of the preceding configuration onto the discrete interval of the current configuration.
 
@@ -183,7 +183,7 @@ The randomized algorithm distinguishes between time slots where the configuratio
     }
 \end{algorithm}
 
-We use the universality of the uniform to simulate Bernoulli-distributed random variables with parameters $p_{\tau}^{\uparrow}$ and $p_{\tau}^{\downarrow}$, respectively. Any pseudo-random number generator can be used to produce the uniformly distributed $\gamma$.
+We use the universality of the uniform to simulate Bernoulli-distributed random variables with parameters $p_{\tau}^{\uparrow}$ and $p_{\tau}^{\downarrow}$, respectively. Any pseudo-random number generator can be used to produce the uniformly distributed $\gamma$. It is easy to see that the time complexity is given by the time complexity of \autoref{alg:ud:probabilistic}, i.e. $\mathcal{O}(\tau C I_{\epsilon} O_{\epsilon})$.
 
 \subsection{Randomly Biased Greedy Algorithm}
 
