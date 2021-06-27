@@ -107,3 +107,32 @@
 % Ternary operator
 \newcommand{\ternary}[3]{\textbf{if}\ #1\ \textbf{then}\ #2\ \textbf{else}\ #3}
 \SetKw{KwBreak}{break}
+
+% Hide functions from list of algorithms
+\makeatletter
+\long\def\algocf@caption@proc#1[#2]#3{%
+  \ifthenelse{\boolean{algocf@nokwfunc}}{\relax}{%
+    \SetKwFunction{\algocf@captname#3@}{\algocf@captname#3@}%
+  }%
+  % we tell hyperref to use algocfproc as category and to take the appropriate ref.
+  \ifthenelse{\boolean{algocf@func}}{\def\@proc@func{algocffunc}}{\def\@proc@func{algocfproc}}%
+  \@ifundefined{hyper@refstepcounter}{\relax}{% if hyper@refstepcounter undefind, no hyperref, else...
+    \ifthenelse{\boolean{algocf@procnumbered}}{%
+      \expandafter\def\csname theH\@proc@func\endcsname{\algocf@captname#3@}%if procnumbered, take \thealgocf as ref
+    }{%
+      \expandafter\def\csname theH\@proc@func\endcsname{\algocf@captname#3@}%else take procedure or function name
+    }%
+    \hyper@refstepcounter{\@proc@func}%
+  }%
+  \ifthenelse{\boolean{algocf@procnumbered}}{\relax}{%
+    \addtocounter{algocf}{-1}% \caption do a refstepcounter, so we restore the precedent value
+    \gdef\@currentlabel{\algocf@captname#3@}% let the label be the name of the function, not the counter
+  }%
+  \renewcommand{\addcontentsline}[3]{}% Remove placement of content
+  \ifthenelse{\equal{\algocf@captparam#2@}{\arg@e}}{% if no paramater, we remove the ()
+    \algocf@latexcaption{#1}[\algocf@captname#2@]{#3}%
+  }{%                                                 else we give the complete name
+    \algocf@latexcaption{#1}[#2]{#3}%
+  }%
+}%
+\makeatother
