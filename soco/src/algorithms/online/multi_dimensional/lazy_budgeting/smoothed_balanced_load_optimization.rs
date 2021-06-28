@@ -150,25 +150,25 @@ fn determine_sub_time_slots(
 }
 
 fn alg_b(
-    o: &Online<IntegralSmoothedBalancedLoadOptimization>,
-    xs: &mut IntegralSchedule,
-    ms: &mut Vec<AlgBMemory>,
+    o: Online<IntegralSmoothedBalancedLoadOptimization>,
+    t: i32,
+    xs: &IntegralSchedule,
+    prev_m: AlgBMemory,
     options: &Options,
 ) -> Result<IntegralStep<AlgBMemory>> {
-    let t = xs.t_end() + 1;
     let opt_x = find_optimal_config(&o.p, options.use_approx)?;
     let mut m = vec![0; o.p.d as usize];
     let mut x = if xs.is_empty() {
         Config::repeat(0, o.p.d)
     } else {
-        xs.now().clone()
+        xs.now()
     };
 
     for k in 0..o.p.d as usize {
         x[k] -= deactivated_quantity(
             &o.p.hitting_cost[k],
             o.p.switching_cost[k],
-            ms,
+            &prev_m,
             t,
             k,
         )?;
@@ -184,7 +184,7 @@ fn alg_b(
 fn deactivated_quantity(
     hitting_cost: &CostFn<'_, i32>,
     switching_cost: f64,
-    ms: &Vec<AlgBMemory>,
+    m: &AlgBMemory,
     t_now: i32,
     k: usize,
 ) -> Result<i32> {
@@ -195,7 +195,7 @@ fn deactivated_quantity(
         let l = hitting_cost(t_now, 0).ok_or(Error::CostFnMustBeTotal)?;
 
         if cum_l <= switching_cost && switching_cost < cum_l + l {
-            result += ms[t as usize - 1][k];
+            result += m[k];
         }
     }
     Ok(result)
@@ -228,5 +228,5 @@ fn find_optimal_config(
             &OfflineOptions { inverted: false },
         )?,
     };
-    Ok(xs.now().clone())
+    Ok(xs.now())
 }

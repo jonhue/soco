@@ -8,12 +8,14 @@ use crate::utils::assert;
 use crate::value::Value;
 
 /// Online instance of a problem.
+#[derive(Clone)]
 pub struct Online<T> {
     /// Problem.
     pub p: T,
     /// Finite, non-negative prediction window.
     ///
-    /// This prediction window is included in the time bound of the problem instance.
+    /// This prediction window is included in the time bound of the problem instance,
+    /// i.e. at time `t` `t_end` should be set to `t + w`.
     pub w: i32,
 }
 
@@ -21,15 +23,62 @@ pub struct Online<T> {
 ///
 /// * Configuration at time `t`.
 /// * Memory if new memory should be added.
-pub struct Step<T, U>(pub Config<T>, pub Option<U>)
+pub struct Step<T, M>(pub Config<T>, pub Option<M>)
 where
     T: Value;
-pub type IntegralStep<U> = Step<i32, U>;
-pub type FractionalStep<U> = Step<f64, U>;
+pub type IntegralStep<M> = Step<i32, M>;
+pub type FractionalStep<M> = Step<f64, M>;
 
-impl<'a, T> Online<T>
+/// Memory of online algorithm.
+pub trait Memory<'a>: Clone + Default + 'a {}
+impl<'a, T> Memory<'a> for T where T: Clone + Default + 'a {}
+
+/// Implementation of an online algorithm.
+///
+/// * `T` - Value (integral, fractional).
+/// * `P` - Problem.
+/// * `M` - Memory.
+/// * `O` - Options.
+///
+/// Receives the arguments:
+/// * `o` - Online problem instance.
+/// * `t` - Current time slot.
+/// * `xs` - Schedule up to the previous time slot.
+/// * `prev_m` - Latest memory, is the default if nothing was memorized.
+/// * `options` - Algorithm options.
+pub trait OnlineAlgorithm<'a, T, P, M, O>:
+    Fn(Online<P>, i32, &Schedule<T>, M, &O) -> Result<Step<T, M>>
 where
-    T: Problem,
+    T: Value,
+    P: Problem + 'a,
+    M: Memory<'a>,
+{
+    fn next(
+        &self,
+        o: Online<P>,
+        xs: &Schedule<T>,
+        prev_m_: Option<M>,
+        options: &O,
+    ) -> Result<Step<T, M>> {
+        let t = xs.t_end() + 1;
+        assert(o.p.t_end() == t + o.w, Error::OnlineInsufficientInformation("T should equal the current time slot plus the prediction window".to_string()))?;
+        let prev_m = prev_m_.unwrap_or_default();
+
+        self(o, t, xs, prev_m, options)
+    }
+}
+impl<'a, T, P, M, O, F> OnlineAlgorithm<'a, T, P, M, O> for F
+where
+    T: Value,
+    P: Problem + 'a,
+    M: Memory<'a>,
+    F: Fn(Online<P>, i32, &Schedule<T>, M, &O) -> Result<Step<T, M>>,
+{
+}
+
+impl<'a, P> Online<P>
+where
+    P: Problem + 'a,
 {
     /// Utility to stream an online algorithm from `T = 1`.
     ///
@@ -38,19 +87,15 @@ where
     /// * `alg` - Online algorithm to stream.
     /// * `next` - Callback that in each iteration updates the problem instance. Return `true` to continue stream, `false` to end stream.
     /// * `options` - Algorithm options.
-    pub fn stream<U, V, W>(
-        &mut self,
-        alg: impl Fn(
-            &Online<T>,
-            &mut Schedule<V>,
-            &mut Vec<U>,
-            &W,
-        ) -> Result<Step<V, U>>,
-        next: impl Fn(&mut Online<T>, &Schedule<V>, &Vec<U>) -> bool,
-        options: &W,
-    ) -> Result<(Schedule<V>, Vec<U>)>
+    pub fn stream<T, M, O>(
+        &'a mut self,
+        alg: impl OnlineAlgorithm<'a, T, P, M, O>,
+        next: impl Fn(&mut Online<P>, &Schedule<T>) -> bool,
+        options: &O,
+    ) -> Result<(Schedule<T>, Vec<M>)>
     where
-        V: Value,
+        T: Value,
+        M: Memory<'a>,
     {
         let mut xs = Schedule::empty();
         let mut ms = vec![];
@@ -66,41 +111,38 @@ where
     /// * `options` - Algorithm options.
     /// * `xs` - Schedule.
     /// * `ms` - Memory.
-    pub fn stream_from<U, V, W>(
-        &mut self,
-        alg: impl Fn(
-            &Online<T>,
-            &mut Schedule<V>,
-            &mut Vec<U>,
-            &W,
-        ) -> Result<Step<V, U>>,
-        next: impl Fn(&mut Online<T>, &Schedule<V>, &Vec<U>) -> bool,
-        options: &W,
-        xs: &mut Schedule<V>,
-        ms: &mut Vec<U>,
+    pub fn stream_from<T, M, O>(
+        &'a mut self,
+        alg: impl OnlineAlgorithm<'a, T, P, M, O>,
+        next: impl Fn(&mut Online<P>, &Schedule<T>) -> bool,
+        options: &O,
+        xs: &mut Schedule<T>,
+        ms: &mut Vec<M>,
     ) -> Result<()>
     where
-        V: Value,
+        T: Value,
+        M: Memory<'a>,
     {
         assert(
             xs.t_end() as usize == ms.len(),
-            Error::OnlineInsufficientInformation,
+            Error::OnlineInsufficientInformation(
+                "T should equal the length of the given memory".to_string(),
+            ),
         )?;
 
         loop {
-            let t = xs.t_end() + 1;
-            assert(
-                self.p.t_end() == t + self.w,
-                Error::OnlineInsufficientInformation,
-            )?;
-
-            let Step(x, m) = alg(self, xs, ms, options)?;
+            let m = if !ms.is_empty() {
+                ms.get(ms.len() - 1).cloned()
+            } else {
+                None
+            };
+            let Step(x, m) = alg.next(self.clone(), xs, m, options)?;
             xs.push(x);
             match m {
                 None => (),
                 Some(m) => ms.push(m),
             };
-            if !next(self, &xs, &ms) {
+            if !next(self, &xs) {
                 break;
             };
         }
@@ -112,26 +154,21 @@ where
     ///
     /// Returns resulting schedule, memory of the algorithm.
     ///
-    /// * `U` - Memory.
     /// * `alg` - Online algorithm to stream.
     /// * `t_end` - Finite time horizon.
-    pub fn offline_stream<U, V, W>(
-        &mut self,
-        alg: impl Fn(
-            &Online<T>,
-            &mut Schedule<V>,
-            &mut Vec<U>,
-            &W,
-        ) -> Result<Step<V, U>>,
+    pub fn offline_stream<T, M, O>(
+        &'a mut self,
+        alg: impl OnlineAlgorithm<'a, T, P, M, O>,
         t_end: i32,
-        options: &W,
-    ) -> Result<(Schedule<V>, Vec<U>)>
+        options: &O,
+    ) -> Result<(Schedule<T>, Vec<M>)>
     where
-        V: Value,
+        T: Value,
+        M: Memory<'a>,
     {
         self.stream(
             alg,
-            |o, _, _| {
+            |o, _| {
                 if o.p.t_end() < t_end - o.w {
                     o.p.inc_t_end();
                     true
@@ -146,30 +183,25 @@ where
     /// Utility to stream an online algorithm with a constant cost function
     /// from an arbitrary initial time, given the previous schedule and memory.
     ///
-    /// * `U` - Memory.
     /// * `alg` - Online algorithm to stream.
     /// * `t_end` - Finite time horizon.
     /// * `xs` - Schedule.
     /// * `ms` - Memory.
-    pub fn offline_stream_from<U, V, W>(
-        &mut self,
-        alg: impl Fn(
-            &Online<T>,
-            &mut Schedule<V>,
-            &mut Vec<U>,
-            &W,
-        ) -> Result<Step<V, U>>,
+    pub fn offline_stream_from<T, M, O>(
+        &'a mut self,
+        alg: impl OnlineAlgorithm<'a, T, P, M, O>,
         t_end: i32,
-        options: &W,
-        xs: &mut Schedule<V>,
-        ms: &mut Vec<U>,
+        options: &O,
+        xs: &mut Schedule<T>,
+        ms: &'a mut Vec<M>,
     ) -> Result<()>
     where
-        V: Value,
+        T: Value,
+        M: Memory<'a>,
     {
         self.stream_from(
             alg,
-            |o, _, _| {
+            |o, _| {
                 if o.p.t_end() < t_end - o.w {
                     o.p.inc_t_end();
                     true

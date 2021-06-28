@@ -27,15 +27,14 @@ pub fn obd(
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
 
     let t = xs.t_end() + 1;
-    let default_x = Config::repeat(0., o.p.d);
-    let prev_x = if xs.is_empty() { &default_x } else { xs.now() };
+    let prev_x = xs.now_with_default(Config::repeat(0., o.p.d));
 
     let x = bregman_projection(
         &options.mirror_map,
         &o.p.hitting_cost,
         t,
         options.l,
-        prev_x,
+        &prev_x,
     )?;
     Ok(Step(x, None))
 }

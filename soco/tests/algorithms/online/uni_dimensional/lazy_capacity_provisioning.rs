@@ -21,8 +21,8 @@ mod fractional_lcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.stream(lcp, |_, _, _| false, &()).unwrap();
-        result.0.verify(o.p.t_end, &o.p.switching_cost).unwrap();
+        let result = o.stream(lcp, |_, _| false, &()).unwrap();
+        result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(1)]));
     }
@@ -74,7 +74,7 @@ mod integral_lcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.stream(lcp, |_, _, _| false, &()).unwrap();
+        let result = o.stream(lcp, |_, _| false, &()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         assert_eq!(result.0, Schedule::new(vec![Config::single(0)]));
@@ -94,7 +94,7 @@ mod integral_lcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.stream(lcp, |_, _, _| false, &()).unwrap();
+        let result = o.stream(lcp, |_, _| false, &()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         assert_eq!(result.0, Schedule::new(vec![Config::single(0)]));

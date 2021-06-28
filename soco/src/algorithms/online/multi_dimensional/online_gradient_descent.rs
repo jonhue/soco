@@ -34,7 +34,7 @@ pub fn ogd(
         };
         let step =
             (options.eta)(t) * Config::new(prev_x.to_vec().central_diff(&f));
-        project(&o.p.bounds, prev_x.clone() - step)?
+        project(&o.p.bounds, prev_x - step)?
     };
 
     Ok(Step(x, None))

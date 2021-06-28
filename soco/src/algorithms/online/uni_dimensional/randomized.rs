@@ -3,43 +3,52 @@ use crate::algorithms::online::uni_dimensional::probabilistic::{
 };
 use crate::config::{Config, FractionalConfig};
 use crate::convert::RelaxableSchedule;
-use crate::online::{IntegralStep, Online, Step};
+use crate::online::{IntegralStep, Online, OnlineAlgorithm, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, frac, project, sample_uniform};
 
-/// Fractional number of servers as determined by `bansal::det`; memory of `bansal::det`.
-pub struct Memory<'a>(pub FractionalConfig, pub ProbMemory<'a>);
+/// Memory.
+#[derive(Clone)]
+pub struct Memory<'a> {
+    /// Fractional number of servers determined by fractional relaxation.
+    y: FractionalConfig,
+    /// Memory of relaxation.
+    relaxation_m: Option<ProbMemory<'a>>,
+}
+impl Default for Memory<'_> {
+    fn default() -> Self {
+        Memory {
+            y: Config::single(0.),
+            relaxation_m: None,
+        }
+    }
+}
 
 /// Randomized Integral Relaxation
 ///
 /// Relax discrete problem to fractional problem before use!
 pub fn randomized<'a>(
-    o: &'a Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
-    xs: &mut IntegralSchedule,
-    ms: &mut Vec<Memory<'a>>,
+    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
+    _: i32,
+    xs: &IntegralSchedule,
+    prev_m: Memory<'a>,
     _: &(),
 ) -> Result<IntegralStep<Memory<'a>>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
-    let mut prob_ms = ms.iter().map(|m| m.1.clone()).collect();
-    let Step(y, prob_m) = probabilistic(o, &mut xs.to_f(), &mut prob_ms, &())?;
+    let Step(y, relaxation_m) =
+        probabilistic.next(o, &xs.to_f(), prev_m.relaxation_m, &())?;
 
-    let prev_x = if xs.is_empty() { 0 } else { xs.now()[0] };
-    let prev_y = if ms.is_empty() {
-        0.
-    } else {
-        ms[ms.len() - 1].0[0]
-    };
+    let prev_x = xs.now_with_default(Config::single(0))[0];
+    let prev_y = prev_m.y[0];
 
     let x = next(prev_x, prev_y, y[0]);
+    let m = Memory { y, relaxation_m };
 
-    Ok(Step(
-        Config::single(x),
-        Some(Memory(y, prob_m.ok_or(Error::MemoryShouldBePresent)?)),
-    ))
+    Ok(Step(Config::single(x), Some(m)))
 }
 
 fn next(prev_x: i32, prev_y: f64, y: f64) -> i32 {
