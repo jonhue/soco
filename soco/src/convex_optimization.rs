@@ -36,8 +36,7 @@ pub fn find_unbounded_minimizer_of_hitting_cost(
     t: i32,
     hitting_cost: &CostFn<'_, FractionalConfig>,
 ) -> Result<OptimizationResult> {
-    let bounds = build_empty_bounds(d);
-    let init = vec![0.; d as usize];
+    let (bounds, init) = build_empty_bounds(d);
     let f = |x: &[f64]| hitting_cost(t, Config::new(x.to_vec())).unwrap();
     minimize(f, &bounds, Some(init), vec![], vec![])
 }
@@ -58,8 +57,7 @@ pub fn find_unbounded_minimizer(
     inequality_constraints: Vec<Constraint>,
     equality_constraints: Vec<Constraint>,
 ) -> Result<OptimizationResult> {
-    let bounds = build_empty_bounds(d);
-    let init = vec![0.; d as usize];
+    let (bounds, init) = build_empty_bounds(d);
     minimize(
         f,
         &bounds,
@@ -77,8 +75,7 @@ pub fn find_unbounded_maximizer(
     inequality_constraints: Vec<Constraint>,
     equality_constraints: Vec<Constraint>,
 ) -> Result<OptimizationResult> {
-    let bounds = build_empty_bounds(d);
-    let init = vec![0.; d as usize];
+    let (bounds, init) = build_empty_bounds(d);
     maximize(
         f,
         &bounds,
@@ -200,6 +197,7 @@ impl From<Direction> for Target {
     }
 }
 
-fn build_empty_bounds(d: i32) -> Vec<(f64, f64)> {
-    vec![(f64::NEG_INFINITY, f64::INFINITY); d as usize]
+/// Returns empty bounds and init vector.
+fn build_empty_bounds(d: i32) -> (Vec<(f64, f64)>, Vec<f64>) {
+    (vec![(f64::NEG_INFINITY, f64::INFINITY); d as usize], vec![0.; d as usize])
 }
