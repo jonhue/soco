@@ -199,5 +199,8 @@ impl From<Direction> for Target {
 
 /// Returns empty bounds and init vector.
 fn build_empty_bounds(d: i32) -> (Vec<(f64, f64)>, Vec<f64>) {
-    (vec![(f64::NEG_INFINITY, f64::INFINITY); d as usize], vec![0.; d as usize])
+    (
+        vec![(f64::NEG_INFINITY, f64::INFINITY); d as usize],
+        vec![0.; d as usize],
+    )
 }
