@@ -10,7 +10,7 @@ use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Error, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
-use crate::PRECISION;
+use crate::TOLERANCE;
 use bacon_sci::roots::bisection;
 
 pub struct Options<'a> {
@@ -33,7 +33,7 @@ pub fn pobd(
     let prev_x = if xs.is_empty() {
         Config::repeat(0., o.p.d)
     } else {
-        xs.now().clone()
+        xs.now()
     };
 
     let v = Config::new(
@@ -60,7 +60,7 @@ pub fn pobd(
                 &options.mirror_map,
             )
         },
-        PRECISION,
+        TOLERANCE,
         MAX_ITERATIONS,
     )
     .map_err(Error::Bisection)?;

@@ -4,7 +4,7 @@ use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::result::{Error, Result};
 use crate::utils::assert;
-use crate::PRECISION;
+use crate::TOLERANCE;
 use nlopt::{Algorithm, Nlopt, Target};
 use std::sync::Arc;
 
@@ -28,6 +28,18 @@ pub fn find_minimizer_of_hitting_cost(
 ) -> Result<OptimizationResult> {
     let f = |x: &[f64]| hitting_cost(t, Config::new(x.to_vec())).unwrap();
     find_minimizer(f, bounds)
+}
+
+/// Determines the minimizer of `hitting_cost` at time `t`.
+pub fn find_unbounded_minimizer_of_hitting_cost(
+    d: i32,
+    t: i32,
+    hitting_cost: &CostFn<'_, FractionalConfig>,
+) -> Result<OptimizationResult> {
+    let bounds = build_empty_bounds(d);
+    let init = vec![0.; d as usize];
+    let f = |x: &[f64]| hitting_cost(t, Config::new(x.to_vec())).unwrap();
+    minimize(f, &bounds, Some(init), vec![], vec![])
 }
 
 /// Determines the minimizer of a convex function `f` with bounds `bounds`.
@@ -133,29 +145,50 @@ fn optimize(
         }
     };
 
-    let mut solver =
-        Nlopt::new(Algorithm::Bobyqa, d, objective, Target::from(dir), ());
+    let mut solver = Nlopt::new(
+        choose_algorithm(
+            inequality_constraints.len(),
+            equality_constraints.len(),
+        ),
+        d,
+        objective,
+        Target::from(dir),
+        (),
+    );
     solver.set_lower_bounds(&lower)?;
     solver.set_upper_bounds(&upper)?;
-    solver.set_xtol_rel(PRECISION)?;
+    solver.set_xtol_rel(TOLERANCE)?;
 
     for g in inequality_constraints {
         solver.add_inequality_constraint(
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| g(xs),
             (),
-            PRECISION,
+            TOLERANCE,
         )?;
     }
     for g in equality_constraints {
         solver.add_equality_constraint(
             |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| g(xs),
             (),
-            PRECISION,
+            TOLERANCE,
         )?;
     }
 
     let opt = solver.optimize(&mut x)?.1;
     Ok((x, opt))
+}
+
+fn choose_algorithm(
+    inequality_constraints: usize,
+    equality_constraints: usize,
+) -> Algorithm {
+    // both Cobyla and Bobyqa are algorithms for derivative-free local optimization
+    if equality_constraints > 0 || inequality_constraints > 0 {
+        Algorithm::Cobyla
+    } else {
+        // Bobyqa does not support (in-)equality constraints
+        Algorithm::Bobyqa
+    }
 }
 
 impl From<Direction> for Target {

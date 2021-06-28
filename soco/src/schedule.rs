@@ -39,8 +39,17 @@ where
     }
 
     /// Returns the config of the latest time step.
-    pub fn now(&self) -> &Config<T> {
-        &self[self.0.len() - 1]
+    pub fn now(&self) -> Config<T> {
+        self[self.0.len() - 1].clone()
+    }
+
+    /// Returns the config of the latest time step.
+    pub fn now_with_default(&self, default: Config<T>) -> Config<T> {
+        if self.is_empty() {
+            default
+        } else {
+            self[self.0.len() - 1].clone()
+        }
     }
 
     /// Returns the config at time `t` if present.

@@ -14,30 +14,34 @@ pub struct Memory<T>
 where
     T: Value,
 {
-    pub lower: (Option<T>, T),
-    pub upper: (Option<T>, T),
+    lower: (Option<T>, T),
+    upper: (Option<T>, T),
 }
 
 /// Lazy Capacity Provisioning
-pub fn lcp<T, U>(
-    o: &Online<U>,
-    xs: &mut Schedule<T>,
-    ms: &mut Vec<Memory<T>>,
+pub fn lcp<T, P>(
+    o: Online<P>,
+    t: i32,
+    xs: &Schedule<T>,
+    ms: Vec<Memory<T>>,
     _: &(),
-) -> Result<Step<T, Memory<T>>>
+) -> Result<Step<T, Vec<Memory<T>>>>
 where
     T: Value,
-    U: Bounded<T> + Problem,
+    P: Bounded<T> + Problem,
 {
     assert(o.p.d() == 1, Error::UnsupportedProblemDimension)?;
+    assert(
+        t - 1 == ms.len() as i32,
+        Error::OnlineInsufficientInformation(
+            "Memory should include an element for every past time slot"
+                .to_string(),
+        ),
+    )?;
 
-    let (t_start, x_start) = find_initial_time(o.p.t_end(), ms);
+    let (t_start, x_start) = find_initial_time(&ms);
 
-    let i = if xs.is_empty() {
-        NumCast::from(0).unwrap()
-    } else {
-        xs.now()[0]
-    };
+    let i = xs.now_with_default(Config::single(NumCast::from(0).unwrap()))[0];
     let l = o.p.find_lower_bound(o.p.t_end(), t_start, x_start)?;
     let u = o.p.find_upper_bound(o.p.t_end(), t_start, x_start)?;
     let j = project(i, l, u);
@@ -46,11 +50,11 @@ where
 
 /// Finds a valid reference time and initial condition to base the optimization
 /// on (alternatively to time `0`).
-fn find_initial_time<T>(final_t: i32, ms: &Vec<Memory<T>>) -> (i32, T)
+fn find_initial_time<T>(ms: &Vec<Memory<T>>) -> (i32, T)
 where
     T: Value,
 {
-    for t in (2..final_t).rev() {
+    for t in (2..=ms.len() as i32).rev() {
         let m = &ms[t as usize - 1];
         if is_valid_initial_time(&m) {
             return (t, m.upper.0.unwrap());
@@ -70,7 +74,7 @@ where
 }
 
 /// Shifts the memory to include new lower bound `l` and upper bound `u`.
-fn new_memory<T>(ms: &Vec<Memory<T>>, l: T, u: T) -> Memory<T>
+fn new_memory<T>(ms: Vec<Memory<T>>, l: T, u: T) -> Vec<Memory<T>>
 where
     T: Value,
 {
@@ -80,8 +84,10 @@ where
         let m = &ms[ms.len() - 1];
         (Some(m.lower.1), Some(m.upper.1))
     };
-    Memory {
+    let mut new_ms = ms;
+    new_ms.push(Memory {
         lower: (prev_l, l),
         upper: (prev_u, u),
-    }
+    });
+    new_ms
 }

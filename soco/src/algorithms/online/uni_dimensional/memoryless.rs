@@ -9,16 +9,16 @@ use std::sync::Arc;
 
 /// Memoryless Algorithm. Special case of Primal Online Balanced Descent.
 pub fn memoryless(
-    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
-    xs: &mut FractionalSchedule,
-    _: &mut Vec<()>,
+    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
+    t: i32,
+    xs: &FractionalSchedule,
+    _: (),
     _: &(),
 ) -> Result<FractionalStep<()>> {
     assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
     assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
 
-    let t = xs.t_end() + 1;
-    let prev_x = if xs.is_empty() { 0. } else { xs.now()[0] };
+    let prev_x = xs.now_with_default(Config::single(0.))[0];
 
     let x = next(o, t, prev_x)?;
     Ok(Step(Config::single(x), None))
@@ -26,7 +26,7 @@ pub fn memoryless(
 
 /// Determines next `x` with a convex optimization.
 fn next(
-    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
+    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
     t: i32,
     prev_x: f64,
 ) -> Result<f64> {

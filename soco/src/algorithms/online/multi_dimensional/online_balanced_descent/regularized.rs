@@ -33,7 +33,7 @@ pub fn robd(
     let prev_x = if xs.is_empty() {
         Config::repeat(0., o.p.d)
     } else {
-        xs.now().clone()
+        xs.now()
     };
 
     let v = Config::new(

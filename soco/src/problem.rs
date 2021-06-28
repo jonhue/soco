@@ -6,7 +6,7 @@ use crate::norm::NormFn;
 use crate::value::Value;
 
 /// Trait implemented by all finite-time-horizon problems.
-pub trait Problem {
+pub trait Problem: Clone {
     /// Number of dimensions.
     fn d(&self) -> i32;
     /// Finite, positive time horizon.
@@ -35,6 +35,7 @@ macro_rules! impl_problem {
 }
 
 /// Smoothed Convex Optimization.
+#[derive(Clone)]
 pub struct SmoothedConvexOptimization<'a, T>
 where
     T: Value + 'a,
@@ -55,6 +56,7 @@ pub type FractionalSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, f64>;
 
 /// Simplified Smoothed Convex Optimization.
+#[derive(Clone)]
 pub struct SimplifiedSmoothedConvexOptimization<'a, T>
 where
     T: Value + 'a,
@@ -77,6 +79,7 @@ pub type FractionalSimplifiedSmoothedConvexOptimization<'a> =
     SimplifiedSmoothedConvexOptimization<'a, f64>;
 
 /// Smoothed Load Optimization
+#[derive(Clone)]
 pub struct SmoothedLoadOptimization<T>
 where
     T: Value,
@@ -99,6 +102,7 @@ impl_problem!(SmoothedLoadOptimization<T>);
 pub type IntegralSmoothedLoadOptimization = SmoothedLoadOptimization<i32>;
 
 /// Smoothed Balanced-Load Optimization
+#[derive(Clone)]
 pub struct SmoothedBalancedLoadOptimization<'a, T>
 where
     T: Value,

@@ -67,19 +67,24 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, IntegralConfig> {
         Arc::new(move |t, x| {
             assert!(x.d() == 1, "cannot relax multidimensional problems");
 
-            let j = x[0];
-            if j.fract() == 0. {
-                self(t, Config::single(j as i32))
-            } else {
-                let l = self(t, Config::single(j.floor() as i32));
-                let u = self(t, Config::single(j.ceil() as i32));
-                if l.is_none() || u.is_none() {
-                    return None;
-                }
-
-                Some((j.ceil() - j) * l.unwrap() + (j - j.floor()) * u.unwrap())
-            }
+            self(t, x.ceil())
         })
+        // Arc::new(move |t, x| {
+        //     assert!(x.d() == 1, "cannot relax multidimensional problems");
+
+        //     let j = x[0];
+        //     if j.fract() == 0. {
+        //         self(t, Config::single(j as i32))
+        //     } else {
+        //         let l = self(t, Config::single(j.floor() as i32));
+        //         let u = self(t, Config::single(j.ceil() as i32));
+        //         if l.is_none() || u.is_none() {
+        //             return None;
+        //         }
+
+        //         Some((j.ceil() - j) * l.unwrap() + (j - j.floor()) * u.unwrap())
+        //     }
+        // })
     }
 }
 
