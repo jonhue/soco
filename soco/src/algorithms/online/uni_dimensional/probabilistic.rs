@@ -36,8 +36,8 @@ impl Default for Memory<'_> {
 
 /// Probabilistic Algorithm
 ///
-/// Assumes that the hitting costs are twice differentiable and that the
-/// minimizer is unique and bounded.
+/// Assumes that the hitting costs are smooth, i.e. infinitely many times continuously differentiable,
+/// and that the minimizer is unique and bounded.
 pub fn probabilistic<'a>(
     o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
     t: i32,
