@@ -19,7 +19,10 @@ pub fn integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> Result<f64> {
     };
 
     if result.is_nan() {
-        Err(Failure::Integration("returned NaN".to_string()))
+        Err(Failure::Integration(format!(
+            "integration from {} to {} returned NaN",
+            from, to
+        )))
     } else {
         Ok(result.apply_precision())
     }

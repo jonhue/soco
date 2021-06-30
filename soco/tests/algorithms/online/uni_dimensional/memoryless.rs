@@ -1,6 +1,7 @@
 mod memoryless {
+    use crate::factories::inv_e;
     use soco::algorithms::online::uni_dimensional::memoryless::memoryless;
-    use soco::config::{Config, FractionalConfig};
+    use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
     use soco::online::Online;
@@ -14,9 +15,7 @@ mod memoryless {
             t_end: 1,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: FractionalConfig| {
-                t as f64 * std::f64::consts::E.powf(-j[0])
-            }),
+            hitting_cost: CostFn::new(inv_e),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -34,9 +33,7 @@ mod memoryless {
             t_end: 1,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: FractionalConfig| {
-                t as f64 * std::f64::consts::E.powf(-j[0])
-            }),
+            hitting_cost: CostFn::new(inv_e),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();

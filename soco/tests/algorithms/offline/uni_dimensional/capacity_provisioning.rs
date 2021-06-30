@@ -1,6 +1,7 @@
 mod bcp {
+    use crate::factories::inv_e;
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::brcp;
-    use soco::config::{Config, FractionalConfig};
+    use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
@@ -13,10 +14,8 @@ mod bcp {
             d: 1,
             t_end: 2,
             bounds: vec![2.],
-            switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: FractionalConfig| {
-                t as f64 * (if j[0] == 0. { 1. } else { 0. })
-            }),
+            switching_cost: vec![1.5],
+            hitting_cost: CostFn::new(inv_e),
         };
         p.verify().unwrap();
 

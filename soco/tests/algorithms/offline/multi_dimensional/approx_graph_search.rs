@@ -1,4 +1,5 @@
 mod approx_graph_search {
+    use crate::factories::{penalize_zero, random};
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::algorithms::offline::{
@@ -7,7 +8,7 @@ mod approx_graph_search {
         },
         OfflineOptions,
     };
-    use soco::config::{Config, IntegralConfig};
+    use soco::config::Config;
     use soco::cost::CostFn;
     use soco::objective::Objective;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
@@ -21,9 +22,7 @@ mod approx_graph_search {
             t_end: 2,
             bounds: vec![2, 1],
             switching_cost: vec![1.5, 1.],
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                t as f64 * (if j[0] == 0 && j[1] == 0 { 1. } else { 0. })
-            }),
+            hitting_cost: CostFn::new(penalize_zero),
         };
         p.verify().unwrap();
 
@@ -65,20 +64,7 @@ mod approx_graph_search {
             t_end: 100,
             bounds: vec![8, 8],
             switching_cost: vec![1., 3.],
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                let r: f64 = j
-                    .to_vec()
-                    .into_iter()
-                    .enumerate()
-                    .map(|(k, i)| {
-                        Pcg64::seed_from_u64(t as u64 * k as u64)
-                            .gen_range(0.0..1.)
-                            * i as f64
-                    })
-                    .sum();
-                Pcg64::seed_from_u64(t as u64 * r as u64)
-                    .gen_range(0.0..1_000_000.)
-            }),
+            hitting_cost: CostFn::new(random),
         };
         p.verify().unwrap();
 
@@ -121,20 +107,7 @@ mod approx_graph_search {
                     Pcg64::seed_from_u64((d * t_end) as u64).gen_range(1.0..5.)
                 })
                 .collect(),
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                let r: f64 = j
-                    .to_vec()
-                    .into_iter()
-                    .enumerate()
-                    .map(|(k, i)| {
-                        Pcg64::seed_from_u64(t as u64 * k as u64)
-                            .gen_range(0.0..1.)
-                            * i as f64
-                    })
-                    .sum();
-                Pcg64::seed_from_u64(t as u64 * r as u64)
-                    .gen_range(0.0..1_000_000.)
-            }),
+            hitting_cost: CostFn::new(random),
         };
         p.verify().unwrap();
 
