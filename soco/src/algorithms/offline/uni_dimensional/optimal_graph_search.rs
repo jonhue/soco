@@ -56,9 +56,9 @@ pub fn optimal_graph_search(
 }
 
 /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `optimal_graph_search`.
-pub fn make_pow_of_2<'a>(
-    p: IntegralSimplifiedSmoothedConvexOptimization<'a>,
-) -> Result<IntegralSimplifiedSmoothedConvexOptimization<'a>> {
+pub fn make_pow_of_2(
+    p: IntegralSimplifiedSmoothedConvexOptimization,
+) -> Result<IntegralSimplifiedSmoothedConvexOptimization> {
     assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
 
     let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);

@@ -72,10 +72,22 @@ pub fn probabilistic<'a>(
     let x_l = find_left_bound(&o, t, &breakpoints, &prev_p, x_m)?;
     println!("{};{}", x_l, x_r,);
 
-    let prev_p_dup = prev_p.clone();
+    println!(
+        "{};{};{};{}",
+        x_m,
+        x_l,
+        x_r,
+        expected_value(&breakpoints, &prev_p, x_l, x_r)?
+    );
+    let x = project(
+        expected_value(&breakpoints, &prev_p, x_l, x_r)?,
+        0.,
+        upper_bound,
+    );
+
     let p: Arc<dyn Fn(f64) -> f64> = Arc::new(move |x| {
         if x >= x_l && x <= x_r {
-            prev_p_dup(x)
+            prev_p(x)
                 + second_derivative(
                     |x: f64| {
                         o.p.hitting_cost.call_unbounded(t, Config::single(x))
@@ -92,18 +104,6 @@ pub fn probabilistic<'a>(
     };
     m.breakpoints.extend(&vec![x_l, x_r]);
 
-    println!(
-        "{};{};{};{}",
-        x_m,
-        x_l,
-        x_r,
-        expected_value(&breakpoints, &prev_p, x_l, x_r)?
-    );
-    let x = project(
-        expected_value(&breakpoints, &prev_p, x_l, x_r)?,
-        0.,
-        upper_bound,
-    );
     Ok(Step(Config::single(x), Some(m)))
 }
 
