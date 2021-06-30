@@ -15,7 +15,7 @@ mod fractional_lcp {
             bounds: vec![2.],
             switching_cost: vec![1.],
             hitting_cost: CostFn::new(|t, j: FractionalConfig| {
-                t as f64 * (if j[0] == 0. { 1. } else { 0. })
+                t as f64 * std::f64::consts::E.powf(-j[0])
             }),
         };
         let mut o = Online { p, w: 0 };
@@ -23,9 +23,8 @@ mod fractional_lcp {
 
         let result = o.stream(lcp, |_, _| false, &()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
-        println!("{:?}", result);
 
-        assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(1)]));
+        assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(0)]));
     }
 
     #[test]
@@ -36,7 +35,7 @@ mod fractional_lcp {
             bounds: vec![2.],
             switching_cost: vec![1.],
             hitting_cost: CostFn::new(|t, j: FractionalConfig| {
-                t as f64 * (if j[0] == 0. { 1. } else { 0. })
+                t as f64 * std::f64::consts::E.powf(-j[0])
             }),
         };
         let mut o = Online { p, w: 0 };
@@ -48,7 +47,7 @@ mod fractional_lcp {
 
         assert_eq!(
             result.0.to_i(),
-            Schedule::new(vec![Config::single(1), Config::single(1)])
+            Schedule::new(vec![Config::single(0), Config::single(2)])
         );
     }
 }

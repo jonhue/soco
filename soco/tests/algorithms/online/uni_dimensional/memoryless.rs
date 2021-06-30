@@ -15,7 +15,7 @@ mod memoryless {
             bounds: vec![2.],
             switching_cost: vec![1.],
             hitting_cost: CostFn::new(|t, j: FractionalConfig| {
-                t as f64 * (if j[0] == 0. { 1. } else { 0. })
+                t as f64 * std::f64::consts::E.powf(-j[0])
             }),
         };
         let mut o = Online { p, w: 0 };
@@ -35,7 +35,7 @@ mod memoryless {
             bounds: vec![2.],
             switching_cost: vec![1.],
             hitting_cost: CostFn::new(|t, j: FractionalConfig| {
-                t as f64 * (if j[0] == 0. { 1. } else { 0. })
+                t as f64 * std::f64::consts::E.powf(-j[0])
             }),
         };
         let mut o = Online { p, w: 0 };

@@ -14,7 +14,6 @@ pub trait ApplicablePrecision {
 }
 impl ApplicablePrecision for f64 {
     fn apply_precision(self) -> f64 {
-        println!("{};{}", self, (self / PRECISION).round() * PRECISION);
         (self / PRECISION).round() * PRECISION
     }
 }

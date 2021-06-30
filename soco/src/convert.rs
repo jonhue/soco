@@ -291,14 +291,7 @@ pub trait ResettableCostFn<'a, T> {
 
 impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T> {
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T> {
-        CostFn::new(move |t, j| {
-            let new_t = t + t_start;
-            if new_t >= 1 {
-                self.call_unbounded(new_t, j)
-            } else {
-                0.
-            }
-        })
+        CostFn::new(move |t, j| self.call_unbounded(t + t_start, j))
     }
 }
 

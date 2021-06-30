@@ -67,18 +67,9 @@ pub fn probabilistic<'a>(
     let x_m =
         find_unbounded_minimizer_of_hitting_cost(o.p.d, t, &o.p.hitting_cost)?
             .0[0];
-    println!("=> {}", x_m,);
     let x_r = find_right_bound(&o, t, &breakpoints, &prev_p, x_m)?;
     let x_l = find_left_bound(&o, t, &breakpoints, &prev_p, x_m)?;
-    println!("{};{}", x_l, x_r,);
 
-    println!(
-        "{};{};{};{}",
-        x_m,
-        x_l,
-        x_r,
-        expected_value(&breakpoints, &prev_p, x_l, x_r)?
-    );
     let x = project(
         expected_value(&breakpoints, &prev_p, x_l, x_r)?,
         0.,

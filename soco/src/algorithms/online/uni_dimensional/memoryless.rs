@@ -34,7 +34,8 @@ fn next(
     let objective =
         |xs: &[f64]| -> f64 { o.p.hit_cost(t, Config::new(xs.to_vec())) };
     let constraint = Arc::new(|xs: &[f64]| -> f64 {
-        (xs[0] - prev_x).abs() - o.p.hit_cost(t, Config::single(xs[0])) / 2.
+        o.p.switching_cost[0] * (xs[0] - prev_x).abs()
+            - o.p.hit_cost(t, Config::single(xs[0])) / 2.
     });
 
     let (xs, _) = minimize(objective, &bounds, None, vec![constraint], vec![])?;
