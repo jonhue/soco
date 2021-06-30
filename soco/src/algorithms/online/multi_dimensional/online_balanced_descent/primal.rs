@@ -1,17 +1,16 @@
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
     meta::{obd, Options as MetaOptions},
-    MAX_ITERATIONS, MAX_L_FACTOR,
+    MAX_L_FACTOR,
 };
 use crate::config::{Config, FractionalConfig};
-use crate::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::norm::NormFn;
+use crate::numerics::bisection::bisection;
+use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
-use crate::TOLERANCE;
-use bacon_sci::roots::bisection;
 
 pub struct Options<'a> {
     /// The movement cost is at most `beta` times the hitting cost. `beta > 0`.
@@ -27,7 +26,7 @@ pub fn pobd(
     _: &mut Vec<()>,
     options: &Options,
 ) -> Result<FractionalStep<()>> {
-    assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
+    assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let t = xs.t_end() + 1;
     let prev_x = if xs.is_empty() {
@@ -40,30 +39,16 @@ pub fn pobd(
         find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
     );
     let dist = (o.p.switching_cost)(prev_x.clone() - v.clone());
-    let minimal_hitting_cost =
-        (o.p.hitting_cost)(t, v.clone()).ok_or(Error::CostFnMustBeTotal)?;
+    let minimal_hitting_cost = o.p.hit_cost(t, v.clone());
     if dist < options.beta * minimal_hitting_cost {
         return Ok(Step(v, None));
     }
 
     let a = minimal_hitting_cost;
     let b = MAX_L_FACTOR * minimal_hitting_cost;
-    let l = bisection(
-        (a, b),
-        |l: f64| {
-            balance_function(
-                o,
-                xs,
-                &prev_x,
-                l,
-                options.beta,
-                &options.mirror_map,
-            )
-        },
-        TOLERANCE,
-        MAX_ITERATIONS,
-    )
-    .map_err(Error::Bisection)?;
+    let l = bisection((a, b), |l: f64| {
+        balance_function(o, xs, &prev_x, l, options.beta, &options.mirror_map)
+    })?;
 
     obd(
         o,

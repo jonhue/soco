@@ -1,11 +1,12 @@
 use crate::algorithms::online::uni_dimensional::probabilistic::{
-    probabilistic, Memory as ProbMemory,
+    probabilistic, Memory as RelaxationMemory, Options as RelaxationOptions,
 };
+use crate::breakpoints::Breakpoints;
 use crate::config::{Config, FractionalConfig};
 use crate::convert::RelaxableSchedule;
 use crate::online::{IntegralStep, Online, OnlineAlgorithm, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, frac, project, sample_uniform};
 
@@ -15,7 +16,7 @@ pub struct Memory<'a> {
     /// Fractional number of servers determined by fractional relaxation.
     y: FractionalConfig,
     /// Memory of relaxation.
-    relaxation_m: Option<ProbMemory<'a>>,
+    relaxation_m: Option<RelaxationMemory<'a>>,
 }
 impl Default for Memory<'_> {
     fn default() -> Self {
@@ -36,11 +37,19 @@ pub fn randomized<'a>(
     prev_m: Memory<'a>,
     _: &(),
 ) -> Result<IntegralStep<Memory<'a>>> {
-    assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
-    assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
+    assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
+    assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
+    assert(o.p.bounds[0].fract() == 0., Failure::MustBeRelaxedProblem)?;
 
-    let Step(y, relaxation_m) =
-        probabilistic.next(o, &xs.to_f(), prev_m.relaxation_m, &())?;
+    let relaxation_options = RelaxationOptions {
+        breakpoints: Breakpoints::grid(1.),
+    };
+    let Step(y, relaxation_m) = probabilistic.next(
+        o,
+        &xs.to_f(),
+        prev_m.relaxation_m,
+        &relaxation_options,
+    )?;
 
     let prev_x = xs.now_with_default(Config::single(0))[0];
     let prev_y = prev_m.y[0];

@@ -2,7 +2,7 @@
 
 use crate::config::Config;
 use crate::problem::Problem;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
 use crate::value::Value;
@@ -29,9 +29,48 @@ where
 pub type IntegralStep<M> = Step<i32, M>;
 pub type FractionalStep<M> = Step<f64, M>;
 
+/// Gives type a default value which may depend on a problem instance.
+pub trait DefaultGivenProblem<P>
+where
+    P: Problem,
+{
+    fn default(p: &P) -> Self;
+}
+impl<T, P> DefaultGivenProblem<P> for T
+where
+    T: Default,
+    P: Problem,
+{
+    fn default(_: &P) -> Self {
+        T::default()
+    }
+}
+
 /// Memory of online algorithm.
-pub trait Memory<'a>: Clone + Default + 'a {}
-impl<'a, T> Memory<'a> for T where T: Clone + Default + 'a {}
+pub trait Memory<'a, P>: Clone + DefaultGivenProblem<P> + 'a
+where
+    P: Problem,
+{
+}
+impl<'a, T, P> Memory<'a, P> for T
+where
+    T: Clone + DefaultGivenProblem<P> + 'a,
+    P: Problem,
+{
+}
+
+/// Options of online algorithm.
+pub trait Options<P>: DefaultGivenProblem<P>
+where
+    P: Problem,
+{
+}
+impl<T, P> Options<P> for T
+where
+    T: DefaultGivenProblem<P>,
+    P: Problem,
+{
+}
 
 /// Implementation of an online algorithm.
 ///
@@ -51,7 +90,8 @@ pub trait OnlineAlgorithm<'a, T, P, M, O>:
 where
     T: Value,
     P: Problem + 'a,
-    M: Memory<'a>,
+    M: Memory<'a, P>,
+    O: Options<P>,
 {
     fn next(
         &self,
@@ -61,8 +101,18 @@ where
         options: &O,
     ) -> Result<Step<T, M>> {
         let t = xs.t_end() + 1;
-        assert(o.p.t_end() == t + o.w, Error::OnlineInsufficientInformation("T should equal the current time slot plus the prediction window".to_string()))?;
-        let prev_m = prev_m_.unwrap_or_default();
+        assert(
+            o.p.t_end() == t + o.w,
+            Failure::OnlineInsufficientInformation {
+                t_end: o.p.t_end(),
+                t,
+                w: o.w,
+            },
+        )?;
+        let prev_m = match prev_m_ {
+            None => M::default(&o.p),
+            Some(prev_m) => prev_m,
+        };
 
         self(o, t, xs, prev_m, options)
     }
@@ -71,7 +121,8 @@ impl<'a, T, P, M, O, F> OnlineAlgorithm<'a, T, P, M, O> for F
 where
     T: Value,
     P: Problem + 'a,
-    M: Memory<'a>,
+    M: Memory<'a, P>,
+    O: Options<P>,
     F: Fn(Online<P>, i32, &Schedule<T>, M, &O) -> Result<Step<T, M>>,
 {
 }
@@ -95,7 +146,8 @@ where
     ) -> Result<(Schedule<T>, Vec<M>)>
     where
         T: Value,
-        M: Memory<'a>,
+        M: Memory<'a, P>,
+        O: Options<P>,
     {
         let mut xs = Schedule::empty();
         let mut ms = vec![];
@@ -121,13 +173,15 @@ where
     ) -> Result<()>
     where
         T: Value,
-        M: Memory<'a>,
+        M: Memory<'a, P>,
+        O: Options<P>,
     {
         assert(
             xs.t_end() as usize == ms.len(),
-            Error::OnlineInsufficientInformation(
-                "T should equal the length of the given memory".to_string(),
-            ),
+            Failure::OnlineOutOfDateMemory {
+                previous_time_slots: xs.t_end(),
+                memory_entries: ms.len() as i32,
+            },
         )?;
 
         loop {
@@ -164,7 +218,8 @@ where
     ) -> Result<(Schedule<T>, Vec<M>)>
     where
         T: Value,
-        M: Memory<'a>,
+        M: Memory<'a, P>,
+        O: Options<P>,
     {
         self.stream(
             alg,
@@ -197,7 +252,8 @@ where
     ) -> Result<()>
     where
         T: Value,
-        M: Memory<'a>,
+        M: Memory<'a, P>,
+        O: Options<P>,
     {
         self.stream_from(
             alg,

@@ -1,10 +1,10 @@
 use crate::config::{Config, FractionalConfig};
-use crate::convex_optimization::find_unbounded_minimizer;
 use crate::cost::CostFn;
 use crate::norm::NormFn;
+use crate::numerics::convex_optimization::find_unbounded_minimizer;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use finitediff::FiniteDiff;
@@ -24,7 +24,7 @@ pub fn obd(
     _: &mut Vec<()>,
     options: &Options,
 ) -> Result<FractionalStep<()>> {
-    assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
+    assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let t = xs.t_end() + 1;
     let prev_x = xs.now_with_default(Config::repeat(0., o.p.d));
@@ -54,7 +54,7 @@ fn bregman_projection(
     };
     // `l`-sublevel set of `f`
     let constraint = Arc::new(|y: &[f64]| -> f64 {
-        f(t, Config::new(y.to_vec())).unwrap() - l
+        f.call_unbounded(t, Config::new(y.to_vec())) - l
     });
 
     let (y, _) =

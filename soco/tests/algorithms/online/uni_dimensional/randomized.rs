@@ -1,8 +1,9 @@
 mod randomized {
     use soco::algorithms::online::uni_dimensional::randomized::randomized;
+    use soco::config::IntegralConfig;
+    use soco::cost::CostFn;
     use soco::online::Online;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
-    use std::sync::Arc;
 
     #[test]
     fn _1() {
@@ -12,8 +13,8 @@ mod randomized {
                 t_end: 1,
                 bounds: vec![2],
                 switching_cost: vec![1.],
-                hitting_cost: Arc::new(|t, j| {
-                    Some(1. / t as f64 * (j[0] as f64).powi(2))
+                hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                    1. / t as f64 * (j[0] as f64).powi(2)
                 }),
             };
         let o = Online { p, w: 0 };
@@ -30,8 +31,8 @@ mod randomized {
             t_end: 1,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(1. / t as f64 * (j[0] as f64).powi(2))
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                1. / t as f64 * (j[0] as f64).powi(2)
             }),
         };
         let o = Online { p, w: 0 };

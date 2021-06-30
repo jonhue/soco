@@ -1,8 +1,8 @@
 use crate::config::{Config, FractionalConfig};
-use crate::convex_optimization::find_minimizer;
+use crate::numerics::convex_optimization::find_minimizer;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, sample_uniform};
 
@@ -23,8 +23,8 @@ pub fn rbg(
     ms: &mut Vec<Memory>,
     options: &Options,
 ) -> Result<FractionalStep<()>> {
-    assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
-    assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
+    assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
+    assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
 
     let theta = options.theta.unwrap_or(DEFAULT_THETA);
 
@@ -32,7 +32,7 @@ pub fn rbg(
     let r = if t == 1 {
         sample_uniform(-1., 1.)
     } else {
-        assert(ms.len() == 1, Error::MemoryShouldBePresent)?;
+        // assert(ms.len() == 1, Error::MemoryShouldBePresent)?;
         ms[0]
     };
 
@@ -68,7 +68,7 @@ fn w(
         let f = |raw_y: &[f64]| -> f64 {
             let y = Config::new(raw_y.to_vec());
             w(o, t - 1, theta, y.clone()).unwrap()
-                + (o.p.hitting_cost)(t, y.clone()).unwrap()
+                + o.p.hit_cost(t, y.clone())
                 + theta * (o.p.switching_cost)(x.clone() - y)
         };
 

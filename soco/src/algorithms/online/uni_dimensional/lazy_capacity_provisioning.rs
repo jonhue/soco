@@ -2,7 +2,7 @@ use crate::algorithms::capacity_provisioning::Bounded;
 use crate::config::Config;
 use crate::online::{Online, Step};
 use crate::problem::Problem;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::{assert, project};
 use crate::value::Value;
@@ -30,13 +30,13 @@ where
     T: Value,
     P: Bounded<T> + Problem,
 {
-    assert(o.p.d() == 1, Error::UnsupportedProblemDimension)?;
+    assert(o.p.d() == 1, Failure::UnsupportedProblemDimension(o.p.d()))?;
     assert(
         t - 1 == ms.len() as i32,
-        Error::OnlineInsufficientInformation(
-            "Memory should include an element for every past time slot"
-                .to_string(),
-        ),
+        Failure::OnlineOutOfDateMemory {
+            previous_time_slots: t - 1,
+            memory_entries: ms.len() as i32,
+        },
     )?;
 
     let (t_start, x_start) = find_initial_time(&ms);

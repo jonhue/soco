@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::convex_optimization::find_minimizer;
+use crate::numerics::convex_optimization::find_minimizer;
 use crate::objective::Objective;
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::Result;

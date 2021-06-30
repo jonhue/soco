@@ -1,8 +1,8 @@
 //! Utilities to build cost functions for right-sizing data centers.
 
 use crate::config::Config;
-use crate::convex_optimization::{minimize, Constraint};
 use crate::cost::{CostFn, SingleCostFn};
+use crate::numerics::convex_optimization::{minimize, Constraint};
 use crate::utils::access;
 use crate::value::Value;
 use num::ToPrimitive;
@@ -32,8 +32,8 @@ pub fn apply_loads<'a, T>(
 where
     T: Value + 'a,
 {
-    Arc::new(move |t, x| {
-        let l = access(&ls, t - 1)?;
+    CostFn::new(move |t, x: Config<T>| {
+        let l = access(&ls, t - 1).unwrap();
 
         let solver_d = (d * e) as usize;
         let bounds = vec![(0., 1.); solver_d];
@@ -50,7 +50,7 @@ where
 
                     if prim_j > 0. {
                         let l_frac = l.clone() * z;
-                        f(t, k, l_frac)(j)
+                        Some(f(t, k, l_frac)(j))
                     } else if prim_j == 0. && sum_l * sum_z > 0. {
                         Some(f64::INFINITY)
                     } else if prim_j == 0. && sum_l * sum_z == 0. {
@@ -86,8 +86,8 @@ where
             vec![],
             equality_constraints,
         )
-        .ok()?;
-        Some(opt)
+        .unwrap();
+        opt
     })
 }
 
@@ -97,7 +97,7 @@ where
 ///
 /// This behavior models the optimal dispatching rule of workload to all active servers.
 pub fn load_balance<'a, T>(
-    f: Arc<dyn Fn(i32, usize, Load) -> Option<f64> + 'a>,
+    f: Arc<dyn Fn(i32, usize, Load) -> f64 + 'a>,
 ) -> LoadCostFn<'a, T>
 where
     T: Value + 'a,
@@ -105,10 +105,8 @@ where
     Arc::new(move |t, k, l| {
         let f = f.clone();
         Arc::new(move |x| {
-            Some(
-                ToPrimitive::to_f64(&x).unwrap()
-                    * f(t, k, l.clone() / ToPrimitive::to_f64(&x).unwrap())?,
-            )
+            ToPrimitive::to_f64(&x).unwrap()
+                * f(t, k, l.clone() / ToPrimitive::to_f64(&x).unwrap())
         })
     })
 }

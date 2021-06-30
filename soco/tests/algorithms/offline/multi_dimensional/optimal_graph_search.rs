@@ -5,12 +5,12 @@ mod optimal_graph_search {
         multi_dimensional::optimal_graph_search::optimal_graph_search,
         OfflineOptions,
     };
-    use soco::config::Config;
+    use soco::config::{Config, IntegralConfig};
+    use soco::cost::CostFn;
     use soco::objective::Objective;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
-    use std::sync::Arc;
 
     #[test]
     fn _1() {
@@ -19,8 +19,8 @@ mod optimal_graph_search {
             t_end: 2,
             bounds: vec![2, 1],
             switching_cost: vec![1.5, 1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(t as f64 * (if j[0] == 0 && j[1] == 0 { 1. } else { 0. }))
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                t as f64 * (if j[0] == 0 && j[1] == 0 { 1. } else { 0. })
             }),
         };
         p.verify().unwrap();
@@ -57,7 +57,7 @@ mod optimal_graph_search {
             t_end: 100,
             bounds: vec![8, 8],
             switching_cost: vec![1., 3.],
-            hitting_cost: Arc::new(|t, j| {
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
                 let r: f64 = j
                     .to_vec()
                     .into_iter()
@@ -68,10 +68,8 @@ mod optimal_graph_search {
                             * i as f64
                     })
                     .sum();
-                Some(
-                    Pcg64::seed_from_u64(t as u64 * r as u64)
-                        .gen_range(0.0..1_000_000.),
-                )
+                Pcg64::seed_from_u64(t as u64 * r as u64)
+                    .gen_range(0.0..1_000_000.)
             }),
         };
         p.verify().unwrap();
@@ -109,7 +107,7 @@ mod optimal_graph_search {
                     Pcg64::seed_from_u64((d * t_end) as u64).gen_range(1.0..5.)
                 })
                 .collect(),
-            hitting_cost: Arc::new(|t, j| {
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
                 let r: f64 = j
                     .to_vec()
                     .into_iter()
@@ -120,10 +118,8 @@ mod optimal_graph_search {
                             * i as f64
                     })
                     .sum();
-                Some(
-                    Pcg64::seed_from_u64(t as u64 * r as u64)
-                        .gen_range(0.0..1_000_000.),
-                )
+                Pcg64::seed_from_u64(t as u64 * r as u64)
+                    .gen_range(0.0..1_000_000.)
             }),
         };
         p.verify().unwrap();

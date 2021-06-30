@@ -1,16 +1,16 @@
 //! Utilities.
 
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::value::Value;
 use num::NumCast;
 use rand::{thread_rng, Rng};
 
 /// Safely asserts `pred`.
-pub fn assert(pred: bool, error: Error) -> Result<()> {
+pub fn assert(pred: bool, failure: Failure) -> Result<()> {
     if pred {
         Ok(())
     } else {
-        Err(error)
+        Err(failure)
     }
 }
 

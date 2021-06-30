@@ -1,6 +1,6 @@
 use crate::config::{Config, FractionalConfig};
 use crate::convert::ResettableProblem;
-use crate::convex_optimization::find_minimizer;
+use crate::numerics::convex_optimization::find_minimizer;
 use crate::objective::Objective;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;

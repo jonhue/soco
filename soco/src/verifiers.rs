@@ -1,37 +1,17 @@
 //! Functions to check that values satisfy the imposed constraints.
 
 use crate::config::Config;
-use crate::cost::CostFn;
 use crate::online::Online;
 use crate::problem::{
     SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
     SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use num::NumCast;
-use std::fmt::Debug;
-
-pub trait VerifiableCostFn<'a, T> {
-    fn verify(&self, t: i32, x: T) -> Result<()>;
-}
-
-impl<'a, T> VerifiableCostFn<'a, T> for CostFn<'a, T>
-where
-    T: Clone + Debug,
-{
-    fn verify(&self, t: i32, x: T) -> Result<()> {
-        assert_validity(
-            self(t, x.clone()).ok_or_else(|| {
-                invalid(format!("cost function must be total on its domain, but returns None for ({}, {:?})", t, x))
-            })? >= 0.,
-            format!("cost function must be non-negative, but is for ({}, {:?})", t, x),
-        )
-    }
-}
 
 pub trait VerifiableProblem {
     fn verify(&self) -> Result<()>;
@@ -54,17 +34,6 @@ where
             self.bounds.len() == self.d as usize,
             format!("length of vector of upper bounds must equal dimension, {} != {}", self.bounds.len(), self.d),
         )?;
-
-        for t in 1..=self.t_end {
-            self.hitting_cost.verify(
-                t,
-                Config::new(self.bounds.iter().map(|&(l, _)| l).collect()),
-            )?;
-            self.hitting_cost.verify(
-                t,
-                Config::new(self.bounds.iter().map(|&(_, u)| u).collect()),
-            )?;
-        }
 
         Ok(())
     }
@@ -104,15 +73,6 @@ where
                     k + 1
                 ),
             )?;
-
-            for t in 1..=self.t_end {
-                self.hitting_cost.verify(
-                    t,
-                    Config::repeat(NumCast::from(0).unwrap(), self.d),
-                )?;
-                self.hitting_cost
-                    .verify(t, Config::new(self.bounds.clone()))?;
-            }
         }
 
         Ok(())
@@ -257,11 +217,6 @@ where
                     k + 1
                 ),
             )?;
-
-            for t in 1..=self.t_end {
-                self.hitting_cost[k].verify(t, NumCast::from(0).unwrap())?;
-                self.hitting_cost[k].verify(t, self.bounds[k])?;
-            }
         }
 
         for t in 0..self.t_end as usize {
@@ -339,6 +294,6 @@ fn assert_validity(pred: bool, message: String) -> Result<()> {
     assert(pred, invalid(message))
 }
 
-fn invalid(message: String) -> Error {
-    Error::Invalid(message)
+fn invalid(message: String) -> Failure {
+    Failure::Invalid(message)
 }

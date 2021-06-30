@@ -1,11 +1,11 @@
 mod bcp {
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::brcp;
-    use soco::config::Config;
+    use soco::config::{Config, FractionalConfig};
     use soco::convert::DiscretizableSchedule;
+    use soco::cost::CostFn;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
-    use std::sync::Arc;
 
     #[test]
     fn _1() {
@@ -14,8 +14,8 @@ mod bcp {
             t_end: 2,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(t as f64 * (if j[0] == 0. { 1. } else { 0. }))
+            hitting_cost: CostFn::new(|t, j: FractionalConfig| {
+                t as f64 * (if j[0] == 0. { 1. } else { 0. })
             }),
         };
         p.verify().unwrap();

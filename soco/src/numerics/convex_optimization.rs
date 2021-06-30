@@ -1,10 +1,9 @@
 //! Optimization utils.
 
 use crate::config::{Config, FractionalConfig};
-use crate::cost::CostFn;
-use crate::result::{Error, Result};
-use crate::utils::assert;
-use crate::TOLERANCE;
+use crate::cost::{CallableCostFn, CostFn};
+use crate::numerics::{ApplicablePrecision, TOLERANCE};
+use crate::result::Result;
 use nlopt::{Algorithm, Nlopt, Target};
 use std::sync::Arc;
 
@@ -26,7 +25,7 @@ pub fn find_minimizer_of_hitting_cost(
     hitting_cost: &CostFn<'_, FractionalConfig>,
     bounds: &Vec<(f64, f64)>,
 ) -> Result<OptimizationResult> {
-    let f = |x: &[f64]| hitting_cost(t, Config::new(x.to_vec())).unwrap();
+    let f = |x: &[f64]| hitting_cost.call(t, Config::new(x.to_vec()), bounds);
     find_minimizer(f, bounds)
 }
 
@@ -37,7 +36,7 @@ pub fn find_unbounded_minimizer_of_hitting_cost(
     hitting_cost: &CostFn<'_, FractionalConfig>,
 ) -> Result<OptimizationResult> {
     let (bounds, init) = build_empty_bounds(d);
-    let f = |x: &[f64]| hitting_cost(t, Config::new(x.to_vec())).unwrap();
+    let f = |x: &[f64]| hitting_cost.call(t, Config::new(x.to_vec()), &bounds);
     minimize(f, &bounds, Some(init), vec![], vec![])
 }
 
@@ -137,7 +136,7 @@ fn optimize(
     let mut x = match init {
         None => lower.clone(),
         Some(x) => {
-            assert(x.len() == bounds.len(), Error::DimensionInconsistent)?;
+            assert!(x.len() == bounds.len());
             x
         }
     };
@@ -172,7 +171,7 @@ fn optimize(
     }
 
     let opt = solver.optimize(&mut x)?.1;
-    Ok((x, opt))
+    Ok((x.apply_precision(), opt))
 }
 
 fn choose_algorithm(

@@ -45,7 +45,7 @@ where
     T: Value + 'a,
 {
     load_balance(Arc::new(move |_, k, l| {
-        Some(energy_loss_mul(a[k], b[k], l.total()))
+        energy_loss_mul(a[k], b[k], l.total())
     }))
 }
 
@@ -67,7 +67,7 @@ where
         let d = queueing_delay(service_rate[k], sum_l);
         let r = revenue_loss(d_0[k], d_1[k], d, sum_l);
         let e = energy_loss_add(e_0[k], e_1[k], sum_l);
-        Some(r + e)
+        r + e
     }))
 }
 
@@ -108,7 +108,7 @@ where
                     ) + network_delay(t, j, k));
             }
 
-            Some(d + e)
+            d + e
         })
     })
 }

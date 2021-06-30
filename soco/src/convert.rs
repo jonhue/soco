@@ -3,7 +3,7 @@
 use crate::config::{Config, FractionalConfig, IntegralConfig};
 use crate::cost::data_center::load::Load;
 use crate::cost::data_center::{apply_loads, load_balance};
-use crate::cost::CostFn;
+use crate::cost::{CallableCostFn, CostFn};
 use crate::norm::NormFn;
 use crate::online::Online;
 use crate::problem::{
@@ -53,7 +53,9 @@ pub trait DiscretizableCostFn<'a> {
 
 impl<'a> DiscretizableCostFn<'a> for CostFn<'a, FractionalConfig> {
     fn to_i(&'a self) -> CostFn<'a, IntegralConfig> {
-        Arc::new(move |t, x| self(t, x.to_f()))
+        CostFn::new(move |t, x: IntegralConfig| {
+            self.call_unbounded(t, x.to_f())
+        })
     }
 }
 
@@ -64,27 +66,19 @@ pub trait RelaxableCostFn<'a> {
 
 impl<'a> RelaxableCostFn<'a> for CostFn<'a, IntegralConfig> {
     fn to_f(&'a self) -> CostFn<'a, FractionalConfig> {
-        Arc::new(move |t, x| {
+        CostFn::new(move |t, x: FractionalConfig| {
             assert!(x.d() == 1, "cannot relax multidimensional problems");
 
-            self(t, x.ceil())
+            let j = x[0];
+            if j.fract() == 0. {
+                self.call_unbounded(t, Config::single(j as i32))
+            } else {
+                let l =
+                    self.call_unbounded(t, Config::single(j.floor() as i32));
+                let u = self.call_unbounded(t, Config::single(j.ceil() as i32));
+                (j.ceil() - j) * l + (j - j.floor()) * u
+            }
         })
-        // Arc::new(move |t, x| {
-        //     assert!(x.d() == 1, "cannot relax multidimensional problems");
-
-        //     let j = x[0];
-        //     if j.fract() == 0. {
-        //         self(t, Config::single(j as i32))
-        //     } else {
-        //         let l = self(t, Config::single(j.floor() as i32));
-        //         let u = self(t, Config::single(j.ceil() as i32));
-        //         if l.is_none() || u.is_none() {
-        //             return None;
-        //         }
-
-        //         Some((j.ceil() - j) * l.unwrap() + (j - j.floor()) * u.unwrap())
-        //     }
-        // })
     }
 }
 
@@ -173,7 +167,7 @@ where
         let hitting_cost: Vec<CostFn<'a, T>> = self
             .hitting_cost
             .iter()
-            .map(|&l| -> CostFn<'a, T> { Arc::new(move |_, _| Some(l)) })
+            .map(|&l| -> CostFn<'a, T> { CostFn::new(move |_, _| l) })
             .collect();
         SmoothedBalancedLoadOptimization {
             d: self.d,
@@ -193,7 +187,11 @@ where
     /// Convert to an instance of Simplified Smoothed Convex Optimization.
     pub fn to_ssco(&'a self) -> SimplifiedSmoothedConvexOptimization<'a, T> {
         let f = load_balance(Arc::new(move |t, k, l| {
-            self.hitting_cost[k as usize](t, NumCast::from(l[0]).unwrap())
+            self.hitting_cost[k].call(
+                t,
+                NumCast::from(l[0]).unwrap(),
+                self.bounds[k],
+            )
         }));
         let loads = self
             .load
@@ -293,14 +291,7 @@ pub trait ResettableCostFn<'a, T> {
 
 impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T> {
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T> {
-        Arc::new(move |t, j| {
-            let new_t = t + t_start;
-            if new_t >= 1 {
-                self(new_t, j)
-            } else {
-                Some(0.)
-            }
-        })
+        CostFn::new(move |t, j| self.call_unbounded(t + t_start, j))
     }
 }
 

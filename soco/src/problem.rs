@@ -1,6 +1,7 @@
 //! Problem definition.
 
 use crate::config::Config;
+use crate::cost::CallableCostFn;
 use crate::cost::CostFn;
 use crate::norm::NormFn;
 use crate::value::Value;
@@ -52,6 +53,14 @@ where
     pub hitting_cost: CostFn<'a, Config<T>>,
 }
 impl_problem!(SmoothedConvexOptimization<'a, T>);
+impl<'a, T> SmoothedConvexOptimization<'a, T>
+where
+    T: Value,
+{
+    pub fn hit_cost(&self, t: i32, x: Config<T>) -> f64 {
+        self.hitting_cost.call(t, x, &self.bounds)
+    }
+}
 pub type FractionalSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, f64>;
 
@@ -73,10 +82,54 @@ where
     pub hitting_cost: CostFn<'a, Config<T>>,
 }
 impl_problem!(SimplifiedSmoothedConvexOptimization<'a, T>);
+impl<'a, T> SimplifiedSmoothedConvexOptimization<'a, T>
+where
+    T: Value,
+{
+    pub fn hit_cost(&self, t: i32, x: Config<T>) -> f64 {
+        self.hitting_cost.call(t, x, &self.bounds)
+    }
+}
 pub type IntegralSimplifiedSmoothedConvexOptimization<'a> =
     SimplifiedSmoothedConvexOptimization<'a, i32>;
 pub type FractionalSimplifiedSmoothedConvexOptimization<'a> =
     SimplifiedSmoothedConvexOptimization<'a, f64>;
+
+/// Smoothed Balanced-Load Optimization
+#[derive(Clone)]
+pub struct SmoothedBalancedLoadOptimization<'a, T>
+where
+    T: Value,
+{
+    /// Number of dimensions.
+    pub d: i32,
+    /// Finite, positive time horizon.
+    pub t_end: i32,
+    /// Vector of upper bounds of each dimension.
+    pub bounds: Vec<T>,
+    /// Vector of positive real constants resembling the switching cost of each dimension.
+    pub switching_cost: Vec<f64>,
+    /// Positive increasing cost functions for each dimension.
+    pub hitting_cost: Vec<CostFn<'a, T>>,
+    /// Non-negative load at each time step `t`.
+    pub load: Vec<T>,
+}
+impl_problem!(SmoothedBalancedLoadOptimization<'a, T>);
+impl<'a, T> SmoothedBalancedLoadOptimization<'a, T>
+where
+    T: Value,
+{
+    pub fn hit_cost(&self, t: i32, x: Config<T>) -> f64 {
+        assert!(self.d == x.d());
+        let mut result = 0.;
+        for k in 0..self.d as usize {
+            result += self.hitting_cost[k].call(t, x[k], self.bounds[k]);
+        }
+        result
+    }
+}
+pub type IntegralSmoothedBalancedLoadOptimization<'a> =
+    SmoothedBalancedLoadOptimization<'a, i32>;
 
 /// Smoothed Load Optimization
 #[derive(Clone)]
@@ -100,26 +153,3 @@ where
 }
 impl_problem!(SmoothedLoadOptimization<T>);
 pub type IntegralSmoothedLoadOptimization = SmoothedLoadOptimization<i32>;
-
-/// Smoothed Balanced-Load Optimization
-#[derive(Clone)]
-pub struct SmoothedBalancedLoadOptimization<'a, T>
-where
-    T: Value,
-{
-    /// Number of dimensions.
-    pub d: i32,
-    /// Finite, positive time horizon.
-    pub t_end: i32,
-    /// Vector of upper bounds of each dimension.
-    pub bounds: Vec<T>,
-    /// Vector of positive real constants resembling the switching cost of each dimension.
-    pub switching_cost: Vec<f64>,
-    /// Positive increasing cost functions for each dimension.
-    pub hitting_cost: Vec<CostFn<'a, T>>,
-    /// Non-negative load at each time step `t`.
-    pub load: Vec<T>,
-}
-impl_problem!(SmoothedBalancedLoadOptimization<'a, T>);
-pub type IntegralSmoothedBalancedLoadOptimization<'a> =
-    SmoothedBalancedLoadOptimization<'a, i32>;

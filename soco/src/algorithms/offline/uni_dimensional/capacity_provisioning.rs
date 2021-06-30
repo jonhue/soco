@@ -1,7 +1,7 @@
 use crate::algorithms::capacity_provisioning::Bounded;
 use crate::config::Config;
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::{FractionalSchedule, Schedule};
 use crate::utils::{assert, project};
 
@@ -9,7 +9,7 @@ use crate::utils::{assert, project};
 pub fn brcp(
     p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
 ) -> Result<FractionalSchedule> {
-    assert(p.d == 1, Error::UnsupportedProblemDimension)?;
+    assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
 
     let mut xs = Schedule::empty();
 
