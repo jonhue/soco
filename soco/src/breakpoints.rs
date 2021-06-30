@@ -1,21 +1,17 @@
 use ordered_float::OrderedFloat;
 use std::sync::Arc;
 
-type FiniteBreakpoints = Vec<OrderedFloat<f64>>;
-type NextBreakpointFn = Arc<dyn Fn(f64) -> (Option<f64>, Option<f64>)>;
-
-/// Sorted non-continuous or non-smooth points of the probability distribution.
+/// Sorted non-continuous or non-smooth points of a function.
 #[derive(Clone)]
 pub struct Breakpoints {
-    pub bs: FiniteBreakpoints,
-    pub next: Option<NextBreakpointFn>,
-    // /// Vector of breakpoints, if finite.
-    // Finite(FiniteBreakpoints),
-    // /// If infinite, a vector of breakpoints, an initial breakpoint and functions which given a breakpoint returns the previous and next breakpoints, respectively.
-    // /// The function will be called to obtain the next breakpoint until the piecewise integrals converge to `0`.
-    // Infinite(FiniteBreakpoints, NextBreakpointFn, NextBreakpointFn),
+    /// Finite vector of breakpoints.
+    pub bs: Vec<OrderedFloat<f64>>,
+    /// Function which given a breakpoint returns the previous and next breakpoints, respectively.
+    /// The function is called to obtain the next breakpoint until the piecewise integrals converge to `0` or the entire integral was integrated.
+    pub next: Option<Arc<dyn Fn(f64) -> (Option<f64>, Option<f64>)>>,
 }
 impl Breakpoints {
+    /// Empty set of breakpoints.
     pub fn empty() -> Self {
         Breakpoints {
             bs: vec![],
@@ -23,19 +19,22 @@ impl Breakpoints {
         }
     }
 
+    /// Generate breakpoints from a finite vector of breakpoints `bs`.
     pub fn from(bs: Vec<f64>) -> Self {
         Self::empty().add(&bs)
     }
 
-    pub fn grid() -> Self {
+    /// Breakpoints on a grid with a mesh width of `d`.
+    pub fn grid(d: f64) -> Self {
         Breakpoints {
             bs: vec![],
             next: Some(Arc::new(|b| {
-                (Some((b - 1.).ceil()), Some((b + 1.).floor()))
+                (Some((b - d).ceil()), Some((b + d).floor()))
             })),
         }
     }
 
+    /// Adds breakpoints in `bs` to the set of breakpoints, unless already included.
     pub fn add(&self, bs: &Vec<f64>) -> Self {
         let mut breakpoints = self.clone();
         for &b in bs {
@@ -45,5 +44,10 @@ impl Breakpoints {
         }
         breakpoints.bs.sort_unstable();
         breakpoints
+    }
+}
+impl Default for Breakpoints {
+    fn default() -> Self {
+        Breakpoints::empty()
     }
 }

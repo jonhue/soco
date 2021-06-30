@@ -189,7 +189,7 @@ fn piecewise_integral_default_breakpoints() {
 #[test]
 fn piecewise_integral_right() {
     let result =
-        piecewise_integral(&Breakpoints::grid(), 0., f64::INFINITY, |x| {
+        piecewise_integral(&Breakpoints::grid(1.), 0., f64::INFINITY, |x| {
             std::f64::consts::E.powf(-x)
         })
         .unwrap();
@@ -199,7 +199,7 @@ fn piecewise_integral_right() {
 #[test]
 fn piecewise_integral_left() {
     let result =
-        piecewise_integral(&Breakpoints::grid(), f64::NEG_INFINITY, 0., |x| {
+        piecewise_integral(&Breakpoints::grid(1.), f64::NEG_INFINITY, 0., |x| {
             std::f64::consts::E.powf(x)
         })
         .unwrap();
