@@ -29,7 +29,7 @@ where
 pub type IntegralStep<M> = Step<i32, M>;
 pub type FractionalStep<M> = Step<f64, M>;
 
-/// Gives a type default value which may depend on a problem instance.
+/// Gives type a default value which may depend on a problem instance.
 pub trait DefaultGivenProblem<P>
 where
     P: Problem,
