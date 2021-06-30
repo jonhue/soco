@@ -2,7 +2,8 @@
 #![allow(clippy::module_inception)]
 #![allow(clippy::ptr_arg)]
 
-#[allow(unused_imports)] #[macro_use]
+#[allow(unused_imports)]
+#[macro_use]
 extern crate approx;
 
 pub mod algorithms;
