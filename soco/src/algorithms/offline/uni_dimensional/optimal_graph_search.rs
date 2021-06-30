@@ -73,7 +73,8 @@ pub fn make_pow_of_2<'a>(
                 p.hit_cost(t, x)
             } else {
                 x[0] as f64
-                    * (p.hit_cost(t, Config::new(p.bounds.clone())) + f64::EPSILON)
+                    * (p.hit_cost(t, Config::new(p.bounds.clone()))
+                        + f64::EPSILON)
             }
         }),
     })
