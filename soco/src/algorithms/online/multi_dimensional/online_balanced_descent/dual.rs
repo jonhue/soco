@@ -1,18 +1,17 @@
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
     meta::{obd, Options as MetaOptions},
-    MAX_ITERATIONS, MAX_L_FACTOR,
+    MAX_L_FACTOR,
 };
 use crate::config::{Config, FractionalConfig};
-use crate::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::norm::dual;
 use crate::norm::NormFn;
+use crate::numerics::bisection::bisection;
+use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
-use crate::TOLERANCE;
-use bacon_sci::roots::bisection;
 use finitediff::FiniteDiff;
 
 pub struct Options<'a> {
@@ -45,23 +44,9 @@ pub fn dobd(
 
     let a = minimal_hitting_cost;
     let b = MAX_L_FACTOR * minimal_hitting_cost;
-    let l = bisection(
-        (a, b),
-        |l: f64| {
-            balance_function(
-                o,
-                xs,
-                &prev_x,
-                t,
-                l,
-                options.eta,
-                &options.mirror_map,
-            )
-        },
-        TOLERANCE,
-        MAX_ITERATIONS,
-    )
-    .map_err(Failure::Bisection)?;
+    let l = bisection((a, b), |l: f64| {
+        balance_function(o, xs, &prev_x, t, l, options.eta, &options.mirror_map)
+    })?;
 
     obd(
         o,

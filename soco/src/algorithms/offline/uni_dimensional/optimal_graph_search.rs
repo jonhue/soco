@@ -57,26 +57,25 @@ pub fn optimal_graph_search(
 
 /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `optimal_graph_search`.
 pub fn make_pow_of_2<'a>(
-    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
+    p: IntegralSimplifiedSmoothedConvexOptimization<'a>,
 ) -> Result<IntegralSimplifiedSmoothedConvexOptimization<'a>> {
     assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
 
     let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);
-    let hitting_cost = CostFn::new(move |t, x: IntegralConfig| {
-        if x[0] <= p.bounds[0] {
-            p.hit_cost(t, x)
-        } else {
-            x[0] as f64
-                * (p.hit_cost(t, Config::new(p.bounds.clone())) + f64::EPSILON)
-        }
-    });
 
     Ok(SimplifiedSmoothedConvexOptimization {
         d: p.d,
         t_end: p.t_end,
         bounds: vec![m],
         switching_cost: p.switching_cost.clone(),
-        hitting_cost,
+        hitting_cost: CostFn::new(move |t, x: IntegralConfig| {
+            if x[0] <= p.bounds[0] {
+                p.hit_cost(t, x)
+            } else {
+                x[0] as f64
+                    * (p.hit_cost(t, Config::new(p.bounds.clone())) + f64::EPSILON)
+            }
+        }),
     })
 }
 

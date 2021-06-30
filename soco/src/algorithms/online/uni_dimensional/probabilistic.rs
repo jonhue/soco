@@ -1,16 +1,15 @@
 use crate::breakpoints::Breakpoints;
 use crate::config::Config;
-use crate::convex_optimization::{
+use crate::numerics::convex_optimization::{
     find_unbounded_minimizer_of_hitting_cost, maximize, minimize,
 };
+use crate::numerics::finite_differences::{derivative, second_derivative};
+use crate::numerics::quadrature::piecewise::piecewise_integral;
 use crate::online::{DefaultGivenProblem, FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
-use crate::quadrature::piecewise::piecewise_integral;
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, project};
-use crate::TOLERANCE;
-use bacon_sci::differentiate::{derivative, second_derivative};
 use std::sync::Arc;
 
 /// Probability distribution.
@@ -82,7 +81,6 @@ pub fn probabilistic<'a>(
                         o.p.hitting_cost.call_unbounded(t, Config::single(x))
                     },
                     x,
-                    TOLERANCE.powf(-0.25),
                 ) / 2.
         } else {
             0.
@@ -121,7 +119,7 @@ fn find_right_bound(
     let objective = |x: &[f64]| x[0];
     let constraint = Arc::new(|x: &[f64]| -> f64 {
         let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
-        let g = derivative(f, x[0], TOLERANCE) - derivative(f, x_m, TOLERANCE);
+        let g = derivative(f, x[0]) - derivative(f, x_m);
         let h =
             piecewise_integral(breakpoints, x[0], f64::INFINITY, |x| prev_p(x))
                 .unwrap();
@@ -146,7 +144,7 @@ fn find_left_bound(
     let objective = |x: &[f64]| x[0];
     let constraint = Arc::new(|x: &[f64]| -> f64 {
         let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
-        let g = derivative(f, x_m, TOLERANCE) - derivative(f, x[0], TOLERANCE);
+        let g = derivative(f, x_m) - derivative(f, x[0]);
         let h = piecewise_integral(breakpoints, f64::NEG_INFINITY, x[0], |x| {
             prev_p(x)
         })

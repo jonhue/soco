@@ -2,8 +2,8 @@
 
 use crate::config::{Config, FractionalConfig};
 use crate::cost::{CallableCostFn, CostFn};
+use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use crate::result::Result;
-use crate::TOLERANCE;
 use nlopt::{Algorithm, Nlopt, Target};
 use std::sync::Arc;
 
@@ -171,7 +171,7 @@ fn optimize(
     }
 
     let opt = solver.optimize(&mut x)?.1;
-    Ok((x, opt))
+    Ok((x.apply_precision(), opt))
 }
 
 fn choose_algorithm(

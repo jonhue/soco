@@ -1,6 +1,6 @@
 use crate::config::{Config, FractionalConfig};
-use crate::convex_optimization::find_minimizer;
 use crate::norm::euclidean;
+use crate::numerics::convex_optimization::find_minimizer;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Failure, Result};

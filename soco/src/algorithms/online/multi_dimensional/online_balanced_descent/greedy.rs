@@ -1,6 +1,6 @@
 use crate::norm::NormFn;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::meta::{obd, Options as MetaOptions};
-use crate::convex_optimization::find_minimizer_of_hitting_cost;
+use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::config::{Config, FractionalConfig};
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;

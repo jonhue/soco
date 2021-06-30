@@ -1,6 +1,6 @@
 use crate::config::{Config, FractionalConfig};
-use crate::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::cost::CostFn;
+use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Failure, Result};

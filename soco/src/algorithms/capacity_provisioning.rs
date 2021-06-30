@@ -4,7 +4,7 @@ use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
 };
 use crate::config::Config;
 use crate::convert::ResettableProblem;
-use crate::convex_optimization::find_minimizer;
+use crate::numerics::convex_optimization::find_minimizer;
 use crate::objective::Objective;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
@@ -56,16 +56,16 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
             return Ok(0.);
         }
 
+        let p = self.reset(t_start);
         let objective = |xs: &[f64]| -> f64 {
-            self.objective_function_with_default(
+            p.objective_function_with_default(
                 &xs.iter().map(|&x| Config::single(x)).collect(),
                 &Config::single(x_start),
                 inverted,
             )
             .unwrap()
         };
-        let bounds =
-            vec![(0., self.bounds[0]); (self.t_end - t_start) as usize];
+        let bounds = vec![(0., p.bounds[0]); p.t_end as usize];
         let (xs, _) = find_minimizer(objective, &bounds)?;
         Ok(xs[(t - t_start) as usize - 1])
     }
@@ -107,8 +107,8 @@ impl IntegralSimplifiedSmoothedConvexOptimization<'_> {
         }
 
         let mut p = self.reset(t_start);
-        if !is_pow_of_2(self.bounds[0]) {
-            p = make_pow_of_2(self)?;
+        if !is_pow_of_2(p.bounds[0]) {
+            p = make_pow_of_2(p)?;
         }
         let Path { xs, .. } = optimal_graph_search(
             &p,

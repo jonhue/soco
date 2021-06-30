@@ -1,7 +1,7 @@
 use crate::config::{Config, FractionalConfig};
-use crate::convex_optimization::find_unbounded_minimizer;
 use crate::cost::CostFn;
 use crate::norm::NormFn;
+use crate::numerics::convex_optimization::find_unbounded_minimizer;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::{Failure, Result};

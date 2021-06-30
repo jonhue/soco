@@ -1,8 +1,8 @@
 //! Utilities to build cost functions for right-sizing data centers.
 
 use crate::config::Config;
-use crate::convex_optimization::{minimize, Constraint};
 use crate::cost::{CostFn, SingleCostFn};
+use crate::numerics::convex_optimization::{minimize, Constraint};
 use crate::utils::access;
 use crate::value::Value;
 use num::ToPrimitive;

@@ -1,5 +1,5 @@
+use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use crate::result::{Failure, Result};
-use crate::TOLERANCE;
 use bacon_sci::integrate::{integrate, integrate_hermite, integrate_laguerre};
 
 pub mod piecewise;
@@ -21,7 +21,7 @@ pub fn integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> Result<f64> {
     if result.is_nan() {
         Err(Failure::Integration("returned NaN".to_string()))
     } else {
-        Ok(result)
+        Ok(result.apply_precision())
     }
 }
 

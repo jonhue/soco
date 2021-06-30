@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::convex_optimization::minimize;
+use crate::numerics::convex_optimization::minimize;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Failure, Result};

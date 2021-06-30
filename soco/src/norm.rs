@@ -1,7 +1,7 @@
 //! Norms.
 
 use crate::config::{Config, FractionalConfig};
-use crate::convex_optimization::find_unbounded_maximizer;
+use crate::numerics::convex_optimization::find_unbounded_maximizer;
 use crate::result::{Failure, Result};
 use crate::value::Value;
 use nalgebra::{DMatrix, DVector, RealField};

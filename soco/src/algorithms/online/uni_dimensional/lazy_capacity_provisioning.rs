@@ -40,6 +40,7 @@ where
     )?;
 
     let (t_start, x_start) = find_initial_time(&ms);
+    println!("{};{}", t_start,x_start);
 
     let i = xs.now_with_default(Config::single(NumCast::from(0).unwrap()))[0];
     let l = o.p.find_lower_bound(o.p.t_end(), t_start, x_start)?;

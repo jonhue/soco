@@ -15,7 +15,7 @@ mod make_pow_of_2 {
             hitting_cost: CostFn::new(|_, _| 1.),
         };
         p.verify().unwrap();
-        let transformed_p = make_pow_of_2(&p).unwrap();
+        let transformed_p = make_pow_of_2(p.clone()).unwrap();
         transformed_p.verify().unwrap();
 
         assert_eq!(transformed_p.t_end, p.t_end);
@@ -153,7 +153,7 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let transformed_p = make_pow_of_2(&p).unwrap();
+        let transformed_p = make_pow_of_2(p).unwrap();
         let result = optimal_graph_search(
             &transformed_p,
             &Options {

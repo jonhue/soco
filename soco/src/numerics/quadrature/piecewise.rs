@@ -1,7 +1,7 @@
 use crate::breakpoints::Breakpoints;
-use crate::quadrature::integral;
+use crate::numerics::quadrature::integral;
+use crate::numerics::TOLERANCE;
 use crate::result::Result;
-use crate::TOLERANCE;
 use ordered_float::OrderedFloat;
 
 pub fn piecewise_integral(

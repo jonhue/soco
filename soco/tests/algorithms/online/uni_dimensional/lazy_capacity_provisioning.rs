@@ -23,6 +23,7 @@ mod fractional_lcp {
 
         let result = o.stream(lcp, |_, _| false, &()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
+        println!("{:?}", result);
 
         assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(1)]));
     }
