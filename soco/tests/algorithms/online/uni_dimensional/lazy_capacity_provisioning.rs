@@ -1,6 +1,7 @@
 mod fractional_lcp {
+    use crate::factories::inv_e;
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
-    use soco::config::{Config, FractionalConfig};
+    use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
     use soco::online::Online;
@@ -14,9 +15,7 @@ mod fractional_lcp {
             t_end: 1,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: FractionalConfig| {
-                t as f64 * std::f64::consts::E.powf(-j[0])
-            }),
+            hitting_cost: CostFn::new(inv_e),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -34,9 +33,7 @@ mod fractional_lcp {
             t_end: 1,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: FractionalConfig| {
-                t as f64 * std::f64::consts::E.powf(-j[0])
-            }),
+            hitting_cost: CostFn::new(inv_e),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -53,8 +50,9 @@ mod fractional_lcp {
 }
 
 mod integral_lcp {
+    use crate::factories::penalize_zero;
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
-    use soco::config::{Config, IntegralConfig};
+    use soco::config::Config;
     use soco::cost::CostFn;
     use soco::online::Online;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
@@ -67,9 +65,7 @@ mod integral_lcp {
             t_end: 1,
             bounds: vec![5],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                t as f64 * (if j[0] == 0 { 1. } else { 0. })
-            }),
+            hitting_cost: CostFn::new(penalize_zero),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -87,9 +83,7 @@ mod integral_lcp {
             t_end: 1,
             bounds: vec![5],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                t as f64 * (if j[0] == 0 { 1. } else { 0. })
-            }),
+            hitting_cost: CostFn::new(penalize_zero),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -107,9 +101,7 @@ mod integral_lcp {
             t_end: 1,
             bounds: vec![5],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                t as f64 * (if j[0] == 0 { 1. } else { 0. })
-            }),
+            hitting_cost: CostFn::new(penalize_zero),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -131,9 +123,7 @@ mod integral_lcp {
             t_end: 1,
             bounds: vec![5],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                t as f64 * (if j[0] == 0 { 1. } else { 0. })
-            }),
+            hitting_cost: CostFn::new(penalize_zero),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();

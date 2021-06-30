@@ -1,10 +1,10 @@
 use crate::breakpoints::Breakpoints;
 use crate::numerics::quadrature::integral;
-use crate::numerics::TOLERANCE;
+use crate::numerics::{ApplicablePrecision, PRECISION};
 use crate::result::Result;
 use ordered_float::OrderedFloat;
 
-/// Number of consecutive integrations below tolerance before the piecewise integration is stopped.
+/// Number of consecutive integrations below precision before the piecewise integration is stopped.
 static CONVERGENCE_THRESHOLD: i32 = 10;
 
 /// Computes the piecewise integral of `f_` over the interval `[from, to]` with respect to some breakpoints.
@@ -61,7 +61,7 @@ pub fn piecewise_integral(
         i,
         0,
     )?;
-    Ok(l + r)
+    Ok((l + r).apply_precision())
 }
 
 #[derive(Debug)]
@@ -128,9 +128,9 @@ fn __piecewise_integral(
                     }
                     Some(left_b) => {
                         if fixed_b < left_b {
-                            next_i -= 1;
                             Some(left_b)
                         } else {
+                            next_i -= 1;
                             Some(fixed_b)
                         }
                     }
@@ -173,10 +173,9 @@ fn __piecewise_integral(
     };
 
     // check if convergence threshold is reached
-    if result < TOLERANCE {
-        if n < CONVERGENCE_THRESHOLD {
-            next_n += 1;
-        } else {
+    if result < PRECISION {
+        next_n += 1;
+        if next_n >= CONVERGENCE_THRESHOLD {
             return Ok(result);
         }
     }
@@ -201,7 +200,7 @@ fn piecewise_integral_empty_breakpoints() {
             std::f64::consts::E.powf(-x)
         })
         .unwrap();
-    assert_abs_diff_eq!(result, 1., epsilon = TOLERANCE);
+    assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
 }
 
 #[test]
@@ -213,7 +212,7 @@ fn piecewise_integral_default_breakpoints() {
         |x| std::f64::consts::E.powf(-x),
     )
     .unwrap();
-    assert_abs_diff_eq!(result, 1., epsilon = TOLERANCE);
+    assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
 }
 
 #[test]
@@ -223,7 +222,7 @@ fn piecewise_integral_right() {
             std::f64::consts::E.powf(-x)
         })
         .unwrap();
-    assert_abs_diff_eq!(result, 1., epsilon = TOLERANCE);
+    assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
 }
 
 #[test]
@@ -235,5 +234,5 @@ fn piecewise_integral_left() {
         |x| std::f64::consts::E.powf(x),
     )
     .unwrap();
-    assert_abs_diff_eq!(result, 1., epsilon = TOLERANCE);
+    assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
 }

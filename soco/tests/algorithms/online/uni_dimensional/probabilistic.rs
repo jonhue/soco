@@ -1,8 +1,9 @@
 mod probabilistic {
+    use crate::factories::parabola;
     use soco::algorithms::online::uni_dimensional::probabilistic::{
         probabilistic, Options,
     };
-    use soco::config::{Config, FractionalConfig};
+    use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
     use soco::online::Online;
@@ -16,9 +17,7 @@ mod probabilistic {
             t_end: 1,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: FractionalConfig| {
-                1. / t as f64 * (j[0] as f64).powi(2)
-            }),
+            hitting_cost: CostFn::new(parabola),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -38,9 +37,7 @@ mod probabilistic {
             t_end: 1,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t: i32, j: FractionalConfig| {
-                t as f64 * (j[0] as f64).powi(2)
-            }),
+            hitting_cost: CostFn::new(parabola),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();

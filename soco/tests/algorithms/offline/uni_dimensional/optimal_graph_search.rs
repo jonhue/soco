@@ -41,12 +41,11 @@ mod make_pow_of_2 {
 }
 
 mod optimal_graph_search {
-    use rand::prelude::*;
-    use rand_pcg::Pcg64;
+    use crate::factories::{penalize_zero, random};
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::{
         make_pow_of_2, optimal_graph_search, Options,
     };
-    use soco::config::{Config, IntegralConfig};
+    use soco::config::Config;
     use soco::cost::CostFn;
     use soco::objective::Objective;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
@@ -60,9 +59,7 @@ mod optimal_graph_search {
             t_end: 2,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                t as f64 * (if j[0] == 0 { 1. } else { 0. })
-            }),
+            hitting_cost: CostFn::new(penalize_zero),
         };
         p.verify().unwrap();
 
@@ -105,10 +102,7 @@ mod optimal_graph_search {
             t_end: 100,
             bounds: vec![8],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                Pcg64::seed_from_u64((t * j[0]) as u64)
-                    .gen_range(0.0..1_000_000.)
-            }),
+            hitting_cost: CostFn::new(random),
         };
         p.verify().unwrap();
 
@@ -146,10 +140,7 @@ mod optimal_graph_search {
             t_end: 1_000,
             bounds: vec![9],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                Pcg64::seed_from_u64((t * j[0]) as u64)
-                    .gen_range(0.0..1_000_000.)
-            }),
+            hitting_cost: CostFn::new(random),
         };
         p.verify().unwrap();
 
@@ -194,9 +185,7 @@ mod optimal_graph_search {
             t_end: 2,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
-                t as f64 * (if j[0] == 0 { 1. } else { 0. })
-            }),
+            hitting_cost: CostFn::new(penalize_zero),
         };
         p.verify().unwrap();
 

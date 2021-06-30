@@ -111,12 +111,10 @@ fn find_right_bound(
     let constraint = Arc::new(|x: &[f64]| -> f64 {
         let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
         let g = derivative(f, x[0]) - derivative(f, x_m);
-        let h = o.p.switching_cost[0]
-            * piecewise_integral(breakpoints, x[0], f64::INFINITY, |x| {
-                prev_p(x)
-            })
-            .unwrap();
-        g / 2. - h
+        let h =
+            piecewise_integral(breakpoints, x[0], f64::INFINITY, |x| prev_p(x))
+                .unwrap();
+        g / 2. - o.p.switching_cost[0] * h
     });
     let init = vec![x_m];
 
@@ -138,12 +136,11 @@ fn find_left_bound(
     let constraint = Arc::new(|x: &[f64]| -> f64 {
         let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
         let g = derivative(f, x_m) - derivative(f, x[0]);
-        let h = o.p.switching_cost[0]
-            * piecewise_integral(breakpoints, f64::NEG_INFINITY, x[0], |x| {
-                prev_p(x)
-            })
-            .unwrap();
-        h - g / 2.
+        let h = piecewise_integral(breakpoints, f64::NEG_INFINITY, x[0], |x| {
+            prev_p(x)
+        })
+        .unwrap();
+        o.p.switching_cost[0] * h - g / 2.
     });
     let init = vec![x_m];
 

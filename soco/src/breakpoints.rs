@@ -30,7 +30,7 @@ impl Breakpoints {
         Breakpoints {
             bs: vec![],
             next: Some(Arc::new(move |b| {
-                (Some((b - d).ceil()), Some((b + d).floor()))
+                (Some(b.ceil() - d), Some(b.floor() + d))
             })),
         }
     }
