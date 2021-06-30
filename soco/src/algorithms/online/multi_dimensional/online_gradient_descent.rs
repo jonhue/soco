@@ -3,7 +3,7 @@ use crate::convex_optimization::find_minimizer;
 use crate::norm::euclidean;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use finitediff::FiniteDiff;
@@ -21,7 +21,7 @@ pub fn ogd(
     _: &mut Vec<()>,
     options: &Options,
 ) -> Result<FractionalStep<()>> {
-    assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
+    assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let t = xs.t_end();
     let default_x = Config::repeat(0., o.p.d);
@@ -29,9 +29,7 @@ pub fn ogd(
         default_x
     } else {
         let prev_x = xs.now();
-        let f = |x: &Vec<f64>| {
-            (o.p.hitting_cost)(t, Config::new(x.clone())).unwrap()
-        };
+        let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone()));
         let step =
             (options.eta)(t) * Config::new(prev_x.to_vec().central_diff(&f));
         project(&o.p.bounds, prev_x - step)?

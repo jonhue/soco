@@ -7,7 +7,7 @@ use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
 use crate::online::{IntegralStep, Online, Step};
 use crate::problem::IntegralSmoothedLoadOptimization;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, sample_uniform, total_bound};
 use std::cmp::max;
@@ -48,7 +48,7 @@ pub fn lb(
     ms: &mut Vec<Memory>,
     options: &Options,
 ) -> Result<IntegralStep<Memory>> {
-    assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
+    assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let t = xs.t_end() + 1;
     let bound = total_bound(&o.p.bounds) as usize;

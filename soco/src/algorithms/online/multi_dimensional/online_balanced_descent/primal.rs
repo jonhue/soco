@@ -7,7 +7,7 @@ use crate::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::norm::NormFn;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::TOLERANCE;
@@ -27,7 +27,7 @@ pub fn pobd(
     _: &mut Vec<()>,
     options: &Options,
 ) -> Result<FractionalStep<()>> {
-    assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
+    assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let t = xs.t_end() + 1;
     let prev_x = if xs.is_empty() {
@@ -40,8 +40,7 @@ pub fn pobd(
         find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
     );
     let dist = (o.p.switching_cost)(prev_x.clone() - v.clone());
-    let minimal_hitting_cost =
-        (o.p.hitting_cost)(t, v.clone()).ok_or(Error::CostFnMustBeTotal)?;
+    let minimal_hitting_cost = o.p.hit_cost(t, v.clone());
     if dist < options.beta * minimal_hitting_cost {
         return Ok(Step(v, None));
     }
@@ -63,7 +62,7 @@ pub fn pobd(
         TOLERANCE,
         MAX_ITERATIONS,
     )
-    .map_err(Error::Bisection)?;
+    .map_err(Failure::Bisection)?;
 
     obd(
         o,

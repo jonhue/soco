@@ -5,7 +5,7 @@ use crate::problem::{
     SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
     SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
-use crate::result::{Error, Result};
+use crate::result::Result;
 use crate::schedule::Schedule;
 use crate::utils::pos;
 use crate::value::Value;
@@ -52,8 +52,7 @@ where
         for t in 1..=self.t_end {
             let prev_x = xs.get(t - 2).unwrap_or(default);
             let x = &xs[t as usize - 1];
-            cost += (self.hitting_cost)(t as i32, x.clone())
-                .ok_or(Error::CostFnMustBeTotal)?;
+            cost += self.hit_cost(t as i32, x.clone());
             let delta = movement(x, prev_x, inverted);
             cost += (self.switching_cost)(delta);
         }
@@ -79,8 +78,7 @@ where
         for t in 1..=self.t_end {
             let prev_x = xs.get(t - 2).unwrap_or(default);
             let x = &xs[t as usize - 1];
-            cost += (self.hitting_cost)(t as i32, x.clone())
-                .ok_or(Error::CostFnMustBeTotal)?;
+            cost += self.hit_cost(t as i32, x.clone());
             for k in 0..self.d as usize {
                 let delta = ToPrimitive::to_f64(&scalar_movement(
                     x[k], prev_x[k], inverted,

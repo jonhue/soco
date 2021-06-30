@@ -4,7 +4,7 @@ use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
 use crate::objective::scalar_movement;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
-use crate::result::{Error, Result};
+use crate::result::Result;
 use crate::schedule::IntegralSchedule;
 use std::collections::HashMap;
 
@@ -64,7 +64,7 @@ pub fn graph_search<'a>(
             config: build_base_config(p.d, &p.bounds, &values, true),
             powering_up: false,
         })
-        .ok_or(Error::PathsShouldBeCached)?
+        .unwrap()
         .clone())
 }
 
@@ -102,8 +102,7 @@ fn handle_layer(
         let mut config = if state.k == base_k {
             base_config.clone()
         } else {
-            build_config(dir, &values, &base_config, state.k)
-                .ok_or(Error::BoundMustBeGreaterThanZero)?
+            build_config(dir, &values, &base_config, state.k).unwrap()
         };
         if state.k != base_k {
             added_configs.push(config.clone());
@@ -117,7 +116,7 @@ fn handle_layer(
                 (powering_up, &config),
                 values,
                 paths,
-            )?;
+            );
             config = match build_config(dir, &values, &config, state.k) {
                 None => break,
                 Some(config) => {
@@ -142,7 +141,7 @@ fn handle_config(
     (powering_up, config): (bool, &InternalConfig),
     values: &Values,
     paths: &mut Paths<Vertice>,
-) -> Result<()> {
+) {
     // find all immediate predecessors
     let predecessors = find_immediate_predecessors(
         p,
@@ -152,10 +151,10 @@ fn handle_config(
         k,
         &config,
         values,
-    )?;
+    );
 
     // determine shortest path
-    let opt_predecessor = find_optimal_predecessor(predecessors, paths)?;
+    let opt_predecessor = find_optimal_predecessor(predecessors, paths);
 
     // update paths
     update_paths(
@@ -166,7 +165,6 @@ fn handle_config(
             powering_up,
         },
     );
-    Ok(())
 }
 
 fn build_base_config(
@@ -233,7 +231,7 @@ fn find_immediate_predecessors(
     k: i32,
     config: &InternalConfig,
     all_values: &Values,
-) -> Result<Vec<Edge>> {
+) -> Vec<Edge> {
     let mut predecessors = vec![];
 
     if t > 1 || !powering_up {
@@ -245,8 +243,7 @@ fn find_immediate_predecessors(
             cost: if powering_up {
                 0.
             } else {
-                (p.hitting_cost)(t, config.config.clone())
-                    .ok_or(Error::CostFnMustBeTotal)?
+                p.hit_cost(t, config.config.clone())
             },
         };
         predecessors.push(inaction);
@@ -289,18 +286,16 @@ fn find_immediate_predecessors(
         }
     }
 
-    Ok(predecessors)
+    predecessors
 }
 
 fn find_optimal_predecessor(
     predecessors: Vec<Edge>,
     paths: &mut Paths<Vertice>,
-) -> Result<Option<(Edge, Path)>> {
+) -> Option<(Edge, Path)> {
     let mut picked: Option<(Edge, Path)> = None;
     for predecessor in predecessors {
-        let path = paths
-            .get(&predecessor.from)
-            .ok_or(Error::PathsShouldBeCached)?;
+        let path = paths.get(&predecessor.from).unwrap();
         let new_cost = path.cost + predecessor.cost;
 
         // take smallest possible action if costs are equal
@@ -312,7 +307,7 @@ fn find_optimal_predecessor(
             picked = Some((predecessor, path.clone()));
         }
     }
-    Ok(picked)
+    picked
 }
 
 fn update_paths(

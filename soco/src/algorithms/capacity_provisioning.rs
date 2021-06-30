@@ -10,7 +10,7 @@ use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
     IntegralSimplifiedSmoothedConvexOptimization,
 };
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::utils::{assert, is_pow_of_2};
 
 pub trait Bounded<T> {
@@ -49,8 +49,8 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
         t_start: i32,
         x_start: f64,
     ) -> Result<f64> {
-        assert(self.d == 1, Error::UnsupportedProblemDimension)?;
-        assert(t <= self.t_end, Error::LcpBoundComputationExceedsDomain)?;
+        assert!(t <= self.t_end);
+        assert(self.d == 1, Failure::UnsupportedProblemDimension(self.d))?;
 
         if t <= 0 {
             return Ok(0.);
@@ -99,8 +99,8 @@ impl IntegralSimplifiedSmoothedConvexOptimization<'_> {
         t_start: i32,
         x_start: i32,
     ) -> Result<i32> {
-        assert(self.d == 1, Error::UnsupportedProblemDimension)?;
-        assert(t <= self.t_end, Error::LcpBoundComputationExceedsDomain)?;
+        assert!(t <= self.t_end);
+        assert(self.d == 1, Failure::UnsupportedProblemDimension(self.d))?;
 
         if t <= 0 {
             return Ok(0);

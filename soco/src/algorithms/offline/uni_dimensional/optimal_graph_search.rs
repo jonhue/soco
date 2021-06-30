@@ -1,16 +1,16 @@
 use crate::algorithms::graph_search::{Path, Paths};
 use crate::config::{Config, IntegralConfig};
+use crate::cost::CostFn;
 use crate::objective::scalar_movement;
 use crate::problem::{
     IntegralSimplifiedSmoothedConvexOptimization,
     SimplifiedSmoothedConvexOptimization,
 };
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::{assert, is_pow_of_2};
 use num::ToPrimitive;
 use std::collections::HashMap;
-use std::sync::Arc;
 
 /// Vertice in the graph denoting time `t` and the value `j` at time `t`.
 #[derive(Eq, Hash, PartialEq)]
@@ -28,8 +28,8 @@ pub fn optimal_graph_search(
     p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     options: &Options,
 ) -> Result<Path> {
-    assert(p.d == 1, Error::UnsupportedProblemDimension)?;
-    assert(is_pow_of_2(p.bounds[0]), Error::MustBePowOf2)?;
+    assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
+    assert(is_pow_of_2(p.bounds[0]), Failure::MustBePowOf2)?;
 
     let k_init = if p.bounds[0] > 2 {
         (p.bounds[0] as f64).log(2.).floor() as u32 - 2
@@ -39,7 +39,7 @@ pub fn optimal_graph_search(
     let x_start = options.x_start.unwrap_or(0);
 
     let mut result =
-        find_schedule(p, select_initial_rows(p), options.inverted, x_start)?;
+        find_schedule(p, select_initial_rows(p), options.inverted, x_start);
 
     if k_init > 0 {
         for k in k_init - 1..=0 {
@@ -48,7 +48,7 @@ pub fn optimal_graph_search(
                 select_next_rows(p, &result.xs, k),
                 options.inverted,
                 x_start,
-            )?;
+            );
         }
     }
 
@@ -59,19 +59,15 @@ pub fn optimal_graph_search(
 pub fn make_pow_of_2<'a>(
     p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
 ) -> Result<IntegralSimplifiedSmoothedConvexOptimization<'a>> {
-    assert(p.d == 1, Error::UnsupportedProblemDimension)?;
+    assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
 
     let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);
-    let hitting_cost = Arc::new(move |t, x: IntegralConfig| {
+    let hitting_cost = CostFn::new(move |t, x: IntegralConfig| {
         if x[0] <= p.bounds[0] {
-            (p.hitting_cost)(t, x)
+            p.hit_cost(t, x)
         } else {
-            Some(
-                x[0] as f64
-                    * ((p.hitting_cost)(t, Config::new(p.bounds.clone()))
-                        .unwrap()
-                        + f64::EPSILON),
-            )
+            x[0] as f64
+                * (p.hit_cost(t, Config::new(p.bounds.clone())) + f64::EPSILON)
         }
     });
 
@@ -108,7 +104,7 @@ fn find_schedule(
     select_rows: impl Fn(i32) -> Vec<i32>,
     inverted: bool,
     x_start: i32,
-) -> Result<Path> {
+) -> Path {
     let mut paths: Paths<Vertice> = HashMap::new();
     let initial_vertice = Vertice(0, x_start);
     let initial_path = Path {
@@ -121,7 +117,7 @@ fn find_schedule(
     for t in 1..=p.t_end {
         let rows = select_rows(t);
         for &j in &rows {
-            find_shortest_subpath(p, &mut paths, t, &prev_rows, j, inverted)?;
+            find_shortest_subpath(p, &mut paths, t, &prev_rows, j, inverted);
         }
         prev_rows = rows;
     }
@@ -131,9 +127,7 @@ fn find_schedule(
         cost: f64::INFINITY,
     };
     for i in prev_rows {
-        let path = paths
-            .get(&Vertice(p.t_end, i))
-            .ok_or(Error::PathsShouldBeCached)?;
+        let path = paths.get(&Vertice(p.t_end, i)).unwrap();
         let cost = p.switching_cost[0] * scalar_movement(0, i, inverted) as f64;
         let picked_cost = path.cost + cost;
         if picked_cost < result.cost {
@@ -143,7 +137,7 @@ fn find_schedule(
             };
         }
     }
-    Ok(result)
+    result
 }
 
 fn find_shortest_subpath(
@@ -153,22 +147,19 @@ fn find_shortest_subpath(
     from: &Vec<i32>,
     to: i32,
     inverted: bool,
-) -> Result<()> {
+) {
     let mut picked_source = 0;
     let mut picked_cost = f64::INFINITY;
     for &source in from {
-        let prev_cost = paths
-            .get(&Vertice(t - 1, source))
-            .ok_or(Error::PathsShouldBeCached)?
-            .cost;
-        let cost = build_cost(p, t, source, to, inverted)?;
+        let prev_cost = paths.get(&Vertice(t - 1, source)).unwrap().cost;
+        let cost = build_cost(p, t, source, to, inverted);
         let new_cost = prev_cost + cost;
         if new_cost < picked_cost {
             picked_source = source;
             picked_cost = new_cost;
         };
     }
-    update_paths(paths, t, picked_source, to, picked_cost)
+    update_paths(paths, t, picked_source, to, picked_cost);
 }
 
 fn build_cost(
@@ -177,26 +168,18 @@ fn build_cost(
     i: i32,
     j: i32,
     inverted: bool,
-) -> Result<f64> {
-    let hitting_cost = (p.hitting_cost)(t, Config::single(j))
-        .ok_or(Error::CostFnMustBeTotal)?;
+) -> f64 {
+    let hitting_cost = p.hit_cost(t, Config::single(j));
     let delta = ToPrimitive::to_f64(&scalar_movement(j, i, inverted)).unwrap();
     let switching_cost = p.switching_cost[0] * delta;
-    Ok(hitting_cost + switching_cost)
+    hitting_cost + switching_cost
 }
 
-fn update_paths(
-    paths: &mut Paths<Vertice>,
-    t: i32,
-    i: i32,
-    j: i32,
-    cost: f64,
-) -> Result<()> {
+fn update_paths(paths: &mut Paths<Vertice>, t: i32, i: i32, j: i32, cost: f64) {
     let u = Vertice(t - 1, i);
     let v = Vertice(t, j);
-    let prev_xs = &paths.get(&u).ok_or(Error::PathsShouldBeCached)?.xs;
+    let prev_xs = &paths.get(&u).unwrap().xs;
     let xs = prev_xs.extend(Config::single(j));
 
     paths.insert(v, Path { xs, cost });
-    Ok(())
 }

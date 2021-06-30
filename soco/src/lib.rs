@@ -2,12 +2,16 @@
 #![allow(clippy::module_inception)]
 #![allow(clippy::ptr_arg)]
 
+#[macro_use]
+extern crate approx;
+
 /// Precision used for numeric computations.
 static PRECISION: f64 = 1e-6;
 /// Tolerance used for numeric computations.
 static TOLERANCE: f64 = PRECISION / 10.;
 
 pub mod algorithms;
+pub mod breakpoints;
 pub mod config;
 pub mod convert;
 pub mod cost;

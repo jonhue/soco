@@ -1,11 +1,11 @@
 mod fractional_lcp {
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
-    use soco::config::Config;
+    use soco::config::{Config, FractionalConfig};
     use soco::convert::DiscretizableSchedule;
+    use soco::cost::CostFn;
     use soco::online::Online;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
-    use std::sync::Arc;
 
     #[test]
     fn _1() {
@@ -14,8 +14,8 @@ mod fractional_lcp {
             t_end: 1,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(t as f64 * (if j[0] == 0. { 1. } else { 0. }))
+            hitting_cost: CostFn::new(|t, j: FractionalConfig| {
+                t as f64 * (if j[0] == 0. { 1. } else { 0. })
             }),
         };
         let mut o = Online { p, w: 0 };
@@ -34,8 +34,8 @@ mod fractional_lcp {
             t_end: 1,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(t as f64 * (if j[0] == 0. { 1. } else { 0. }))
+            hitting_cost: CostFn::new(|t, j: FractionalConfig| {
+                t as f64 * (if j[0] == 0. { 1. } else { 0. })
             }),
         };
         let mut o = Online { p, w: 0 };
@@ -54,11 +54,11 @@ mod fractional_lcp {
 
 mod integral_lcp {
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
-    use soco::config::Config;
+    use soco::config::{Config, IntegralConfig};
+    use soco::cost::CostFn;
     use soco::online::Online;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
-    use std::sync::Arc;
 
     #[test]
     fn _1() {
@@ -67,8 +67,8 @@ mod integral_lcp {
             t_end: 1,
             bounds: vec![5],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                t as f64 * (if j[0] == 0 { 1. } else { 0. })
             }),
         };
         let mut o = Online { p, w: 0 };
@@ -87,8 +87,8 @@ mod integral_lcp {
             t_end: 1,
             bounds: vec![5],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                t as f64 * (if j[0] == 0 { 1. } else { 0. })
             }),
         };
         let mut o = Online { p, w: 0 };
@@ -107,8 +107,8 @@ mod integral_lcp {
             t_end: 1,
             bounds: vec![5],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                t as f64 * (if j[0] == 0 { 1. } else { 0. })
             }),
         };
         let mut o = Online { p, w: 0 };
@@ -131,8 +131,8 @@ mod integral_lcp {
             t_end: 1,
             bounds: vec![5],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                t as f64 * (if j[0] == 0 { 1. } else { 0. })
             }),
         };
         let mut o = Online { p, w: 0 };

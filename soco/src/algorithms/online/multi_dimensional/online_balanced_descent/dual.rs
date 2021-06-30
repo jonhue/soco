@@ -8,7 +8,7 @@ use crate::norm::dual;
 use crate::norm::NormFn;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::TOLERANCE;
@@ -29,7 +29,7 @@ pub fn dobd(
     _: &mut Vec<()>,
     options: &Options,
 ) -> Result<FractionalStep<()>> {
-    assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
+    assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let t = xs.t_end() + 1;
     let prev_x = if xs.is_empty() {
@@ -41,8 +41,7 @@ pub fn dobd(
     let v = Config::new(
         find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
     );
-    let minimal_hitting_cost =
-        (o.p.hitting_cost)(t, v).ok_or(Error::CostFnMustBeTotal)?;
+    let minimal_hitting_cost = o.p.hit_cost(t, v);
 
     let a = minimal_hitting_cost;
     let b = MAX_L_FACTOR * minimal_hitting_cost;
@@ -62,7 +61,7 @@ pub fn dobd(
         TOLERANCE,
         MAX_ITERATIONS,
     )
-    .map_err(Error::Bisection)?;
+    .map_err(Failure::Bisection)?;
 
     obd(
         o,
@@ -94,8 +93,7 @@ fn balance_function(
         },
     )
     .unwrap();
-    let f =
-        |x: &Vec<f64>| (o.p.hitting_cost)(t, Config::new(x.clone())).unwrap();
+    let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone()));
     let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone()));
     let distance = dual(
         &o.p.switching_cost,

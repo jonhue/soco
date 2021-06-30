@@ -2,7 +2,7 @@
 
 use crate::config::{Config, FractionalConfig};
 use crate::convex_optimization::find_unbounded_maximizer;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::value::Value;
 use nalgebra::{DMatrix, DVector, RealField};
 use num::ToPrimitive;
@@ -61,7 +61,7 @@ where
     let q_i = q
         .clone()
         .try_inverse()
-        .ok_or(Error::MatrixMustBeInvertible)?;
+        .ok_or(Failure::MatrixMustBeInvertible)?;
     Ok(Arc::new(move |x: Config<T>| -> f64 {
         let d = DVector::from_vec((x - mean.clone()).to_vec());
         let result = d.transpose() * (&q_i * d);

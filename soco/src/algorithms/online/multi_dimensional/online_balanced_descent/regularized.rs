@@ -3,10 +3,9 @@ use crate::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::cost::CostFn;
 use crate::online::{FractionalStep, Online, Step};
 use crate::problem::FractionalSmoothedConvexOptimization;
-use crate::result::{Error, Result};
+use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
-use std::sync::Arc;
 
 pub struct Options {
     /// Convexity parameter. Chosen such that `f_t(x) \geq f_t(v_t) + \frac{m}{2} \norm{x - v_t}_2^2` where `v_t` is the minimizer of `f_t`.
@@ -24,7 +23,7 @@ pub fn robd(
     _: &mut Vec<()>,
     options: &Options,
 ) -> Result<FractionalStep<()>> {
-    assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
+    assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let (lambda_1, lambda_2) =
         build_parameters(options.m, options.alpha, options.beta);
@@ -40,13 +39,10 @@ pub fn robd(
         find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
     );
     let regularization_function: CostFn<'_, FractionalConfig> =
-        Arc::new(|t, x| {
-            Some(
-                (o.p.hitting_cost)(t, x.clone())?
-                    + lambda_1
-                        * (o.p.switching_cost)(x.clone() - prev_x.clone())
-                    + lambda_2 * (o.p.switching_cost)(x - v.clone()),
-            )
+        CostFn::new(|t, x: FractionalConfig| {
+            o.p.hit_cost(t, x.clone())
+                + lambda_1 * (o.p.switching_cost)(x.clone() - prev_x.clone())
+                + lambda_2 * (o.p.switching_cost)(x - v.clone())
         });
     let x = Config::new(
         find_minimizer_of_hitting_cost(

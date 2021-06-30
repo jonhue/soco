@@ -1,71 +1,86 @@
+use crate::breakpoints::Breakpoints;
 use crate::config::Config;
 use crate::convex_optimization::{
     find_unbounded_minimizer_of_hitting_cost, maximize, minimize,
 };
-use crate::online::{FractionalStep, Online, Step};
+use crate::online::{DefaultGivenProblem, FractionalStep, Online, Step};
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
-use crate::quadrature::integral;
-use crate::result::{Error, Result};
+use crate::quadrature::piecewise::piecewise_integral;
+use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, project};
 use crate::TOLERANCE;
 use bacon_sci::differentiate::{derivative, second_derivative};
-use ordered_float::OrderedFloat;
 use std::sync::Arc;
 
 /// Probability distribution.
 type Distribution<'a> = Arc<dyn Fn(f64) -> f64 + 'a>;
 
-/// Sorted discontinuous points of the probability distribution.
-type Breakpoints = Vec<OrderedFloat<f64>>;
-
-/// Memory comprised of probability distributions and breakpoints.
 #[derive(Clone)]
 pub struct Memory<'a> {
+    /// Probability distribution.
     p: Distribution<'a>,
-    breakpoints: Breakpoints,
+    /// List of non-continuous or non-smooth points of the probability distribution.
+    breakpoints: Vec<f64>,
 }
-impl Default for Memory<'_> {
-    fn default() -> Self {
+impl<'a> DefaultGivenProblem<FractionalSimplifiedSmoothedConvexOptimization<'a>>
+    for Memory<'_>
+{
+    fn default(p: &FractionalSimplifiedSmoothedConvexOptimization<'a>) -> Self {
+        let m = p.bounds[0];
         Memory {
-            p: Arc::new(|x| if (0. ..1.).contains(&x) { 1. } else { 0. }),
-            breakpoints: vec![OrderedFloat(0.), OrderedFloat(1.)],
+            p: Arc::new(move |x| if 0. <= x && x <= m { 1. / m } else { 0. }),
+            breakpoints: vec![0., m],
+        }
+    }
+}
+
+pub struct Options {
+    /// Breakpoints of piecewise linear hitting costs.
+    pub breakpoints: Breakpoints,
+}
+impl Default for Options {
+    fn default() -> Self {
+        Options {
+            breakpoints: Breakpoints::empty(),
         }
     }
 }
 
 /// Probabilistic Algorithm
 ///
-/// Assumes that the hitting costs are smooth, i.e. infinitely many times continuously differentiable,
-/// and that the minimizer is unique and bounded.
+/// Assumes that the hitting costs are either smooth, i.e. infinitely many times continuously differentiable,
+/// or piecewise linear in which case the breakpoints must be provided through the options.
 pub fn probabilistic<'a>(
     o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
     t: i32,
     _: &FractionalSchedule,
     prev_m: Memory<'a>,
-    _: &(),
+    options: &Options,
 ) -> Result<FractionalStep<Memory<'a>>> {
-    assert(o.w == 0, Error::UnsupportedPredictionWindow)?;
-    assert(o.p.d == 1, Error::UnsupportedProblemDimension)?;
+    assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
+    assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
 
     let upper_bound = o.p.bounds[0];
+    let breakpoints = options.breakpoints.add(&prev_m.breakpoints);
+    let prev_p = prev_m.p;
 
     let x_m =
         find_unbounded_minimizer_of_hitting_cost(o.p.d, t, &o.p.hitting_cost)?
             .0[0];
-    assert(
-        x_m != f64::INFINITY && x_m != f64::NEG_INFINITY,
-        Error::MinimizerShouldBeBounded,
-    )?;
-    let x_r = find_right_bound(&o, t, &prev_m, x_m)?;
-    let x_l = find_left_bound(&o, t, &prev_m, x_m)?;
+    println!("=> {}", x_m,);
+    let x_r = find_right_bound(&o, t, &breakpoints, &prev_p, x_m)?;
+    let x_l = find_left_bound(&o, t, &breakpoints, &prev_p, x_m)?;
+    println!("{};{}", x_l, x_r,);
 
-    let prev_p = prev_m.p.clone();
+    let prev_p_dup = prev_p.clone();
     let p: Arc<dyn Fn(f64) -> f64> = Arc::new(move |x| {
         if x >= x_l && x <= x_r {
-            prev_p(x)
+            prev_p_dup(x)
                 + second_derivative(
-                    |x: f64| (o.p.hitting_cost)(t, Config::single(x)).unwrap(),
+                    |x: f64| {
+                        o.p.hitting_cost.call_unbounded(t, Config::single(x))
+                    },
                     x,
                     TOLERANCE.powf(-0.25),
                 ) / 2.
@@ -73,10 +88,24 @@ pub fn probabilistic<'a>(
             0.
         }
     });
-    let breakpoints = add_breakpoints(&prev_m.breakpoints.clone(), x_l, x_r);
-    let m = Memory { p, breakpoints };
+    let mut m = Memory {
+        p,
+        breakpoints: prev_m.breakpoints.clone(),
+    };
+    m.breakpoints.extend(&vec![x_l, x_r]);
 
-    let x = project(expected_value(&prev_m, x_l, x_r)?, 0., upper_bound);
+    println!(
+        "{};{};{};{}",
+        x_m,
+        x_l,
+        x_r,
+        expected_value(&breakpoints, &prev_p, x_l, x_r)?
+    );
+    let x = project(
+        expected_value(&breakpoints, &prev_p, x_l, x_r)?,
+        0.,
+        upper_bound,
+    );
     Ok(Step(Config::single(x), Some(m)))
 }
 
@@ -84,18 +113,18 @@ pub fn probabilistic<'a>(
 fn find_right_bound(
     o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
     t: i32,
-    prev_m: &Memory<'_>,
+    breakpoints: &Breakpoints,
+    prev_p: &Distribution,
     x_m: f64,
 ) -> Result<f64> {
     let bounds = vec![(x_m, f64::INFINITY)];
     let objective = |x: &[f64]| x[0];
     let constraint = Arc::new(|x: &[f64]| -> f64 {
-        let f = |x| (o.p.hitting_cost)(t, Config::single(x)).unwrap();
+        let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
         let g = derivative(f, x[0], TOLERANCE) - derivative(f, x_m, TOLERANCE);
-        let h = integrate(&prev_m.breakpoints, x[0], f64::INFINITY, |x| {
-            (prev_m.p)(x)
-        })
-        .unwrap();
+        let h =
+            piecewise_integral(breakpoints, x[0], f64::INFINITY, |x| prev_p(x))
+                .unwrap();
         g / 2. - h
     });
     let init = vec![x_m];
@@ -109,16 +138,17 @@ fn find_right_bound(
 fn find_left_bound(
     o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
     t: i32,
-    prev_m: &Memory<'_>,
+    breakpoints: &Breakpoints,
+    prev_p: &Distribution,
     x_m: f64,
 ) -> Result<f64> {
     let bounds = vec![(f64::NEG_INFINITY, x_m)];
     let objective = |x: &[f64]| x[0];
     let constraint = Arc::new(|x: &[f64]| -> f64 {
-        let f = |x| (o.p.hitting_cost)(t, Config::single(x)).unwrap();
+        let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
         let g = derivative(f, x_m, TOLERANCE) - derivative(f, x[0], TOLERANCE);
-        let h = integrate(&prev_m.breakpoints, f64::NEG_INFINITY, x[0], |x| {
-            (prev_m.p)(x)
+        let h = piecewise_integral(breakpoints, f64::NEG_INFINITY, x[0], |x| {
+            prev_p(x)
         })
         .unwrap();
         h - g / 2.
@@ -130,42 +160,11 @@ fn find_left_bound(
     Ok(x[0])
 }
 
-fn expected_value(m: &Memory, from: f64, to: f64) -> Result<f64> {
-    integrate(&m.breakpoints, from, to, |x| x * (m.p)(x))
-}
-
-fn integrate(
+fn expected_value(
     breakpoints: &Breakpoints,
+    prev_p: &Distribution,
     from: f64,
     to: f64,
-    f_: impl Fn(f64) -> f64,
 ) -> Result<f64> {
-    let f = |x| f_(x);
-
-    let l = breakpoints[0].into_inner();
-    let r = breakpoints[breakpoints.len() - 1].into_inner();
-
-    let mut result = if l > from { integral(from, l, f)? } else { 0. };
-    for i in 1..breakpoints.len() {
-        let prev_b = breakpoints[i - 1].into_inner();
-        let b = breakpoints[i].into_inner();
-        result += integral(prev_b, b, f)?;
-    }
-    Ok(result + if r < to { integral(r, to, f)? } else { 0. })
-}
-
-fn add_breakpoints(
-    breakpoints_: &Breakpoints,
-    x_l: f64,
-    x_r: f64,
-) -> Breakpoints {
-    let mut breakpoints = breakpoints_.clone();
-    if !breakpoints.contains(&OrderedFloat(x_l)) {
-        breakpoints.push(OrderedFloat(x_l));
-    }
-    if !breakpoints.contains(&OrderedFloat(x_r)) {
-        breakpoints.push(OrderedFloat(x_r));
-    }
-    breakpoints.sort_unstable();
-    breakpoints
+    piecewise_integral(breakpoints, from, to, |x| x * prev_p(x))
 }

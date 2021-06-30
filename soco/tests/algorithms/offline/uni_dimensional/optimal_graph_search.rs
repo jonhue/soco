@@ -1,9 +1,9 @@
 mod make_pow_of_2 {
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::make_pow_of_2;
     use soco::config::Config;
+    use soco::cost::CostFn;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::verifiers::VerifiableProblem;
-    use std::sync::Arc;
 
     #[test]
     fn _1() {
@@ -12,7 +12,7 @@ mod make_pow_of_2 {
             t_end: 1_000,
             bounds: vec![103],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|_, _| Some(1.)),
+            hitting_cost: CostFn::new(|_, _| 1.),
         };
         p.verify().unwrap();
         let transformed_p = make_pow_of_2(&p).unwrap();
@@ -28,7 +28,7 @@ mod make_pow_of_2 {
         for t in 1..=transformed_p.t_end {
             for j in 0..=transformed_p.bounds[0] {
                 assert_abs_diff_eq!(
-                    (transformed_p.hitting_cost)(t, Config::single(j)).unwrap(),
+                    transformed_p.hit_cost(t, Config::single(j)),
                     if j <= p.bounds[0] {
                         1.
                     } else {
@@ -46,12 +46,12 @@ mod optimal_graph_search {
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::{
         make_pow_of_2, optimal_graph_search, Options,
     };
-    use soco::config::Config;
+    use soco::config::{Config, IntegralConfig};
+    use soco::cost::CostFn;
     use soco::objective::Objective;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
-    use std::sync::Arc;
 
     #[test]
     fn _1() {
@@ -60,8 +60,8 @@ mod optimal_graph_search {
             t_end: 2,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                t as f64 * (if j[0] == 0 { 1. } else { 0. })
             }),
         };
         p.verify().unwrap();
@@ -105,11 +105,9 @@ mod optimal_graph_search {
             t_end: 100,
             bounds: vec![8],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(
-                    Pcg64::seed_from_u64((t * j[0]) as u64)
-                        .gen_range(0.0..1_000_000.),
-                )
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                Pcg64::seed_from_u64((t * j[0]) as u64)
+                    .gen_range(0.0..1_000_000.)
             }),
         };
         p.verify().unwrap();
@@ -148,11 +146,9 @@ mod optimal_graph_search {
             t_end: 1_000,
             bounds: vec![9],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(
-                    Pcg64::seed_from_u64((t * j[0]) as u64)
-                        .gen_range(0.0..1_000_000.),
-                )
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                Pcg64::seed_from_u64((t * j[0]) as u64)
+                    .gen_range(0.0..1_000_000.)
             }),
         };
         p.verify().unwrap();
@@ -198,8 +194,8 @@ mod optimal_graph_search {
             t_end: 2,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: Arc::new(|t, j| {
-                Some(t as f64 * (if j[0] == 0 { 1. } else { 0. }))
+            hitting_cost: CostFn::new(|t, j: IntegralConfig| {
+                t as f64 * (if j[0] == 0 { 1. } else { 0. })
             }),
         };
         p.verify().unwrap();
