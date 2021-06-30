@@ -6,8 +6,9 @@ use std::sync::Arc;
 pub struct Breakpoints {
     /// Finite vector of breakpoints.
     pub bs: Vec<OrderedFloat<f64>>,
-    /// Function which given a breakpoint returns the previous and next breakpoints, respectively.
+    /// Function which given a breakpoint returns the previous and next breakpoints (until there are none), respectively.
     /// The function is called to obtain the next breakpoint until the piecewise integrals converge to `0` or the entire integral was integrated.
+    #[allow(clippy::type_complexity)]
     pub next: Option<Arc<dyn Fn(f64) -> (Option<f64>, Option<f64>)>>,
 }
 impl Breakpoints {
@@ -28,7 +29,7 @@ impl Breakpoints {
     pub fn grid(d: f64) -> Self {
         Breakpoints {
             bs: vec![],
-            next: Some(Arc::new(|b| {
+            next: Some(Arc::new(move |b| {
                 (Some((b - d).ceil()), Some((b + d).floor()))
             })),
         }

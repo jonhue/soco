@@ -42,7 +42,7 @@ pub fn randomized<'a>(
     assert(o.p.bounds[0].fract() == 0., Failure::MustBeRelaxedProblem)?;
 
     let relaxation_options = RelaxationOptions {
-        breakpoints: Breakpoints::grid(),
+        breakpoints: Breakpoints::grid(1.),
     };
     let Step(y, relaxation_m) = probabilistic.next(
         o,

@@ -4,6 +4,11 @@ use crate::numerics::TOLERANCE;
 use crate::result::Result;
 use ordered_float::OrderedFloat;
 
+/// Number of consecutive integrations below tolerance before the piecewise integration is stopped.
+static CONVERGENCE_THRESHOLD: i32 = 10;
+
+/// Computes the piecewise integral of `f_` over the interval `[from, to]` with respect to some breakpoints.
+/// Note that this function terminates when either the entire interval was integrated OR piecewise integrals converge to `0`.
 pub fn piecewise_integral(
     breakpoints: &Breakpoints,
     from: f64,
@@ -12,7 +17,8 @@ pub fn piecewise_integral(
 ) -> Result<f64> {
     let f = |x| f_(x);
 
-    let b = if from.is_infinite() && to.is_infinite() {
+    // determine initial breakpoint
+    let init = if from.is_infinite() && to.is_infinite() {
         0.
     } else if from.is_infinite() {
         to
@@ -21,33 +27,39 @@ pub fn piecewise_integral(
     } else {
         (to - from) / 2.
     };
+
+    // find initial indices of next and previous breakpoints in `breakpoints.bs`
     let i = breakpoints
         .bs
         .iter()
-        .position(|x| x.into_inner() > b)
+        .position(|x| x.into_inner() > init)
         .unwrap_or(breakpoints.bs.len()) as i32;
     let prev_i = if i > 0
-        && breakpoints.bs.get(i as usize - 1) == Some(&OrderedFloat(b))
+        && breakpoints.bs.get(i as usize - 1) == Some(&OrderedFloat(init))
     {
         i - 2
     } else {
         i - 1
     };
+
+    // compute piecewise integrals in both directions
     let l = __piecewise_integral(
         Direction::Left,
         &breakpoints,
-        b,
+        init,
         from,
         f,
         prev_i,
+        0,
     )?;
     let r = __piecewise_integral(
         Direction::Right,
         &breakpoints,
-        b,
+        init,
         to,
         f,
-        i as i32,
+        i,
+        0,
     )?;
     Ok(l + r)
 }
@@ -66,7 +78,10 @@ fn __piecewise_integral(
     f_: impl Fn(f64) -> f64,
     // index of next breakpoint in `breakpoints`
     i: i32,
+    // number of consecutive integrations below tolerance
+    n: i32,
 ) -> Result<f64> {
+    // check if limit of integration is reached
     match dir {
         Direction::Left => {
             if b <= to {
@@ -82,49 +97,55 @@ fn __piecewise_integral(
 
     let f = |x| f_(x);
     let mut next_i = i;
+    let mut next_n = n;
 
-    let c = if i >= 0 {
+    // obtain the next fixed breakpoint
+    let fixed_b = if i >= 0 {
         breakpoints.bs.get(i as usize)
     } else {
         None
     };
-    let (x, y) = match &breakpoints.next {
+
+    // obtain the next dynamic breakpoints (which depend on the direction)
+    let (left_b, right_b) = match &breakpoints.next {
         None => (None, None),
         Some(next) => next(b),
     };
-    let next_b = match c {
+
+    // choose the next breakpoint; and update `i` if fixed breakpoint is chosen
+    let next_b = match fixed_b {
         None => match dir {
-            Direction::Left => x,
-            Direction::Right => y,
+            Direction::Left => left_b,
+            Direction::Right => right_b,
         },
-        Some(c_) => {
-            let c = c_.into_inner();
+        Some(fixed_b_) => {
+            let fixed_b = fixed_b_.into_inner();
             match dir {
-                Direction::Left => match x {
+                Direction::Left => match left_b {
                     None => {
                         next_i -= 1;
-                        Some(c)
+                        Some(fixed_b)
                     }
-                    Some(x) => {
-                        if c < x {
+                    Some(left_b) => {
+                        if fixed_b < left_b {
                             next_i -= 1;
-                            Some(x)
+                            Some(left_b)
                         } else {
-                            Some(c)
+                            Some(fixed_b)
                         }
                     }
                 },
-                Direction::Right => match y {
+                Direction::Right => match right_b {
                     None => {
                         next_i += 1;
-                        Some(c)
+                        Some(fixed_b)
                     }
-                    Some(y) => {
-                        if c > y {
-                            Some(y)
+                    Some(right_b) => {
+                        if fixed_b > right_b {
+                            Some(right_b)
                         } else {
                             next_i += 1;
-                            Some(c)
+                            Some(fixed_b)
                         }
                     }
                 },
@@ -132,6 +153,7 @@ fn __piecewise_integral(
         }
     };
 
+    // if there is no new breakpoint or the new breakpoint is beyond the limit of integration, then compute the remaining integral and return
     match dir {
         Direction::Left => {
             if next_b.is_none() || next_b.unwrap() <= to {
@@ -144,15 +166,22 @@ fn __piecewise_integral(
             }
         }
     };
-
+    // otherwise, compute the integral over the new interval
     let result = match dir {
         Direction::Left => integral(next_b.unwrap(), b, f)?,
         Direction::Right => integral(b, next_b.unwrap(), f)?,
     };
+
+    // check if convergence threshold is reached
     if result < TOLERANCE {
-        return Ok(result);
+        if n < CONVERGENCE_THRESHOLD {
+            next_n += 1;
+        } else {
+            return Ok(result);
+        }
     }
 
+    // compute next interval
     Ok(result
         + __piecewise_integral(
             dir,
@@ -161,6 +190,7 @@ fn __piecewise_integral(
             to,
             f_,
             next_i,
+            next_n,
         )?)
 }
 
@@ -198,10 +228,12 @@ fn piecewise_integral_right() {
 
 #[test]
 fn piecewise_integral_left() {
-    let result =
-        piecewise_integral(&Breakpoints::grid(1.), f64::NEG_INFINITY, 0., |x| {
-            std::f64::consts::E.powf(x)
-        })
-        .unwrap();
+    let result = piecewise_integral(
+        &Breakpoints::grid(1.),
+        f64::NEG_INFINITY,
+        0.,
+        |x| std::f64::consts::E.powf(x),
+    )
+    .unwrap();
     assert_abs_diff_eq!(result, 1., epsilon = TOLERANCE);
 }
