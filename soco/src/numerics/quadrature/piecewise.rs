@@ -1,6 +1,6 @@
 use crate::breakpoints::Breakpoints;
 use crate::numerics::quadrature::integral;
-use crate::numerics::{ApplicablePrecision, PRECISION};
+use crate::numerics::PRECISION;
 use crate::result::Result;
 use ordered_float::OrderedFloat;
 
@@ -61,7 +61,7 @@ pub fn piecewise_integral(
         i,
         0,
     )?;
-    Ok((l + r).apply_precision())
+    Ok(l + r)
 }
 
 #[derive(Debug)]
