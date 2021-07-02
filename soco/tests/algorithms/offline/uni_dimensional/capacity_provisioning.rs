@@ -19,7 +19,7 @@ mod bcp {
         };
         p.verify().unwrap();
 
-        let result = brcp.solve(p.clone(), false).unwrap();
+        let result = brcp.solve_with_default_options(p.clone(), false).unwrap();
         result.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(

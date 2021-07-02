@@ -25,11 +25,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result =
-            optimal_graph_search.solve(p.clone(), false)
+            optimal_graph_search.solve_with_default_options(p.clone(), false)
                 .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result =
-            optimal_graph_search.solve(p.clone(), true)
+            optimal_graph_search.solve_with_default_options(p.clone(), true)
                 .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -61,11 +61,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result =
-            optimal_graph_search.solve(p.clone(), false)
+            optimal_graph_search.solve_with_default_options(p.clone(), false)
                 .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result =
-            optimal_graph_search.solve(p.clone(), true)
+            optimal_graph_search.solve_with_default_options(p.clone(), true)
                 .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -98,11 +98,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result =
-            optimal_graph_search.solve(p.clone(), false)
+            optimal_graph_search.solve_with_default_options(p.clone(), false)
                 .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result =
-            optimal_graph_search.solve(p.clone(), true)
+            optimal_graph_search.solve_with_default_options(p.clone(), true)
                 .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 

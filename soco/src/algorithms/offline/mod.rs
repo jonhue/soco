@@ -39,7 +39,7 @@ where
     P: Problem,
     O: Options<P>,
 {
-    fn solve(&self, p: P, inverted: bool) -> Result<T> {
+    fn solve_with_default_options(&self, p: P, inverted: bool) -> Result<T> {
         let options = O::default(&p);
         OfflineAlgorithm::solve(self, p, options, inverted)
     }

@@ -97,7 +97,7 @@ where
     M: Memory<'a, P>,
     O: Options<P>,
 {
-    fn next(&self,
+    fn next_with_default_options(&self,
         o: Online<P>,
         xs: &Schedule<T>,
         prev_m_: Option<M>,) -> Result<Step<T, M>> {

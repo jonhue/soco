@@ -43,8 +43,8 @@ mod make_pow_of_2 {
 mod optimal_graph_search {
     use crate::factories::{penalize_zero, random};
     use soco::algorithms::offline::{uni_dimensional::optimal_graph_search::{
-        make_pow_of_2, optimal_graph_search,
-    }, OfflineAlgorithmWithDefaultOptions};
+        make_pow_of_2, optimal_graph_search, Options,
+    }, OfflineAlgorithmWithDefaultOptions, OfflineAlgorithm};
     use soco::config::Config;
     use soco::cost::CostFn;
     use soco::objective::Objective;
@@ -63,13 +63,13 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result = optimal_graph_search.solve(
+        let result = optimal_graph_search.solve_with_default_options(
             p.clone(),
             false,
         )
         .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = optimal_graph_search.solve(
+        let inv_result = optimal_graph_search.solve_with_default_options(
             p.clone(),
             true,
         )
@@ -100,13 +100,13 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result = optimal_graph_search.solve(
+        let result = optimal_graph_search.solve_with_default_options(
             p.clone(),
             false,
         )
         .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = optimal_graph_search.solve(
+        let inv_result = optimal_graph_search.solve_with_default_options(
             p.clone(),
             true,
         )
@@ -133,7 +133,7 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let transformed_p = make_pow_of_2(p).unwrap();
-        let result = optimal_graph_search.solve(
+        let result = optimal_graph_search.solve_with_default_options(
             transformed_p.clone(),
             false,
         )
@@ -142,7 +142,7 @@ mod optimal_graph_search {
             .xs
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
-        let inv_result = optimal_graph_search.solve(
+        let inv_result = optimal_graph_search.solve_with_default_options(
             transformed_p.clone(),
             true,
         )
@@ -173,6 +173,7 @@ mod optimal_graph_search {
 
         let result = optimal_graph_search.solve(
             p.clone(),
+            Options { x_start: 2 },
             false,
         )
         .unwrap();
