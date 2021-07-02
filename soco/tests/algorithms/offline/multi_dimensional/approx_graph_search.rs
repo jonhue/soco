@@ -3,11 +3,10 @@ mod approx_graph_search {
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::algorithms::offline::{
+        OfflineAlgorithm,
         multi_dimensional::approx_graph_search::{
             approx_graph_search, Options,
-        },
-        OfflineOptions,
-    };
+        }};
     use soco::config::Config;
     use soco::cost::CostFn;
     use soco::objective::Objective;
@@ -26,17 +25,17 @@ mod approx_graph_search {
         };
         p.verify().unwrap();
 
-        let result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: false },
+        let result = approx_graph_search.solve(
+            p.clone(),
+            Options { gamma: 2. },
+            false,
         )
         .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: true },
+        let inv_result = approx_graph_search.solve(
+            p.clone(),
+            Options { gamma: 2. },
+            true,
         )
         .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
@@ -68,17 +67,17 @@ mod approx_graph_search {
         };
         p.verify().unwrap();
 
-        let result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: false },
+        let result = approx_graph_search.solve(
+            p.clone(),
+            Options { gamma: 2. },
+            false,
         )
         .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: true },
+        let inv_result = approx_graph_search.solve(
+            p.clone(),
+            Options { gamma: 2. },
+            true,
         )
         .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
@@ -111,17 +110,17 @@ mod approx_graph_search {
         };
         p.verify().unwrap();
 
-        let result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: false },
+        let result = approx_graph_search.solve(
+            p.clone(),
+            Options { gamma: 2. },
+            false,
         )
         .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: true },
+        let inv_result = approx_graph_search.solve(
+            p.clone(),
+            Options { gamma: 2. },
+            true,
         )
         .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();

@@ -1,7 +1,8 @@
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
-    make_pow_of_2, optimal_graph_search, Options as OptOptions,
+    make_pow_of_2, optimal_graph_search, Options as OptimalGraphSearch,
 };
+use crate::algorithms::offline::OfflineAlgorithm;
 use crate::config::Config;
 use crate::convert::ResettableProblem;
 use crate::numerics::convex_optimization::find_minimizer;
@@ -110,12 +111,10 @@ impl IntegralSimplifiedSmoothedConvexOptimization<'_> {
         if !is_pow_of_2(p.bounds[0]) {
             p = make_pow_of_2(p)?;
         }
-        let Path { xs, .. } = optimal_graph_search(
-            &p,
-            &OptOptions {
-                inverted,
-                x_start: Some(x_start),
-            },
+        let Path { xs, .. } = optimal_graph_search.solve(
+            p,
+            OptimalGraphSearch { x_start },
+            inverted,
         )?;
 
         Ok(xs[(t - t_start) as usize - 1][0])

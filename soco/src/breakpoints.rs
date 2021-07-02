@@ -1,3 +1,5 @@
+//! Non-continuous or non-smooth points of functions.
+
 use ordered_float::OrderedFloat;
 use std::sync::Arc;
 

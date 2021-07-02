@@ -6,8 +6,7 @@ mod probabilistic {
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
-    use soco::online::Online;
-    use soco::problem::SimplifiedSmoothedConvexOptimization;
+    use soco::problem::{SimplifiedSmoothedConvexOptimization, Online};
     use soco::schedule::Schedule;
 
     #[test]
@@ -23,7 +22,7 @@ mod probabilistic {
         o.verify().unwrap();
 
         let result = o
-            .stream(probabilistic, |_, _| false, &Options::default())
+            .stream(probabilistic, |_, _| false, Options::default())
             .unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
@@ -44,7 +43,7 @@ mod probabilistic {
 
         let t_end = 2;
         let result = o
-            .offline_stream(probabilistic, t_end, &Options::default())
+            .offline_stream(probabilistic, t_end, Options::default())
             .unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 

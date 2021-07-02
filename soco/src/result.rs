@@ -27,6 +27,8 @@ pub enum Failure {
     },
     #[error("This algorithm expects a problem instance which is the relaxed problem of an integral problem. In particular, the bounds shouldn't be fractional.")]
     MustBeRelaxedProblem,
+    #[error("This algorithm does not support inverted movement costs. Set `inverted = false`.")]
+    UnsupportedInvertedCost,
     #[error("This online algorithm does not support a prediction window. Set `w = 0` (was {0}).")]
     UnsupportedPredictionWindow(i32),
     #[error("This online algorithm does not support multi-dimensional problems. Set `d = 1` (was {0}).")]

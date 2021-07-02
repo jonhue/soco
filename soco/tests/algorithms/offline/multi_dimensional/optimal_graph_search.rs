@@ -4,7 +4,7 @@ mod optimal_graph_search {
     use rand_pcg::Pcg64;
     use soco::algorithms::offline::{
         multi_dimensional::optimal_graph_search::optimal_graph_search,
-        OfflineOptions,
+        OfflineAlgorithmWithDefaultOptions,
     };
     use soco::config::Config;
     use soco::cost::CostFn;
@@ -25,11 +25,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: false })
+            optimal_graph_search.solve(p.clone(), false)
                 .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: true })
+            optimal_graph_search.solve(p.clone(), true)
                 .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -61,11 +61,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: false })
+            optimal_graph_search.solve(p.clone(), false)
                 .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: true })
+            optimal_graph_search.solve(p.clone(), true)
                 .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -98,11 +98,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: false })
+            optimal_graph_search.solve(p.clone(), false)
                 .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: true })
+            optimal_graph_search.solve(p.clone(), true)
                 .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 

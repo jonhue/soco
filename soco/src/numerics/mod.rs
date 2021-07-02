@@ -1,3 +1,5 @@
+//! Numerical computation.
+
 pub mod bisection;
 pub mod convex_optimization;
 pub mod finite_differences;

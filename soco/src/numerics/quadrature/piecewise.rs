@@ -1,3 +1,5 @@
+//! Piecewise integration.
+
 use crate::breakpoints::Breakpoints;
 use crate::numerics::quadrature::integral;
 use crate::numerics::PRECISION;

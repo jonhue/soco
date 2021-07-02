@@ -1,11 +1,11 @@
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
-    approx_graph_search, Options as ApproxOptions,
+    approx_graph_search, Options as ApproxGraphSearchOptions,
 };
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
-use crate::algorithms::offline::OfflineOptions;
+use crate::algorithms::offline::OfflineAlgorithm;
+use crate::algorithms::online::{IntegralStep, Online, Step};
 use crate::config::{Config, IntegralConfig};
-use crate::online::{IntegralStep, Online, Step};
 use crate::problem::IntegralSmoothedLoadOptimization;
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
@@ -26,9 +26,10 @@ pub type Lanes = Vec<i32>;
 /// Maps each lane to a finite time horizon it stays "active" for unless replaced by another dimension.
 pub type Horizons = Vec<i32>;
 
-pub struct Options<'a> {
+#[derive(Clone)]
+pub struct Options {
     /// Whether to use an approximation to find the optimal schedule.
-    pub use_approx: Option<&'a ApproxOptions>,
+    pub use_approx: Option<ApproxGraphSearchOptions>,
     /// Factor for calculating next time horizons when using the randomized variant of the algorithm.
     pub gamma: Option<f64>,
 }
@@ -46,7 +47,7 @@ pub fn lb(
     o: &Online<IntegralSmoothedLoadOptimization>,
     xs: &mut IntegralSchedule,
     ms: &mut Vec<Memory>,
-    options: &Options,
+    options: Options,
 ) -> Result<IntegralStep<Memory>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
@@ -144,19 +145,13 @@ fn active_lanes(x: &IntegralConfig, from: i32, to: i32) -> i32 {
 fn find_optimal_lanes(
     p: &IntegralSmoothedLoadOptimization,
     bound: usize,
-    use_approx: Option<&ApproxOptions>,
+    use_approx: Option<ApproxGraphSearchOptions>,
 ) -> Result<Lanes> {
     let sblo_p = p.to_sblo();
     let ssco_p = sblo_p.to_ssco();
     let Path { xs, .. } = match use_approx {
-        None => {
-            optimal_graph_search(&ssco_p, &OfflineOptions { inverted: false })?
-        }
-        Some(options) => approx_graph_search(
-            &ssco_p,
-            options,
-            &OfflineOptions { inverted: false },
-        )?,
+        None => optimal_graph_search.solve(ssco_p, (), false)?,
+        Some(options) => approx_graph_search.solve(ssco_p, options, false)?,
     };
     Ok(build_lanes(&xs.now(), p.d, bound))
 }

@@ -42,9 +42,9 @@ mod make_pow_of_2 {
 
 mod optimal_graph_search {
     use crate::factories::{penalize_zero, random};
-    use soco::algorithms::offline::uni_dimensional::optimal_graph_search::{
-        make_pow_of_2, optimal_graph_search, Options,
-    };
+    use soco::algorithms::offline::{uni_dimensional::optimal_graph_search::{
+        make_pow_of_2, optimal_graph_search,
+    }, OfflineAlgorithmWithDefaultOptions};
     use soco::config::Config;
     use soco::cost::CostFn;
     use soco::objective::Objective;
@@ -63,21 +63,15 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result = optimal_graph_search(
-            &p,
-            &Options {
-                inverted: false,
-                x_start: None,
-            },
+        let result = optimal_graph_search.solve(
+            p.clone(),
+            false,
         )
         .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = optimal_graph_search(
-            &p,
-            &Options {
-                inverted: true,
-                x_start: None,
-            },
+        let inv_result = optimal_graph_search.solve(
+            p.clone(),
+            true,
         )
         .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
@@ -106,21 +100,15 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result = optimal_graph_search(
-            &p,
-            &Options {
-                inverted: false,
-                x_start: None,
-            },
+        let result = optimal_graph_search.solve(
+            p.clone(),
+            false,
         )
         .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = optimal_graph_search(
-            &p,
-            &Options {
-                inverted: true,
-                x_start: None,
-            },
+        let inv_result = optimal_graph_search.solve(
+            p.clone(),
+            true,
         )
         .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
@@ -145,24 +133,18 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let transformed_p = make_pow_of_2(p).unwrap();
-        let result = optimal_graph_search(
-            &transformed_p,
-            &Options {
-                inverted: false,
-                x_start: None,
-            },
+        let result = optimal_graph_search.solve(
+            transformed_p.clone(),
+            false,
         )
         .unwrap();
         result
             .xs
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
-        let inv_result = optimal_graph_search(
-            &transformed_p,
-            &Options {
-                inverted: true,
-                x_start: None,
-            },
+        let inv_result = optimal_graph_search.solve(
+            transformed_p.clone(),
+            true,
         )
         .unwrap();
         inv_result
@@ -189,12 +171,9 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result = optimal_graph_search(
-            &p,
-            &Options {
-                inverted: false,
-                x_start: Some(2),
-            },
+        let result = optimal_graph_search.solve(
+            p.clone(),
+            false,
         )
         .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();

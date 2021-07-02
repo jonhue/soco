@@ -1,11 +1,11 @@
 use crate::algorithms::online::uni_dimensional::probabilistic::{
     probabilistic, Memory as RelaxationMemory, Options as RelaxationOptions,
 };
+use crate::algorithms::online::{IntegralStep, OnlineAlgorithm, Step};
 use crate::breakpoints::Breakpoints;
 use crate::config::{Config, FractionalConfig};
 use crate::convert::RelaxableSchedule;
-use crate::online::{IntegralStep, Online, OnlineAlgorithm, Step};
-use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
+use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, frac, project, sample_uniform};
@@ -35,20 +35,19 @@ pub fn randomized<'a>(
     _: i32,
     xs: &IntegralSchedule,
     prev_m: Memory<'a>,
-    _: &(),
+    _: (),
 ) -> Result<IntegralStep<Memory<'a>>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
     assert(o.p.bounds[0].fract() == 0., Failure::MustBeRelaxedProblem)?;
 
-    let relaxation_options = RelaxationOptions {
-        breakpoints: Breakpoints::grid(1.),
-    };
     let Step(y, relaxation_m) = probabilistic.next(
         o,
         &xs.to_f(),
         prev_m.relaxation_m,
-        &relaxation_options,
+        RelaxationOptions {
+            breakpoints: Breakpoints::grid(1.),
+        },
     )?;
 
     let prev_x = xs.now_with_default(Config::single(0))[0];

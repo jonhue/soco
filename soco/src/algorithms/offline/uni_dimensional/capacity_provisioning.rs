@@ -7,15 +7,18 @@ use crate::utils::{assert, project};
 
 /// Backward-Recurrent Capacity Provisioning
 pub fn brcp(
-    p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
+    p: FractionalSimplifiedSmoothedConvexOptimization<'_>,
+    _: (),
+    inverted: bool,
 ) -> Result<FractionalSchedule> {
+    assert(!inverted, Failure::UnsupportedInvertedCost)?;
     assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
 
     let mut xs = Schedule::empty();
 
     let mut x = 0.;
     for t in (1..=p.t_end).rev() {
-        x = next(p, t, x)?;
+        x = next(&p, t, x)?;
         xs.shift(Config::single(x));
     }
 
