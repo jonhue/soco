@@ -1,6 +1,6 @@
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
-    make_pow_of_2, optimal_graph_search, Options as OptimalGraphSearch,
+    make_pow_of_2, optimal_graph_search, Options as OptimalGraphSearchOptions,
 };
 use crate::algorithms::offline::OfflineAlgorithm;
 use crate::config::Config;
@@ -113,7 +113,7 @@ impl IntegralSimplifiedSmoothedConvexOptimization<'_> {
         }
         let Path { xs, .. } = optimal_graph_search.solve(
             p,
-            OptimalGraphSearch { x_start },
+            OptimalGraphSearchOptions { x_start },
             inverted,
         )?;
 
