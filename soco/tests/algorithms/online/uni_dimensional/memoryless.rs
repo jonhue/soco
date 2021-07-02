@@ -4,7 +4,7 @@ mod memoryless {
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
-    use soco::problem::{SimplifiedSmoothedConvexOptimization, Online};
+    use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
     use soco::schedule::Schedule;
 
     #[test]

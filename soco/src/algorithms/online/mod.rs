@@ -90,17 +90,20 @@ where
 {
 }
 
-pub trait OnlineAlgorithmWithDefaultOptions<'a, T, P, M, O>: OnlineAlgorithm<'a, T, P, M, O>
+pub trait OnlineAlgorithmWithDefaultOptions<'a, T, P, M, O>:
+    OnlineAlgorithm<'a, T, P, M, O>
 where
     T: Value,
     P: Problem + 'a,
     M: Memory<'a, P>,
     O: Options<P>,
 {
-    fn next_with_default_options(&self,
+    fn next_with_default_options(
+        &self,
         o: Online<P>,
         xs: &Schedule<T>,
-        prev_m_: Option<M>,) -> Result<Step<T, M>> {
+        prev_m_: Option<M>,
+    ) -> Result<Step<T, M>> {
         let options = O::default(&o.p);
         OnlineAlgorithm::next(self, o, xs, prev_m_, options)
     }

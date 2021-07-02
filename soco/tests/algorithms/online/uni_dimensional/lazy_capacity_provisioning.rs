@@ -4,7 +4,7 @@ mod fractional_lcp {
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
-    use soco::problem::{SimplifiedSmoothedConvexOptimization, Online};
+    use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
     use soco::schedule::Schedule;
 
     #[test]
@@ -53,7 +53,7 @@ mod integral_lcp {
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
     use soco::config::Config;
     use soco::cost::CostFn;
-    use soco::problem::{SimplifiedSmoothedConvexOptimization, Online};
+    use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
     use soco::schedule::Schedule;
 
     #[test]

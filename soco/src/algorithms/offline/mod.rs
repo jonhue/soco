@@ -34,7 +34,8 @@ where
 {
 }
 
-pub trait OfflineAlgorithmWithDefaultOptions<T, P, O>: OfflineAlgorithm<T, P, O>
+pub trait OfflineAlgorithmWithDefaultOptions<T, P, O>:
+    OfflineAlgorithm<T, P, O>
 where
     P: Problem,
     O: Options<P>,

@@ -2,7 +2,7 @@ mod randomized {
     use crate::factories::int_parabola;
     use soco::algorithms::online::uni_dimensional::randomized::randomized;
     use soco::cost::CostFn;
-    use soco::problem::{SimplifiedSmoothedConvexOptimization, Online};
+    use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
 
     #[test]
     fn _1() {

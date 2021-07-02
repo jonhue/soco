@@ -1,6 +1,9 @@
 mod bcp {
     use crate::factories::inv_e;
-    use soco::algorithms::offline::{uni_dimensional::capacity_provisioning::brcp, OfflineAlgorithmWithDefaultOptions};
+    use soco::algorithms::offline::{
+        uni_dimensional::capacity_provisioning::brcp,
+        OfflineAlgorithmWithDefaultOptions,
+    };
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
