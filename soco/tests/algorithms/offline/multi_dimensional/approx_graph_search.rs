@@ -6,7 +6,7 @@ mod approx_graph_search {
         multi_dimensional::approx_graph_search::{
             approx_graph_search, Options,
         },
-        OfflineOptions,
+        OfflineAlgorithm,
     };
     use soco::config::Config;
     use soco::cost::CostFn;
@@ -26,19 +26,13 @@ mod approx_graph_search {
         };
         p.verify().unwrap();
 
-        let result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: false },
-        )
-        .unwrap();
+        let result = approx_graph_search
+            .solve(p.clone(), Options { gamma: 2. }, false)
+            .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: true },
-        )
-        .unwrap();
+        let inv_result = approx_graph_search
+            .solve(p.clone(), Options { gamma: 2. }, true)
+            .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.xs, inv_result.xs);
@@ -68,19 +62,13 @@ mod approx_graph_search {
         };
         p.verify().unwrap();
 
-        let result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: false },
-        )
-        .unwrap();
+        let result = approx_graph_search
+            .solve(p.clone(), Options { gamma: 2. }, false)
+            .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: true },
-        )
-        .unwrap();
+        let inv_result = approx_graph_search
+            .solve(p.clone(), Options { gamma: 2. }, true)
+            .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_abs_diff_eq!(result.cost, inv_result.cost);
@@ -111,19 +99,13 @@ mod approx_graph_search {
         };
         p.verify().unwrap();
 
-        let result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: false },
-        )
-        .unwrap();
+        let result = approx_graph_search
+            .solve(p.clone(), Options { gamma: 2. }, false)
+            .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = approx_graph_search(
-            &p,
-            &Options { gamma: Some(2.) },
-            &OfflineOptions { inverted: true },
-        )
-        .unwrap();
+        let inv_result = approx_graph_search
+            .solve(p.clone(), Options { gamma: 2. }, true)
+            .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_abs_diff_eq!(result.cost, inv_result.cost, epsilon = 1.);

@@ -1,7 +1,7 @@
 //! Functions to check that values satisfy the imposed constraints.
 
 use crate::config::Config;
-use crate::online::Online;
+use crate::problem::Online;
 use crate::problem::{
     SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
     SmoothedConvexOptimization, SmoothedLoadOptimization,

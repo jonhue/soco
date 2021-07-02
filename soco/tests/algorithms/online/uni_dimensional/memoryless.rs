@@ -4,8 +4,7 @@ mod memoryless {
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
-    use soco::online::Online;
-    use soco::problem::SimplifiedSmoothedConvexOptimization;
+    use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
     use soco::schedule::Schedule;
 
     #[test]
@@ -20,7 +19,7 @@ mod memoryless {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.stream(memoryless, |_, _| false, &()).unwrap();
+        let result = o.stream(memoryless, |_, _| false, ()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(1)]));
@@ -39,7 +38,7 @@ mod memoryless {
         o.verify().unwrap();
 
         let t_end = 2;
-        let result = o.offline_stream(memoryless, t_end, &()).unwrap();
+        let result = o.offline_stream(memoryless, t_end, ()).unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
         assert_eq!(

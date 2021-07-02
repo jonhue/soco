@@ -4,7 +4,7 @@ mod optimal_graph_search {
     use rand_pcg::Pcg64;
     use soco::algorithms::offline::{
         multi_dimensional::optimal_graph_search::optimal_graph_search,
-        OfflineOptions,
+        OfflineAlgorithmWithDefaultOptions,
     };
     use soco::config::Config;
     use soco::cost::CostFn;
@@ -24,13 +24,13 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: false })
-                .unwrap();
+        let result = optimal_graph_search
+            .solve_with_default_options(p.clone(), false)
+            .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: true })
-                .unwrap();
+        let inv_result = optimal_graph_search
+            .solve_with_default_options(p.clone(), true)
+            .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(result.xs, inv_result.xs);
@@ -60,13 +60,13 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: false })
-                .unwrap();
+        let result = optimal_graph_search
+            .solve_with_default_options(p.clone(), false)
+            .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: true })
-                .unwrap();
+        let inv_result = optimal_graph_search
+            .solve_with_default_options(p.clone(), true)
+            .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_abs_diff_eq!(result.cost, inv_result.cost);
@@ -97,13 +97,13 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: false })
-                .unwrap();
+        let result = optimal_graph_search
+            .solve_with_default_options(p.clone(), false)
+            .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result =
-            optimal_graph_search(&p, &OfflineOptions { inverted: true })
-                .unwrap();
+        let inv_result = optimal_graph_search
+            .solve_with_default_options(p.clone(), true)
+            .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_abs_diff_eq!(result.cost, inv_result.cost, epsilon = 1.);

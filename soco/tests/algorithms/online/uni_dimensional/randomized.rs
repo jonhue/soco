@@ -2,8 +2,7 @@ mod randomized {
     use crate::factories::int_parabola;
     use soco::algorithms::online::uni_dimensional::randomized::randomized;
     use soco::cost::CostFn;
-    use soco::online::Online;
-    use soco::problem::SimplifiedSmoothedConvexOptimization;
+    use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
 
     #[test]
     fn _1() {
@@ -18,7 +17,7 @@ mod randomized {
         let o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.to_f().stream(randomized, |_, _| false, &()).unwrap();
+        let result = o.to_f().stream(randomized, |_, _| false, ()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
     }
 
@@ -35,7 +34,7 @@ mod randomized {
         o.verify().unwrap();
 
         let t_end = 2;
-        let result = o.to_f().offline_stream(randomized, t_end, &()).unwrap();
+        let result = o.to_f().offline_stream(randomized, t_end, ()).unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
     }
 }

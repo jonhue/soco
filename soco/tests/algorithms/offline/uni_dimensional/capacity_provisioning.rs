@@ -1,6 +1,9 @@
 mod bcp {
     use crate::factories::inv_e;
-    use soco::algorithms::offline::uni_dimensional::capacity_provisioning::brcp;
+    use soco::algorithms::offline::{
+        uni_dimensional::capacity_provisioning::brcp,
+        OfflineAlgorithmWithDefaultOptions,
+    };
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
@@ -19,7 +22,7 @@ mod bcp {
         };
         p.verify().unwrap();
 
-        let result = brcp(&p).unwrap();
+        let result = brcp.solve_with_default_options(p.clone(), false).unwrap();
         result.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(

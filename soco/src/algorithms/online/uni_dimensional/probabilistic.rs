@@ -1,3 +1,4 @@
+use crate::algorithms::online::{FractionalStep, Step};
 use crate::breakpoints::Breakpoints;
 use crate::config::Config;
 use crate::numerics::convex_optimization::{
@@ -5,8 +6,9 @@ use crate::numerics::convex_optimization::{
 };
 use crate::numerics::finite_differences::{derivative, second_derivative};
 use crate::numerics::quadrature::piecewise::piecewise_integral;
-use crate::online::{DefaultGivenProblem, FractionalStep, Online, Step};
-use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
+use crate::problem::{
+    DefaultGivenProblem, FractionalSimplifiedSmoothedConvexOptimization, Online,
+};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, project};
@@ -34,6 +36,7 @@ impl<'a> DefaultGivenProblem<FractionalSimplifiedSmoothedConvexOptimization<'a>>
     }
 }
 
+#[derive(Clone)]
 pub struct Options {
     /// Breakpoints of piecewise linear hitting costs.
     pub breakpoints: Breakpoints,
@@ -55,7 +58,7 @@ pub fn probabilistic<'a>(
     t: i32,
     _: &FractionalSchedule,
     prev_m: Memory<'a>,
-    options: &Options,
+    options: Options,
 ) -> Result<FractionalStep<Memory<'a>>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;

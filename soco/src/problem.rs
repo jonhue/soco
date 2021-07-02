@@ -35,6 +35,35 @@ macro_rules! impl_problem {
     };
 }
 
+/// Gives type a default value which may depend on a problem instance.
+pub trait DefaultGivenProblem<P>
+where
+    P: Problem,
+{
+    fn default(p: &P) -> Self;
+}
+impl<T, P> DefaultGivenProblem<P> for T
+where
+    T: Default,
+    P: Problem,
+{
+    fn default(_: &P) -> Self {
+        T::default()
+    }
+}
+
+/// Online instance of a problem.
+#[derive(Clone)]
+pub struct Online<T> {
+    /// Problem.
+    pub p: T,
+    /// Finite, non-negative prediction window.
+    ///
+    /// This prediction window is included in the time bound of the problem instance,
+    /// i.e. at time `t` `t_end` should be set to `t + w`.
+    pub w: i32,
+}
+
 /// Smoothed Convex Optimization.
 #[derive(Clone)]
 pub struct SmoothedConvexOptimization<'a, T>
@@ -95,7 +124,7 @@ pub type IntegralSimplifiedSmoothedConvexOptimization<'a> =
 pub type FractionalSimplifiedSmoothedConvexOptimization<'a> =
     SimplifiedSmoothedConvexOptimization<'a, f64>;
 
-/// Smoothed Balanced-Load Optimization
+/// Smoothed Balanced-Load Optimization.
 #[derive(Clone)]
 pub struct SmoothedBalancedLoadOptimization<'a, T>
 where
@@ -131,7 +160,7 @@ where
 pub type IntegralSmoothedBalancedLoadOptimization<'a> =
     SmoothedBalancedLoadOptimization<'a, i32>;
 
-/// Smoothed Load Optimization
+/// Smoothed Load Optimization.
 #[derive(Clone)]
 pub struct SmoothedLoadOptimization<T>
 where

@@ -1,9 +1,9 @@
+use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
 use crate::convert::ResettableProblem;
 use crate::numerics::convex_optimization::find_minimizer;
 use crate::objective::Objective;
-use crate::online::{FractionalStep, Online, Step};
-use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
+use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::Result;
 use crate::schedule::{FractionalSchedule, Schedule};
 

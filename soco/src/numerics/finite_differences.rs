@@ -1,3 +1,5 @@
+//! Differentiation.
+
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use bacon_sci::differentiate::{
     derivative as derivative_, second_derivative as second_derivative_,

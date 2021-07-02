@@ -2,13 +2,13 @@ use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
     meta::{obd, Options as MetaOptions},
     MAX_L_FACTOR,
 };
+use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
 use crate::norm::dual;
 use crate::norm::NormFn;
 use crate::numerics::bisection::bisection;
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
-use crate::online::{FractionalStep, Online, Step};
-use crate::problem::FractionalSmoothedConvexOptimization;
+use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;

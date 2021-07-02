@@ -16,17 +16,22 @@ use std::collections::HashMap;
 #[derive(Eq, Hash, PartialEq)]
 struct Vertice(i32, i32);
 
+#[derive(Clone)]
 pub struct Options {
-    /// Compute inverted cost.
-    pub inverted: bool,
     /// Value at initial time `0`. Defaults to `0`.
-    pub x_start: Option<i32>,
+    pub x_start: i32,
+}
+impl Default for Options {
+    fn default() -> Self {
+        Options { x_start: 0 }
+    }
 }
 
 /// Graph-Based Optimal Algorithm
 pub fn optimal_graph_search(
-    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
-    options: &Options,
+    p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
+    options: Options,
+    inverted: bool,
 ) -> Result<Path> {
     assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
     assert(is_pow_of_2(p.bounds[0]), Failure::MustBePowOf2)?;
@@ -36,18 +41,17 @@ pub fn optimal_graph_search(
     } else {
         0
     };
-    let x_start = options.x_start.unwrap_or(0);
 
     let mut result =
-        find_schedule(p, select_initial_rows(p), options.inverted, x_start);
+        find_schedule(&p, select_initial_rows(&p), inverted, options.x_start);
 
     if k_init > 0 {
         for k in k_init - 1..=0 {
             result = find_schedule(
-                p,
-                select_next_rows(p, &result.xs, k),
-                options.inverted,
-                x_start,
+                &p,
+                select_next_rows(&p, &result.xs, k),
+                inverted,
+                options.x_start,
             );
         }
     }

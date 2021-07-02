@@ -1,7 +1,7 @@
+use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::Config;
 use crate::numerics::convex_optimization::minimize;
-use crate::online::{FractionalStep, Online, Step};
-use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
+use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
@@ -13,7 +13,7 @@ pub fn memoryless(
     t: i32,
     xs: &FractionalSchedule,
     _: (),
-    _: &(),
+    _: (),
 ) -> Result<FractionalStep<()>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;

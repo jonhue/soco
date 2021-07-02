@@ -1,4 +1,4 @@
-//! Optimization utils.
+//! Convex optimization.
 
 use crate::config::{Config, FractionalConfig};
 use crate::cost::{CallableCostFn, CostFn};

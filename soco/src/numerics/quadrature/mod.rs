@@ -1,3 +1,5 @@
+//! Integration.
+
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use crate::result::{Failure, Result};
 use bacon_sci::integrate::{integrate, integrate_hermite, integrate_laguerre};

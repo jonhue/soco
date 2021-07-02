@@ -5,10 +5,9 @@ use crate::cost::data_center::load::Load;
 use crate::cost::data_center::{apply_loads, load_balance};
 use crate::cost::{CallableCostFn, CostFn};
 use crate::norm::NormFn;
-use crate::online::Online;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
-    IntegralSimplifiedSmoothedConvexOptimization,
+    IntegralSimplifiedSmoothedConvexOptimization, Online,
     SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
     SmoothedConvexOptimization, SmoothedLoadOptimization,
 };

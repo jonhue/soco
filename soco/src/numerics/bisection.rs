@@ -1,3 +1,5 @@
+//! Root finding.
+
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use crate::result::{Failure, Result};
 use bacon_sci::roots::bisection as bisection_;

@@ -1,7 +1,7 @@
 use crate::algorithms::capacity_provisioning::Bounded;
+use crate::algorithms::online::Step;
 use crate::config::Config;
-use crate::online::{Online, Step};
-use crate::problem::Problem;
+use crate::problem::{Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::{assert, project};
@@ -24,7 +24,7 @@ pub fn lcp<T, P>(
     t: i32,
     xs: &Schedule<T>,
     ms: Vec<Memory<T>>,
-    _: &(),
+    _: (),
 ) -> Result<Step<T, Vec<Memory<T>>>>
 where
     T: Value,

@@ -2,26 +2,28 @@ use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::{
     graph_search::graph_search, Values,
 };
-use crate::algorithms::offline::OfflineOptions;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 
-static DEFAULT_GAMMA: f64 = 1.1;
-
+#[derive(Clone)]
 pub struct Options {
     /// `gamma > 1`. Default is `1.1`.
-    pub gamma: Option<f64>,
+    pub gamma: f64,
+}
+impl Default for Options {
+    fn default() -> Self {
+        Options { gamma: 1.1 }
+    }
 }
 
 /// Graph-Based Approximation Algorithm
-pub fn approx_graph_search<'a>(
-    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
-    options: &Options,
-    offline_options: &OfflineOptions,
+pub fn approx_graph_search(
+    p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
+    options: Options,
+    inverted: bool,
 ) -> Result<Path> {
-    let gamma = options.gamma.unwrap_or(DEFAULT_GAMMA);
-    let values = cache_bound_indices(build_values, &p.bounds, gamma);
-    graph_search(p, values, offline_options)
+    let values = cache_bound_indices(build_values, &p.bounds, options.gamma);
+    graph_search(p, values, inverted)
 }
 
 /// Computes all values allowed by the approximation algorithm.

@@ -1,14 +1,15 @@
 use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
-    approx_graph_search, Options as ApproxOptions,
+    approx_graph_search, Options as ApproxGraphSearch,
 };
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
-use crate::algorithms::offline::OfflineOptions;
+use crate::algorithms::offline::OfflineAlgorithm;
+use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
 use crate::cost::{CallableCostFn, CostFn};
-use crate::online::{IntegralStep, Online, Step};
 use crate::problem::{
-    IntegralSmoothedBalancedLoadOptimization, SmoothedBalancedLoadOptimization,
+    IntegralSmoothedBalancedLoadOptimization, Online,
+    SmoothedBalancedLoadOptimization,
 };
 use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
@@ -21,13 +22,14 @@ pub type Memory = (IntegralSchedule, Vec<AlgBMemory>);
 /// Maps dimension to the number of active instances for some sub time slot `u`.
 type AlgBMemory = Vec<i32>;
 
-pub struct Options<'a> {
+#[derive(Clone)]
+pub struct Options {
     /// Whether to use an approximation to find the optimal schedule.
-    pub use_approx: Option<&'a ApproxOptions>,
+    pub use_approx: Option<ApproxGraphSearch>,
     /// `epsilon > 0`. Defaults to `0.25`.
     pub epsilon: f64,
 }
-impl Default for Options<'_> {
+impl Default for Options {
     fn default() -> Self {
         Options {
             use_approx: None,
@@ -41,7 +43,7 @@ pub fn lb(
     o: &Online<IntegralSmoothedBalancedLoadOptimization>,
     xs: &mut IntegralSchedule,
     ms: &mut Vec<Memory>,
-    options: &Options,
+    options: Options,
 ) -> Result<IntegralStep<Memory>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
@@ -146,7 +148,7 @@ fn alg_b(
     t: i32,
     xs: &IntegralSchedule,
     prev_m: AlgBMemory,
-    options: &Options,
+    options: Options,
 ) -> Result<IntegralStep<AlgBMemory>> {
     let opt_x = find_optimal_config(&o.p, options.use_approx)?;
     let mut m = vec![0; o.p.d as usize];
@@ -210,18 +212,12 @@ fn cumulative_idle_hitting_cost(
 
 fn find_optimal_config(
     p: &IntegralSmoothedBalancedLoadOptimization,
-    use_approx: Option<&ApproxOptions>,
+    use_approx: Option<ApproxGraphSearch>,
 ) -> Result<IntegralConfig> {
     let ssco_p = p.to_ssco();
     let Path { xs, .. } = match use_approx {
-        None => {
-            optimal_graph_search(&ssco_p, &OfflineOptions { inverted: false })?
-        }
-        Some(options) => approx_graph_search(
-            &ssco_p,
-            options,
-            &OfflineOptions { inverted: false },
-        )?,
+        None => optimal_graph_search.solve(ssco_p, (), false)?,
+        Some(options) => approx_graph_search.solve(ssco_p, options, false)?,
     };
     Ok(xs.now())
 }

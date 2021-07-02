@@ -1,6 +1,5 @@
 use crate::algorithms::graph_search::{Path, Paths};
 use crate::algorithms::offline::multi_dimensional::Values;
-use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
 use crate::objective::scalar_movement;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
@@ -32,31 +31,15 @@ struct Edge {
 }
 
 /// Graph-Based Integral Algorithm
-pub fn graph_search<'a>(
-    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
+pub fn graph_search(
+    p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
     values: Values,
-    offline_options: &OfflineOptions,
+    inverted: bool,
 ) -> Result<Path> {
     let mut paths: Paths<Vertice> = HashMap::new();
     for t in 1..=p.t_end {
-        handle_layer(
-            p,
-            offline_options.inverted,
-            t,
-            true,
-            &values,
-            &mut paths,
-            None,
-        )?;
-        handle_layer(
-            p,
-            offline_options.inverted,
-            t,
-            false,
-            &values,
-            &mut paths,
-            None,
-        )?;
+        handle_layer(&p, inverted, t, true, &values, &mut paths, None)?;
+        handle_layer(&p, inverted, t, false, &values, &mut paths, None)?;
     }
 
     Ok(paths
