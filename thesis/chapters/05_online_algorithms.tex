@@ -18,7 +18,15 @@ We begin by returning to the notion of capacity provisioning that we introduced 
         0 & \tau \leq 0 \\
         (X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U} & \tau \geq 1
     \end{cases}
-\end{align*} where $(X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$ is the projection of $X_{\tau-1}$ onto $[X_{\tau,\tau}^L, X_{\tau,\tau}^U]$ \cite{Lin2011}. [TODO: add figure comparing to brcp and link from section on brcp]. The resulting algorithm is described in \autoref{alg:ud:lcp}. Similarly to the offline algorithm, we are able to use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(\tau C O_{\epsilon})$ for $\epsilon$-optimal upper and lower bounds. This complexity is worrying as it depends on $\tau$ which may grow to be very large. However, \citeauthor*{Lin2011} prove the following lemma which implies that it suffices to compute the lower and upper bounds using only the history since the last time slot where the bounds were either both decreased or both increased.
+\end{align*} where $(X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$ is the projection of $X_{\tau-1}$ onto $[X_{\tau,\tau}^L, X_{\tau,\tau}^U]$ \cite{Lin2011}. \autoref{fig:backward_recurrent_capacity_provisioing_vs_lazy_capacity_provisioning} shows how this update rule differs from \nameref{alg:brcp}. The resulting algorithm is described in \autoref{alg:ud:lcp}. Similarly to the offline algorithm, we are able to use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(\tau C O_{\epsilon})$ for $\epsilon$-optimal upper and lower bounds. This complexity is worrying as it depends on $\tau$ which may grow to be very large. However, \citeauthor*{Lin2011} prove the following lemma which implies that it suffices to compute the lower and upper bounds using only the history since the last time slot where the bounds were either both decreased or both increased.
+
+\begin{figure}
+    \centering
+    [TODO]
+
+    \caption{Backward-Recurrent Capacity Provisioning vs Lazy Capacity Provisioning}
+    \label{fig:backward_recurrent_capacity_provisioing_vs_lazy_capacity_provisioning}
+\end{figure}
 
 \begin{lemma}
 If there exists an index $t \in [1, \tau-1]$ such that $X_{\tau,t+1}^U < X_{\tau,t}^U$ or $X_{\tau,t+1}^L > X_{\tau,t}^L$, then $(\hat{X}_{\tau,1},\dots,\hat{X}_{\tau,t}) := (X_{\tau,1}^L,\dots,X_{\tau,t}^L) = (X_{\tau,1}^U,\dots,X_{\tau,t}^U)$, and no matter what the future arrival is, solving the optimization in $[1,\tau']$ for $\tau' > \tau$ is equivalent to solving two optimizations: one over $[1,t]$ with initial condition $X_0$ and final condition $\hat{X}_{\tau,t}$ and the second over $[t+1,\tau']$ with initial condition $\hat{X}_{\tau,t}$ \cite{Lin2011}.
@@ -39,6 +47,8 @@ While not changing the worst-case complexity, this significantly improves the pr
             \KwBreak
         }
     }
+    find $X_{\tau,\tau}^{L,(t_0,x_0)}$ using the optimization described by \autoref{eq:ud:brcp:lower}\;
+    find $X_{\tau,\tau}^{U,(t_0,x_0)}$ using the optimization described by \autoref{eq:ud:brcp:upper}\;
     \Return $(X_{\tau-1})_{X_{\tau,\tau}^{L,(t_0,x_0)}}^{X_{\tau,\tau}^{U,(t_0,x_0)}}$\;
 \end{algorithm}
 
@@ -46,14 +56,32 @@ While not changing the worst-case complexity, this significantly improves the pr
 
 \citeauthor*{Albers2018} applied lazy capacity provisioning to the integral variant Int-SSCO using their graph-based offline algorithm discussed in \autoref{section:offline_algorithms:ud:graph_based} to compute the integral lower and upper bounds \cite{Albers2018}. It is apparent, that this immediately yields a deterministic online algorithm for Int-SSCO. \citeauthor*{Albers2018} showed that similar to lazy capacity provisioning their algorithm is $3$-competitive \cite{Albers2018}. Due to the changed method of determining the bounds its runtime is $\mathcal{O}(\tau C \log_2 m)$. By using the same method of shortening the used history that was proposed by \citeauthor*{Lin2011} we are able to reduce this time complexity drastically in practice (for large $\tau$). Thus, the adopted algorithm is still described by \autoref{alg:ud:lcp}. We simply need to slightly modify the graph-based algorithm computing optimal offline solutions to allow for initial conditions other than $0$.
 
-\subsection{Memoryless Algorithm}
+\subsection{Memoryless Algorithm}\label{section:online_algorithms:ud:memoryless}
 
 \citeauthor*{Bansal2015} showed that for SSCO a competitive ratio of $3$ can also be attained by a memoryless algorithm \cite{Bansal2015}. In a memoryless online algorithm for smoothed convex optimization, the configuration $X_{\tau}$ only depends on the preceding configuration $X_{\tau-1}$ and the current hitting cost $f_{\tau}$. This generally allows for a more space and time efficient algorithm. This is important when we want to choose a small time slot length $\delta$ so as to be more responsive to changes in load.
 
-The algorithm proposed by \citeauthor*{Bansal2015} works as follows. Let $x_m$ be the minimizer of $f_{\tau}(x)$, i.e. $x_m = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. The algorithm moves into the direction of the minimizer until it either reaches $x_m$, or it reaches a configuration $x$ where its switching cost equals twice the hitting cost of $x$. [TODO: add figure depicting search space of convex optimization]. We observe that this is equivalent to the following convex optimization: \begin{align}\label{eq:ud:memoryless}\begin{aligned}
+The algorithm proposed by \citeauthor*{Bansal2015} works as follows. Let $x_m$ be the minimizer of $f_{\tau}(x)$, i.e. $x_m = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. The algorithm moves into the direction of the minimizer until it either reaches $x_m$, or it reaches a configuration $x$ where its switching cost equals twice the hitting cost of $x$. \autoref{fig:memoryless_algorithm} gives an example of a step of the algorithm. We observe that this is equivalent to the following convex optimization: \begin{align}\label{eq:ud:memoryless}\begin{aligned}
     &\min_{x \in \mathcal{X}} &&f_{\tau}(x) \\
-    &\text{subject to}        &&|x - X_{\tau-1}| \leq \frac{f_{\tau}(x)}{2}.
-\end{aligned}\end{align} The resulting algorithm is simply given by determining $\hat{x}$ based on the convex optimization in \autoref{eq:ud:memoryless}, see \autoref{alg:ud:memoryless}. Thus, the time (and space) complexity of this memoryless algorithm is $\mathcal{O}(C O_{\epsilon})$ for finding $\epsilon$-optimal solutions.
+    &\text{subject to}        &&\beta |x - X_{\tau-1}| \leq \frac{f_{\tau}(x)}{2}.
+\end{aligned}\end{align} Originally, \citeauthor*{Bansal2015} proposed this algorithm for a restricted variant of uni-dimensional SSCO where the decision space is unbounded, i.e. $\mathcal{X} = \mathbb{R}$, and the switching costs are given by the $\ell_1$ norm. In particular, they choose $\beta = 1$. First, it is easy to see that we can adapt the algorithm for a bounded decision space by bounding the feasible region of the optimization problem in \autoref{eq:ud:memoryless}. Second, we observe that $\beta$ can simply be interpreted as the weight that we associate with smoothing (that is minimizing movement) as opposed to minimizing hitting costs. This is shown by the following equation which is obtained by dividing the cost of \autoref{eq:simplified_smoothed_convex_optimization} by $\beta$: \begin{align}\label{eq:simplified_smoothed_convex_optimization:without_beta}
+    \sum_{t=1}^T \frac{1}{\beta} f_t(X_t) + \sum_{k=1}^d (X_{t,k} - X_{t-1,k})^+.
+\end{align} The cost associated with this equation is therefore the cost of \autoref{eq:simplified_smoothed_convex_optimization} linearly scaled by $1 / \beta$. Especially, this argument shows the following lemma.
+
+\begin{lemma}\label{lemma:switching_cost_absolute_vs_positive_movement}
+A schedule is optimal with respect to \autoref{eq:simplified_smoothed_convex_optimization:without_beta} if and only if it is optimal with respect to \autoref{eq:simplified_smoothed_convex_optimization}.
+\end{lemma}
+
+We can therefore, without loss of optimality, incorporate the weight of the switching cost beta into the hitting costs. Further, note that in their model, \citeauthor*{Bansal2015} consider the absolute movement, i.e. $|X_{t,k} - X_{t-1,k}|$, rather than only positive movements, i.e. $(X_{t,k} - X_{t-1,k})^+$. However, we have shown with \autoref{lemma:switching_cost_l1_norm_vs_pos_movement} in \autoref{chapter:theory} that these two switching costs only differ by a constant factor (namely $1/2$).
+
+The resulting algorithm is simply given by determining $\hat{x}$ based on the convex optimization in \autoref{eq:ud:memoryless}, see \autoref{alg:ud:memoryless}. Thus, the time (and space) complexity of this memoryless algorithm is $\mathcal{O}(C O_{\epsilon})$ for finding $\epsilon$-optimal solutions.
+
+\begin{figure}
+    \centering
+    [TODO: depict search space of optimization]
+
+    \caption{Memoryless Algorithm}
+    \label{fig:memoryless_algorithm}
+\end{figure}
 
 \begin{algorithm}
     \caption{Memoryless algorithm \cite{Bansal2015}}\label{alg:ud:memoryless}
@@ -78,106 +106,142 @@ Next, \citeauthor*{Bansal2015} show the following theorem which describes how we
     E(\varphi(X)) \geq \varphi(E X)
 \end{align} provided both expectations exist, i.e. $E |X|$ and $E |\varphi(X)| < \infty$ \cite{Durrett2010}.
 
-Let $X_{\tau}$ be a random variable denoting the configuration of the randomized algorithm $\mathcal{R}$ at time $\tau$. Then, the deterministic algorithm $\mathcal{D}$ of \citeauthor*{Bansal2015} sets their configuration to $x_{\tau} = E X_{\tau}$. The cost of $\mathcal{D}$ is then given by $f_{\tau}(x_{\tau}) + (x_{\tau} - x_{\tau-1})^+$ and the cost of $\mathcal{R}$ is given by $E(f_{\tau}(X_{\tau})) + E((X_{\tau} - X_{\tau-1})^+)$. We observe that both $f_{\tau}$ and $(\cdot)^+$ are convex functions, implying that the cost of $\mathcal{R}$ is at least $f_{\tau}(E X_{\tau}) + (E X_{\tau} - E X_{\tau-1})^+$ which equals the cost of $\mathcal{D}$. Summing over all $t$ completes the proof \cite{Bansal2015}.
+Let $X_{\tau}$ be a random variable denoting the configuration of the randomized algorithm $\mathcal{R}$ at time $\tau$. Then, the deterministic algorithm $\mathcal{D}$ of \citeauthor*{Bansal2015} sets their configuration to $x_{\tau} = E X_{\tau}$. The cost of $\mathcal{D}$ is thus given by $f_{\tau}(x_{\tau}) + (x_{\tau} - x_{\tau-1})^+$ and the cost of $\mathcal{R}$ is given by $E(f_{\tau}(X_{\tau})) + E((X_{\tau} - X_{\tau-1})^+)$. We observe that both $f_{\tau}$ and $(\cdot)^+$ are convex functions, implying that the cost of $\mathcal{R}$ is at least $f_{\tau}(E X_{\tau}) + (E X_{\tau} - E X_{\tau-1})^+$ which equals the cost of $\mathcal{D}$. Summing over all $t$ completes the proof \cite{Bansal2015}.
 \end{proof}
 
-Hence, we have seen that a deterministic algorithm can be obtained from a randomized algorithm by, in each time slot, choosing the expected configuration of the randomized algorithm. [TODO: add figure depicting probability distribution].
+Hence, we have seen that a deterministic algorithm can be obtained from a randomized algorithm by, in each time slot, choosing the expected configuration of the randomized algorithm.
+
+\subsubsection{Assumptions}
+
+In the description of their algorithm, \citeauthor*{Bansal2015} consider a restricted variant of uni-dimensional SSCO. Similarly to their memoryless algorithm which we discussed in \autoref{section:online_algorithms:ud:memoryless}, they consider an unbounded decision space, i.e. $\mathcal{X} = \mathbb{R}$, and the $\ell_1$ norm as switching costs. Further, for their description of this probabilistic algorithm they assume that the minimizer $x_m$ of $f_{\tau}$ is unique and bounded and that the hitting costs $f_{\tau}$ are continuous and smooth, i.e. is infinitely many times continuously differentiable. In particular, they assume the first order and second order derivatives of $f_{\tau}$ are well-defined and continuous. In \autoref{section:theory:beyond_convexity}, we discussed the assumption of differentiability and how it relates to our data center model.
+
+Our implementation generalizes their algorithm to instances of SSCO with a bounded decision space $\mathcal{X}$, variable switching costs $\beta$, and piecewise smooth functions. The second assumption, namely that the minimizer of the hitting cost is bounded, is natural in the setting of a data center as revenue loss increases for small configurations whereas energy costs increase for large configurations. However, the assumption of a unique and bounded minimizer was introduced by \citeauthor*{Bansal2015} merely to simplify their proof and thus this is not a restriction of our implementation \cite{Bansal2015}.
+
+In summary, our final algorithm is $2$-competitive for arbitrary instances of uni-dimensional SSCO with the restriction that hitting costs must be piecewise smooth.
 
 \subsubsection{The Probability Distribution}
 
-For the description of this algorithm we assume that $f_{\tau}$ has well defined first and second order derivatives. Further, we assume that the minimizer $x_m$ of $f_{\tau}$ is unique and bounded. In \autoref{section:theory:beyond_convexity}, we discussed the assumption of differentiability and how it relates to our data center model. The second assumption, namely that the minimizer of the hitting cost, is natural in the setting of a data center as revenue loss increases for small configurations whereas energy costs increase for large configurations. \citeauthor*{Bansal2015} describe how these assumptions can be discharged, but this prohibits a general implementation of the algorithm for arbitrary convex cost functions as the specific shape of the cost function needs to be taken into account \cite{Bansal2015}.
-
 For any time $\tau$, the algorithm maintains a probability distribution $p_{\tau}$ over configurations $x \in \mathcal{X}$. So $\int_a^b p_{\tau}(x) \,dx$ represents the probability that $X_{\tau} \in [a,b]$ for any two $a, b \in \mathcal{X}$. At each time step $\tau$ we first find the minimizer of $f_{\tau}$, $x_m = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. Then, we find a point $x_r \geq x_m$ such that \begin{align}\label{eq:ud:probabilistic:right}
-    \frac{1}{2} \int_{x_m}^{x_r} \diff[2]{f_{\tau}}{y}(y) \,dy = \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy
+    \frac{1}{2} \int_{x_m}^{x_r} \diff[2]{f_{\tau}}{y}(y) \,dy = \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy
 \end{align} and a point $x_l \leq x_m$ such that \begin{align}\label{eq:ud:probabilistic:left}
-    \frac{1}{2} \int_{x_l}^{x_m} \diff[2]{f_{\tau}}{y}(y) \,dy = \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy.
-\end{align} We then update the probability distribution as follows: \begin{align}\label{eq:ud:probabilistic:update}
+    \frac{1}{2} \int_{x_l}^{x_m} \diff[2]{f_{\tau}}{y}(y) \,dy = \beta \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy.
+\end{align} Note that we use \autoref{lemma:switching_cost_absolute_vs_positive_movement} to linearly scale the hitting cost $f_{\tau}$ by $1 / \beta$ to allow for $\beta \neq 1$. We then simply moved the constant factor outside of the derivative and integral. The probability distribution is now updated as follows: \begin{align}\label{eq:ud:probabilistic:update}
     p_{\tau}(x) = \begin{cases}
-        p_{\tau-1}(x) + \frac{1}{2} \diff[2]{f_{\tau}}{x}(x) & x \in [x_l,x_r] \\
+        p_{\tau-1}(x) + \frac{1}{2 \beta} \diff[2]{f_{\tau}}{x}(x) & x \in [x_l,x_r] \\
         0 & \text{otherwise}
     \end{cases}
-\end{align} where $p_0$ assigns all probability mass to the configuration $0$, i.e. $p_0 = \delta$ where \begin{align*}
-    \delta(x) = \begin{cases}
-        \infty & x = 0 \\
-        0 & x \neq 0
-    \end{cases}
-\end{align*} is the \textit{Dirac delta function}\index{Dirac delta function} used as a generalized probability density function \cite{Salasnich2015}.
+\end{align} where $p_0$ assigns the probability mass evenly across all configurations, i.e. $p_0 \sim \text{Unif}(0, m)$ [TODO: is this assumption correct?]. An example for a probability distribution is given in \autoref{fig:probability_distribution_of_probabilistic_algorithm}.
+
+\begin{figure}
+    \centering
+    [TODO]
+
+    \caption{Probability Distribution of Probabilistic Algorithm}
+    \label{fig:probability_distribution_of_probabilistic_algorithm}
+\end{figure}
 
 \subsubsection{The Algorithm}
 
 We observe that, using the fundamental theorem of calculus, $x_r$ constrained by \autoref{eq:ud:probabilistic:right} can be found with the following optimization: \begin{align}\label{eq:ud:probabilistic:right:opt}\begin{aligned}
-    &\max_{x \in \mathcal{X}} &&x \\
+    &\max_{x \in \mathbb{R}} &&x \\
     &\text{subject to}        &&\frac{1}{2} \left(\diff{f_{\tau}}{x}(x) - \diff{f_{\tau}}{x}(x_m)\right) = \int_{x}^{\infty} p_{\tau-1}(y) \,dy \\
     &                         &&x \geq x_m.
 \end{aligned}\end{align} Let the above constraint be represented by $g(x) = h(x)$. It is easy to see that $g$ is monotonically increasing as the first order derivative of the convex function $f_{\tau}$ is monotonically increasing and $x \geq x_m$. Moreover, $h$ is monotonically decreasing as it is the negative of the cumulative distribution function of the probability distribution $p_{\tau-1}$. Hence, $g(x) - h(x)$ is monotonically increasing and as such convex. Thus, the optimization described in \autoref{eq:ud:probabilistic:right:opt} is convex.
 
 With a similar argument we are able to determine $x_l$ constrained by \autoref{eq:ud:probabilistic:left} using the optimization: \begin{align}\label{eq:ud:probabilistic:left:opt}\begin{aligned}
-    &\min_{x \in \mathcal{X}} &&x \\
+    &\min_{x \in \mathbb{R}} &&x \\
     &\text{subject to}        &&\frac{1}{2} \left(\diff{f_{\tau}}{x}(x_m) - \diff{f_{\tau}}{x}(x)\right) = \int_{-\infty}^{x} p_{\tau-1}(y) \,dy \\
     &                         &&x \leq x_m.
 \end{aligned}\end{align} Again, let the above constraint be represented by $g(x) = h(x)$. Recall that the first order derivative of $f_{\tau}$ is monotonically increasing. Therefore, $g$ must now be monotonically decreasing as $x_m \geq x$. Further, $h$ is monotonically increasing as it is the cumulative distribution function of the probability distribution $p_{\tau-1}$. Hence, $h(x) - g(x)$ is monotonically increasing and as such convex. This argument shows that also the optimization described in \autoref{eq:ud:probabilistic:left:opt} is convex.
 
-We use the \textit{five-point stencil}\index{five-point stencil} \begin{align*}
+\paragraph{Numerical Differentiation} We use the \emph{five-point stencil}\index{five-point stencil} \begin{align*}
     \diff{f_{\tau}}{x}(x) \approx \frac{-f_{\tau}(x - 2h) + 8 f_{\tau}(x + h) - 8 f_{\tau}(x - h) + f_{\tau}(x - 2h)}{12h}
-\end{align*} to find a finite difference approximation of order $\mathcal{O}(h)$ of the first order derivative of $f_{\tau}$ at configurations $x \in \mathcal{X}$ \cite{Sauer2011}. To match the accuracy of our convex optimizations we set $h := \epsilon$. To approximate the second order derivative of $f_{\tau}$ at a configuration $x \in \mathcal{X}$ we use \begin{align*}
+\end{align*} to find a finite difference approximation of order $\mathcal{O}(h)$ of the first order derivative of $f_{\tau}$ at configurations $x \in \mathcal{X}$ \cite{Sauer2011}. To match the accuracy of our convex optimizations we set $h := \epsilon / 10$. To approximate the second order derivative of $f_{\tau}$ at a configuration $x \in \mathcal{X}$ we use \begin{align*}
     \diff[2]{f_{\tau}}{x}(x) \approx \frac{-f_{\tau}(x + 2h) + 16 f_{\tau}(x+h) - 30 f_{\tau}(x) + 16 f_{\tau}(x-h) - f_{\tau}(x - 2h)}{12 h^2}
-\end{align*} which yields an approximation of order $\mathcal{O}(h^4)$ \cite{Sauer2011}. Thus, we set $h := \epsilon^{-1/4}$. We are thus able to compute these approximations in $\mathcal{O}(C)$ time.
+\end{align*} which yields an approximation of order $\mathcal{O}(h^4)$ \cite{Sauer2011}. Thus, we set $h := (\epsilon / 10)^{-1/4}$. We are thus able to compute these approximations in $\mathcal{O}(C)$ time.
 
-We use the \textit{double exponential method}\index{double exponential method} (also known as Tanh-sinh quadrature) to compute the integrals over the probability distribution $p$. \citeauthor*{Bailey2005} describe the convergence and error of this method in more detail \cite{Bailey2005}. They conclude that "overall, the tanh-sinh scheme appears to be the best
-for integrands of the type most often encountered in experimental math research" and highlight that it has "excellent accuracy and runtime performance" \cite{Bailey2005}. As this integration scheme is not universal, there potentially exist probability distributions for which the double exponential method is unable to find the integral. In such a case one would have to resort to another integration scheme. We denote the convergence rate of approximating the integral with tolerance $\epsilon$ by $\mathcal{O}(I_{\epsilon})$.
+Next, we describe how the constraints from \autoref{eq:ud:probabilistic:right:opt} and \autoref{eq:ud:probabilistic:left:opt} can be computed numerically.
 
-Note that the computation of $p_{\tau}$ requires $\mathcal{O}(\tau)$ many approximations of the second order derivative of $f_{t}$. Therefore, any evaluation of $p_{\tau}$ requires $\mathcal{O}(\tau C)$ time and we are thus able to compute the $\epsilon$-optimal integral in $\mathcal{O}(\tau C I_{\epsilon})$ time. Overall, the described convex optimizations can be solved $\epsilon$-optimally in $\mathcal{O}(\tau C I_{\epsilon} O_{\epsilon})$ time. This is also the time complexity of the algorithm. This shows that similarly to lazy capacity provisioning, the computational complexity grows linearly with time. However, unlike for lazy capacity provisioning, we do not have a method of regularly resetting the history, rendering this algorithm computationally inefficient in practice. The algorithm is described in \autoref{alg:ud:probabilistic}.
+\paragraph{Numerical Integration} In our implementation we need to compute both finite and semi-infinite integrals over the probability distribution $p$.
+
+We use the \emph{Tanh-sinh quadrature}\index{Tanh-sinh quadrature} (also known as the double exponential method) to compute finite integrals. \citeauthor*{Bailey2005} describe the convergence and error of this method in more detail \cite{Bailey2005}. They conclude that "overall, the tanh-sinh scheme appears to be the best
+for integrands of the type most often encountered in experimental math research" and highlight that it has "excellent accuracy and runtime performance" \cite{Bailey2005}.
+
+For semi-inifinite integrals we use the \emph{Gauss-Laguerre quadrature}\index{Gauss-Laguerre quadrature} which can be used to approximate values of integrals of the kind \begin{align}\label{eq:gauss_laguerre}
+    \int_0^{\infty} e^{-x} f(x) \,dx.
+\end{align} \cite{Weisstein}. It is easy to see that we can eliminate the weights by multiplying the integrand $g$ with $e^x$. Let $\text{GL}(g)$ denote the approximation of \autoref{eq:gauss_laguerre} obtained by the Gauss-Laguerre quadrature. We are then able to compute any right-open integral over the interval $[{a,\infty})$ with integrand $p$ by setting $g(x) := p(a+x)$ and any left-open integral over the interval $({-\infty,b}]$ with integrand $p$ by setting $g(x) := p(b-x)$.
+
+Crucially, for numeric stability in both integration schemes we need that the integrands are continuous. It is easy to see that, in general, this is not the case for our probability distribution $p$. We describe in the following paragraph how integrals can be suitably discretized to allow for stable numeric results. Moreover, as the integration schemes are not universal, there potentially exist probability distributions for which the used quadratures are unable to find the integral. In such a case one would have to resort to another integration scheme. We denote the convergence rate of approximating the integral with tolerance $\epsilon$ by $\mathcal{O}(I_{\epsilon})$.
+
+\paragraph{Discharging the Remaining Assumptions} We have already discharged the assumption that $\beta = 1$. It remains to also discharge the assumption that, first, the decision space is unbounded, and second, to allow for piecewise smooth hitting costs.
+
+From the convexity of the hitting costs it follows that we can translate this algorithm to an algorithm for a bounded decision space by choosing the configuration $m$ if the configuration returned by the algorithm is larger than the upper bound $m$ and, conversely, by choosing the configuration $0$ if the configuration returned by the algorithm is smaller than the lower bound $0$. It is easy to see that, alternatively, by the construction of the probability distribution $p_{\tau}$ it suffices to restrict the feasible regions of the optimization problems from \autoref{eq:ud:probabilistic:right:opt} and \autoref{eq:ud:probabilistic:left:opt} to $\mathcal{X}$ instead of $\mathbb{R}$.
+
+In our description of the adaption to piecewise smooth hitting costs $f_{\tau}$, we refer to the non-continuous or non-smooth points of $f_{\tau}$ as \emph{breakpoints}\index{breakpoint}. For a piecewise smooth function. we are able to discretize the integral into a summation, replace the first order derivative at a breakpoint by the difference of consecutive points, and replace the second order derivative at a point by the difference in slopes of consecutive points \cite{Bansal2015}. Let $B_{f_{\tau}}$ denote the set of breakpoints of $f_{\tau}$. Further, we denote by $x_{\tau,l}$ and $x_{\tau,r}$ the values of $x_l$ and $x_r$ at time $\tau$, respectively. It is easy to see that the set of breakpoints of $p_{\tau}$ is then given by \begin{align*}
+    B_{p_{\tau}} := \{0, m\} \cup \left(B_{f_1} \cup \{x_{1,l}, x_{1,r}\}\right) \cup \dots \cup \left(B_{f_{\tau}} \cup \{x_{\tau,l}, x_{\tau,r}\}\right).
+\end{align*}
+
+Let $B_{p_{\tau}}^I := B_{p_{\tau}} \cap I$. The integral of $p_{\tau}$ over $I \subseteq \mathbb{R} \cup \{-\infty, \infty\}$ can then be computed using the quadrature methods described previously by integrating piecewise: \begin{align*}
+    \int_I p_{\tau}(y) \,dy = \int_{\min I}^{\min B_{p_{\tau}}^I} p_{\tau}(y) \,dy + \int_{\max B_{p_{\tau}}^I}^{\max I} p_{\tau}(y) \,dy + \sum_{(i, j) \in \text{sort}(B_{p_{\tau}}^I)} \int_i^j p_{\tau}(y) \,dy
+\end{align*} where $\text{sort}(A)$ denotes the pairs of consecutive elements of some set $A \subset \mathbb{R}$ in ascending order. We can continue to use finite difference approximations for the first order and second order derivatives.
+
+\paragraph{} Note that the computation of $p_{\tau}$ requires $\mathcal{O}(\tau)$ many approximations of the second order derivative of $f_{t}$. Therefore, any evaluation of $p_{\tau}$ requires $\mathcal{O}(\tau C)$ time and we are thus able to compute the $\epsilon$-optimal integral in $\mathcal{O}(\tau C I_{\epsilon} |B_{p_{\tau}}|) = \mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}|)$ time, assuming $B_{f_{\tau}}$ add a constant number of new breakpoints in each time step and with $B_{f_0}$ denoting the number of breakpoints that is shared between multiple $f_{\tau}$. Overall, the described convex optimizations can be solved $\epsilon$-optimally in $\mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}| O_{\epsilon})$ time. This is also the time complexity of the algorithm. This shows that similarly to lazy capacity provisioning, the computational complexity grows polynomially with time. However, unlike for lazy capacity provisioning, we do not have a method of regularly resetting the history, rendering this algorithm computationally inefficient in practice. The algorithm is described in \autoref{alg:ud:probabilistic}.
 
 \begin{algorithm}
     \caption{Probabilistic algorithm \cite{Bansal2015}}\label{alg:ud:probabilistic}
     \SetKwInOut{Input}{Input}
     \Input{$\mathcal{I}_{\text{SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau})$}
     $x_m \gets \argmin_{x \in \mathcal{X}} f_{\tau}(x)$\;
-    find $x_r$ using the optimization described by \autoref{eq:ud:probabilistic:right:opt}\;
-    find $x_l$ using the optimization described by \autoref{eq:ud:probabilistic:left:opt}\;
+    find $x_r$ using the optimization described by \autoref{eq:ud:probabilistic:right:opt} subject to $x \in \mathcal{X}$\;
+    find $x_l$ using the optimization described by \autoref{eq:ud:probabilistic:left:opt} subject to $x \in \mathcal{X}$\;
     set $p_{\tau}$ based on the update rule in \autoref{eq:ud:probabilistic:update}\;
     \Return $\int_{x_l}^{x_r} y \cdot p_{\tau}(y) \,dy$\;
 \end{algorithm}
 
-Updating the probability distribution $p$ can be done in constant time as this does not require any function evaluations. As discussed in the beginning of this subsection, given a uniformly picked $\gamma \in [0,1]$, the randomized algorithm chooses $X_{\tau}$ (randomly) such that $\int_{-\infty}^{X_{\tau}} p_{\tau}(y) \,dy = \gamma$. In other words, $P_{\tau}(X_{\tau}) \sim \text{Unif}(0,1)$ where $P_{\tau}$ is the cumulative distribution function of $p_{\tau}$. By the universality of the uniform, $X_{\tau}$ is $P_{\tau}$-distributed, i.e. $X_{\tau} \sim P_{\tau}$. Hence, $E X_{\tau} = \int_{x_l}^{x_r} y \cdot p_{\tau}(y) \,dy$ computes the configuration for time slot $\tau$ as $p_{\tau}(y) = 0$ for $y \not\in [x_l, x_r]$. Similarly to the previously discussed integrals, this integral can be computed $\epsilon$-optimally in $\mathcal{O}(\tau C I_{\epsilon})$ time, not affecting the asymptotic time complexity of the algorithm.
+Updating the probability distribution $p$ can be done in constant time as this does not require any function evaluations. As discussed in the beginning of this subsection, given a uniformly picked $\gamma \in [0,1]$, the randomized algorithm chooses $X_{\tau}$ (randomly) such that $\int_{-\infty}^{X_{\tau}} p_{\tau}(y) \,dy = \gamma$. In other words, $P_{\tau}(X_{\tau}) \sim \text{Unif}(0,1)$ where $P_{\tau}$ is the cumulative distribution function of $p_{\tau}$. By the universality of the uniform, $X_{\tau}$ is $P_{\tau}$-distributed, i.e. $X_{\tau} \sim P_{\tau}$. Hence, $E X_{\tau} = \int_{x_l}^{x_r} y \cdot p_{\tau}(y) \,dy$ computes the configuration for time slot $\tau$ as $p_{\tau}(y) = 0$ for $y \not\in [x_l, x_r]$. We then return $E X_{\tau}$. Similarly to the previously discussed integrals, this integral can be computed $\epsilon$-optimally in $\mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}|)$ time, not affecting the asymptotic time complexity of the algorithm.
 
 \subsection{Randomized Integral Relaxation}
 
 \citeauthor*{Albers2018} use the probabilistic algorithm described in \autoref{section:online_algorithms:ud:probabilistic} in their randomized algorithm for Int-SSCO achieving the optimal competitive ratio $2$ \cite{Albers2018}. Roughly, the algorithm works by solving the relaxed problem using the probabilistic algorithm of \citeauthor*{Bansal2015} and then randomly rounding the resulting fractional schedule.
 
-Let $\bar{\mathcal{I}}$ be the fractional relaxation of the instance $\mathcal{I}$ of Int-SSCO and let $\bar{\mathcal{X}}$ denote the decision space of $\bar{\mathcal{I}}$. We denote by $\bar{x}_{\tau} \in \bar{\mathcal{X}}$ the configuration at time $\tau$ chosen by \autoref{alg:ud:probabilistic}. Further, let $\text{frac}(x) = x - \lfloor x \rfloor$ be the fractional part of $x$ and let $\bar{x}'_{\tau-1} = (\bar{x}_{\tau-1})_{\lfloor\bar{x}_{\tau}\rfloor}^{\lceil\bar{x}_{\tau}\rceil}$ be the projection of the preceding configuration onto the discrete interval of the current configuration.
+Let $\bar{\mathcal{I}} = (T, m, \beta, \bar{F})$ with $\bar{F} = (\bar{f}_1, \dots, \bar{f}_T)$ be the fractional relaxation of the instance $\mathcal{I} = (T, m, \beta, F)$ of Int-SSCO and let $\bar{\mathcal{X}} = [0,m]$ denote the decision space of $\bar{\mathcal{I}}$. \citeauthor*{Albers2018} define the relaxed hitting costs $\bar{f}_{\tau} : \bar{\mathcal{X}} \to \mathbb{R}_{\geq 0}$ as the linear interpolation of the integral hitting costs $f_{\tau}$: \begin{align*}
+    \bar{f}_{\tau} := \begin{cases}
+        f_{\tau}(x) & x \in [m]_0 \\
+        (\lceil x \rceil - x) f_{\tau}(\lfloor x \rfloor) + (x - \lfloor x \rfloor) f_{\tau}(\lceil x \rceil) & \text{otherwise}.
+    \end{cases}
+\end{align*} Note that $\bar{f_{\tau}}$ are continuous and piecewise linear with the set of breakpoints $[m]_0$. Hence, we are able to use \autoref{alg:ud:probabilistic} to obtain the configuration $\bar{X}_{\tau} \in \bar{\mathcal{X}}$ at time $\tau$ for the relaxed problem instance  $\bar{\mathcal{I}}$. Further, let $\text{frac}(x) = x - \lfloor x \rfloor$ be the fractional part of $x$ and let $\bar{X}'_{\tau-1} = (\bar{X}_{\tau-1})_{\lfloor\bar{X}_{\tau}\rfloor}^{\lceil\bar{X}_{\tau}\rceil}$ be the projection of the preceding relaxed configuration onto the discrete interval of the current relaxed configuration.
 
-The randomized algorithm distinguishes between time slots where the configuration is increased and time slots where the configuration is decreased. In the first case, i.e. $\bar{x}_{\tau-1} \leq \bar{x}_{\tau}$, if $x_{\tau-1} = \lceil\bar{x}_{\tau}\rceil$  the configuration remains unchanged. Otherwise, $x_{\tau}$ is set to $\lceil\bar{x}_{\tau}\rceil$ with probability \begin{align*}
-    p_{\tau}^{\uparrow} := \frac{\bar{x}_{\tau} - \bar{x}'_{\tau-1}}{1 - \text{frac}(\bar{x}'_{\tau-1})}
-\end{align*} and to $\lfloor\bar{x}_{\tau}\rfloor$ with probability $1 - p_{\tau}^{\uparrow}$. Conversely, if $\bar{x}_{\tau-1} > \bar{x}_{\tau}$, the configuration remains unchanged if $x_{\tau-1} = \lfloor\bar{x}_{\tau}\rfloor$, and otherwise with probability \begin{align*}
-    p_{\tau}^{\downarrow} := \frac{\bar{x}'_{\tau-1} - \bar{x}_{\tau}}{\text{frac}(\bar{x}'_{\tau-1})}
-\end{align*} the configuration is set to $\lfloor\bar{x}_{\tau}\rfloor$ and with probability $p_{\tau}^{\downarrow}$ the configuration is set to $\lceil\bar{x}_{\tau}\rceil$. The resulting algorithm is shown in \autoref{alg:ud:randomized}.
+The randomized algorithm distinguishes between time slots where the configuration is increased and time slots where the configuration is decreased. In the first case, i.e. $\bar{X}_{\tau-1} \leq \bar{X}_{\tau}$, if $X_{\tau-1} = \lceil\bar{X}_{\tau}\rceil$  the configuration remains unchanged. Otherwise, $X_{\tau}$ is set to $\lceil\bar{X}_{\tau}\rceil$ with probability \begin{align*}
+    p_{\tau}^{\uparrow} := \frac{\bar{X}_{\tau} - \bar{X}'_{\tau-1}}{1 - \text{frac}(\bar{X}'_{\tau-1})}
+\end{align*} and to $\lfloor\bar{X}_{\tau}\rfloor$ with probability $1 - p_{\tau}^{\uparrow}$. Conversely, if $\bar{X}_{\tau-1} > \bar{X}_{\tau}$, the configuration remains unchanged if $X_{\tau-1} = \lfloor\bar{X}_{\tau}\rfloor$, and otherwise with probability \begin{align*}
+    p_{\tau}^{\downarrow} := \frac{\bar{X}'_{\tau-1} - \bar{X}_{\tau}}{\text{frac}(\bar{X}'_{\tau-1})}
+\end{align*} the configuration is set to $\lfloor\bar{X}_{\tau}\rfloor$ and with probability $p_{\tau}^{\downarrow}$ the configuration is set to $\lceil\bar{X}_{\tau}\rceil$. The resulting algorithm is shown in \autoref{alg:ud:randomized}.
 
 \begin{algorithm}
     \caption{Randomized integral relaxation \cite{Albers2018}}\label{alg:ud:randomized}
     \SetKwInOut{Input}{Input}
     \Input{$\mathcal{I}_{\text{Int-SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{N}_0 \to \mathbb{R}_{\geq 0})^{\tau})$}
-    $\bar{x}_{\tau} \gets \text{\autoref{alg:ud:probabilistic}}(\bar{\mathcal{I}}_{\text{Int-SSCO}})$\;
-    \eIf{$\bar{x}_{\tau-1} \leq \bar{x}_{\tau}$}{
-        \eIf{$x_{\tau-1} = \lceil\bar{x}_{\tau}\rceil$}{
-            \Return $\lceil\bar{x}_{\tau}\rceil$\;
+    $\bar{X}_{\tau} \gets \text{\autoref{alg:ud:probabilistic}}(\bar{\mathcal{I}}_{\text{Int-SSCO}})$\;
+    \eIf{$\bar{X}_{\tau-1} \leq \bar{X}_{\tau}$}{
+        \eIf{$X_{\tau-1} = \lceil\bar{X}_{\tau}\rceil$}{
+            \Return $\lceil\bar{X}_{\tau}\rceil$\;
         }{
             $\gamma \sim \text{Unif}(0,1)$\;
             \eIf{$\gamma \leq p_{\tau}^{\uparrow}$}{
-                \Return $\lceil\bar{x}_{\tau}\rceil$\;
+                \Return $\lceil\bar{X}_{\tau}\rceil$\;
             }{
-                \Return $\lfloor\bar{x}_{\tau}\rfloor$\;
+                \Return $\lfloor\bar{X}_{\tau}\rfloor$\;
             }
         }
     }{
-        \eIf{$x_{\tau-1} = \lfloor\bar{x}_{\tau}\rfloor$}{
-            \Return $\lfloor\bar{x}_{\tau}\rfloor$\;
+        \eIf{$X_{\tau-1} = \lfloor\bar{X}_{\tau}\rfloor$}{
+            \Return $\lfloor\bar{X}_{\tau}\rfloor$\;
         }{
             $\gamma \sim \text{Unif}(0,1)$\;
             \eIf{$\gamma \leq p_{\tau}^{\downarrow}$}{
-                \Return $\lfloor\bar{x}_{\tau}\rfloor$\;
+                \Return $\lfloor\bar{X}_{\tau}\rfloor$\;
             }{
-                \Return $\lceil\bar{x}_{\tau}\rceil$\;
+                \Return $\lceil\bar{X}_{\tau}\rceil$\;
             }
         }
     }
@@ -186,6 +250,29 @@ The randomized algorithm distinguishes between time slots where the configuratio
 We use the universality of the uniform to simulate Bernoulli-distributed random variables with parameters $p_{\tau}^{\uparrow}$ and $p_{\tau}^{\downarrow}$, respectively. Any pseudo-random number generator can be used to produce the uniformly distributed $\gamma$. It is easy to see that the time complexity is given by the time complexity of \autoref{alg:ud:probabilistic}, i.e. $\mathcal{O}(\tau C I_{\epsilon} O_{\epsilon})$.
 
 \subsection{Randomly Biased Greedy Algorithm}
+
+We have seen many constant-competitive online algorithms for uni-dimensional smoothed convex optimization, however, we have not yet paid much attention to minimizing regret. This is also partially because sublinear regret can be achieved easily using online gradient descent. As this approach generalizes to the multi-dimensional setting, we discuss this approach in \autoref{section:online_algorithms:md:descent_methods} when we look at descent methods more generally.
+
+Still, one important question regarding the uni-dimensional setting remains. Namely, whether there is an algorithmic framework which achieves both a constant-competitive ratio and sublinear regret. Note that while it is impossible to achieve both at the same time, it is possible to develop an algorithmic framework which balances both performance metrics.
+
+In their paper where the incompatibility between the competitive ratio and regret was first introduced, \citeauthor*{Andrew2015} already proposed an algorithmic framework for SCO which balances the two notions in the uni-dimensional setting \cite{Andrew2015}. Their approach is to scale the norm used to penalize movement in the decision space with a parameter $\theta \geq 1$. If $\theta = 1$, i.e. the algorithm solves the original problem, their algorithm is $2$-competitive and has linear regret. Yet, for $\theta > 1$, movement in the decision space is penalized more. This allows to reduce the regret to an arbitrary amount (which still depends linearly on $T$) while maintaining a constant competitive ratio \cite{Andrew2015}.
+
+The algorithm of \citeauthor*{Andrew2015} is initialized with a random parameter $r$ which is uniformly sampled from $({-1,1})$. They define the work function \begin{align}\label{eq:randomly_biased_greedy:work_function}
+    w_{\tau}(x) = \min_{y \in \mathcal{X}} w_{\tau-1}(y) + f_{\tau}(y) + \theta \norm{x - y}
+\end{align} where $w_0(x) = \theta \norm{x}$. During each time slot $\tau$ the algorithm moves to the configuration $x$ minimizing $w_{\tau-1}(x) + r \theta \norm{x}$. The resulting algorithm is described in \autoref{alg:ud:rbg}.
+
+\begin{algorithm}
+    \caption{Randomly Biased Greedy \cite{Andrew2015}}\label{alg:ud:rbg}
+    \SetKwInOut{Input}{Input}
+    \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau}), \theta \geq 1, r \in ({-1,1})$}
+    $x \gets \argmin_{x \in \mathcal{X}} w_{\tau-1}(x) + r \theta \norm{x}$\;
+    set $w_{\tau}$ as described in \autoref{eq:randomly_biased_greedy:work_function}\;
+    \Return $x$\;
+\end{algorithm}
+
+\citeauthor*{Andrew2015} show that given a $\theta \geq 1$ their algorithm attains the $\alpha$-unfair competitive ratio $(1+\theta) / \min \{\theta, \alpha\}$ and regret $\mathcal{O}(\max \{T / \theta, \theta\})$. Hence, for $\alpha = 1$ and $\theta = 1$ the algorithm is $2$-competitive. For any $alpha > 0$, the optimal $alpha$-unfair competitive ration is $1 + 1 / \alpha$ and obtained by setting $\theta = \alpha$ \cite{Andrew2015}. In contrast, $\theta = 1 / \epsilon$ for some $\epsilon > 0$ yields the minimal regret $\mathcal{O}(\epsilon T)$ \cite{Andrew2015}. In general, \citeauthor*{Andrew2015} show that for $\theta \in \mathcal{O}(\sqrt{T})$, their algorithm achieves a $\mathcal{O}(\sqrt{T})$ $\alpha$-unfair competitive ratio and $\mathcal{O}(\sqrt{T})$ regret \cite{Andrew2015}.
+
+It is easy to see that the work function itself is convex as it can be interpreted as the inf-projection of the convex function $f(x,y) = w_{\tau-1}(y) + f_{\tau}(y) + \theta \norm{x - y}$. This fact is shown in proposition 2.22 of \cite{Burke2015}. The evaluation of $w_{\tau}$ requires $\mathcal{O}(\tau)$ recursive evaluations of the work function each of which use a convex optimization and evaluates the hitting costs. Thus, an $\epsilon$-optimal evaluation of $w_{\tau}$ can be obtained in $\mathcal{O}(\tau C O_{\epsilon})$ time. Thus the overall time complexity of the algorithm is in $\mathcal{O}(\tau C O_{\epsilon}^2)$.
 
 \section{Multi-Dimensional}\label{section:online_algorithms:md}
 
@@ -211,7 +298,7 @@ We use the universality of the uniform to simulate Bernoulli-distributed random 
 
 \subsection{Prediction Window}
 
-A natural model to allow incorporating predictions is the use of a finite prediction window $w$. A prediction window bridges the gap between offline and online algorithms. Whereas an online algorithm only knows the hitting costs $f_t$ for $t \in [\tau]$ and an offline algorithm knows the hitting costs $f_t$ for all $t \in [T]$, an online algorithm with \emph{prediction window}\index{prediction window} of length $w$ knows all hitting costs $f_t$ up to $\tau + w$, i.e. $t \in [\tau + w]$. In other words, the prediction window $w$ represents the number of upcoming time slots the algorithm has perfect knowledge of the future.
+A natural model to allow incorporating predictions is the use of a finite prediction window $w$. A prediction window bridges the gap between offline and online algorithms. Whereas an online algorithm only knows the hitting costs $f_t$ for $t \in [\tau]$ and an offline algorithm knows the hitting costs $f_t$ for all $t \in [T]$, an online algorithm with \emph{prediction window}\index{prediction window} of length $w$ knows all hitting costs $f_t$ up to $\tau + w$, i.e. $t \in [\tau + w]$. In other words, the prediction window $w$ represents the number of upcoming time slots at which the algorithm is assumed to have perfect knowledge of the future.
 
 \subsubsection{Lazy Capacity Provisioning with Prediction Window}
 

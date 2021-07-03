@@ -125,7 +125,7 @@ A good model of the queueing discipline of a server is the \emph{Round Robin}\in
 
 A single server modeled by the PS discipline and operating according to Poisson-distributed arrivals has the nice property that its queue length distribution is geometric irrespectively of the service time distribution \cite{Aalto2007}. In other words, the average delay in a PS queue is insensitive to the service time distribution.
 
-Let $X \sim Po(\lambda)$ be the number of arriving jobs per time unit with rate $\lambda$. The expected delay $E(T)$ of a PS queue is then given as \begin{align}\label{eq:avg_delay}
+Let $X \sim \text{Po}(\lambda)$ be the number of arriving jobs per time unit with rate $\lambda$. The expected delay $E(T)$ of a PS queue is then given as \begin{align}\label{eq:avg_delay}
     E(T) = \frac{1/\mu}{1-\rho} = \frac{1}{\mu - \lambda}
 \end{align} where $\mu = C / E(X) = C / \lambda$ is the service rate of the server and $\rho = \lambda / \mu$ is the parameter to the geometric queue length distribution \cite{Virtamo2007}. The PS discipline can be considered utmost egalitarian as the average delay of any job in our system is directly proportional to the total number of jobs but does not depend on the type of the job \cite{Virtamo2007}.
 

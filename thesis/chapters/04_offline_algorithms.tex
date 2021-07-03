@@ -3,9 +3,9 @@
 
 \chapter{Offline Algorithms}\label{chapter:offline_algorithms}
 
-To later measure the performance of online algorithms, we must first describe efficient offline algorithms that can be used to find optimal (or nearly optimal) solutions. In this chapter, we therefore describe algorithms for fractional and integral smoothed convex optimization. We begin with a general argument on the fractional case. Then, we turn to specific algorithms described in the literature for the uni-dimensional and multi-dimensional settings.
+To later measure the performance of online algorithms, we must first describe efficient offline algorithms that can be used to find optimal (or nearly optimal) solutions. In this chapter, we therefore describe algorithms for fractional and integral smoothed convex optimization. We begin with a general investigation of (fractional) convex optimization. Then, we turn to specific algorithms described in the literature for the uni-dimensional and multi-dimensional settings.
 
-In our general argument we want to use that the cost function $c_{\text{SCO}}$ is convex on $\mathcal{X}^T$.
+In our general argument we want to use that the cost function $c_{\text{SCO}}$ is convex on $\mathcal{X}^T$ implying that algorithms for convex optimization can be used to optimally solve the fractional offline case.
 
 \begin{lemma}
 $c_{\text{SCO}}(X) = \sum_{t=1}^T f_t(X_t) + \norm{X_t - X_{t-1}}$ is convex on $\mathcal{X}^T$.
@@ -16,9 +16,13 @@ By definition $f_t$ is convex on $\mathcal{X}$. Every norm $\norm{\cdot}$ on $\m
 \end{align*} In total we get that the sum of convex functions is also convex.
 \end{proof}
 
+\section{Convex Optimization}
+
 As the offline variant of SCO is simply the problem of minimizing $c_{\text{SCO}}$ it is easy to see that we can use a convex optimization solver to obtain the optimal schedule $\hat{X}$. Throughout our discussion of algorithms, we denote schedules by $X$ and optimal solutions by $\hat{\cdot}$. Further, as we do not impose any constraints beyond the bounds of the decision space $\mathcal{X} \subset \mathbb{R}^d$ it suffices to find the local optimum of $c_{\text{SCO}}$ with respect to $\mathcal{X}$. By the convexity of $c_{\text{SCO}}$ we know that any local optimum will also be a global optimum \cite{Bubeck2015}. We are able to choose the algorithm for finding the local optimum based on our knowledge of the properties of $c_{\text{SCO}}$. If, for example, $c_{\text{SCO}}$ is differentiable on $\mathcal{X}$ we could use gradient descent. In general, even if we cannot be sure of the differentiability of $c_{\text{SCO}}$ we can always find a subgradient in the interior of $\mathcal{X}$ \cite{Bubeck2015}. We denote by $\partial c_{\text{SCO}}(x)$ the set of subgradients of $c_{SCO}$ at the point $x \in \mathcal{X}$.
 
 We are interested in finding good approximations of $\hat{x}$. To that end, we call a solution $\hat{x}$ \emph{$\epsilon$-optimal}\index{$\epsilon$-optimal solution} if $\norm{g(\hat{x})}^2 \leq \epsilon$ where $g \in \partial c_{\text{SCO}}(\hat{x})$. Using the projected subgradient method we are able to find an $\epsilon$-optimal solution $\hat{x}$ in $\mathcal{O}(1 / \epsilon^2)$ iterations \cite{Boyd2003}. Note that this convergence rate is dimension-independent.
+
+In our implementation we use two different algorithms for derivative-free local optimization developed by \citeauthor*{Powell2009}. We use the BOBYQA algorithm which iteratively constructs a quadratic approximation of the objective function in case there are no equality or inequality constraints beyond the bounds on the decision space \cite{Powell2009}. If we impose such constraints, we use the COBYLA (Constrained Optimization BY Linear Approximations) algorithm which iteratively constructs linear approximations of the objective functions and approximates constraints using a simplex in $d+1$ dimensions \cite{Powell1994, Powell1998}. The implementations are provided by the NLopt library \cite{Johnson}.
 
 We have seen a general method of solving high-dimensional (fractional) SCO, though the convergence rate could be increased by using an accelerated gradient method in case the hitting costs are strongly convex or conditional gradient descent in case the hitting costs are smooth \cite{Bubeck2015}. Denoting the complexity of computing the hitting cost $f_t$ by $\mathcal{O}(C)$ and the convergence rate by $\mathcal{O}(O_{\epsilon})$ we obtain a total complexity of $\mathcal{O}(T C O_{\epsilon})$. We observe, however, that our method does not extend to the integral case which is of particular importance for the application of right-sizing data centers. We therefore devote much of the remaining chapter to the discussion of algorithms for integral variants of SCO.
 
@@ -30,18 +34,18 @@ We now limit our attention to the uni-dimensional setting, i.e. $\mathcal{X} \su
 
 Before we begin discussing algorithms for Int-SSCO, we discuss a simple backward-recurrent algorithm for SSCO proposed by \citeauthor*{Lin2011} based on the idea of capacity provisioning \cite{Lin2011}. They extend this idea to formulate an online algorithm which we discuss in \autoref{section:online_algorithms:ud:lazy_capacity_provisioning}.
 
-\citeauthor*{Lin2011} observed that the optimal offline solution can be characterized by two bounds which correspond to charging the switching cost for powering-up and powering-down servers, respectively. Let $\tau \in [T]$ be a time slot. Then the optimal offline solution $\hat{X}_{\tau}$ during time slot $\tau$ is lower bounded by $X_{\tau,\tau}^L$ where $X_{\tau}^L$ is the smallest vector minimizing \begin{align*}
+\citeauthor*{Lin2011} observed that the optimal offline solution can be characterized by two bounds which correspond to charging the switching cost for powering-up and powering-down servers, respectively. Let $\tau \in [T]$ be a time slot. Then the optimal offline solution $\hat{X}_{\tau}$ during time slot $\tau$ is lower bounded by $X_{\tau,\tau}^L$ where $X_{\tau}^L$ is the smallest vector minimizing \begin{align}\label{eq:ud:brcp:lower}
     c_{\tau}^L(X) = \sum_{t=1}^{\tau} f_t(X_t) + \beta (X_t - X_{t-1})^+.
-\end{align*} Conversely, $\hat{X}_{\tau}$ is upper bounded by $X_{\tau,\tau}^U$ where $X_{\tau}^U$ is the largest vector minimizing \begin{align*}
+\end{align} Conversely, $\hat{X}_{\tau}$ is upper bounded by $X_{\tau,\tau}^U$ where $X_{\tau}^U$ is the largest vector minimizing \begin{align}\label{eq:ud:brcp:upper}
     c_{\tau}^L(X) = \sum_{t=1}^{\tau} f_t(X_t) + \beta (X_{t-1} - X_t)^+.
-\end{align*} Overall we have $X_{\tau,\tau}^L \leq \hat{X}_{\tau} \leq X_{\tau,\tau}^U$ \cite{Lin2011}. Note that in the case of the lower bound the switching cost is paid for powering-up a server while in the case of the upper bound the switching cost is paid for powering-down a server. Further, it is easy to see that the bounds for time slot $\tau$ do not depend on any time slots $t > \tau$.
+\end{align} Overall we have $X_{\tau,\tau}^L \leq \hat{X}_{\tau} \leq X_{\tau,\tau}^U$ \cite{Lin2011}. Note that in the case of the lower bound the switching cost is paid for powering-up a server while in the case of the upper bound the switching cost is paid for powering-down a server. Further, it is easy to see that the bounds for time slot $\tau$ do not depend on any time slots $t > \tau$.
 
 An optimal offline algorithm can therefore be described as determining the optimal schedule moving backwards in time. We begin by setting $\hat{X}_{T+1} = 0$. For each previous time slot $\tau$, we set $\hat{X}_{\tau} = \hat{X}_{\tau + 1}$ unless this violates the bounds, in which case we make the smallest possible change: \begin{align*}
     \hat{X}_{\tau} = \begin{cases}
         0 & \tau > T \\
         (\hat{X}_{\tau+1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U} & \tau \leq T
     \end{cases}
-\end{align*} where $(\hat{X}_{\tau+1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$ is the projection of $\hat{X}_{\tau+1}$ onto $[X_{\tau,\tau}^L, X_{\tau,\tau}^U]$ \cite{Lin2011}. The resulting algorithm is described in \autoref{alg:brcp}. We are able to use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(T^2 C O_{\epsilon})$ for $\epsilon$-optimal upper and lower bounds.
+\end{align*} where $(\hat{X}_{\tau+1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$ is the projection of $\hat{X}_{\tau+1}$ onto $[X_{\tau,\tau}^L, X_{\tau,\tau}^U]$ \cite{Lin2011}. The resulting algorithm is described in \autoref{alg:brcp}. We are able to use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(T^2 C O_{\epsilon})$ for $\epsilon$-optimal upper and lower bounds. An example of Backward-Recurrent Capacity Provisioning is given in \autoref{fig:backward_recurrent_capacity_provisioing_vs_lazy_capacity_provisioning}.
 
 \begin{algorithm}
     \caption{Backward-Recurrent Capacity Provisioning \cite{Lin2011}}\label{alg:brcp}
@@ -49,6 +53,8 @@ An optimal offline algorithm can therefore be described as determining the optim
     \Input{$\mathcal{I}_{\text{SSCO}} = (T \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_T) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^T)$}
     $\hat{X}_{T+1} \gets 0$\;
     \For{$\tau \gets T$ \KwTo $1$}{
+        find $X_{\tau,\tau}^L$ using the optimization described by \autoref{eq:ud:brcp:lower}\;
+        find $X_{\tau,\tau}^U$ using the optimization described by \autoref{eq:ud:brcp:upper}\;
         $\hat{X}_{\tau} \gets (\hat{X}_{\tau+1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$\;
     }
     \Return $\hat{X}$\;
@@ -56,13 +62,20 @@ An optimal offline algorithm can therefore be described as determining the optim
 
 \subsection{Graph-Based Optimal Integral Algorithm}\label{section:offline_algorithms:ud:graph_based}
 
-We now turn to the uni-dimensional integral case of simplified smoothed convex optimization, i.e. our decision space is given as $\mathcal{X} := [m]_0$ where $m \in \mathbb{N}$ is the maximum number of servers a data center can employ at the same time. As our decision space is discrete and finite, it is natural to model our problem as a weighted directed graph which is comprised of vertices $v_{t,j}$ for each $t \in [T]$ and $j \in [m]_0$ describing the state that during time slot $t$ exactly $j$ servers are active. For the initial and final state $X_0 = X_{T+1} = 0$ we have two additional vertices $v_{0,0}$ and $v_{T+1,0}$. For each vertice associated with time slot $t \in [T]_0$ we add an edge to all vertices associated with the subsequent time slot $t + 1$. With each edge from $v_{t,i}$ to $v_{t+1,j}$ we associate the switching cost incurred by the represented action, i.e. $\beta (j - i)^+$, and the hitting cost incurred by the state represented by the vertice $v_{t+1,j}$, i.e. $f_{t+1}(j)$. The structure of this graph is presented in [TODO: add figure].
+We now turn to the uni-dimensional integral case of simplified smoothed convex optimization, i.e. our decision space is given as $\mathcal{X} := [m]_0$ where $m \in \mathbb{N}$ is the maximum number of servers a data center can employ at the same time. As our decision space is discrete and finite, it is natural to model our problem as a weighted directed graph which is comprised of vertices $v_{t,j}$ for each $t \in [T]$ and $j \in [m]_0$ describing the state that during time slot $t$ exactly $j$ servers are active. For the initial and final state $X_0 = X_{T+1} = 0$ we have two additional vertices $v_{0,0}$ and $v_{T+1,0}$. For each vertice associated with time slot $t \in [T]_0$ we add an edge to all vertices associated with the subsequent time slot $t + 1$. With each edge from $v_{t,i}$ to $v_{t+1,j}$ we associate the switching cost incurred by the represented action, i.e. $\beta (j - i)^+$, and the hitting cost incurred by the state represented by the vertice $v_{t+1,j}$, i.e. $f_{t+1}(j)$. The structure of this graph is presented in \autoref{fig:underlying_graph_of_uni_dimensional_integral_offline_algorithm}.
+
+\begin{figure}
+    \centering
+    [TODO]
+    \caption{Underlying Graph of Uni-Dimensional Integral Offline Algorithm}
+    \label{fig:underlying_graph_of_uni_dimensional_integral_offline_algorithm}
+\end{figure}
 
 \citeauthor*{Albers2018} show that an optimal schedule is given by the shortest path from $v_{0,0}$ to $v_{T+1,0}$ within our constructed graph \cite{Albers2018}. We observe that our graph follows a special structure. Each vertice representing an action during time slot $t$ can only be reached by a path that includes precisely one vertice representing time slots $0$ through $t - 1$ and, crucially, whether this path is optimal up to time $t$ does not depend on any time slot past $t$. Bellman's principle of optimality states that any part of an optimal path must itself be optimal \cite{Bellman1954}. Based on this principle and using our previous observation we are able to use dynamic programming to sequentially determine the optimal paths to the vertices of time slot $t$.
 
 Moreover, we observe a second property of the graph of interest. Namely, for each time slot $t \in [T]$ (in the following called columns) the graph has exactly $m$ vertices (in the following called rows) which can only be reached through edges from vertices representing time slot $t - 1$ and all outgoing edges lead to vertices representing time slot $t + 1$. We are therefore able to iteratively solve the problem of finding a shortest path for subgraphs of our original graph using binary search. During each iteration we only consider a constant number of rows.
 
-To simplify the selection of rows, the algorithms assumes $m$ to be a power of two. Instances where $m$ is not a power of two can be transformed by choosing $m' = 2^{\lceil \log_2 m \rceil}$ and \begin{align*}
+To simplify the selection of rows, the algorithm assumes $m$ to be a power of two. Instances $\mathcal{I} = (T, m, \beta, F)$ where $m$ is not a power of two can be transformed into an instance $\mathcal{I}' = (T, m', \beta, F')$ with $m' = 2^{\lceil \log_2 m \rceil}$, $F' = (f'_1, \dots f'_T)$, and \begin{align*}
     f'_t(x) = \begin{cases}
         f_t(x) & x \leq m \\
         x (f_t(m) + \epsilon) & \text{otherwise} \\
@@ -106,9 +119,16 @@ To simplify the selection of rows, the algorithms assumes $m$ to be a power of t
 
 \subsection{Graph-Based Optimal Integral Algorithm}
 
-We now lift the restriction on $d$ and also consider multi-dimensional instances of Int-SSCO. Again, an intuitive approach is to model the offline problem using a graph. Previously, with $d = 1$, the vertices where arranged in a two-dimensional grid (time being the first dimension). We now arrange the vertices in a $(d+1)$-dimensional grid. We call $x = (x_1, \dots, x_d) \in \mathcal{M}$ a \emph{configuration}\index{configuration} where $M_k := [m_k]_0$ and $\mathcal{M} := M_1 \times \dots \times M_d = \mathcal{X}$ is the set of all configurations. For each configuration $x$ and each time slot $t$ we introduce two vertices. $v_{t,x}^{\uparrow}$ represents the configuration in the beginning of time slot $t$ while $v_{t,x}^{\downarrow}$ represents the configuration at the end of time slot $t$. Thus, the first dimension has $2 T$ \emph{layers} where each layer only consists of powering-up or powering-down vertices.
+We now lift the restriction on $d$ and also consider multi-dimensional instances of Int-SSCO. Again, an intuitive approach is to model the offline problem using a graph. Previously, with $d = 1$, the vertices where arranged in a two-dimensional grid (time being the first dimension). We now arrange the vertices in a $(d+1)$-dimensional grid. We call $x = (x_1, \dots, x_d) \in \mathcal{M}$ a \emph{configuration}\index{configuration} (also called a state in the literature) where $M_k := [m_k]_0$ and $\mathcal{M} := M_1 \times \dots \times M_d = \mathcal{X}$ is the set of all configurations. For each configuration $x$ and each time slot $t$ we introduce two vertices. $v_{t,x}^{\uparrow}$ represents the configuration in the beginning of time slot $t$ while $v_{t,x}^{\downarrow}$ represents the configuration at the end of time slot $t$. Thus, the first dimension has $2 T$ \emph{layers} where each layer only consists of powering-up or powering-down vertices.
 
-In our graph we have edges $e_{t,x,k}^{\uparrow}$ representing the powering-up of a server of type $k$ in the beginning of time slot $t$, edges $e_{t,x}^{\text{op}}$ representing operating configuration $x$ during time slot $t$, edges $e_{t,x,k}^{\downarrow}$ representing the powering-down of a server of type $k$ at the end of time slot $t$, and edges $e_{t,x}^{\rightarrow}$ transitioning to the next time slot. For each $k \in [d]$ and $x = (x_1, \dots, x_d) \in [m_1]_0 \times \dots \times [m_k - 1]_0 \times \dots \times [m_d]_0$ let $x' = (x_1, \dots, x_k + 1, \dots, x_d)$. We add an edge $e_{t,x,k}^{\uparrow}$ between $v_{t,x}^{\uparrow}$ and $v_{t,x'}^{\uparrow}$ with weight $\beta_k$ and another edge $e_{t,x,k}^{\downarrow}$ between $v_{t,x'}^{\downarrow}$ and $v_{t,x}^{\downarrow}$ with weight $0$. For each time slot $t \in [T]$ and $x \in \mathcal{M}$, we add the edge $e_{t,x}^{\text{op}}$ from $v_{t,x}^{\uparrow}$ to $v_{t,x}^{\downarrow}$ with weight $f_t(x)$. Lastly, for each $t \in [T-1]$ and $x \in \mathcal{M}$, we add the edge $e_{t,x}^{\rightarrow}$ from $v_{t,x}^{\downarrow}$ to $v_{t+1,x}^{\uparrow}$ with weight $0$.  To simplify the algorithm we add an additional vertice $v_{T+1,\mathbf{0}}^{\uparrow}$ which can be reached through the edge $e_{t,\mathbf{0}}^{\rightarrow}$ from $v_{t,\mathbf{0}}^{\downarrow}$. The structure of this graph is presented in [TODO: add figure].
+In our graph we have edges $e_{t,x,k}^{\uparrow}$ representing the powering-up of a server of type $k$ in the beginning of time slot $t$, edges $e_{t,x}^{\text{op}}$ representing operating configuration $x$ during time slot $t$, edges $e_{t,x,k}^{\downarrow}$ representing the powering-down of a server of type $k$ at the end of time slot $t$, and edges $e_{t,x}^{\rightarrow}$ transitioning to the next time slot. For each $k \in [d]$ and $x = (x_1, \dots, x_d) \in [m_1]_0 \times \dots \times [m_k - 1]_0 \times \dots \times [m_d]_0$ let $x' = (x_1, \dots, x_k + 1, \dots, x_d)$. We add an edge $e_{t,x,k}^{\uparrow}$ between $v_{t,x}^{\uparrow}$ and $v_{t,x'}^{\uparrow}$ with weight $\beta_k$ and another edge $e_{t,x,k}^{\downarrow}$ between $v_{t,x'}^{\downarrow}$ and $v_{t,x}^{\downarrow}$ with weight $0$. For each time slot $t \in [T]$ and $x \in \mathcal{M}$, we add the edge $e_{t,x}^{\text{op}}$ from $v_{t,x}^{\uparrow}$ to $v_{t,x}^{\downarrow}$ with weight $f_t(x)$. Lastly, for each $t \in [T-1]$ and $x \in \mathcal{M}$, we add the edge $e_{t,x}^{\rightarrow}$ from $v_{t,x}^{\downarrow}$ to $v_{t+1,x}^{\uparrow}$ with weight $0$.  To simplify the algorithm we add an additional vertice $v_{T+1,\mathbf{0}}^{\uparrow}$ which can be reached through the edge $e_{t,\mathbf{0}}^{\rightarrow}$ from $v_{t,\mathbf{0}}^{\downarrow}$. The structure of this graph is presented in \autoref{fig:underlying_graph_of_the_multi_dimensional_integral_offline_algorithm}.
+
+\begin{figure}
+    \centering
+    [TODO]
+    \caption{Underlying Graph of the Multi-Dimensional Integral Offline Algorithm}
+    \label{fig:underlying_graph_of_the_multi_dimensional_integral_offline_algorithm}
+\end{figure}
 
 Any path from $v_{0,\mathbf{0}}^{\uparrow}$ to $v_{T,\mathbf{0}}^{\downarrow}$ must traverse exactly one edge $e_{t,x}^{\text{op}}$ for each time slot $t \in [T]$. The \emph{induced schedule} $X^P$ by a path $P$ assigns each time slot $t$ the configuration $x$ of the traversed edge $e_{t,x}^{\text{op}}$. \citeauthor*{Albers2021_2} show that a shortest path from $v_{0,\mathbf{0}}^{\uparrow}$ to $v_{T,\mathbf{0}}^{\downarrow}$ induces an optimal schedule \cite{Albers2021_2}. They also show that the cost of any induced schedule $X^P$ is given by the cost of the path $P$ when the sub-path between $v_{t,X_t^P}^{\downarrow}$ and $v_{t+1,X_{t+1}^P}^{\uparrow}$ is the shortest sub-path for all $t \in [T-1]$.
 
@@ -177,7 +197,14 @@ $x_{k \gets j}$ denotes the update of configuration $x$ in dimension $k$ to the 
     \Return $(\hat{X}, \hat{c})$\;
 \end{function}
 
-The \autoref{proc:md:optimal_graph_search:update_paths} determines the shortest path to $v$ through its predecessors $E$ and updates the optimal schedule $\hat{X}^v$ (if necessary) and optimal cost $\hat{c}^v$. [TODO: add figure depicting graph with an optimal schedule as an example]
+The \autoref{proc:md:optimal_graph_search:update_paths} determines the shortest path to $v$ through its predecessors $E$ and updates the optimal schedule $\hat{X}^v$ (if necessary) and optimal cost $\hat{c}^v$. \autoref{fig:an_optimal_schedule_found_by_the_multi_dimensional_integral_offline_algorithm} shows an example for a shortest path in the underlying graph.
+
+\begin{figure}
+    \centering
+    [TODO]
+    \caption{An Optimal Schedule found by the Multi-Dimensional Integral Offline Algorithm}
+    \label{fig:an_optimal_schedule_found_by_the_multi_dimensional_integral_offline_algorithm}
+\end{figure}
 
 \ref{proc:md:optimal_graph_search:update_paths} runs in $\mathcal{O}(|E|)$ time. Assuming $d$ is a constant, $|E| \in \mathcal{O}(1)$ and thus \ref{proc:md:optimal_graph_search:handle_first_layer} runs in $\mathcal{O}(|\mathcal{M}|)$ time while \ref{proc:md:optimal_graph_search:handle_second_layer} runs in $\mathcal{O}(|\mathcal{M}| C)$ time. Therefore, the overall time complexity of \autoref{alg:md:optimal_graph_search} is in $\mathcal{O}(T |\mathcal{M}| C)$ where $\mathcal{O}(T |\mathcal{M}|)$ is the size of the underlying graph. Note, that this running time is not polynomial in the size of the problem instance which is given by $\mathcal{O}(T + \sum_{k=1}^d \log_2 m_k)$ as $|\mathcal{M}| \in \mathcal{O}(\prod_{k=1}^d m_k)$. For this reason, \citeauthor*{Albers2021_2} developed an approximation algorithm which we discuss next.
 
@@ -186,7 +213,16 @@ The \autoref{proc:md:optimal_graph_search:update_paths} determines the shortest 
 \citeauthor*{Albers2021_2} extend the graph-based algorithm from the previous section to a polynomial-time approximation scheme \cite{Albers2021_2}. Their algorithm is a generalization of an approximation algorithm that was previously proposed by \citeauthor*{Kappelmann2017} \cite{Kappelmann2017}. The idea is to restrict the possible values of $x_{t,k}$. In addition to requiring $x_{t,k} \in [m_k]_0$, we also require $x_{t,k}$ to be a power of some $\gamma > 1$. The possible numbers of active servers of type $k$ is now given as \begin{align*}
     M_k^{\gamma} := &\{0, m_k\} \cup \{\lfloor\gamma^i\rfloor \in [m_k]_0 \mid i \in \mathbb{N}\} \cup \{\lceil\gamma^i\rceil \in [m_k]_0 \mid i \in \mathbb{N}\} \\
                     &\{0, \lfloor\gamma^1\rfloor, \lceil\gamma^1\rceil, \lfloor\gamma^2\rfloor, \lceil\gamma^2\rceil, \dots, m_k\}.
-\end{align*} It is easy to see that the ratio between two consecutive values in the ordered set $M_k^{\gamma}$ is not larger than $\gamma$. Also, $|M_k^{\gamma}| \in \mathcal{O}(\log_{\gamma} m_k)$. We define $\mathcal{M}^{\gamma} := M_1^{\gamma} \times \dots \times M_d^{\gamma}$ which results in $|\mathcal{M}^{\gamma}| \in \mathcal{O}(\prod_{k=1}^d \log_{\gamma} m_k)$. [TODO: add figure showing the optimal schedule vs a schedule using $\gamma = 2$]
+\end{align*} It is easy to see that the ratio between two consecutive values in the ordered set $M_k^{\gamma}$ is not larger than $\gamma$. Also, $|M_k^{\gamma}| \in \mathcal{O}(\log_{\gamma} m_k)$. We define $\mathcal{M}^{\gamma} := M_1^{\gamma} \times \dots \times M_d^{\gamma}$ which results in $|\mathcal{M}^{\gamma}| \in \mathcal{O}(\prod_{k=1}^d \log_{\gamma} m_k)$. \autoref{fig:a_schedule_found_by_the_multi_dimensional_integral_offline_approximation_algorithm} shows an example for a schedule found by the approximation algorithm compared to an optimal schedule.
+
+\begin{figure}
+    \centering
+    [TODO]
+
+    A comparison of the optimal schedule and a schedule found by the approximation algorithm with $\gamma = 2$.
+    \caption{A Schedule found by the Multi-Dimensional Integral Offline Approximation Algorithm}
+    \label{fig:a_schedule_found_by_the_multi_dimensional_integral_offline_approximation_algorithm}
+\end{figure}
 
 Let $G^{\gamma}$ be the described graph parametrized by $\gamma > 1$. \citeauthor*{Albers2021_2} show that given a shortest path $P^{\gamma}$ in $G^{\gamma}$, its induced schedule $X^{P^{\gamma}}$ is a $(2\gamma + 1)$-approximation of the optimal schedule $\hat{x}$ \cite{Albers2021_2}. Further, the total number of vertices in $G^{\gamma}$ is \begin{align*}
     \mathcal{O}(T |\mathcal{M}|^{\gamma}) = \mathcal{O}(T \prod_{k=1}^d \log_{1+\epsilon} m_k)
