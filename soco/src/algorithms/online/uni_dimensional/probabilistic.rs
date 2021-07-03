@@ -11,7 +11,7 @@ use crate::problem::{
 };
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
-use crate::utils::{assert, project};
+use crate::utils::assert;
 use std::sync::Arc;
 
 /// Probability distribution.
@@ -63,7 +63,6 @@ pub fn probabilistic<'a>(
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
 
-    let upper_bound = o.p.bounds[0];
     let breakpoints = options.breakpoints.add(&prev_m.breakpoints);
     let prev_p = prev_m.p;
 
@@ -73,11 +72,7 @@ pub fn probabilistic<'a>(
     let x_r = find_right_bound(&o, t, &breakpoints, &prev_p, x_m)?;
     let x_l = find_left_bound(&o, t, &breakpoints, &prev_p, x_m)?;
 
-    let x = project(
-        expected_value(&breakpoints, &prev_p, x_l, x_r)?,
-        0.,
-        upper_bound,
-    );
+    let x = expected_value(&breakpoints, &prev_p, x_l, x_r)?;
 
     let p: Arc<dyn Fn(f64) -> f64> = Arc::new(move |x| {
         if x >= x_l && x <= x_r {
@@ -109,7 +104,7 @@ fn find_right_bound(
     prev_p: &Distribution,
     x_m: f64,
 ) -> Result<f64> {
-    let bounds = vec![(x_m, f64::INFINITY)];
+    let bounds = vec![(x_m, o.p.bounds[0])];
     let objective = |x: &[f64]| x[0];
     let constraint = Arc::new(|x: &[f64]| -> f64 {
         let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
@@ -134,7 +129,7 @@ fn find_left_bound(
     prev_p: &Distribution,
     x_m: f64,
 ) -> Result<f64> {
-    let bounds = vec![(f64::NEG_INFINITY, x_m)];
+    let bounds = vec![(0., x_m)];
     let objective = |x: &[f64]| x[0];
     let constraint = Arc::new(|x: &[f64]| -> f64 {
         let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
