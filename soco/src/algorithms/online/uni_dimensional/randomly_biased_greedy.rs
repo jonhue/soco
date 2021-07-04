@@ -40,6 +40,7 @@ pub fn rbg(
 ) -> Result<FractionalStep<Memory>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
+    println!("r={};theta={}", m.r, options.theta);
 
     let x = next(o, t, m.r, options.theta)?;
     Ok(Step(Config::single(x), None))

@@ -3,12 +3,9 @@ mod rbg {
     use soco::algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Options,
     };
-    use soco::config::Config;
-    use soco::convert::DiscretizableSchedule;
     use soco::cost::CostFn;
     use soco::norm::manhattan;
     use soco::problem::{Online, SmoothedConvexOptimization};
-    use soco::schedule::Schedule;
     use std::sync::Arc;
 
     #[test]
@@ -31,8 +28,6 @@ mod rbg {
                 &o.p.bounds.into_iter().map(|(_, m)| m).collect(),
             )
             .unwrap();
-
-        assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(1)]));
     }
 
     #[test]
@@ -53,10 +48,5 @@ mod rbg {
             .0
             .verify(t_end, &o.p.bounds.into_iter().map(|(_, m)| m).collect())
             .unwrap();
-
-        assert_eq!(
-            result.0.to_i(),
-            Schedule::new(vec![Config::single(1), Config::single(1)])
-        );
     }
 }
