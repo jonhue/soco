@@ -16,7 +16,7 @@ pub struct Options<'a> {
     /// The movement cost is at most `beta` times the hitting cost. `beta > 0`.
     pub beta: f64,
     /// Mirror map chosen based on the used norm.
-    pub mirror_map: NormFn<'a, FractionalConfig>,
+    pub mirror_map: NormFn<'a, f64>,
 }
 
 /// Primal Online Balanced Descent
@@ -67,7 +67,7 @@ fn balance_function(
     prev_x: &FractionalConfig,
     l: f64,
     beta: f64,
-    mirror_map: &NormFn<'_, FractionalConfig>,
+    mirror_map: &NormFn<'_, f64>,
 ) -> f64 {
     let Step(x, _) = obd(
         o,

@@ -4,7 +4,7 @@ use crate::config::{Config, FractionalConfig, IntegralConfig};
 use crate::cost::data_center::load::Load;
 use crate::cost::data_center::{apply_loads, load_balance};
 use crate::cost::{CallableCostFn, CostFn};
-use crate::norm::NormFn;
+use crate::norm::manhattan_scaled;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
     IntegralSimplifiedSmoothedConvexOptimization, Online,
@@ -138,20 +138,11 @@ where
             .iter()
             .map(|&u| (NumCast::from(0).unwrap(), u))
             .collect();
-        let switching_cost: NormFn<'a, Config<T>> = Arc::new(move |x| {
-            let mut result = 0.;
-            for k in 0..self.d as usize {
-                result += self.switching_cost[k]
-                    * ToPrimitive::to_f64(&x[k]).unwrap().abs()
-                    / 2.;
-            }
-            result
-        });
         SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds,
-            switching_cost,
+            switching_cost: manhattan_scaled(&self.switching_cost),
             hitting_cost: self.hitting_cost.clone(),
         }
     }

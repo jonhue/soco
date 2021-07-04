@@ -18,7 +18,7 @@ pub struct Options<'a> {
     /// Balance parameter. `eta > 0`.
     pub eta: f64,
     /// Mirror map chosen based on the used norm.
-    pub mirror_map: NormFn<'a, FractionalConfig>,
+    pub mirror_map: NormFn<'a, f64>,
 }
 
 /// Dual Online Balanced Descent
@@ -66,7 +66,7 @@ fn balance_function(
     t: i32,
     l: f64,
     eta: f64,
-    mirror_map: &NormFn<'_, FractionalConfig>,
+    mirror_map: &NormFn<'_, f64>,
 ) -> f64 {
     let Step(x, _) = obd(
         o,
@@ -80,16 +80,11 @@ fn balance_function(
     .unwrap();
     let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone()));
     let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone()));
-    let distance = dual(
-        &o.p.switching_cost,
+    let distance = dual(&o.p.switching_cost)(
         Config::new(x.to_vec().central_diff(&m))
             - Config::new(prev_x.to_vec().central_diff(&m)),
-    )
-    .unwrap();
-    let hitting_cost = dual(
-        &o.p.switching_cost,
-        Config::new(x.to_vec().central_diff(&f)),
-    )
-    .unwrap();
+    );
+    let hitting_cost =
+        dual(&o.p.switching_cost)(Config::new(x.to_vec().central_diff(&f)));
     distance / hitting_cost - eta
 }

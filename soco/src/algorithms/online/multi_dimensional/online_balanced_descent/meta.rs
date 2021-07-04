@@ -14,7 +14,7 @@ pub struct Options<'a> {
     /// Determines the l-level set used in each step by the algorithm.
     pub l: f64,
     /// Mirror map chosen based on the used norm.
-    pub mirror_map: NormFn<'a, FractionalConfig>,
+    pub mirror_map: NormFn<'a, f64>,
 }
 
 /// Online Balanced Descent (meta algorithm)
@@ -43,7 +43,7 @@ pub fn obd(
 ///
 /// `mirror_map` must be `m`-strongly convex and `M`-Lipschitz smooth for the norm function with fixed `m` and `M`.
 fn bregman_projection(
-    mirror_map: &NormFn<'_, FractionalConfig>,
+    mirror_map: &NormFn<'_, f64>,
     f: &CostFn<'_, FractionalConfig>,
     t: i32,
     l: f64,
@@ -64,7 +64,7 @@ fn bregman_projection(
 
 /// Bregman divergence between `x` and `y`.
 fn bregman_divergence(
-    mirror_map: &NormFn<'_, FractionalConfig>,
+    mirror_map: &NormFn<'_, f64>,
     x: FractionalConfig,
     y: FractionalConfig,
 ) -> f64 {

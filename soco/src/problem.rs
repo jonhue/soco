@@ -77,7 +77,7 @@ where
     /// Vector of lower and upper bounds of each dimension.
     pub bounds: Vec<(T, T)>,
     /// Norm function.
-    pub switching_cost: NormFn<'a, Config<T>>,
+    pub switching_cost: NormFn<'a, T>,
     /// Non-negative convex cost functions.
     pub hitting_cost: CostFn<'a, Config<T>>,
 }

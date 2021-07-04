@@ -1,7 +1,7 @@
 use crate::norm::NormFn;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::meta::{obd, Options as MetaOptions};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
-use crate::config::{Config, FractionalConfig};
+use crate::config::{Config};
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
@@ -19,7 +19,7 @@ pub struct Options<'a> {
     /// Balance parameter in OBD. `gamma > 0`. Defaults to `1`.
     pub gamma: Option<f64>,
     /// Mirror map chosen based on the used norm.
-    pub mirror_map: NormFn<'a, FractionalConfig>,
+    pub mirror_map: NormFn<'a, f64>,
 }
 
 /// Greedy Online Balanced Descent

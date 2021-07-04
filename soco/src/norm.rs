@@ -9,43 +9,49 @@ use num::ToPrimitive;
 use std::sync::Arc;
 
 /// Norm function.
-pub type NormFn<'a, T> = Arc<dyn Fn(T) -> f64 + 'a>;
+pub type NormFn<'a, T> = Arc<dyn Fn(Config<T>) -> f64 + 'a>;
 
 /// Manhattan norm.
-pub fn manhattan<T>(x: Config<T>) -> f64
+pub fn manhattan<T>() -> NormFn<'static, T>
 where
     T: Value,
 {
-    let mut result = 0.;
-    for k in 0..x.d() as usize {
-        result += ToPrimitive::to_f64(&x[k]).unwrap().abs();
-    }
-    result
+    Arc::new(|x: Config<T>| {
+        let mut result = 0.;
+        for k in 0..x.d() as usize {
+            result += ToPrimitive::to_f64(&x[k]).unwrap().abs();
+        }
+        result
+    })
 }
 
 /// Manhattan norm scaled with switching costs.
-pub fn manhattan_scaled<T>(x: Config<T>, switching_cost: Vec<f64>) -> f64
+pub fn manhattan_scaled<T>(switching_cost: &Vec<f64>) -> NormFn<'_, T>
 where
     T: Value,
 {
-    let mut result = 0.;
-    for k in 0..x.d() as usize {
-        result +=
-            switching_cost[k] / 2. + ToPrimitive::to_f64(&x[k]).unwrap().abs();
-    }
-    result
+    Arc::new(move |x: Config<T>| {
+        let mut result = 0.;
+        for k in 0..x.d() as usize {
+            result += switching_cost[k] / 2.
+                + ToPrimitive::to_f64(&x[k]).unwrap().abs();
+        }
+        result
+    })
 }
 
 /// Euclidean norm.
-pub fn euclidean<T>(x: Config<T>) -> f64
+pub fn euclidean<T>() -> NormFn<'static, T>
 where
     T: Value,
 {
-    let mut result = 0.;
-    for k in 0..x.d() as usize {
-        result += ToPrimitive::to_f64(&x[k]).unwrap().powi(2);
-    }
-    result.sqrt()
+    Arc::new(|x: Config<T>| {
+        let mut result = 0.;
+        for k in 0..x.d() as usize {
+            result += ToPrimitive::to_f64(&x[k]).unwrap().powi(2);
+        }
+        result.sqrt()
+    })
 }
 
 /// Mahalanobis distance square. This norm is `1`-strongly convex and `1`-Lipschitz smooth.
@@ -54,7 +60,7 @@ where
 pub fn mahalanobis<'a, T>(
     q: &DMatrix<T>,
     mean: Config<T>,
-) -> Result<NormFn<'a, Config<T>>>
+) -> Result<NormFn<'a, T>>
 where
     T: RealField + Value,
 {
@@ -70,7 +76,7 @@ where
 }
 
 /// Norm squared. `1`-strongly convex and `1`-Lipschitz smooth for the Euclidean norm and the Mahalanobis distance.
-pub fn norm_squared<'a, T>(norm: NormFn<'a, Config<T>>) -> NormFn<'a, Config<T>>
+pub fn norm_squared<'a, T>(norm: &'a NormFn<'a, T>) -> NormFn<'a, T>
 where
     T: Value + 'a,
 {
@@ -78,15 +84,20 @@ where
 }
 
 /// Computes the dual norm of `x` given some `norm`.
-pub fn dual(
-    norm: &NormFn<'_, FractionalConfig>,
-    x: FractionalConfig,
-) -> Result<f64> {
-    let objective = |z: &[f64]| -> f64 { Config::new(z.to_vec()) * x.clone() };
-    let constraint =
-        Arc::new(|z: &[f64]| -> f64 { norm(Config::new(z.to_vec())) - 1. });
+pub fn dual<'a>(norm: &'a NormFn<'a, f64>) -> NormFn<'a, f64> {
+    Arc::new(move |x: FractionalConfig| {
+        let objective =
+            |z: &[f64]| -> f64 { Config::new(z.to_vec()) * x.clone() };
+        let constraint =
+            Arc::new(|z: &[f64]| -> f64 { norm(Config::new(z.to_vec())) - 1. });
 
-    let (z, _) =
-        find_unbounded_maximizer(objective, x.d(), vec![constraint], vec![])?;
-    Ok(Config::new(z) * x)
+        let (z, _) = find_unbounded_maximizer(
+            objective,
+            x.d(),
+            vec![constraint],
+            vec![],
+        )
+        .unwrap();
+        Config::new(z) * x
+    })
 }

@@ -6,7 +6,6 @@ mod rbg {
     use soco::cost::CostFn;
     use soco::norm::manhattan;
     use soco::problem::{Online, SmoothedConvexOptimization};
-    use std::sync::Arc;
 
     #[test]
     fn _1() {
@@ -14,7 +13,7 @@ mod rbg {
             d: 1,
             t_end: 1,
             bounds: vec![(0., 2.)],
-            switching_cost: Arc::new(manhattan),
+            switching_cost: manhattan(),
             hitting_cost: CostFn::new(inv_e),
         };
         let mut o = Online { p, w: 0 };
@@ -36,7 +35,7 @@ mod rbg {
             d: 1,
             t_end: 1,
             bounds: vec![(0., 2.)],
-            switching_cost: Arc::new(manhattan),
+            switching_cost: manhattan(),
             hitting_cost: CostFn::new(inv_e),
         };
         let mut o = Online { p, w: 0 };

@@ -43,6 +43,6 @@ fn project(
     bounds: &Vec<(f64, f64)>,
     y: FractionalConfig,
 ) -> Result<FractionalConfig> {
-    let f = |x: &[f64]| euclidean(Config::new(x.to_vec()) - y.clone());
+    let f = |x: &[f64]| euclidean()(Config::new(x.to_vec()) - y.clone());
     Ok(Config::new(find_minimizer(f, bounds)?.0))
 }
