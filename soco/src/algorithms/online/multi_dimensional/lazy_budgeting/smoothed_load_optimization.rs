@@ -12,10 +12,9 @@ use std::cmp::max;
 /// Lane distribution at some time `t`.
 #[derive(Clone)]
 pub struct Memory {
-    /// Lanes of the optimal schedule up to time `t`.
-    pub optimal_lanes: Lanes,
-    /// Lanes of the determined schedule
+    /// Lanes of the determined schedule.
     pub lanes: Lanes,
+    /// Time horizons of each lane.
     pub horizons: Horizons,
     /// Factor for calculating next time horizons when using the randomized variant of the algorithm.
     pub gamma: f64,
@@ -24,7 +23,6 @@ impl DefaultGivenProblem<IntegralSmoothedLoadOptimization> for Memory {
     fn default(p: &IntegralSmoothedLoadOptimization) -> Self {
         let bound = total_bound(&p.bounds);
         Memory {
-            optimal_lanes: vec![0; bound as usize],
             lanes: vec![0; bound as usize],
             horizons: vec![0; bound as usize],
             gamma: sample_gamma(),
@@ -64,7 +62,6 @@ pub fn lb(
     t: i32,
     _: &IntegralSchedule,
     Memory {
-        optimal_lanes: prev_optimal_lanes,
         lanes: prev_lanes,
         mut horizons,
         gamma,
@@ -106,7 +103,6 @@ pub fn lb(
     Ok(Step(
         config,
         Some(Memory {
-            optimal_lanes,
             lanes,
             horizons,
             gamma,

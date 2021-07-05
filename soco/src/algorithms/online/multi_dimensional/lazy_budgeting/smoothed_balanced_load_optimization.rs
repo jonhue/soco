@@ -67,13 +67,7 @@ pub fn lb(
     };
 
     // execute `n` time slots of algorithm B on modified problem instance
-    mod_o.offline_stream_from(
-        alg_b,
-        u_end,
-        options,
-        &mut mod_xs,
-        &mut mod_ms,
-    )?;
+    mod_o.offline_stream_from(alg_b, u_end, (), &mut mod_xs, &mut mod_ms)?;
 
     // collect the resulting configuration
     let config = determine_config(&mod_o.p, xs, u_init, u_end);
@@ -167,7 +161,7 @@ fn alg_b(
     t: i32,
     xs: &IntegralSchedule,
     mut ms: AlgBMemory,
-    options: Options,
+    _: (),
 ) -> Result<IntegralStep<AlgBMemory>> {
     let opt_x = find_optimal_config(&o.p)?;
     let mut m = vec![0; o.p.d as usize];
