@@ -1,7 +1,4 @@
 use crate::algorithms::graph_search::Path;
-use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
-    approx_graph_search, Options as ApproxGraphSearchOptions,
-};
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
 use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Online, Step};
@@ -52,17 +49,12 @@ pub type Horizons = Vec<i32>;
 
 #[derive(Clone)]
 pub struct Options {
-    /// Whether to use an approximation to find the optimal schedule.
-    pub use_approx: Option<ApproxGraphSearchOptions>,
     /// Whether to use the randomized variant of the algorithm.
     pub randomized: bool,
 }
 impl Default for Options {
     fn default() -> Self {
-        Options {
-            use_approx: None,
-            randomized: false,
-        }
+        Options { randomized: false }
     }
 }
 
@@ -82,12 +74,7 @@ pub fn lb(
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let bound = total_bound(&o.p.bounds);
-    let optimal_lanes = find_optimal_lanes(
-        &o.p,
-        bound,
-        options.use_approx,
-        prev_optimal_lanes,
-    )?;
+    let optimal_lanes = find_optimal_lanes(&o.p, bound)?;
 
     let mut lanes = vec![0; bound as usize];
     for j in 0..lanes.len() {
@@ -179,25 +166,9 @@ fn active_lanes(x: &IntegralConfig, from: i32, to: i32) -> i32 {
 fn find_optimal_lanes(
     p: &IntegralSmoothedLoadOptimization,
     bound: i32,
-    use_approx: Option<ApproxGraphSearchOptions>,
-    prev_optimal_lanes: Lanes,
 ) -> Result<Lanes> {
     let sblo_p = p.to_sblo();
     let ssco_p = sblo_p.to_ssco();
-    let Path { xs, .. } = match use_approx {
-        None => optimal_graph_search.solve(ssco_p, (), false)?,
-        Some(options) => approx_graph_search.solve(ssco_p, options, false)?,
-    };
-    let optimal_lanes = build_lanes(&xs.now(), p.d, bound);
-    Ok(find_maximum_optimal_lanes(
-        prev_optimal_lanes,
-        optimal_lanes,
-    ))
-}
-
-fn find_maximum_optimal_lanes(
-    prev_optimal_lanes: Lanes,
-    optimal_lanes: Lanes,
-) -> Lanes {
-    optimal_lanes
+    let Path { xs, .. } = optimal_graph_search.solve(ssco_p, (), false)?;
+    Ok(build_lanes(&xs.now(), p.d, bound))
 }

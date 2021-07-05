@@ -1,7 +1,4 @@
 use crate::algorithms::graph_search::Path;
-use crate::algorithms::offline::multi_dimensional::approx_graph_search::{
-    approx_graph_search, Options as ApproxGraphSearch,
-};
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
 use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Step};
@@ -36,17 +33,12 @@ type AlgBMemory = Vec<Vec<i32>>;
 
 #[derive(Clone)]
 pub struct Options {
-    /// Whether to use an approximation to find the optimal schedule.
-    pub use_approx: Option<ApproxGraphSearch>,
     /// `epsilon > 0`. Defaults to `0.25`.
     pub epsilon: f64,
 }
 impl Default for Options {
     fn default() -> Self {
-        Options {
-            use_approx: None,
-            epsilon: 0.25,
-        }
+        Options { epsilon: 0.25 }
     }
 }
 
@@ -177,7 +169,7 @@ fn alg_b(
     mut ms: AlgBMemory,
     options: Options,
 ) -> Result<IntegralStep<AlgBMemory>> {
-    let opt_x = find_optimal_config(&o.p, options.use_approx)?;
+    let opt_x = find_optimal_config(&o.p)?;
     let mut m = vec![0; o.p.d as usize];
     let mut x = if xs.is_empty() {
         Config::repeat(0, o.p.d)
@@ -240,12 +232,8 @@ fn cumulative_idle_hitting_cost(
 
 fn find_optimal_config(
     p: &IntegralSmoothedBalancedLoadOptimization,
-    use_approx: Option<ApproxGraphSearch>,
 ) -> Result<IntegralConfig> {
     let ssco_p = p.to_ssco();
-    let Path { xs, .. } = match use_approx {
-        None => optimal_graph_search.solve(ssco_p, (), false)?,
-        Some(options) => approx_graph_search.solve(ssco_p, options, false)?,
-    };
+    let Path { xs, .. } = optimal_graph_search.solve(ssco_p, (), false)?;
     Ok(xs.now())
 }
