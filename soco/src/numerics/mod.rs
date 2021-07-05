@@ -1,9 +1,9 @@
 //! Numerical computation.
 
-pub mod bisection;
 pub mod convex_optimization;
 pub mod finite_differences;
 pub mod quadrature;
+pub mod roots;
 
 /// Precision used for numeric computations.
 pub static PRECISION: f64 = 1e-6;
