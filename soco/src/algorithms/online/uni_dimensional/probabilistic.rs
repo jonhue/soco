@@ -133,7 +133,7 @@ fn find_left_bound(
     prev_p: &Distribution,
     x_m: f64,
 ) -> Result<f64> {
-    if x_m.abs() < PRECISION {
+    if x_m < PRECISION {
         Ok(0.)
     } else {
         find_root((0., x_m), |x| {

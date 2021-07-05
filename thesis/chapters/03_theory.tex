@@ -29,6 +29,8 @@ A $\rho(T)$-competitive online algorithm for a minimization problem $c$ is an al
 
 We observe that this definition is analogous to our earlier definition of approximation algorithms in the offline case. However, in contrast to approximation algorithms where the limiting factor was the complexity of the algorithm, the competitiveness of online algorithms is fundamentally restricted by the information available to an online algorithm compared to its offline variants. In the case of smoothed convex optimization, considerable work has focused on finding online algorithms with a constant competitive ratio in the number of dimensions $d$.
 
+Crucially, the competitiveness of an online algorithm depends on the assumed adversary model. Commonly, three adversary models are used in the literature which are described by \citeauthor{Borodin1990} \cite{Borodin1990}. First, the \emph{oblivious adversary}\index{oblivious adversary} is the weakest adversary and only knows the algorithms code but needs to construct the request sequence before any moves are made. Second, the \emph{adaptive online adversary}\index{adaptive online adversary} makes the next request based on the algorithms previous answers, but serves it immediately. Third, the \emph{adaptive offline adversary}\index{adaptive offline adversary} is the strongest adversary which serves the requests based on the algorithms previous answers but in the end is able to choose the optimal request sequence among all possible request sequences. Note that as all adversaries know the algorithms code, they are equivalent in the case of a deterministic algorithm. Also note that randomization is not helpful when playing against an adaptive offline adversary. In the case of many smoothed online convex optimization problems, including right-sizing data centers, it is reasonable to assume an oblivious adversary as typically incoming requests arrive independently from previous server configurations in a data center.
+
 \subsection{Regret}
 
 Regret is another approach to measuring the performance of online algorithms.
@@ -103,6 +105,8 @@ In many practical applications of smoothed convex optimization, we seek to find 
 We define integral smoothed convex optimization analogously to SCO with the added restriction that the points $x$ in $d$-dimensional space must be discrete, that is $\mathcal{X} \subset \mathbb{Z}^d$.
 \end{problem}
 
+In this work we often refer to the convex cost functions of fractional problems as hitting costs, whereas we generally refer to them as operating costs in the context of integral problems.
+
 In \autoref{chapter:introduction}, we have seen that Int-SCO is subsumed by metrical task systems. However, it was shown that in general the competitiveness of deterministic and randomized algorithms for metrical task systems must be proportional to the size of the decision space \cite{Blum1992, Borodin1992}. Further, \citeauthor*{Chen2018} have shown that the competitiveness of any online algorithm for SCO is lower bounded by $\Omega(\sqrt{d})$ \cite{Chen2018}. Therefore, many of the online algorithms for SCO that we examine in \autoref{chapter:online_algorithms} further restrict the classes of hitting costs and switching costs.
 
 Yet another similar problem is the ski rental problem. In the \emph{ski rental problem}\index{ski rental problem}, skis can be bought for a cost of $b$ units or rented for a cost of one unit per day. Each day of the ski season the agent has to decide whether to rent the skis or end the sequence of decisions by buying the skis without knowing how long the ski season will last \cite{Shah2021}. Consider the uni-dimensional decision space $\{0,b\}$, the $\ell_2$ norm as switching cost, and the sequence of hitting costs $f_t(0) = 1$ and $f_t(b) = 0$. The solution to this instance of SCO is a solution to the corresponding ski rental problem, yielding that the ski rental problem is a special case of SCO. \citeauthor*{Karlin1990} showed that the best competitive ratio attainable by a randomized algorithm is $e/(e-1) \approx 1.58$, giving a lower bound for the competitive ratio of online algorithms for SCO \cite{Karlin1990}.
@@ -140,7 +144,7 @@ By finding solutions to $\mathcal{I}_{\text{Min-KP}}(U)$ repeatedly for varying 
 We have seen a total, polynomial-time reduction from KP to Min-KP. Hence, Min-KP is NP-hard.
 \end{proof}
 
-Next we prove our main reduction from Min-KP to Int-SCO. To motivate this reduction, we first prove that the following (convex) integer optimization is in fact equivalent to Min-KP.
+Next, we prove our main reduction from Min-KP to Int-SCO. To motivate this reduction, we first prove that the following (convex) integer optimization is in fact equivalent to Min-KP.
 
 \begin{lemma}
 \label{lemma:integer_minimization}
@@ -308,19 +312,19 @@ To show convexity of $f_1$, it suffices to show that $h(x) = n - \sum_{i=1}^n x_
 
 We now turn to a variant of Int-SSCO introduced by \citeauthor*{Albers2021_2} that further restricts the structure of the convex cost functions \cite{Albers2021_2}. This restriction is motivated by the usual cost model of heterogeneous data centers with homogeneous loads we examined in detail in \autoref{section:application:dispatching:optimal_load_balancing} where the incoming load (or set of jobs) is distributed equally among all active servers.
 
-Given a sequence of convex increasing non-negative costs $g_{t,k}(l)$ of each "instance" in dimension $k$ given its load $l$ during time slot $t$, the overall cost for dimension $k$ during time slot $t$ is given as \begin{align*}
+Given a sequence of convex increasing non-negative costs $g_{t,k}(l)$ of each instance in dimension $k$ given its load $l$ during time slot $t$, the overall cost for dimension $k$ during time slot $t$ is given as \begin{align*}
     h_{t,k}(x,z) := \begin{cases}
         x g_{t,k}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
         \infty                                  & x = 0 \land l_{t,k} > 0 \\
         0                                       & x = 0 \land l_{t,k} = 0
     \end{cases}
-\end{align*} where $l_{t,k} = \lambda_t z$ for some sequence of load profiles $\lambda_t \in \mathbb{N}_0$. Here, $x$ is the position in the decision space in dimension $k$, and $z \in [0,1]$ is the fraction of the load $\lambda_t$ that is "assigned" to dimension $k$ \cite{Albers2021_2}. Given the set of all possible assignments to $d$ dimensions $\mathcal{Z} := \{z \in [0,1]^d \mid \sum_{k=1}^d z_k = 1\}$, the overall hitting cost is defined as the convex optimization \begin{align}
+\end{align*} where $l_{t,k} = \lambda_t z$ for some sequence of load profiles $\lambda_t \in \mathbb{N}_0$. Here, $x$ is the position in the decision space in dimension $k$, and $z \in [0,1]$ is the fraction of the load $\lambda_t$ that is assigned to dimension $k$ \cite{Albers2021_2}. Given the set of all possible assignments to $d$ dimensions $\mathcal{Z} := \{z \in [0,1]^d \mid \sum_{k=1}^d z_k = 1\}$, the overall hitting cost is defined as the convex optimization \begin{align}
 \label{eq:sblo_hitting_cost}
     f_t(x) := \min_{z \in \mathcal{Z}} \sum_{k=1}^d h_{t,k}(x_k,z_k).
 \end{align} Intuitively, the load profiles $\lambda_t$ are balanced across all dimensions so as to minimize cost. We also observe that the formulation of $f_t$ from \autoref{eq:sblo_hitting_cost} is equivalent to our formulation from \autoref{eq:heterogeneous_load_balancing}.
 
 \begin{problem}[Smoothed Balanced Load Optimization (SBLO)]\index{smoothed balanced load optimization}\label{problem:sblo}
-Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of load profiles $\lambda_t \in \mathbb{N}_0$, and a sequence $G$ of convex increasing non-negative functions $g_{t,k}$ for $t \in [T], k \in [d]$, find $X \in ([m_0]_0 \times \dots \times [m_d]_0)^T$ minimizing \begin{align*}
+Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence $\Lambda$ of load profiles $\lambda_t \in \mathbb{N}_0$, and a sequence $G$ of convex increasing non-negative functions $g_{t,k}$ for $t \in [T], k \in [d]$, find $X \in ([m_0]_0 \times \dots \times [m_d]_0)^T$ minimizing \begin{align*}
     c_{\text{SBLO}}(X) = \sum_{t=1}^T f_t(X_t) + \sum_{k=1}^d \beta_k (X_{t,k} - X_{t-1,k})^+
 \end{align*}
 where $X_0 = \mathbf{0}$ and $f_t$ is given by \autoref{eq:sblo_hitting_cost}.
@@ -333,10 +337,12 @@ In the online variant of SBLO (and in its variants), load profiles and convex co
 Lastly, we consider an even simpler problem proposed by \citeauthor*{Albers2021} where we assume that each instance is only able to handle a single job during each time slot \cite{Albers2021}. Instead of using convex functions to model cost, we assume that cost increases linearly and independently from time with the number of active servers. In addition we impose the constraint that the number of servers must still be enough to handle the incoming load. Without this restriction the optimal strategy would always be to not run any servers at all.
 
 \begin{problem}[Smoothed Load Optimization (SLO)]\index{smoothed load optimization}\label{problem:sblo}
-Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence of load profiles $\lambda_t \in \mathbb{N}_0$, and the non-negative operating costs $c_k \in \mathbb{R}_{\geq 0}$ for $k \in [d]$, find $X \in ([m_0]_0 \times \dots \times [m_d]_0)^T$ minimizing \begin{align*}
+Given a time horizon $T \in \mathbb{N}$, upper bounds $m \in \mathbb{N}^d$, switching costs $\beta \in \mathbb{R}_{>0}^d$, a sequence $\Lambda$ of load profiles $\lambda_t \in \mathbb{N}_0$, and the non-negative operating costs $c \in \mathbb{R}_{\geq 0}^d$, find $X \in ([m_0]_0 \times \dots \times [m_d]_0)^T$ minimizing \begin{align*}
     c_{\text{SLO}}(X) = \sum_{t=1}^T \sum_{k=1}^d c_k X_{t,k} + \beta_k (X_{t,k} - X_{t-1,k})^+
 \end{align*}
-where $X_0 = \mathbf{0}$.
+where $X_0 = \mathbf{0}$ such that for all $t \in [T]$ \begin{align*}
+    \sum_{k=1}^d X_{t,k} \geq \lambda_t.
+\end{align*}
 \end{problem}
 
 In contrast to our definition of SBLO, SLO balances the load implicitly among all active servers which is possible because we assume that each active server can only handle a single job during one time slot. Again, it is easy to see that SLO is an instance of SBLO by setting $g_{t,k}(l) := c_k l$.
@@ -347,4 +353,6 @@ In contrast to our definition of SBLO, SLO balances the load implicitly among al
 
 We have seen that the optimal competitiveness of online algorithms for smoothed convex optimization is fundamentally limited to be dimension-dependent as long as arbitrary convex hitting costs and arbitrary norms as switching costs are allowed. In the literature many promising approaches are based on restricting the class of hitting costs (and switching costs) to achieve a dimension-independent competitive ratio. In this section, we focus mainly on hitting costs, introduce these restrictions, and investigate how they relate to our data center model.
 
-\paragraph{Continuity and Differentiability} A very first natural restriction is to assume that hitting costs are continuous and \emph{smooth}\index{smooth} where we call a function smooth if it is infinitely-many times continuously differentiable. However, it is immediate that the operating costs in our data center model are not smooth. At best we can guarantee piecewise smoothness. Thus it seems like the assumption of smoothness is too strong to be interesting for the application of right-sizing data centers.
+\paragraph{Continuity and Differentiability} A very first natural restriction is to assume that hitting costs are continuous. In fact, theorem 10.1 of \cite{Rockafellar1970} proves that given a convex function $f : \mathcal{X} \to \mathbb{R}$, $f$ is continuous on the interior of its domain, $\mathcal{X}^{\circ}$. Throughout this work, we will therefore frequently assume the hitting costs to be continuous on the interior of the decision space $\mathcal{X}$ without an explicit mention.
+
+As continuity does not represent a limitation, one could proceed to investigate the continuous differentiability of the hitting costs. We call a function \emph{smooth}\index{smooth} if it is infinitely-many times continuously differentiable. However, to obtain a smooth hitting cost in the application of right-sizing data centers one would have to drastically reduce the complexity of the model we discussed in \autoref{chapter:application}. For example, \citeauthor*{Bansal2015} focus entirely on the energy cost which is a good approximation in practice as energy represents the largest fraction of the overall cost \cite{Bansal2015}. Still, in general, it appears that the assumption of smoothness is too strong.

@@ -16,7 +16,7 @@ By definition $f_t$ is convex on $\mathcal{X}$. Every norm $\norm{\cdot}$ on $\m
 \end{align*} In total we get that the sum of convex functions is also convex.
 \end{proof}
 
-\section{Convex Optimization}
+\section{Convex Optimization}\label{section:offline_algorithms:convex_optimization}
 
 As the offline variant of SCO is simply the problem of minimizing $c_{\text{SCO}}$ it is easy to see that we can use a convex optimization solver to obtain the optimal schedule $\hat{X}$. Throughout our discussion of algorithms, we denote schedules by $X$ and optimal solutions by $\hat{\cdot}$. Further, as we do not impose any constraints beyond the bounds of the decision space $\mathcal{X} \subset \mathbb{R}^d$ it suffices to find the local optimum of $c_{\text{SCO}}$ with respect to $\mathcal{X}$. By the convexity of $c_{\text{SCO}}$ we know that any local optimum will also be a global optimum \cite{Bubeck2015}. We are able to choose the algorithm for finding the local optimum based on our knowledge of the properties of $c_{\text{SCO}}$. If, for example, $c_{\text{SCO}}$ is differentiable on $\mathcal{X}$ we could use gradient descent. In general, even if we cannot be sure of the differentiability of $c_{\text{SCO}}$ we can always find a subgradient in the interior of $\mathcal{X}$ \cite{Bubeck2015}. We denote by $\partial c_{\text{SCO}}(x)$ the set of subgradients of $c_{SCO}$ at the point $x \in \mathcal{X}$.
 
@@ -136,7 +136,7 @@ Again, we are able to use dynamic programming to obtain a shortest path from $v_
 
 \begin{algorithm}
     \caption{Multi-Dimensional Optimal Graph Search \cite{Albers2021_2}}\label{alg:md:optimal_graph_search}
-    \KwIn{$\mathcal{I}_{\text{Int-SSCO}} = (T \in \mathbb{N}, m \in \mathbb{N}^d, \beta \in \mathbb{R}_{>0}^d, (f_1, \dots, f_T) \in (\mathcal{M} \to \mathbb{R}_{\geq 0})^T)$}
+    \KwIn{$\mathcal{I}_{\text{Int-SSCO}} = (d \in \mathbb{N}, T \in \mathbb{N}, m \in \mathbb{N}^d, \beta \in \mathbb{R}_{>0}^d, (f_1, \dots, f_T) \in (\mathcal{M} \to \mathbb{R}_{\geq 0})^T)$}
     \For{$t \gets 1$ \KwTo $T$}{
         $(\hat{X}, \hat{c}) \gets \text{\ref{proc:md:optimal_graph_search:handle_first_layer}}(\mathcal{I}_{Int-SSCO}, \mathcal{M}, \hat{X}, \hat{c}, t, 1, \{\mathbf{0}\})$\;
         $(\hat{X}, \hat{c}) \gets \text{\ref{proc:md:optimal_graph_search:handle_second_layer}}(\mathcal{I}_{Int-SSCO}, \mathcal{M}, \hat{X}, \hat{c}, t, d, \{(m_1,\dots,m_d)\})$\;
@@ -226,6 +226,16 @@ The \autoref{proc:md:optimal_graph_search:update_paths} determines the shortest 
 
 Let $G^{\gamma}$ be the described graph parametrized by $\gamma > 1$. \citeauthor*{Albers2021_2} show that given a shortest path $P^{\gamma}$ in $G^{\gamma}$, its induced schedule $X^{P^{\gamma}}$ is a $(2\gamma + 1)$-approximation of the optimal schedule $\hat{x}$ \cite{Albers2021_2}. Further, the total number of vertices in $G^{\gamma}$ is \begin{align*}
     \mathcal{O}(T |\mathcal{M}|^{\gamma}) = \mathcal{O}(T \prod_{k=1}^d \log_{1+\epsilon} m_k)
-\end{align*} as $|M_k^{\gamma}| \in \mathcal{O}(\log_{\gamma} m_k) = \mathcal{O}(\log_{1 + \epsilon} m_k)$. Using the same graph search algorithm that was described in the previous section we are able to find $X^{P^{\gamma}}$ in $\mathcal{O}(T C \prod_{k=1}^d \log_{1 + \epsilon} m_k)$ time. Hence, setting $\gamma = 1 + \epsilon / 2$ for some $\epsilon > 0$ yields a $(1+\epsilon)$-approximation.
+\end{align*} as $|M_k^{\gamma}| \in \mathcal{O}(\log_{\gamma} m_k) = \mathcal{O}(\log_{1 + \epsilon} m_k)$. Using the same graph search algorithm that was described in the previous section we are able to find $X^{P^{\gamma}}$ in $\mathcal{O}(T C \prod_{k=1}^d \log_{1 + \epsilon} m_k)$ time. Hence, setting $\gamma = 1 + \epsilon / 2$ for some $\epsilon > 0$ yields a $(1+\epsilon)$-approximation. The algorithm is described in \autoref{alg:md:approximate_graph_search}.
+
+\begin{algorithm}
+    \caption{Multi-Dimensional Approximate Graph Search \cite{Albers2021_2}}\label{alg:md:approximate_graph_search}
+    \KwIn{$\mathcal{I}_{\text{Int-SSCO}} = (d \in \mathbb{N}, T \in \mathbb{N}, m \in \mathbb{N}^d, \beta \in \mathbb{R}_{>0}^d, (f_1, \dots, f_T) \in (\mathcal{M} \to \mathbb{R}_{\geq 0})^T)$}
+    \For{$t \gets 1$ \KwTo $T$}{
+        $(\hat{X}, \hat{c}) \gets \text{\ref{proc:md:optimal_graph_search:handle_first_layer}}(\mathcal{I}_{Int-SSCO}, \mathcal{M}^{\gamma}, \hat{X}, \hat{c}, t, 1, \{\mathbf{0}\})$\;
+        $(\hat{X}, \hat{c}) \gets \text{\ref{proc:md:optimal_graph_search:handle_second_layer}}(\mathcal{I}_{Int-SSCO}, \mathcal{M}^{\gamma}, \hat{X}, \hat{c}, t, d, \{(m_1,\dots,m_d)\})$\;
+    }
+    \Return $\hat{X}^{v_{T,\mathbf{0}}^{\downarrow}}$\;
+\end{algorithm}
 
 One important question regarding the approximation algorithm remains. Namely, how to compute the powers of gamma $\gamma^i$ such that $\lfloor\gamma^i\rfloor \in [m_k]$ or $\lceil\gamma^i\rceil \in [m_k]$ for some $k \in [d]$. The simplest solution is to iteratively increase $i \in \mathbb{N}$ until $\gamma^i$ is greater than $\max_{k \in [d]} m_k$. We then keep track of all $\lfloor\gamma^i\rfloor$ and $\lceil\gamma^i\rceil$ that were generated in this way. We observe that this simple approach takes $\mathcal{O}(\log_{\gamma} m_k)$, not altering the runtime of the algorithm. We have thus discussed a polynomial time approximation scheme for multi-dimensional instances of Int-SSCO.
