@@ -84,6 +84,7 @@ pub fn probabilistic<'a>(
             prev_p(x)
                 + second_derivative(
                     |x: f64| {
+                        // needs to be unbounded for numerical approximations
                         o.p.hitting_cost.call_unbounded(t, Config::single(x))
                     },
                     x,
@@ -114,6 +115,7 @@ fn find_right_bound(
         Ok(o.p.bounds[0])
     } else {
         find_root((x_m, o.p.bounds[0]), |x| {
+            // needs to be unbounded for numerical approximations
             let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
             derivative(f, x)
                 - 2. * o.p.switching_cost[0]
@@ -137,6 +139,7 @@ fn find_left_bound(
         Ok(0.)
     } else {
         find_root((0., x_m), |x| {
+            // needs to be unbounded for numerical approximations
             let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
             2. * o.p.switching_cost[0]
                 * piecewise_integral(breakpoints, f64::NEG_INFINITY, x, |x| {
