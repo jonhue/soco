@@ -111,7 +111,7 @@ fn find_right_bound(
     x_m: f64,
 ) -> Result<f64> {
     if (x_m - o.p.bounds[0]).abs() < PRECISION {
-        Ok(0.)
+        Ok(o.p.bounds[0])
     } else {
         find_root((x_m, o.p.bounds[0]), |x| {
             let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
@@ -133,7 +133,7 @@ fn find_left_bound(
     prev_p: &Distribution,
     x_m: f64,
 ) -> Result<f64> {
-    if (x_m - 0.).abs() < PRECISION {
+    if x_m.abs() < PRECISION {
         Ok(0.)
     } else {
         find_root((0., x_m), |x| {
