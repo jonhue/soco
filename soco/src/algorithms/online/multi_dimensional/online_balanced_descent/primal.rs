@@ -5,8 +5,8 @@ use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
 use crate::norm::NormFn;
-use crate::numerics::bisection::bisection;
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
+use crate::numerics::roots::find_root;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
@@ -46,7 +46,7 @@ pub fn pobd(
 
     let a = minimal_hitting_cost;
     let b = MAX_L_FACTOR * minimal_hitting_cost;
-    let l = bisection((a, b), |l: f64| {
+    let l = find_root((a, b), |l: f64| {
         balance_function(o, xs, &prev_x, l, options.beta, &options.mirror_map)
     })?;
 

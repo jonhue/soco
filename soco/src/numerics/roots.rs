@@ -2,16 +2,13 @@
 
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use crate::result::{Failure, Result};
-use bacon_sci::roots::bisection as bisection_;
+use bacon_sci::roots::brent;
 
-/// Maximum number of bisection iterations.
-static MAX_ITERATIONS: usize = 1_000;
-
-pub fn bisection(
+pub fn find_root(
     interval: (f64, f64),
     f: impl FnMut(f64) -> f64,
 ) -> Result<f64> {
-    Ok(bisection_(interval, f, TOLERANCE, MAX_ITERATIONS)
+    Ok(brent(interval, f, TOLERANCE)
         .map_err(Failure::Bisection)?
         .apply_precision())
 }

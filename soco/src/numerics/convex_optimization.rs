@@ -29,17 +29,6 @@ pub fn find_minimizer_of_hitting_cost(
     find_minimizer(f, bounds)
 }
 
-/// Determines the minimizer of `hitting_cost` at time `t`.
-pub fn find_unbounded_minimizer_of_hitting_cost(
-    d: i32,
-    t: i32,
-    hitting_cost: &CostFn<'_, FractionalConfig>,
-) -> Result<OptimizationResult> {
-    let (bounds, init) = build_empty_bounds(d);
-    let f = |x: &[f64]| hitting_cost.call(t, Config::new(x.to_vec()), &bounds);
-    minimize(f, &bounds, Some(init), vec![], vec![])
-}
-
 /// Determines the minimizer of a convex function `f` with bounds `bounds`.
 pub fn find_minimizer(
     f: impl Fn(&[f64]) -> f64,

@@ -1,10 +1,10 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::breakpoints::Breakpoints;
 use crate::config::Config;
-use crate::numerics::bisection::bisection;
-use crate::numerics::convex_optimization::find_unbounded_minimizer_of_hitting_cost;
+use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::finite_differences::{derivative, second_derivative};
 use crate::numerics::quadrature::piecewise::piecewise_integral;
+use crate::numerics::roots::find_root;
 use crate::numerics::PRECISION;
 use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
@@ -70,9 +70,12 @@ pub fn probabilistic<'a>(
     let breakpoints = options.breakpoints.add(&prev_m.breakpoints);
     let prev_p = prev_m.p;
 
-    let x_m =
-        find_unbounded_minimizer_of_hitting_cost(o.p.d, t, &o.p.hitting_cost)?
-            .0[0];
+    let x_m = find_minimizer_of_hitting_cost(
+        t,
+        &o.p.hitting_cost,
+        &vec![(0., o.p.bounds[0])],
+    )?
+    .0[0];
     let x_r = find_right_bound(&o, t, &breakpoints, &prev_p, x_m)?;
     let x_l = find_left_bound(&o, t, &breakpoints, &prev_p, x_m)?;
 
@@ -110,10 +113,10 @@ fn find_right_bound(
     if (x_m - o.p.bounds[0]).abs() < PRECISION {
         Ok(0.)
     } else {
-        bisection((x_m, o.p.bounds[0]), |x| {
+        find_root((x_m, o.p.bounds[0]), |x| {
             let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
-            derivative(f, x) / 2.
-                - o.p.switching_cost[0]
+            derivative(f, x)
+                - 2. * o.p.switching_cost[0]
                     * piecewise_integral(breakpoints, x, f64::INFINITY, |x| {
                         prev_p(x)
                     })
@@ -133,14 +136,14 @@ fn find_left_bound(
     if (x_m - 0.).abs() < PRECISION {
         Ok(0.)
     } else {
-        bisection((0., x_m), |x| {
+        find_root((0., x_m), |x| {
             let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
-            o.p.switching_cost[0]
+            2. * o.p.switching_cost[0]
                 * piecewise_integral(breakpoints, f64::NEG_INFINITY, x, |x| {
                     prev_p(x)
                 })
                 .unwrap()
-                - derivative(f, x) / 2.
+                - derivative(f, x)
         })
     }
 }
