@@ -154,7 +154,7 @@ where
             assert_validity(
                 self.switching_cost[k] < self.switching_cost[k - 1],
                 format!(
-                    "hitting costs must be descending, are not between dimension {} and dimension {}", k,
+                    "switching costs must be descending, are not between dimension {} and dimension {}", k,
                     k + 1
                 ),
             )?;

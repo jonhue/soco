@@ -6,7 +6,7 @@ use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal
 use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Online, Step};
 use crate::config::{Config, IntegralConfig};
-use crate::problem::IntegralSmoothedLoadOptimization;
+use crate::problem::{DefaultGivenProblem, IntegralSmoothedLoadOptimization};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, sample_uniform, total_bound};
@@ -15,12 +15,36 @@ use std::cmp::max;
 /// Lane distribution at some time `t`.
 #[derive(Clone)]
 pub struct Memory {
+    /// Lanes of the optimal schedule up to time `t`.
+    pub optimal_lanes: Lanes,
+    /// Lanes of the determined schedule
     pub lanes: Lanes,
     pub horizons: Horizons,
+    /// Factor for calculating next time horizons when using the randomized variant of the algorithm.
+    pub gamma: f64,
+}
+impl DefaultGivenProblem<IntegralSmoothedLoadOptimization> for Memory {
+    fn default(p: &IntegralSmoothedLoadOptimization) -> Self {
+        let bound = total_bound(&p.bounds);
+        Memory {
+            optimal_lanes: vec![0; bound as usize],
+            lanes: vec![0; bound as usize],
+            horizons: vec![0; bound as usize],
+            gamma: sample_gamma(),
+        }
+    }
+}
+
+/// Utility to sample gamma for Randomized Lazy Budgeting.
+///
+/// Sample gamma once before running the algorithm.
+fn sample_gamma() -> f64 {
+    let r = sample_uniform(0., 1.);
+    (r * (std::f64::consts::E - 1.) + 1.).ln()
 }
 
 /// Maps each lane to the dimension it is "handled by" at some time `t`.
-/// If value is `0`, there the lane is not "active".
+/// If value is `0`, then the lane is not "active".
 pub type Lanes = Vec<i32>;
 
 /// Maps each lane to a finite time horizon it stays "active" for unless replaced by another dimension.
@@ -30,51 +54,51 @@ pub type Horizons = Vec<i32>;
 pub struct Options {
     /// Whether to use an approximation to find the optimal schedule.
     pub use_approx: Option<ApproxGraphSearchOptions>,
-    /// Factor for calculating next time horizons when using the randomized variant of the algorithm.
-    pub gamma: Option<f64>,
+    /// Whether to use the randomized variant of the algorithm.
+    pub randomized: bool,
 }
-
-/// Utility to sample gamma for Randomized Lazy Budgeting.
-///
-/// Sample gamma once before running the algorithm.
-pub fn sample_gamma() -> f64 {
-    let r = sample_uniform(0., 1.);
-    (r * (std::f64::consts::E - 1.) + 1.).ln()
+impl Default for Options {
+    fn default() -> Self {
+        Options {
+            use_approx: None,
+            randomized: false,
+        }
+    }
 }
 
 /// Lazy Budgeting for Smoothed Load Optimization
 pub fn lb(
-    o: &Online<IntegralSmoothedLoadOptimization>,
-    xs: &mut IntegralSchedule,
-    ms: &mut Vec<Memory>,
+    o: Online<IntegralSmoothedLoadOptimization>,
+    t: i32,
+    _: &IntegralSchedule,
+    Memory {
+        optimal_lanes: prev_optimal_lanes,
+        lanes: prev_lanes,
+        mut horizons,
+        gamma,
+    }: Memory,
     options: Options,
 ) -> Result<IntegralStep<Memory>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
-    let t = xs.t_end() + 1;
-    let bound = total_bound(&o.p.bounds) as usize;
-    let optimal_lanes = find_optimal_lanes(&o.p, bound, options.use_approx)?;
-    let Memory {
-        lanes: prev_lanes,
-        mut horizons,
-    } = if ms.is_empty() {
-        Memory {
-            lanes: vec![0; bound],
-            horizons: vec![0; bound],
-        }
-    } else {
-        ms[ms.len() - 1].clone()
-    };
+    let bound = total_bound(&o.p.bounds);
+    let optimal_lanes = find_optimal_lanes(
+        &o.p,
+        bound,
+        options.use_approx,
+        prev_optimal_lanes,
+    )?;
 
-    let mut lanes = vec![0; bound];
-    for j in 0..bound {
+    let mut lanes = vec![0; bound as usize];
+    for j in 0..lanes.len() {
         if prev_lanes[j] < optimal_lanes[j] || t >= horizons[j] {
             lanes[j] = optimal_lanes[j];
             horizons[j] = t + next_time_horizon(
                 &o.p.hitting_cost,
                 &o.p.switching_cost,
                 lanes[j],
-                options.gamma,
+                gamma,
+                options.randomized,
             );
         } else {
             lanes[j] = prev_lanes[j];
@@ -84,26 +108,36 @@ pub fn lb(
                     &o.p.hitting_cost,
                     &o.p.switching_cost,
                     lanes[j],
-                    options.gamma,
+                    gamma,
+                    options.randomized,
                 ),
             );
         }
     }
 
     let config = collect_config(o.p.d, &lanes);
-    Ok(Step(config, Some(Memory { lanes, horizons })))
+    Ok(Step(
+        config,
+        Some(Memory {
+            optimal_lanes,
+            lanes,
+            horizons,
+            gamma,
+        }),
+    ))
 }
 
 fn next_time_horizon(
     hitting_cost: &Vec<f64>,
     switching_cost: &Vec<f64>,
     k: i32,
-    gamma: Option<f64>,
+    gamma: f64,
+    randomized: bool,
 ) -> i32 {
     if k == 0 {
         0
     } else {
-        (gamma.unwrap_or(1.) * switching_cost[k as usize - 1]
+        (if randomized { gamma } else { 1. } * switching_cost[k as usize - 1]
             / hitting_cost[k as usize - 1])
             .floor() as i32
     }
@@ -117,8 +151,8 @@ fn collect_config(d: i32, lanes: &Lanes) -> IntegralConfig {
     config
 }
 
-fn build_lanes(x: &IntegralConfig, d: i32, bound: usize) -> Lanes {
-    let mut lanes = vec![0; bound];
+fn build_lanes(x: &IntegralConfig, d: i32, bound: i32) -> Lanes {
+    let mut lanes = vec![0; bound as usize];
     for (k, lane) in lanes.iter_mut().enumerate() {
         if k as i32 <= active_lanes(x, 1, d) {
             for j in 1..=d {
@@ -144,8 +178,9 @@ fn active_lanes(x: &IntegralConfig, from: i32, to: i32) -> i32 {
 
 fn find_optimal_lanes(
     p: &IntegralSmoothedLoadOptimization,
-    bound: usize,
+    bound: i32,
     use_approx: Option<ApproxGraphSearchOptions>,
+    prev_optimal_lanes: Lanes,
 ) -> Result<Lanes> {
     let sblo_p = p.to_sblo();
     let ssco_p = sblo_p.to_ssco();
@@ -153,5 +188,16 @@ fn find_optimal_lanes(
         None => optimal_graph_search.solve(ssco_p, (), false)?,
         Some(options) => approx_graph_search.solve(ssco_p, options, false)?,
     };
-    Ok(build_lanes(&xs.now(), p.d, bound))
+    let optimal_lanes = build_lanes(&xs.now(), p.d, bound);
+    Ok(find_maximum_optimal_lanes(
+        prev_optimal_lanes,
+        optimal_lanes,
+    ))
+}
+
+fn find_maximum_optimal_lanes(
+    prev_optimal_lanes: Lanes,
+    optimal_lanes: Lanes,
+) -> Lanes {
+    optimal_lanes
 }

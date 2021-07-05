@@ -16,11 +16,23 @@ use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::assert;
 use ordered_float::OrderedFloat;
 
-/// Schedule and memory of internally used algorithm.
-pub type Memory = (IntegralSchedule, Vec<AlgBMemory>);
+pub struct Memory {
+    /// Maps each time `u` to the corresponding load; length
+    load: Vec<i32>,
+    /// Schedule and memory of internally used algorithm.
+    mod_m: (IntegralSchedule, Vec<AlgBMemory>),
+}
+impl Default for Memory {
+    fn default() -> Self {
+        Memory {
+            load: vec![],
+            mod_m: (Schedule::empty(), vec![]),
+        }
+    }
+}
 
-/// Maps dimension to the number of active instances for some sub time slot `u`.
-type AlgBMemory = Vec<i32>;
+/// Maps dimension to the number of added instances for some sub time slot `u`.
+type AlgBMemory = Vec<Vec<i32>>;
 
 #[derive(Clone)]
 pub struct Options {
@@ -40,114 +52,129 @@ impl Default for Options {
 
 /// Lazy Budgeting for Smoothed Balanced-Load Optimization
 pub fn lb(
-    o: &Online<IntegralSmoothedBalancedLoadOptimization>,
-    xs: &mut IntegralSchedule,
-    ms: &mut Vec<Memory>,
+    o: Online<IntegralSmoothedBalancedLoadOptimization>,
+    t: i32,
+    xs: &IntegralSchedule,
+    Memory {
+        mut load,
+        mod_m: (mut mod_xs, mut mod_ms),
+    }: Memory,
     options: Options,
 ) -> Result<IntegralStep<Memory>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
-    let t = xs.t_end() + 1;
+    // determine number of sub time slots
     let n = determine_sub_time_slots(&o.p, t, options.epsilon)?;
+
+    // construct modified problem instance and update loads
+    let u_init = load.len() as i32 + 1;
+    let u_end = u_init + n;
     let mut mod_o = Online {
         w: 0,
-        p: modify_problem(&o.p, t, options.epsilon)?,
+        p: modify_problem(o.p, &mut load, t, n, u_init, u_end)?,
     };
-    let init_u = mod_o.p.t_end;
 
-    if ms.is_empty() {
-        ms.push((Schedule::empty(), vec![]));
-    }
-    let (mut algb_xs, mut algb_ms) = ms[0].clone();
-    mod_o.offline_stream_from(alg_b, n, options, &mut algb_xs, &mut algb_ms)?;
-    ms[0] = (algb_xs, algb_ms);
+    // execute `n` time slots of algorithm B on modified problem instance
+    mod_o.offline_stream_from(
+        alg_b,
+        u_end,
+        options,
+        &mut mod_xs,
+        &mut mod_ms,
+    )?;
 
-    let config = determine_config(&mod_o.p, xs, init_u, n);
-    Ok(Step(config, None))
+    // collect the resulting configuration
+    let config = determine_config(&mod_o.p, xs, u_init, u_end);
+    Ok(Step(
+        config,
+        Some(Memory {
+            load,
+            mod_m: (mod_xs, mod_ms),
+        }),
+    ))
 }
 
-fn determine_config(
-    p: &IntegralSmoothedBalancedLoadOptimization,
-    xs: &IntegralSchedule,
-    init_u: i32,
-    n: i32,
-) -> IntegralConfig {
-    let mut min_u = init_u;
-    let mut min_c = p.hit_cost(init_u, xs[init_u as usize - 1].clone());
-    for u in init_u + 1..=init_u + n {
-        let c = p.hit_cost(u, xs[u as usize - 1].clone());
-        if c < min_c {
-            min_u = u;
-            min_c = c;
-        }
-    }
-
-    xs[min_u as usize - 1].clone()
-}
-
-fn modify_problem<'a>(
-    p: &'a IntegralSmoothedBalancedLoadOptimization<'a>,
-    t: i32,
-    epsilon: f64,
-) -> Result<IntegralSmoothedBalancedLoadOptimization<'a>> {
-    let mut time_slot_mapping: Vec<i32> = vec![]; // maps each time `u` to the corresponding time `t`
-    let mut load: Vec<i32> = vec![];
-    let mut ns: Vec<i32> = vec![];
-    for t in 1..=t - 1 {
-        let n = determine_sub_time_slots(p, t, epsilon)?;
-        for _ in 0..n {
-            time_slot_mapping.push(t);
-            load.push(p.load[t as usize - 1]);
-        }
-        ns.push(n);
-    }
-    let t_end = ns.iter().sum::<i32>() + 1;
-
-    let hitting_cost = (0..p.d as usize)
-        .map(|k| -> CostFn<'a, i32> {
-            let time_slot_mapping = time_slot_mapping.clone();
-            let ns = ns.clone();
-            CostFn::new(move |u, x| {
-                let t = time_slot_mapping[u as usize - 1];
-                p.hitting_cost[k].call(t, x, p.bounds[k])
-                    / ns[t as usize - 1] as f64
-            })
-        })
-        .collect();
-
-    Ok(SmoothedBalancedLoadOptimization {
-        d: p.d,
-        t_end,
-        bounds: p.bounds.clone(),
-        switching_cost: p.switching_cost.clone(),
-        hitting_cost,
-        load,
-    })
-}
-
+/// Calculates the number of sub time slots for some time slot `t`.
 fn determine_sub_time_slots(
     p: &IntegralSmoothedBalancedLoadOptimization,
     t: i32,
     epsilon: f64,
 ) -> Result<i32> {
-    let n = p.d as f64 / epsilon;
-
-    let fractions = (0..p.d as usize)
-        .map(|k| -> Result<OrderedFloat<f64>> {
+    let max_fract = (0..p.d as usize)
+        .map(|k| -> OrderedFloat<f64> {
             let l = p.hitting_cost[k].call(t, 0, p.bounds[k]);
-            Ok(OrderedFloat(l / p.switching_cost[k]))
+            OrderedFloat(l / p.switching_cost[k])
         })
-        .collect::<Result<Vec<OrderedFloat<f64>>>>()?;
-    let max_frac = fractions.iter().max().unwrap().into_inner();
+        .max()
+        .unwrap()
+        .into_inner();
+    Ok((p.d as f64 / epsilon * max_fract).ceil() as i32)
+}
 
-    Ok((n * max_frac).ceil() as i32)
+/// Builds the modified problem instance and extends the cached sequence of loads.
+fn modify_problem<'a>(
+    p: IntegralSmoothedBalancedLoadOptimization<'a>,
+    load: &mut Vec<i32>,
+    t: i32,
+    n: i32,
+    u_init: i32,
+    u_end: i32,
+) -> Result<IntegralSmoothedBalancedLoadOptimization<'a>> {
+    assert!(u_end - u_init == n, "number of sub time slots inconsistent");
+
+    let hitting_cost = (0..p.d as usize)
+        .map(|k| {
+            let hitting_cost = p.hitting_cost[k].clone();
+            let bounds = p.bounds[k];
+            CostFn::new(move |u, x| {
+                assert!(
+                    u_init <= u && u <= u_end,
+                    "sub time slot is outside valid sub time slot window"
+                );
+                hitting_cost.call(t, x, bounds) / n as f64
+            })
+        })
+        .collect();
+
+    load.extend(vec![p.load[t as usize - 1]; n as usize]);
+    assert!(
+        load.len() as i32 == u_end,
+        "loads inconsistent with number of sub time slots"
+    );
+
+    Ok(SmoothedBalancedLoadOptimization {
+        d: p.d,
+        t_end: u_init,
+        bounds: p.bounds,
+        switching_cost: p.switching_cost,
+        hitting_cost,
+        load: load.clone(),
+    })
+}
+
+fn determine_config(
+    mod_p: &IntegralSmoothedBalancedLoadOptimization,
+    mod_xs: &IntegralSchedule,
+    u_init: i32,
+    u_end: i32,
+) -> IntegralConfig {
+    let mut min_u = u_init;
+    let mut min_c = mod_p.hit_cost(u_init, mod_xs.get(u_init).unwrap().clone());
+    for u in u_init + 1..=u_end {
+        let c = mod_p.hit_cost(u, mod_xs.get(u).unwrap().clone());
+        if c < min_c {
+            min_u = u;
+            min_c = c;
+        }
+    }
+    mod_xs.get(min_u).unwrap().clone()
 }
 
 fn alg_b(
     o: Online<IntegralSmoothedBalancedLoadOptimization>,
     t: i32,
     xs: &IntegralSchedule,
-    prev_m: AlgBMemory,
+    mut ms: AlgBMemory,
     options: Options,
 ) -> Result<IntegralStep<AlgBMemory>> {
     let opt_x = find_optimal_config(&o.p, options.use_approx)?;
@@ -163,7 +190,7 @@ fn alg_b(
             o.p.bounds[k],
             &o.p.hitting_cost[k],
             o.p.switching_cost[k],
-            &prev_m,
+            &ms,
             t,
             k,
         );
@@ -173,14 +200,15 @@ fn alg_b(
         }
     }
 
-    Ok(Step(x, Some(m)))
+    ms.push(m);
+    Ok(Step(x, Some(ms)))
 }
 
 fn deactivated_quantity(
     bound: i32,
     hitting_cost: &CostFn<'_, i32>,
     switching_cost: f64,
-    m: &AlgBMemory,
+    ms: &AlgBMemory,
     t_now: i32,
     k: usize,
 ) -> i32 {
@@ -191,7 +219,7 @@ fn deactivated_quantity(
         let l = hitting_cost.call(t_now, 0, bound);
 
         if cum_l <= switching_cost && switching_cost < cum_l + l {
-            result += m[k];
+            result += ms[t as usize - 1][k];
         }
     }
     result
