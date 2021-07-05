@@ -80,7 +80,7 @@ pub fn probabilistic<'a>(
     let x_l = find_left_bound(&o, t, &breakpoints, &prev_p, x_m)?;
 
     let p: Distribution = Arc::new(move |x| {
-        if x >= x_l && x <= x_r {
+        if x_l <= x && x <= x_r {
             prev_p(x)
                 + second_derivative(
                     |x: f64| {
