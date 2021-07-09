@@ -1,3 +1,5 @@
+//! Energy consumption model.
+
 use crate::cost::data_center::model::ServerType;
 use std::collections::HashMap;
 
@@ -13,19 +15,19 @@ pub enum EnergyConsumptionModel {
 }
 
 pub struct Linear {
-    /// Power consumed by a server of type `k` when idling.
+    /// Power consumed when idling.
     phi_min: f64,
-    /// Power consumed by a server of type `k` at full load.
+    /// Power consumed at full load.
     phi_max: f64,
 }
 
 pub struct SimplifiedLinear {
-    /// Power consumed by a server of type `k` at full load.
+    /// Power consumed at full load.
     phi_max: f64,
 }
 
 pub struct NonLinear {
-    /// Power consumed by a server of type `k` when idling.
+    /// Power consumed when idling.
     phi_min: f64,
     /// Constant for computing dynamic power. `alpha > 1`.
     alpha: f64,

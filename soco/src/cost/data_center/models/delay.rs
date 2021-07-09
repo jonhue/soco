@@ -1,3 +1,5 @@
+//! Delay model.
+
 /// Delay model.
 pub enum DelayModel {
     /// M/GI/1 Processor Sharing Queue.

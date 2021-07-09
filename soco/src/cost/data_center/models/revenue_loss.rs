@@ -1,3 +1,5 @@
+//! Revenue loss model.
+
 use crate::cost::data_center::model::JobType;
 use crate::utils::pos;
 use std::collections::HashMap;
@@ -14,7 +16,7 @@ pub struct MinimalDetectableDelay {
 }
 
 impl RevenueLossModel {
-    /// Revenue loss if jobs of type `i` have average delay `d` during time slot `t`.
+    /// Revenue loss if jobs of some type have average delay `delay` during time slot `t`.
     /// Referred to as `r` in the paper.
     pub fn loss(&self, _t: i32, job_type: &JobType, delay: f64) -> f64 {
         match self {

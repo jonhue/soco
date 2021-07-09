@@ -1,34 +1,19 @@
+//! Energy cost model.
+
 use crate::cost::data_center::model::Location;
 use crate::utils::min;
 use crate::utils::pos;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-/// Energy cost model.
-pub enum EnergyCostModel<'a> {
-    /// Linear energy cost.
-    Linear(HashMap<String, Linear<'a>>),
-    /// Quotas.
-    Quotas(HashMap<String, Quotas<'a>>),
-}
-
-pub struct Linear<'a> {
-    /// Average cost of a unit of energy during time slot `t`.
-    cost: Arc<dyn Fn(i32) -> f64 + 'a>,
-}
-impl<'a> Linear<'a> {
-    fn cost(&self, t: i32) -> f64 {
-        (self.cost)(t)
-    }
-}
-
+/// Energy source.
 #[derive(Clone)]
 pub struct EnergySource<'a> {
     /// Average cost of a unit of energy during time slot `t`.
     cost: Arc<dyn Fn(i32) -> f64 + 'a>,
     /// Average profit of an unused unit of energy during time slot `t`.
     profit: Arc<dyn Fn(i32) -> f64 + 'a>,
-    /// Maximum amount of energy at location `j` during time slot `t`.
+    /// Maximum amount of energy at some location during time slot `t`.
     limit: Arc<dyn Fn(i32, &Location) -> f64 + 'a>,
 }
 impl<'a> EnergySource<'a> {
@@ -40,6 +25,24 @@ impl<'a> EnergySource<'a> {
     }
     fn limit(&self, t: i32, location: &Location) -> f64 {
         (self.limit)(t, location)
+    }
+}
+
+/// Energy cost model.
+pub enum EnergyCostModel<'a> {
+    /// Linear energy cost.
+    Linear(HashMap<String, Linear<'a>>),
+    /// Energy cost model using (maximum) quotas.
+    Quotas(HashMap<String, Quotas<'a>>),
+}
+
+pub struct Linear<'a> {
+    /// Average cost of a unit of energy during time slot `t`.
+    cost: Arc<dyn Fn(i32) -> f64 + 'a>,
+}
+impl<'a> Linear<'a> {
+    fn cost(&self, t: i32) -> f64 {
+        (self.cost)(t)
     }
 }
 

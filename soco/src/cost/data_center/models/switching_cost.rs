@@ -1,28 +1,32 @@
+//! Switching cost model.
+
 use crate::cost::data_center::model::ServerType;
 use std::collections::HashMap;
+
+/// Switching cost model.
 
 pub struct SwitchingCostModel(HashMap<String, SwitchingCost>);
 
 /// Switching cost.
 pub struct SwitchingCost {
-    /// Average cost per unit of energy for each server type.
+    /// Average cost per unit of energy.
     energy_cost: f64,
-    /// Power consumed by a server of type `k` when idling.
+    /// Power consumed when idling.
     phi_min: f64,
-    /// Power consumed by a server of type `k` at full load.
+    /// Power consumed at full load.
     phi_max: f64,
-    /// Additional energy consumed by toggling a server of type `k` on and off.
+    /// Additional energy consumed by toggling a server on and off.
     epsilon: f64,
-    /// Required time in time slots for migrating connections or data for each server type.
+    /// Required time in time slots for migrating connections or data.
     delta: f64,
-    /// Wear-and-tear costs for toggling a server of type `k`.
+    /// Wear-and-tear costs of toggling a server.
     tau: f64,
-    /// Perceived risk associated with toggling a server of type `k`.
+    /// Perceived risk associated with toggling a server.
     rho: f64,
 }
 
 impl SwitchingCostModel {
-    /// Computes switching cost for a server of some server type.
+    /// Computes switching cost for a server of some type.
     pub fn switching_cost(&self, server_type: &ServerType) -> f64 {
         let model = self.model(server_type);
         model.energy_cost * (model.epsilon + model.delta * model.phi_max)
@@ -30,7 +34,7 @@ impl SwitchingCostModel {
             + model.rho
     }
 
-    /// Computes normalized switching cost for a server of type `k`. Approximately
+    /// Computes normalized switching cost for a server of some type. Approximately,
     /// measures the minimum duration a server must be asleep to outweigh the switching cost.
     /// Referred to as `\xi` in the paper.
     pub fn normalized_switching_cost(&self, server_type: &ServerType) -> f64 {
@@ -57,6 +61,7 @@ impl SwitchingCostModel {
             .collect()
     }
 
+    /// Returns model of some server type.
     fn model(&self, server_type: &ServerType) -> &SwitchingCost {
         &self.0[&server_type.key]
     }
