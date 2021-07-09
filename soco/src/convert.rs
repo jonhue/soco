@@ -1,9 +1,7 @@
 //! Functions to convert between problem instances.
 
 use crate::config::{Config, FractionalConfig, IntegralConfig};
-use crate::cost::data_center::load::Load;
-use crate::cost::data_center::{apply_loads, load_balance};
-use crate::cost::{CallableCostFn, CostFn};
+use crate::cost::CostFn;
 use crate::norm::manhattan_scaled;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
@@ -14,8 +12,7 @@ use crate::problem::{
 use crate::schedule::{FractionalSchedule, IntegralSchedule};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
-use num::{NumCast, ToPrimitive};
-use std::sync::Arc;
+use num::NumCast;
 
 pub trait DiscretizableVector {
     /// Ceil all elements of a vector.
@@ -154,10 +151,10 @@ where
 {
     /// Convert instance to an instance of Smoothed Balanced-Load Optimization.
     pub fn to_sblo(&'a self) -> SmoothedBalancedLoadOptimization<'a, T> {
-        let hitting_cost: Vec<CostFn<'a, T>> = self
+        let hitting_cost: Vec<CostFn<'a, f64>> = self
             .hitting_cost
             .iter()
-            .map(|&l| -> CostFn<'a, T> { CostFn::new(move |_, _| l) })
+            .map(|&l| -> CostFn<'a, f64> { CostFn::new(move |_, _| l) })
             .collect();
         SmoothedBalancedLoadOptimization {
             d: self.d,
@@ -176,24 +173,12 @@ where
 {
     /// Convert to an instance of Simplified Smoothed Convex Optimization.
     pub fn to_ssco(&'a self) -> SimplifiedSmoothedConvexOptimization<'a, T> {
-        let f = load_balance(Arc::new(move |t, k, l| {
-            self.hitting_cost[k].call(
-                t,
-                NumCast::from(l[0]).unwrap(),
-                self.bounds[k],
-            )
-        }));
-        let loads = self
-            .load
-            .iter()
-            .map(|l| Load::single(ToPrimitive::to_f64(l).unwrap()))
-            .collect();
         SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.clone(),
             switching_cost: self.switching_cost.clone(),
-            hitting_cost: apply_loads(self.d, 1, f, loads),
+            hitting_cost: CostFn::new(move |t, x| self.hit_cost(t, x)),
         }
     }
 }

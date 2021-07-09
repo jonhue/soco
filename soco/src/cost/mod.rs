@@ -55,12 +55,13 @@ where
         self.call_unbounded(t, x)
     }
 }
-impl<'a, T> CallableCostFn<'a, T, T> for CostFn<'a, T>
+impl<'a, T, U> CallableCostFn<'a, T, U> for CostFn<'a, T>
 where
     T: Value,
+    U: Value,
 {
-    fn call(&self, t: i32, x: T, bounds: T) -> f64 {
-        if x < NumCast::from(0).unwrap() || x > bounds {
+    fn call(&self, t: i32, x: T, bounds: U) -> f64 {
+        if x < NumCast::from(0).unwrap() || x > NumCast::from(bounds).unwrap() {
             return f64::INFINITY;
         }
         self.call_unbounded(t, x)

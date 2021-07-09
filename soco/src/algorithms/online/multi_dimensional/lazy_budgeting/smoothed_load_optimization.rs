@@ -129,7 +129,9 @@ fn next_time_horizon(
 fn collect_config(d: i32, lanes: &Lanes) -> IntegralConfig {
     let mut config = Config::repeat(0, d);
     for i in 0..lanes.len() {
-        config[lanes[i] as usize] += 1;
+        if lanes[i] > 0 {
+            config[lanes[i] as usize - 1] += 1;
+        }
     }
     config
 }
@@ -152,11 +154,7 @@ fn build_lanes(x: &IntegralConfig, d: i32, bound: i32) -> Lanes {
 
 /// Sums step across dimension from `from` to `to`.
 fn active_lanes(x: &IntegralConfig, from: i32, to: i32) -> i32 {
-    let mut result = 0;
-    for k in from..=to {
-        result += x[k as usize];
-    }
-    result
+    (from..=to).map(|k| x[k as usize - 1]).sum()
 }
 
 fn find_optimal_lanes(

@@ -101,9 +101,9 @@ where
             format!("length of vector of switching costs must equal dimension, {} != {}", self.switching_cost.len(), self.d),
         )?;
         assert_validity(
-            self.load.len() == self.t_end as usize,
+            self.load.len() >= self.t_end as usize,
             format!(
-                "length of vector of loads must equal time horizon, {} != {}",
+                "length of vector of loads must be sufficient for time horizon, {} < {}",
                 self.load.len(),
                 self.t_end
             ),
