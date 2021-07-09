@@ -1,9 +1,9 @@
 //! Problem definition.
 
 use crate::config::Config;
-use crate::cost::data_center::loads::apply_loads;
-use crate::cost::data_center::loads::LoadFractions;
-use crate::cost::data_center::loads::LoadProfile;
+use crate::cost::data_center::loads::{
+    apply_loads, LoadFractions, LoadProfile,
+};
 use crate::cost::data_center::safe_balancing;
 use crate::cost::CallableCostFn;
 use crate::cost::CostFn;

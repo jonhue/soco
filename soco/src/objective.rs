@@ -50,8 +50,8 @@ where
     ) -> Result<f64> {
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 2).unwrap_or(default);
-            let x = &xs[t as usize - 1];
+            let prev_x = xs.get(t - 1).unwrap_or(default);
+            let x = xs.get(t).unwrap();
             cost += self.hit_cost(t as i32, x.clone());
             let delta = movement(x, prev_x, inverted);
             cost += (self.switching_cost)(delta);
@@ -76,8 +76,8 @@ where
     ) -> Result<f64> {
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 2).unwrap_or(default);
-            let x = &xs[t as usize - 1];
+            let prev_x = xs.get(t - 1).unwrap_or(default);
+            let x = xs.get(t).unwrap();
             cost += self.hit_cost(t as i32, x.clone());
             for k in 0..self.d as usize {
                 let delta = ToPrimitive::to_f64(&scalar_movement(
@@ -107,8 +107,8 @@ where
     ) -> Result<f64> {
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 2).unwrap_or(default);
-            let x = &xs[t as usize - 1];
+            let prev_x = xs.get(t - 1).unwrap_or(default);
+            let x = xs.get(t).unwrap();
             for k in 0..self.d as usize {
                 cost +=
                     self.hitting_cost[k] * ToPrimitive::to_f64(&x[k]).unwrap();

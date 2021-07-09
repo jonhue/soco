@@ -42,12 +42,10 @@ pub fn graph_search(
         handle_layer(&p, inverted, t, false, &values, &mut paths, None)?;
     }
 
-    Ok(paths
-        .get(&Vertice {
-            config: build_base_config(p.d, &p.bounds, &values, true),
-            powering_up: false,
-        })
-        .unwrap()
+    Ok(paths[&Vertice {
+        config: build_base_config(p.d, &p.bounds, &values, true),
+        powering_up: false,
+    }]
         .clone())
 }
 
@@ -278,7 +276,7 @@ fn find_optimal_predecessor(
 ) -> Option<(Edge, Path)> {
     let mut picked: Option<(Edge, Path)> = None;
     for predecessor in predecessors {
-        let path = paths.get(&predecessor.from).unwrap();
+        let path = &paths[&predecessor.from];
         let new_cost = path.cost + predecessor.cost;
 
         // take smallest possible action if costs are equal

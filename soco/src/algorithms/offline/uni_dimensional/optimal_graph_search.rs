@@ -131,7 +131,7 @@ fn find_schedule(
         cost: f64::INFINITY,
     };
     for i in prev_rows {
-        let path = paths.get(&Vertice(p.t_end, i)).unwrap();
+        let path = &paths[&Vertice(p.t_end, i)];
         let cost = p.switching_cost[0] * scalar_movement(0, i, inverted) as f64;
         let picked_cost = path.cost + cost;
         if picked_cost < result.cost {
@@ -155,7 +155,7 @@ fn find_shortest_subpath(
     let mut picked_source = 0;
     let mut picked_cost = f64::INFINITY;
     for &source in from {
-        let prev_cost = paths.get(&Vertice(t - 1, source)).unwrap().cost;
+        let prev_cost = paths[&Vertice(t - 1, source)].cost;
         let cost = build_cost(p, t, source, to, inverted);
         let new_cost = prev_cost + cost;
         if new_cost < picked_cost {
@@ -182,7 +182,7 @@ fn build_cost(
 fn update_paths(paths: &mut Paths<Vertice>, t: i32, i: i32, j: i32, cost: f64) {
     let u = Vertice(t - 1, i);
     let v = Vertice(t, j);
-    let prev_xs = &paths.get(&u).unwrap().xs;
+    let prev_xs = &paths[&u].xs;
     let xs = prev_xs.extend(Config::single(j));
 
     paths.insert(v, Path { xs, cost });
