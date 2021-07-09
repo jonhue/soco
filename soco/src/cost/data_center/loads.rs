@@ -165,9 +165,14 @@ where
         let equality_constraints = (0..e as usize)
             .map(|i| -> Constraint {
                 Arc::new(move |zs_: &[f64]| -> f64 {
-                    let zs = LoadFractions { zs_, d, e };
-                    (0..d as usize).map(|k| zs.get(k, i)).sum::<f64>()
-                        - lambda[i] / lambda.total()
+                    let total_lambda = lambda.total();
+                    if total_lambda > 0. {
+                        let zs = LoadFractions { zs_, d, e };
+                        (0..d as usize).map(|k| zs.get(k, i)).sum::<f64>()
+                            - lambda[i] / lambda.total()
+                    } else {
+                        0.
+                    }
                 })
             })
             .collect();
