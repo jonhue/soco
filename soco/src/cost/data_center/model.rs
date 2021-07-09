@@ -253,7 +253,7 @@ impl<'a> Model<'a> {
         job_type: &JobType,
         l: f64,
     ) -> f64 {
-        let delay = self.delay_model.average_delay(l)
+        let delay = self.delay_model.average_delay(self.delta, l)
             + source.routing_delay_to(t, location)
             + job_type.processing_time_on(server_type);
         self.gamma * (self.revenue_loss_model.loss(t, job_type, delay))

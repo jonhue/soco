@@ -1,19 +1,16 @@
 /// Delay model.
 pub enum DelayModel {
     /// M/GI/1 Processor Sharing Queue.
-    ProcessorSharingQueue {
-        /// Time slot length.
-        delta: f64,
-    },
+    ProcessorSharingQueue,
 }
 
 impl DelayModel {
-    /// Average delay of a job of type `i` processed on a server of type `k`
-    /// during time slot `t` where the total load on the server is `l`.
+    /// Average delay of a sub job processed on a server handling a total of `l`
+    /// sub jobs when the time slot length is `delta`.
     /// Referred to as `d` in the paper.
-    pub fn average_delay(&self, l: f64) -> f64 {
+    pub fn average_delay(&self, delta: f64, l: f64) -> f64 {
         match self {
-            DelayModel::ProcessorSharingQueue { delta } => 1. / (delta - l),
+            DelayModel::ProcessorSharingQueue => 1. / (delta - l),
         }
     }
 }
