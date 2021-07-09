@@ -1,9 +1,9 @@
 //! Model of a data center.
 
 use crate::config::Config;
-use crate::cost::data_center::loads::apply_loads;
-use crate::cost::data_center::loads::Loads;
-use crate::cost::data_center::loads::{LoadFractions, LoadProfile};
+use crate::cost::data_center::loads::{
+    apply_loads, LoadFractions, LoadProfile, Loads,
+};
 use crate::cost::data_center::models::delay::DelayModel;
 use crate::cost::data_center::models::energy_consumption::EnergyConsumptionModel;
 use crate::cost::data_center::models::energy_cost::EnergyCostModel;
@@ -11,9 +11,10 @@ use crate::cost::data_center::models::revenue_loss::RevenueLossModel;
 use crate::cost::data_center::models::switching_cost::SwitchingCostModel;
 use crate::cost::data_center::safe_balancing;
 use crate::cost::CostFn;
-use crate::problem::SimplifiedSmoothedConvexOptimization;
-use crate::problem::SmoothedBalancedLoadOptimization;
-use crate::problem::SmoothedLoadOptimization;
+use crate::problem::{
+    SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
+    SmoothedLoadOptimization,
+};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use num::NumCast;
@@ -21,6 +22,7 @@ use num::ToPrimitive;
 use std::collections::HashMap;
 use std::sync::Arc;
 
+/// Server type.
 pub struct ServerType {
     /// Name.
     pub key: String,
@@ -37,6 +39,7 @@ impl ServerType {
     }
 }
 
+/// Job type.
 pub struct JobType<'a> {
     /// Name.
     pub key: String,
@@ -49,6 +52,7 @@ impl<'a> JobType<'a> {
     }
 }
 
+/// Geographical source of jobs.
 pub struct Source<'a> {
     /// Name.
     pub key: String,
@@ -69,16 +73,15 @@ impl Default for Source<'_> {
     }
 }
 
+/// Data center.
 pub struct Location {
     /// Name.
     pub key: String,
-    /// Maximum number of servers of some type.
+    /// Maximum number of servers of each type.
     pub m: HashMap<String, i32>,
 }
 
 /// Model of a network of data centers.
-///
-/// Features of the underlying model have an underscore (`_`) as suffix.
 pub struct Model<'a> {
     /// Length of a time slot.
     delta: f64,
@@ -105,6 +108,7 @@ pub struct Model<'a> {
 }
 
 impl<'a> Model<'a> {
+    /// Creates a model of a singular data center.
     #[allow(clippy::too_many_arguments)]
     pub fn single(
         delta: f64,
@@ -136,6 +140,7 @@ impl<'a> Model<'a> {
         }
     }
 
+    /// Creates a model of a network of data centers.
     #[allow(clippy::too_many_arguments)]
     pub fn network(
         delta: f64,
@@ -165,8 +170,9 @@ impl<'a> Model<'a> {
         }
     }
 
-    /// Calculates cumulative sub jobs of servers of type `k` when they are
-    /// assigned the load profile `loads`.
+    /// Calculates cumulative sub jobs of servers of some type, i.e. the number
+    /// of sub jobs handled by all servers of this type, when they are assigned
+    /// the load profile `loads`.
     fn total_sub_jobs(
         &self,
         server_type: &ServerType,
@@ -202,7 +208,7 @@ impl<'a> Model<'a> {
         self.energy_cost_model.cost(t, &self.locations[j], p)
     }
 
-    /// Energy consumption of data center `j` with configuration `x`, load profile
+    /// Energy consumption of data center `j` with configuration `x_`, load profile
     /// `lambda`, and load fractions `zs`.
     /// Referred to as `\phi'` in the paper.
     fn energy_consumption<T>(
@@ -234,9 +240,9 @@ impl<'a> Model<'a> {
             .sum()
     }
 
-    /// Revenue loss. Non-negative convex cost incurred by processing a job of
-    /// type `(s,i)` on a server of type `(j,k)` during time slot `t` when a total of
-    /// `l` jobs are processed on the server.
+    /// Revenue loss. Non-negative convex cost incurred by processing some job
+    /// on some server during time slot `t` when a total of `l` sub jobs are
+    /// processed on the server.
     /// Referred to as `q` in the paper.
     fn revenue_loss(
         &self,
@@ -255,12 +261,6 @@ impl<'a> Model<'a> {
 
     /// Revenue loss across all sources and job types.
     /// Referred to as `h` in the paper.
-    ///
-    /// * `t` - time slot
-    /// * `j` - data center
-    /// * `k` - server type
-    /// * `x` - number of active servers of type `(j,k)`
-    /// * `loads` - number of assigned jobs for each job type
     fn overall_revenue_loss<T>(
         &self,
         t: i32,
@@ -297,13 +297,6 @@ impl<'a> Model<'a> {
 
     /// Objective to be minimized when assigning jobs.
     /// Referred to as `f` in the paper.
-    ///
-    /// * `t` - time slot
-    /// * `x` - configuration
-    /// * `lambda` - load profile
-    /// * `zs` - load fractions, flat representation where position `k * e + i`
-    ///          represents the fraction of jobs of type `i` assigned to servers
-    ///          of type `k`
     fn objective<T>(
         &self,
         t: i32,
@@ -350,10 +343,12 @@ impl<'a> Model<'a> {
         )
     }
 
+    /// Number of dimensions of the underlying problem.
     pub fn d_(&self) -> i32 {
         (self.locations.len() * self.server_types.len()) as i32
     }
 
+    /// Number of load types of the underlying problem.
     pub fn e_(&self) -> i32 {
         (self.sources.len() * self.job_types.len()) as i32
     }
@@ -382,7 +377,9 @@ impl<'a> Model<'a> {
         }
     }
 
-    /// Generates SBLO instance from model. Only allows for a single location, source, and job type.
+    /// Generates SBLO instance from model.
+    ///
+    /// * Only allows for a single location, source, and job type.
     pub fn to_sblo<T>(
         &self,
         loads: Loads,
@@ -441,8 +438,10 @@ impl<'a> Model<'a> {
         }
     }
 
-    /// Generates SLO instance from model. Only allows for a single location, source, and job type.
-    /// Assumes full utilization and averages the energy cost over the time horizon.
+    /// Generates SLO instance from model.
+    ///
+    /// * Only allows for a single location, source, and job type.
+    /// * Assumes full utilization and averages the energy cost over the time horizon.
     pub fn to_slo<T>(&self, loads: Loads) -> SmoothedLoadOptimization<T>
     where
         T: Value,
@@ -487,6 +486,7 @@ impl<'a> Model<'a> {
         }
     }
 
+    /// Generates upper bounds of the underlying problem instance.
     fn generate_bounds<T>(&self) -> Vec<T>
     where
         T: Value,
@@ -501,12 +501,14 @@ impl<'a> Model<'a> {
     }
 }
 
+/// Parses index of underlying representation, returns outer and inner indexes.
 fn parse(inner_len: usize, i: usize) -> (usize, usize) {
     let outer = i / inner_len;
     let inner = i - outer * inner_len;
     (outer, inner)
 }
 
+/// Encodes index of underlying representation from the outer and inner indexes.
 fn encode(inner_len: usize, outer: usize, inner: usize) -> usize {
     outer * inner_len + inner
 }
