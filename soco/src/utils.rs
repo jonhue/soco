@@ -19,7 +19,7 @@ pub fn frac(x: f64) -> f64 {
     x - x.floor()
 }
 
-/// max{0, x}
+/// max{x, y}
 pub fn max<T>(x: T, y: T) -> T
 where
     T: Value,
@@ -31,7 +31,7 @@ where
     }
 }
 
-/// max{0, x}
+/// min{x, y}
 pub fn min<T>(x: T, y: T) -> T
 where
     T: Value,
@@ -66,8 +66,8 @@ pub fn is_pow_of_2(x: i32) -> bool {
 
 /// Returns the `i`-th element if it exists.
 pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<&T> {
-    if i >= 0 && i < xs.len() as i32 {
-        Some(&xs[i as usize])
+    if 1 <= i && i <= xs.len() as i32 {
+        Some(&xs[i as usize - 1])
     } else {
         None
     }

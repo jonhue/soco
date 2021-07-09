@@ -65,6 +65,13 @@ where
                 memory_entries: ms.len() as i32,
             },
         )?;
+        assert(
+            xs.t_end() + 1 == self.p.t_end(),
+            Failure::OnlineInconsistentCurrentTimeSlot {
+                previous_time_slots: xs.t_end(),
+                current_time_slot: self.p.t_end(),
+            },
+        )?;
 
         loop {
             let m = if !ms.is_empty() {
@@ -81,6 +88,7 @@ where
             if !next(self, &xs) {
                 break;
             };
+            self.verify()?;
         }
 
         Ok(())

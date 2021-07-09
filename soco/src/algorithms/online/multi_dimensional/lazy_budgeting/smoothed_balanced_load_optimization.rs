@@ -88,7 +88,7 @@ fn determine_sub_time_slots(
 ) -> Result<i32> {
     let max_fract = (0..p.d as usize)
         .map(|k| -> OrderedFloat<f64> {
-            let l = p.hitting_cost[k].call(t, 0, p.bounds[k]);
+            let l = p.hitting_cost[k].call(t, 0., p.bounds[k]);
             OrderedFloat(l / p.switching_cost[k])
         })
         .max()
@@ -192,7 +192,7 @@ fn alg_b(
 
 fn deactivated_quantity(
     bound: i32,
-    hitting_cost: &CostFn<'_, i32>,
+    hitting_cost: &CostFn<'_, f64>,
     switching_cost: f64,
     ms: &AlgBMemory,
     t_now: i32,
@@ -202,7 +202,7 @@ fn deactivated_quantity(
     for t in 1..=t_now - 1 {
         let cum_l =
             cumulative_idle_hitting_cost(bound, hitting_cost, t + 1, t_now - 1);
-        let l = hitting_cost.call(t_now, 0, bound);
+        let l = hitting_cost.call(t_now, 0., bound);
 
         if cum_l <= switching_cost && switching_cost < cum_l + l {
             result += ms[t as usize - 1][k];
@@ -213,13 +213,13 @@ fn deactivated_quantity(
 
 fn cumulative_idle_hitting_cost(
     bound: i32,
-    hitting_cost: &CostFn<'_, i32>,
+    hitting_cost: &CostFn<'_, f64>,
     from: i32,
     to: i32,
 ) -> f64 {
     let mut result = 0.;
     for t in from..=to {
-        result += hitting_cost.call(t, 0, bound);
+        result += hitting_cost.call(t, 0., bound);
     }
     result
 }
