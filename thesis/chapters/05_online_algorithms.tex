@@ -130,7 +130,7 @@ For any time $\tau$, the algorithm maintains a probability distribution $p_{\tau
         p_{\tau-1}(x) + \frac{1}{2 \beta} \diff[2]{f_{\tau}}{x}(x) & x \in [x_l,x_r] \\
         0 & \text{otherwise}
     \end{cases}
-\end{align} where $p_0$ is a discrete distribution concentrating all probability mass in the point $0$. The continuous extension of this distribution can be approximated as $p_0 \sim \text{Unif}(0, \epsilon)$ for a suitably small $\epsilon > 0$. In our implementation we choose $\epsilon = 10^{-5}$. An example for a probability distribution is given in \autoref{fig:probability_distribution_of_probabilistic_algorithm}.
+\end{align} where $p_0$ is a discrete distribution concentrating all probability mass in the point $0$. Note that \citeauthor*{Bansal2015} do not assume any particular initial distribution, yet in our original problem statement we assumed $X_0 = \mathbf{0}$. The continuous extension of this distribution can be approximated as $p_0 \sim \text{Unif}(0, \epsilon)$ for a suitably small $\epsilon > 0$. In our implementation we choose $\epsilon = 10^{-5}$. An example for a probability distribution is given in \autoref{fig:probability_distribution_of_probabilistic_algorithm}.
 
 \begin{figure}
     \centering
@@ -351,13 +351,13 @@ This completely describes the implementation of the randomized variant of lazy b
 
 \subsubsection{Lazy Budgeting for Smoothed Balanced-Load Optimization}
 
-In a subsequent paper \citeauthor*{Albers2021_2} modified their lazy bugdeting method to SBLO, allowing for more complex cost functions. The method remains similar: First, an optimal schedule is found which ends at the current time slot. Then, the algorithm ensures for each server type, that the number of active servers is at least as large as the number of active servers in the optimal schedule. Lastly, to make the algorithm competitive, if the accumulated idle operating cost of a server of type $k$, $f_{t,k}(0)$, exceeds the switching cost $\beta_k$, a server of type $k$ is powered down \cite{Albers2021_2}.
+In a subsequent paper \citeauthor*{Albers2021_2} modified their lazy bugdeting method to SBLO, allowing for more complex cost functions. The method remains similar: First, an optimal schedule is found which ends at the current time slot. Then, the algorithm ensures for each server type, that the number of active servers is at least as large as the number of active servers in the optimal schedule. Lastly, to make the algorithm competitive, if the accumulated idle operating cost of a server of type $k$, $g_{t,k}(0)$, exceeds the switching cost $\beta_k$, a server of type $k$ is powered down \cite{Albers2021_2}.
 
-First, \citeauthor*{Albers2021_2} developed a $(2d+1)$-competitive online algorithm for a setting where the operating costs are time-independent. This allows to determine the runtime of a server in advance as both $f_{t,k}(0)$ and $\beta_k$ are known. Then, they extend their algorithm to a setting which allows for time-dependent operating costs where their algorithm attains a competitive ratio of $2d+1+\epsilon$ for any $\epsilon > 0$.
+First, \citeauthor*{Albers2021_2} developed a $(2d+1)$-competitive online algorithm for a setting where the operating costs are time-independent. This allows to determine the runtime of a server in advance as both $g_{t,k}(0)$ and $\beta_k$ are known. Then, they extend their algorithm to a setting which allows for time-dependent operating costs where their algorithm attains a competitive ratio of $2d+1+\epsilon$ for any $\epsilon > 0$.
 
 \paragraph{Time-Independent Operating Costs}
 
-Again, we denote by $\hat{X}^{\tau}$ the optimal schedule with information up to time slot $\tau$ and by $X$ the schedule obtained by the algorithm. If the optimal schedule has more active servers of some type $k \in [d]$ than the schedule obtained by the algorithm, i.e. $\hat{X}_{\tau,k}^{\tau} > X_{\tau-1,k}$, $(\hat{X}_{\tau,k}^{\tau} - X_{\tau-1,k})^+$ servers of type $k$ are powered up. After being active for $\bar{t}_k := \lfloor \beta_k / f_k(0) \rfloor$ time slots, a server of type $k$ is powered down again. The resulting algorithm is shown in \autoref{alg:md:lazy_budgeting:sblo_a}. Here, $h_{t,k}$ denotes the number of servers of type $k$ that were powered up at time $t$. We assume that $h_{t,k}$ is initialized with $0$ for all $t \in \mathbb{Z}$ and $k \in [d]$.
+Again, we denote by $\hat{X}^{\tau}$ the optimal schedule with information up to time slot $\tau$ and by $X$ the schedule obtained by the algorithm. If the optimal schedule has more active servers of some type $k \in [d]$ than the schedule obtained by the algorithm, i.e. $\hat{X}_{\tau,k}^{\tau} > X_{\tau-1,k}$, $(\hat{X}_{\tau,k}^{\tau} - X_{\tau-1,k})^+$ servers of type $k$ are powered up. After being active for $\bar{t}_k := \lfloor \beta_k / g_k(0) \rfloor$ time slots, a server of type $k$ is powered down again. The resulting algorithm is shown in \autoref{alg:md:lazy_budgeting:sblo_a}. Here, $h_{t,k}$ denotes the number of servers of type $k$ that were powered up at time $t$. We assume that $h_{t,k}$ is initialized with $0$ for all $t \in \mathbb{Z}$ and $k \in [d]$.
 
 \begin{algorithm}
     \caption{Lazy Budgeting for SBLO (for time-independent operating costs) \cite{Albers2021_2}}\label{alg:md:lazy_budgeting:sblo_a}
@@ -377,8 +377,8 @@ An optimal schedule $\hat{X}^{\tau}$ up to time $\tau$ can be obtained by \autor
 
 \paragraph{Time-Dependent Operating Costs}
 
-Next, \citeauthor*{Albers2021_2} extend \autoref{alg:md:lazy_budgeting:sblo_a} to an algorithm which supports time-dependent operating costs and achieves a competitive ratio of $2d + 1 + c(\mathcal{I})$ where $c(\mathcal{I}) := \sum_{k=1}^d \max_{t \in [T]} \frac{f_{t,k}(0)}{\beta_k}$ \cite{Albers2021_2}. Now, the idle operating cost $f_{t,k}(0)$ is not constant over time anymore. As at time $\tau$ we only know the operating costs up to time $\tau$, we cannot pre-determine the number of time slots that a server of type $k$ is active until powered down, yet at the time slot when a server is powered down we know all relevant cost functions. \citeauthor*{Albers2021_2} formally define the maximal number of time slots such that the sum of the idle operating costs beginning from the next time slot, $\tau+1$, is smaller than or equal to the switching cost as \begin{align*}
-    \bar{t}_{t,k} := \max \left\{\bar{t} \in [T - t] \mid \sum_{t' = t+1}^{t+\bar{t}} f_{t,k}(0) \leq \beta_k\right\}
+Next, \citeauthor*{Albers2021_2} extend \autoref{alg:md:lazy_budgeting:sblo_a} to an algorithm which supports time-dependent operating costs and achieves a competitive ratio of $2d + 1 + c(\mathcal{I})$ where $c(\mathcal{I}) := \sum_{k=1}^d \max_{t \in [T]} \frac{g_{t,k}(0)}{\beta_k}$ \cite{Albers2021_2}. Now, the idle operating cost $g_{t,k}(0)$ is not constant over time anymore. As at time $\tau$ we only know the operating costs up to time $\tau$, we cannot pre-determine the number of time slots that a server of type $k$ is active until powered down, yet at the time slot when a server is powered down we know all relevant cost functions. \citeauthor*{Albers2021_2} formally define the maximal number of time slots such that the sum of the idle operating costs beginning from the next time slot, $\tau+1$, is smaller than or equal to the switching cost as \begin{align*}
+    \bar{t}_{t,k} := \max \left\{\bar{t} \in [T - t] \mid \sum_{t' = t+1}^{t+\bar{t}} g_{t,k}(0) \leq \beta_k\right\}
 \end{align*} In contrast to \autoref{alg:md:lazy_budgeting:sblo_a} where servers of type $k$ that were powered up at time $\tau$ were active for $\bar{t}_{\tau,k}$ time slots, they are now active for $\bar{t}_{\tau,k} + 1$ time slots.
 
 Let $W_{\tau,k}$ denote the set of all time slots $t$ such that servers of type $k$ that were powered up at time $t$ are powered down during time slot $\tau$, i.e. $t + \bar{t}_{t,k} + 1 = \tau$. Again, we denote by $h_{t,k}$ the number of servers of type $k$ that were powered up at time $t$. Using the same powering-up policy as \autoref{alg:md:lazy_budgeting:sblo_a}, the updated algorithm is described in \autoref{alg:md:lazy_budgeting:sblo_b}.
@@ -388,7 +388,7 @@ Let $W_{\tau,k}$ denote the set of all time slots $t$ such that servers of type 
     \KwIn{$\mathcal{I}_{\text{SBLO}} = (d \in \mathbb{N}, \tau \in \mathbb{N}, m \in \mathbb{N}^d, \beta \in \mathbb{R}_{>0}^d, \Lambda \in \mathbb{N}_0^{\tau}, G \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0}^d)^{d^{\tau}})$}
     Calculate $\hat{X}^{\tau}$\;
     \For{$k \gets 1$ \KwTo $d$}{
-        $W_{\tau,k} \gets \left\{t \in [\tau-1] \mid \sum_{t'=t+1}^{\tau-1} f_{t',k}(0) \leq \beta_k < \sum_{t'=t+1}^{\tau} f_{t',k}(0)\right\}$\;
+        $W_{\tau,k} \gets \left\{t \in [\tau-1] \mid \sum_{t'=t+1}^{\tau-1} g_{t',k}(0) \leq \beta_k < \sum_{t'=t+1}^{\tau} g_{t',k}(0)\right\}$\;
         $X_{\tau,k} \gets X_{\tau-1,k} - \sum_{t \in W_{\tau,k}} h_{t, k}$\;
         \If{$X_{\tau,k} < \hat{X}_{\tau,k}^{\tau}$}{
             $X_{\tau,k} \gets \hat{X}_{\tau,k}^{\tau}$\;
@@ -409,20 +409,20 @@ In our description, we refer to time slots of $\mathcal{I}$ by $t$ and to sub ti
 The operating cost $g_{t,k}(l)$ of a server of type $k$ during time slot $t$ under load $l$ is divided equally among all sub time slots $\widetilde{n}_t$, i.e. $\widetilde{g}_{u,k}(l) := g_{U^{-1}(u),k}(l)$. The job volume does not change, so $\widetilde{\lambda}_u := \lambda_{U^{-1}(u)}$.
 
 \citeauthor*{Albers2021_2} show that for \begin{align*}
-    \widetilde{n}_t = \left\lceil\frac{d}{\epsilon} \cdot \max_{k \in [d]} \frac{f_{t,k}(0)}{\beta_k}\right\rceil
+    \widetilde{n}_t = \left\lceil\frac{d}{\epsilon} \cdot \max_{k \in [d]} \frac{g_{t,k}(0)}{\beta_k}\right\rceil
 \end{align*} the cost of the resulting schedule is at most $2d + 1 + \epsilon$ times larger than the cost of an optimal solution. For $\epsilon \to 0$, the competitive ratio converges to $2d + 1$ \cite{Albers2021_2}.
 
-Let $\widetilde{X}$ be the schedule obtained by \autoref{alg:md:lazy_budgeting:sblo_b} for $\widetilde{\mathcal{I}}$. Then, the schedule $X$ for the original problem instance $\mathcal{I}$ can be obtained by setting $X_{\tau} = \widetilde{X}_{\mu(\tau)}$ where $\mu(\tau) = \argmin_{u \in U(\tau)} \widetilde{g}_{u}(\widetilde{X}_u)$ is the configuration that minimizes the operating cost during $U(t)$ \cite{Albers2021_2}.
+Let $\widetilde{X}$ be the schedule obtained by \autoref{alg:md:lazy_budgeting:sblo_b} for $\widetilde{\mathcal{I}}$. Then, the schedule $X$ for the original problem instance $\mathcal{I}$ can be obtained by setting $X_{\tau} = \widetilde{X}_{\mu(\tau)}$ where $\mu(\tau) = \argmin_{u \in U(\tau)} \widetilde{f}_{u}(\widetilde{X}_u)$ is the configuration that minimizes the operating cost during $U(t)$ \cite{Albers2021_2}.
 
 The resulting algorithm is shown in \autoref{alg:md:lazy_budgeting:sblo_c}. First, the modified problem instance $\widetilde{\mathcal{I}}$ is created and the next $\widetilde{n}_{\tau}$ time steps are simulated using \autoref{alg:md:lazy_budgeting:sblo_b}. Then, the resulting schedule $X$ is constructed from $\widetilde{X}$.
 
 \begin{algorithm}
     \caption{Lazy Budgeting for SBLO \cite{Albers2021_2}}\label{alg:md:lazy_budgeting:sblo_c}
     \KwIn{$\mathcal{I}_{\text{SBLO}} = (d \in \mathbb{N}, \tau \in \mathbb{N}, m \in \mathbb{N}^d, \beta \in \mathbb{R}_{>0}^d, \Lambda \in \mathbb{N}_0^{\tau}, G \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0}^d)^{d^{\tau}})$}
-    $\widetilde{n}_{\tau} \gets \left\lceil d / \epsilon \cdot \max_{k \in [d]} f_{\tau,k} / \beta_k\right\rceil$\;
+    $\widetilde{n}_{\tau} \gets \left\lceil d / \epsilon \cdot \max_{k \in [d]} g_{\tau,k}(0) / \beta_k\right\rceil$\;
     Extend the modified problem instance $\widetilde{\mathcal{I}}$ by $\widetilde{n}_{\tau}$ additional time slots\;
     Update $\widetilde{X}$ by executing the next $\widetilde{n}_{\tau}$ time slots in \autoref{alg:md:lazy_budgeting:sblo_b}\;
-    $X_{\tau} \gets \widetilde{X}_{\mu(\tau)}$ with $\mu(\tau) = \argmin_{u \in U(\tau)} \widetilde{g}_u(\widetilde{X}_u)$\;
+    $X_{\tau} \gets \widetilde{X}_{\mu(\tau)}$ with $\mu(\tau) = \argmin_{u \in U(\tau)} \widetilde{f}_u(\widetilde{X}_u)$\;
     \Return $X_{\tau}$\;
 \end{algorithm}
 
