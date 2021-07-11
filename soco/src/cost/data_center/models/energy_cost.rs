@@ -33,6 +33,7 @@ pub enum EnergyCostModel<'a> {
     /// Linear energy cost.
     Linear(HashMap<String, Linear<'a>>),
     /// Energy cost model using (maximum) quotas.
+    /// Maximum profit across all energy sources must not exceed overall energy cost.
     Quotas(HashMap<String, Quotas<'a>>),
 }
 
