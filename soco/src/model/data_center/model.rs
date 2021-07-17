@@ -46,7 +46,7 @@ pub struct JobType<'a> {
     /// Name.
     pub key: String,
     /// Processing time `\eta_{k,i}` of a job on some server type `k` (assuming full utilization). Must be less than the time slot length `delta`.
-    processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + 'a>,
+    processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + Send + Sync + 'a>,
 }
 impl<'a> JobType<'a> {
     pub fn processing_time_on(&self, server_type: &ServerType) -> f64 {
@@ -59,7 +59,7 @@ pub struct Source<'a> {
     /// Name.
     pub key: String,
     /// Routing delay `\delta_{t,j,s}` to location `j` during time slot `t`.
-    routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + 'a>,
+    routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync + 'a>,
 }
 impl<'a> Source<'a> {
     pub fn routing_delay_to(&self, t: i32, location: &Location) -> f64 {

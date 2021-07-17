@@ -15,7 +15,7 @@ pub trait OnlineInput<'a>:
 }
 
 /// Model which is used to generate problem instances and update them online.
-pub trait Model<'a, P, A, B>
+pub trait Model<'a, P, A, B>: Sync
 where
     P: Problem,
     A: OfflineInput,
@@ -26,21 +26,6 @@ where
 
     /// Performs an online update of the given problem instance `o` with some `input` (which may be uncertain).
     fn update(&'a self, o: &mut Online<P>, input: B);
-
-    /// Generates (initial) instance of an online problem with respect to all information that is currently available.
-    fn to_online(
-        &'a self,
-        offline_input: A,
-        online_input: B,
-        w: i32,
-    ) -> Online<P> {
-        let mut o = Online {
-            p: self.to(offline_input),
-            w,
-        };
-        self.update(&mut o, online_input);
-        o
-    }
 }
 
 /// Utility to verify that the update of an online instance is valid.

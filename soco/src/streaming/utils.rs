@@ -22,7 +22,7 @@ where
     /// * `update` - Callback that in each iteration updates the problem instance. Return `true` to continue stream, `false` to end stream.
     /// * `options` - Algorithm options.
     pub fn stream<T, M, O>(
-        &'a mut self,
+        &mut self,
         alg: &impl OnlineAlgorithm<'a, T, P, M, O>,
         update: impl Fn(&mut Online<P>, &Schedule<T>) -> bool,
         options: O,
@@ -47,7 +47,7 @@ where
     /// * `xs` - Schedule.
     /// * `prev_m` - Memory of last iteration.
     pub fn stream_from<T, M, O>(
-        &'a mut self,
+        &mut self,
         alg: &impl OnlineAlgorithm<'a, T, P, M, O>,
         update: impl Fn(&mut Online<P>, &Schedule<T>) -> bool,
         options: O,
@@ -78,7 +78,7 @@ where
     /// * `prev_m` - Memory of last iteration.
     pub fn next<T, M, O>(
         &self,
-        alg: impl OnlineAlgorithm<'a, T, P, M, O>,
+        alg: &impl OnlineAlgorithm<'a, T, P, M, O>,
         options: O,
         xs: &mut Schedule<T>,
         prev_m: Option<M>,
@@ -108,7 +108,7 @@ where
     /// * `alg` - Online algorithm to stream.
     /// * `t_end` - Finite time horizon.
     pub fn offline_stream<T, M, O>(
-        &'a mut self,
+        &mut self,
         alg: &impl OnlineAlgorithm<'a, T, P, M, O>,
         t_end: i32,
         options: O,
