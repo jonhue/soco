@@ -7,30 +7,29 @@ use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
 use crate::value::Value;
+use serde::{Deserialize, Serialize};
 
 pub mod multi_dimensional;
-pub mod streaming;
 pub mod uni_dimensional;
 
 /// Solution fragment at some time `t` to an online problem.
 ///
 /// * Configuration at time `t`.
 /// * Memory if new memory should be added.
-pub struct Step<T, M>(pub Config<T>, pub Option<M>)
-where
-    T: Value;
+pub struct Step<T, M>(pub Config<T>, pub Option<M>);
 pub type IntegralStep<M> = Step<i32, M>;
 pub type FractionalStep<M> = Step<f64, M>;
 
 /// Memory of online algorithm.
-pub trait Memory<'a, P>: Clone + DefaultGivenProblem<P> + 'a
+pub trait Memory<'a, P>:
+    Clone + DefaultGivenProblem<P> + Deserialize<'a> + Serialize + 'a
 where
     P: Problem,
 {
 }
 impl<'a, T, P> Memory<'a, P> for T
 where
-    T: Clone + DefaultGivenProblem<P> + 'a,
+    T: Clone + DefaultGivenProblem<P> + Deserialize<'a> + Serialize + 'a,
     P: Problem,
 {
 }
@@ -51,7 +50,7 @@ where
 pub trait OnlineAlgorithm<'a, T, P, M, O>:
     Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>>
 where
-    T: Value,
+    T: Value<'a>,
     P: Problem + 'a,
     M: Memory<'a, P>,
     O: Options<P>,
@@ -82,7 +81,7 @@ where
 }
 impl<'a, T, P, M, O, F> OnlineAlgorithm<'a, T, P, M, O> for F
 where
-    T: Value,
+    T: Value<'a>,
     P: Problem + 'a,
     M: Memory<'a, P>,
     O: Options<P>,
@@ -93,7 +92,7 @@ where
 pub trait OnlineAlgorithmWithDefaultOptions<'a, T, P, M, O>:
     OnlineAlgorithm<'a, T, P, M, O>
 where
-    T: Value,
+    T: Value<'a>,
     P: Problem + 'a,
     M: Memory<'a, P>,
     O: Options<P>,
@@ -110,7 +109,7 @@ where
 }
 impl<'a, T, P, M, O, F> OnlineAlgorithmWithDefaultOptions<'a, T, P, M, O> for F
 where
-    T: Value,
+    T: Value<'a>,
     P: Problem + 'a,
     M: Memory<'a, P>,
     O: Options<P>,

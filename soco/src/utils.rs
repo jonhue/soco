@@ -19,10 +19,10 @@ pub fn frac(x: f64) -> f64 {
     x - x.floor()
 }
 
-/// max{0, x}
-pub fn max<T>(x: T, y: T) -> T
+/// max{x, y}
+pub fn max<'a, T>(x: T, y: T) -> T
 where
-    T: Value,
+    T: Value<'a>,
 {
     if x > y {
         x
@@ -31,10 +31,10 @@ where
     }
 }
 
-/// max{0, x}
-pub fn min<T>(x: T, y: T) -> T
+/// min{x, y}
+pub fn min<'a, T>(x: T, y: T) -> T
 where
-    T: Value,
+    T: Value<'a>,
 {
     if x > y {
         y
@@ -44,17 +44,17 @@ where
 }
 
 /// max{0, x}
-pub fn pos<T>(x: T) -> T
+pub fn pos<'a, T>(x: T) -> T
 where
-    T: Value,
+    T: Value<'a>,
 {
     max(NumCast::from(0).unwrap(), x)
 }
 
 /// max{a, min{b, x}}
-pub fn project<T>(x: T, a: T, b: T) -> T
+pub fn project<'a, T>(x: T, a: T, b: T) -> T
 where
-    T: Value,
+    T: Value<'a>,
 {
     max(a, min(b, x))
 }
@@ -66,17 +66,17 @@ pub fn is_pow_of_2(x: i32) -> bool {
 
 /// Returns the `i`-th element if it exists.
 pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<&T> {
-    if i >= 0 && i < xs.len() as i32 {
-        Some(&xs[i as usize])
+    if 1 <= i && i <= xs.len() as i32 {
+        Some(&xs[i as usize - 1])
     } else {
         None
     }
 }
 
 /// Computes the sum of bounds across all dimensions.
-pub fn total_bound<T>(bounds: &Vec<T>) -> T
+pub fn total_bound<'a, T>(bounds: &Vec<T>) -> T
 where
-    T: Value,
+    T: Value<'a>,
 {
     let mut result: T = NumCast::from(0).unwrap();
     for &b in bounds {
@@ -89,4 +89,14 @@ where
 pub fn sample_uniform(a: f64, b: f64) -> f64 {
     let mut rng = thread_rng();
     rng.gen_range(a..=b)
+}
+
+/// Move `t` such that the time scale begins at `t_start`.
+pub fn shift_time(t: i32, t_start: i32) -> i32 {
+    t + t_start - 1
+}
+
+/// Move `t` from a time scale beginning at `t_start` to a time scale beginning at `1`.
+pub fn unshift_time(t: i32, t_start: i32) -> i32 {
+    t - t_start + 1
 }

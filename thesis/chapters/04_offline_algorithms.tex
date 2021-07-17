@@ -210,7 +210,7 @@ The \autoref{proc:md:optimal_graph_search:update_paths} determines the shortest 
 
 \subsection{Graph-Based Polynomial-Time Integral Approximation Algorithm}
 
-\citeauthor*{Albers2021_2} extend the graph-based algorithm from the previous section to a polynomial-time approximation scheme \cite{Albers2021_2}. Their algorithm is a generalization of an approximation algorithm that was previously proposed by \citeauthor*{Kappelmann2017} \cite{Kappelmann2017}. The idea is to restrict the possible values of $x_{t,k}$. In addition to requiring $x_{t,k} \in [m_k]_0$, we also require $x_{t,k}$ to be a power of some $\gamma > 1$. The possible numbers of active servers of type $k$ is now given as \begin{align*}
+\citeauthor*{Albers2021_2} extend the graph-based algorithm from the previous section to a polynomial-time approximation scheme \cite{Albers2021_2} for SBLO. Their algorithm is a generalization of an approximation algorithm that was previously proposed by \citeauthor*{Kappelmann2017} \cite{Kappelmann2017}. The idea is to restrict the possible values of $x_{t,k}$. In addition to requiring $x_{t,k} \in [m_k]_0$, we also require $x_{t,k}$ to be a power of some $\gamma > 1$. The possible numbers of active servers of type $k$ is now given as \begin{align*}
     M_k^{\gamma} := &\{0, m_k\} \cup \{\lfloor\gamma^i\rfloor \in [m_k]_0 \mid i \in \mathbb{N}\} \cup \{\lceil\gamma^i\rceil \in [m_k]_0 \mid i \in \mathbb{N}\} \\
                     &\{0, \lfloor\gamma^1\rfloor, \lceil\gamma^1\rceil, \lfloor\gamma^2\rfloor, \lceil\gamma^2\rceil, \dots, m_k\}.
 \end{align*} It is easy to see that the ratio between two consecutive values in the ordered set $M_k^{\gamma}$ is not larger than $\gamma$. Also, $|M_k^{\gamma}| \in \mathcal{O}(\log_{\gamma} m_k)$. We define $\mathcal{M}^{\gamma} := M_1^{\gamma} \times \dots \times M_d^{\gamma}$ which results in $|\mathcal{M}^{\gamma}| \in \mathcal{O}(\prod_{k=1}^d \log_{\gamma} m_k)$. \autoref{fig:a_schedule_found_by_the_multi_dimensional_integral_offline_approximation_algorithm} shows an example for a schedule found by the approximation algorithm compared to an optimal schedule.
@@ -224,9 +224,11 @@ The \autoref{proc:md:optimal_graph_search:update_paths} determines the shortest 
     \label{fig:a_schedule_found_by_the_multi_dimensional_integral_offline_approximation_algorithm}
 \end{figure}
 
-Let $G^{\gamma}$ be the described graph parametrized by $\gamma > 1$. \citeauthor*{Albers2021_2} show that given a shortest path $P^{\gamma}$ in $G^{\gamma}$, its induced schedule $X^{P^{\gamma}}$ is a $(2\gamma + 1)$-approximation of the optimal schedule $\hat{x}$ \cite{Albers2021_2}. Further, the total number of vertices in $G^{\gamma}$ is \begin{align*}
+Let $G^{\gamma}$ be the described graph parametrized by $\gamma > 1$. \citeauthor*{Albers2021_2} show that, assuming we are given an instance of SBLO, given a shortest path $P^{\gamma}$ in $G^{\gamma}$, its induced schedule $X^{P^{\gamma}}$ is a $(2\gamma + 1)$-approximation of the optimal schedule $\hat{x}$ \cite{Albers2021_2}. Further, the total number of vertices in $G^{\gamma}$ is \begin{align*}
     \mathcal{O}(T |\mathcal{M}|^{\gamma}) = \mathcal{O}(T \prod_{k=1}^d \log_{1+\epsilon} m_k)
 \end{align*} as $|M_k^{\gamma}| \in \mathcal{O}(\log_{\gamma} m_k) = \mathcal{O}(\log_{1 + \epsilon} m_k)$. Using the same graph search algorithm that was described in the previous section we are able to find $X^{P^{\gamma}}$ in $\mathcal{O}(T C \prod_{k=1}^d \log_{1 + \epsilon} m_k)$ time. Hence, setting $\gamma = 1 + \epsilon / 2$ for some $\epsilon > 0$ yields a $(1+\epsilon)$-approximation. The algorithm is described in \autoref{alg:md:approximate_graph_search}.
+
+[TODO: describe/reference empirical performance with non-SBLO instances]
 
 \begin{algorithm}
     \caption{Multi-Dimensional Approximate Graph Search \cite{Albers2021_2}}\label{alg:md:approximate_graph_search}

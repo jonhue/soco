@@ -2,6 +2,7 @@
 
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
+use serde_derive::{Deserialize, Serialize};
 use std::iter::FromIterator;
 use std::ops::Add;
 use std::ops::Div;
@@ -11,16 +12,14 @@ use std::ops::Mul;
 use std::ops::Sub;
 
 /// For some time `t`, assigns each dimension `d` a unique value.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Config<T>(Vec<T>)
-where
-    T: Value;
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct Config<T>(Vec<T>);
 pub type IntegralConfig = Config<i32>;
 pub type FractionalConfig = Config<f64>;
 
-impl<T> Config<T>
+impl<'a, T> Config<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     pub fn new(x: Vec<T>) -> Config<T> {
         Config(x)
@@ -54,9 +53,9 @@ where
     }
 }
 
-impl<T> Index<usize> for Config<T>
+impl<'a, T> Index<usize> for Config<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     type Output = T;
 
@@ -71,9 +70,9 @@ where
     }
 }
 
-impl<T> IndexMut<usize> for Config<T>
+impl<'a, T> IndexMut<usize> for Config<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn index_mut(&mut self, k: usize) -> &mut T {
         assert!(
@@ -86,9 +85,9 @@ where
     }
 }
 
-impl<T> VecWrapper for Config<T>
+impl<'a, T> VecWrapper for Config<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     type Item = T;
 
@@ -97,9 +96,9 @@ where
     }
 }
 
-impl<T> FromIterator<T> for Config<T>
+impl<'a, T> FromIterator<T> for Config<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn from_iter<I>(iter: I) -> Self
     where
@@ -113,9 +112,9 @@ where
     }
 }
 
-impl<T> Add for Config<T>
+impl<'a, T> Add for Config<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     type Output = Self;
 
@@ -127,9 +126,9 @@ where
     }
 }
 
-impl<T> Sub for Config<T>
+impl<'a, T> Sub for Config<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     type Output = Self;
 
@@ -141,9 +140,9 @@ where
     }
 }
 
-impl<T> Mul for Config<T>
+impl<'a, T> Mul for Config<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     type Output = T;
 
@@ -153,7 +152,7 @@ where
     }
 }
 
-impl Mul<FractionalConfig> for f64 {
+impl<'a> Mul<FractionalConfig> for f64 {
     type Output = FractionalConfig;
 
     /// Scales config with scalar.
@@ -162,7 +161,7 @@ impl Mul<FractionalConfig> for f64 {
     }
 }
 
-impl Div<f64> for FractionalConfig {
+impl<'a> Div<f64> for FractionalConfig {
     type Output = FractionalConfig;
 
     /// Divides config by scalar.

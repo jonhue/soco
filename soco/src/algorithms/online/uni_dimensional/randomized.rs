@@ -9,9 +9,10 @@ use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, frac, project, sample_uniform};
+use serde_derive::{Deserialize, Serialize};
 
 /// Memory.
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Memory<'a> {
     /// Fractional number of servers determined by fractional relaxation.
     y: FractionalConfig,

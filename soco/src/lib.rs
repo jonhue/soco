@@ -11,11 +11,13 @@ pub mod breakpoints;
 pub mod config;
 pub mod convert;
 pub mod cost;
+pub mod model;
 pub mod norm;
 pub mod objective;
 pub mod problem;
 pub mod result;
 pub mod schedule;
+pub mod streaming;
 pub mod verifiers;
 
 mod numerics;

@@ -19,7 +19,7 @@ pub trait VerifiableProblem {
 
 impl<'a, T> VerifiableProblem for SmoothedConvexOptimization<'a, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -41,7 +41,7 @@ where
 
 impl<'a, T> VerifiableProblem for SimplifiedSmoothedConvexOptimization<'a, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -79,9 +79,9 @@ where
     }
 }
 
-impl<T> VerifiableProblem for SmoothedLoadOptimization<T>
+impl<'a, T> VerifiableProblem for SmoothedLoadOptimization<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -101,9 +101,9 @@ where
             format!("length of vector of switching costs must equal dimension, {} != {}", self.switching_cost.len(), self.d),
         )?;
         assert_validity(
-            self.load.len() == self.t_end as usize,
+            self.load.len() >= self.t_end as usize,
             format!(
-                "length of vector of loads must equal time horizon, {} != {}",
+                "length of vector of loads must be sufficient for time horizon, {} < {}",
                 self.load.len(),
                 self.t_end
             ),
@@ -154,7 +154,7 @@ where
             assert_validity(
                 self.switching_cost[k] < self.switching_cost[k - 1],
                 format!(
-                    "hitting costs must be descending, are not between dimension {} and dimension {}", k,
+                    "switching costs must be descending, are not between dimension {} and dimension {}", k,
                     k + 1
                 ),
             )?;
@@ -177,7 +177,7 @@ where
 
 impl<'a, T> VerifiableProblem for SmoothedBalancedLoadOptimization<'a, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -250,7 +250,7 @@ where
 
 impl<'a, T> Config<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     pub fn verify(&self, t: i32, bounds: &Vec<T>) -> Result<()> {
         for (k, &j) in self.iter().enumerate() {
@@ -274,7 +274,7 @@ where
 
 impl<'a, T> Schedule<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     pub fn verify(&self, t_end: i32, bounds: &Vec<T>) -> Result<()> {
         assert_validity(

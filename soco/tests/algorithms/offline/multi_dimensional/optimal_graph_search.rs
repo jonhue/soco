@@ -7,7 +7,6 @@ mod optimal_graph_search {
         OfflineAlgorithmWithDefaultOptions,
     };
     use soco::config::Config;
-    use soco::cost::CostFn;
     use soco::objective::Objective;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
@@ -15,12 +14,13 @@ mod optimal_graph_search {
 
     #[test]
     fn _1() {
+        let t_end = 2;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
-            t_end: 2,
+            t_end,
             bounds: vec![2, 1],
             switching_cost: vec![1.5, 1.],
-            hitting_cost: CostFn::new(penalize_zero),
+            hitting_cost: penalize_zero(t_end),
         };
         p.verify().unwrap();
 
@@ -51,12 +51,13 @@ mod optimal_graph_search {
 
     #[test]
     fn _2() {
+        let t_end = 100;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
-            t_end: 100,
+            t_end,
             bounds: vec![8, 8],
             switching_cost: vec![1., 3.],
-            hitting_cost: CostFn::new(random),
+            hitting_cost: random(t_end),
         };
         p.verify().unwrap();
 
@@ -93,7 +94,7 @@ mod optimal_graph_search {
                     Pcg64::seed_from_u64((d * t_end) as u64).gen_range(1.0..5.)
                 })
                 .collect(),
-            hitting_cost: CostFn::new(random),
+            hitting_cost: random(t_end),
         };
         p.verify().unwrap();
 

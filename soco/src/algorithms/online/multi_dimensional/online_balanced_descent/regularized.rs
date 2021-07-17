@@ -1,6 +1,6 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
-use crate::cost::CostFn;
+use crate::cost::{CostFn, SingleCostFn};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
@@ -38,12 +38,14 @@ pub fn robd(
     let v = Config::new(
         find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
     );
-    let regularization_function: CostFn<'_, FractionalConfig> =
-        CostFn::new(|t, x: FractionalConfig| {
+    let regularization_function: CostFn<'_, FractionalConfig> = CostFn::single(
+        t,
+        SingleCostFn::certain(|t, x: FractionalConfig| {
             o.p.hit_cost(t, x.clone())
                 + lambda_1 * (o.p.switching_cost)(x.clone() - prev_x.clone())
                 + lambda_2 * (o.p.switching_cost)(x - v.clone())
-        });
+        }),
+    );
     let x = Config::new(
         find_minimizer_of_hitting_cost(
             t,

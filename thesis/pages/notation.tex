@@ -57,12 +57,12 @@
 
 \begin{tabularx}{\textwidth}{lX}
     $\gamma \in \mathbb{R}_{\geq 0}$ & weight of revenue loss as opposed to energy cost \\
-    $p_{t,k,i} \in \mathbb{R}_{\geq 0}$ & penalty for processing a job of type $i$ on a server of type $k$ during time slot $t$ \\
     $r_{t,i}(d) \in \mathbb{R}_{\geq 0}$ & revenue loss of jobs of type $i$ with an average delay $d$ during time slot $t$ \\
     $d_{t,k,i}(l) \in \mathbb{R}_{\geq 0}$ & average delay of a job of type $i$ processed on a server of type $k$ during time slot $t$ where the total load on the server is $l$ \\
+    $\delta_{t,k,i} \in \mathbb{R}_{\geq 0}$ & constant delay when processing a job of type $i$ on a server of type $k$ during time slot $t$ \\
     $\mu_k \in \mathbb{R}_{\geq 0}$ & service rate of a server of type $k$ \\
     $\delta_i \in \mathbb{R}_{\geq 0}$ & minimal detectable delay of jobs of type $i$ \\
-    $\delta_{k,i} \in \mathbb{R}_{\geq 0}$ & processing time of a job of type $i$ on a server of type $k$ \\
+    $\eta_{k,i} \in \mathbb{R}_{\geq 0}$ & processing time of a job of type $i$ on a server of type $k$ \\
 \end{tabularx}
 
 \subsection*{Switching Cost}
@@ -81,7 +81,7 @@
     $\iota \in \mathbb{N}$ & number of data centers \\
     $\zeta \in \mathbb{N}$ & number of geographically centered request sources \\
     $\delta_{t,j,s} \in \mathbb{R}_{\geq 0}$ & network delay incurred by routing a request from source $s$ to data center $j$ during time slot $t$ \\
-    $I$ & set of energy sources \\
+    $\xi$ & number of energy sources \\
     $p_{t,i,j} \in \mathbb{R}_{\geq 0} \cup \{\infty\}$ & energy from source $i$ available at data center $j$ during time slot $t$ \\
     $u_{t,i} \in \mathbb{R}_{\geq 0}$ & average profit per unit of energy from source $i$ during time slot $t$ \\
     $q_{t,i} \in [0,1]$ & minimum fraction for energy from source $i$ during time slot $t$ \\

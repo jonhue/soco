@@ -10,6 +10,7 @@ use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
+use serde_derive::{Deserialize, Serialize};
 use std::sync::Arc;
 
 const EPSILON: f64 = 1e-5;
@@ -17,12 +18,18 @@ const EPSILON: f64 = 1e-5;
 /// Probability distribution.
 type Distribution<'a> = Arc<dyn Fn(f64) -> f64 + 'a>;
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Memory<'a> {
     /// Probability distribution.
+    #[serde(skip, default = "default_p")]
     p: Distribution<'a>,
     /// List of non-continuous or non-smooth points of the probability distribution.
     breakpoints: Vec<f64>,
+}
+fn default_p<'a>() -> Distribution<'a> {
+    Arc::new(|_| {
+        panic!("This is dummy distribution returned after deserializing the memory struct.");
+    })
 }
 impl<'a> Default for Memory<'_> {
     fn default() -> Self {

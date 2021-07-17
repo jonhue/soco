@@ -2,27 +2,29 @@ mod approx_graph_search {
     use crate::factories::{penalize_zero, random};
     use rand::prelude::*;
     use rand_pcg::Pcg64;
-    use soco::algorithms::offline::{
-        multi_dimensional::approx_graph_search::{
-            approx_graph_search, Options,
+    use soco::{
+        algorithms::offline::{
+            multi_dimensional::approx_graph_search::{
+                approx_graph_search, Options,
+            },
+            OfflineAlgorithm,
         },
-        OfflineAlgorithm,
+        config::Config,
+        objective::Objective,
+        problem::SimplifiedSmoothedConvexOptimization,
+        schedule::Schedule,
+        verifiers::VerifiableProblem,
     };
-    use soco::config::Config;
-    use soco::cost::CostFn;
-    use soco::objective::Objective;
-    use soco::problem::SimplifiedSmoothedConvexOptimization;
-    use soco::schedule::Schedule;
-    use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
+        let t_end = 2;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
-            t_end: 2,
+            t_end,
             bounds: vec![2, 1],
             switching_cost: vec![1.5, 1.],
-            hitting_cost: CostFn::new(penalize_zero),
+            hitting_cost: penalize_zero(t_end),
         };
         p.verify().unwrap();
 
@@ -53,12 +55,13 @@ mod approx_graph_search {
 
     #[test]
     fn _2() {
+        let t_end = 100;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
-            t_end: 100,
+            t_end,
             bounds: vec![8, 8],
             switching_cost: vec![1., 3.],
-            hitting_cost: CostFn::new(random),
+            hitting_cost: random(t_end),
         };
         p.verify().unwrap();
 
@@ -95,7 +98,7 @@ mod approx_graph_search {
                     Pcg64::seed_from_u64((d * t_end) as u64).gen_range(1.0..5.)
                 })
                 .collect(),
-            hitting_cost: CostFn::new(random),
+            hitting_cost: random(t_end),
         };
         p.verify().unwrap();
 

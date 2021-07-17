@@ -6,19 +6,19 @@ mod bcp {
     };
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
-    use soco::cost::CostFn;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
+        let t_end = 2;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end: 2,
+            t_end,
             bounds: vec![2.],
             switching_cost: vec![1.5],
-            hitting_cost: CostFn::new(inv_e),
+            hitting_cost: inv_e(t_end),
         };
         p.verify().unwrap();
 

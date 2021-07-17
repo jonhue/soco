@@ -1,9 +1,9 @@
 //! Convex optimization.
 
 use crate::config::{Config, FractionalConfig};
-use crate::cost::{CallableCostFn, CostFn};
+use crate::cost::CostFn;
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
-use crate::result::Result;
+use crate::result::{Failure, Result};
 use nlopt::{Algorithm, Nlopt, Target};
 use std::sync::Arc;
 
@@ -159,7 +159,16 @@ fn optimize(
         )?;
     }
 
-    let opt = solver.optimize(&mut x)?.1;
+    let opt = match solver.optimize(&mut x) {
+        Ok((_, opt)) => Ok(opt),
+        Err((state, opt)) => match state {
+            nlopt::FailState::RoundoffLimited => {
+                println!("Warning: NLOpt terminated with a roundoff error.");
+                Ok(opt)
+            }
+            _ => Err(Failure::NlOpt(state)),
+        },
+    }?;
     Ok((x.apply_precision(), opt))
 }
 

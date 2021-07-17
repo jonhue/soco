@@ -1,18 +1,23 @@
 mod make_pow_of_2 {
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::make_pow_of_2;
     use soco::config::Config;
-    use soco::cost::CostFn;
+    use soco::cost::{CostFn, SingleCostFn};
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::verifiers::VerifiableProblem;
 
     #[test]
     fn _1() {
+        let t_end = 1_000;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end: 1_000,
+            t_end,
             bounds: vec![103],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(|_, _| 1.),
+            hitting_cost: CostFn::stretch(
+                1,
+                t_end,
+                SingleCostFn::certain(|_, _| 1.),
+            ),
         };
         p.verify().unwrap();
         let transformed_p = make_pow_of_2(p.clone()).unwrap();
@@ -49,7 +54,6 @@ mod optimal_graph_search {
         OfflineAlgorithm, OfflineAlgorithmWithDefaultOptions,
     };
     use soco::config::Config;
-    use soco::cost::CostFn;
     use soco::objective::Objective;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
@@ -57,12 +61,13 @@ mod optimal_graph_search {
 
     #[test]
     fn _1() {
+        let t_end = 2;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end: 2,
+            t_end,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(penalize_zero),
+            hitting_cost: penalize_zero(t_end),
         };
         p.verify().unwrap();
 
@@ -90,12 +95,13 @@ mod optimal_graph_search {
 
     #[test]
     fn _2() {
+        let t_end = 100;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end: 100,
+            t_end,
             bounds: vec![8],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(random),
+            hitting_cost: random(t_end),
         };
         p.verify().unwrap();
 
@@ -118,12 +124,13 @@ mod optimal_graph_search {
 
     #[test]
     fn _3() {
+        let t_end = 1_000;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end: 1_000,
+            t_end,
             bounds: vec![9],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(random),
+            hitting_cost: random(t_end),
         };
         p.verify().unwrap();
 
@@ -153,12 +160,13 @@ mod optimal_graph_search {
 
     #[test]
     fn _4() {
+        let t_end = 2;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end: 2,
+            t_end,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(penalize_zero),
+            hitting_cost: penalize_zero(t_end),
         };
         p.verify().unwrap();
 

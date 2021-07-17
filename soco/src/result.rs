@@ -20,6 +20,11 @@ pub enum Failure {
     NlOpt(nlopt::FailState),
     #[error("When solving an online problem, the time horizon `T` should equal the current time slot plus the prediction window. But instead we have `T = {t_end}`, `t = {t}`, and `w = {w}`.")]
     OnlineInsufficientInformation { t_end: i32, t: i32, w: i32 },
+    #[error("When solving an online problem from a given time slot, the property `t_end` (current time slot) must always be one time slot ahead of the length of the obtained schedule (number of previous time slots). Yet, the number of previous time slots is {previous_time_slots} and the current time slot is {current_time_slot}.")]
+    OnlineInconsistentCurrentTimeSlot {
+        previous_time_slots: i32,
+        current_time_slot: i32,
+    },
     #[error("When solving an online problem from a given time slot, the accumulated memory up to this time slot must be provided. Yet, the number of previous time slots is {previous_time_slots} and the memory consists of {memory_entries} entries.")]
     OnlineOutOfDateMemory {
         previous_time_slots: i32,
@@ -38,12 +43,6 @@ pub enum Failure {
 impl From<nlopt::FailState> for Failure {
     fn from(error: nlopt::FailState) -> Self {
         Failure::NlOpt(error)
-    }
-}
-
-impl From<(nlopt::FailState, f64)> for Failure {
-    fn from(error: (nlopt::FailState, f64)) -> Self {
-        Failure::NlOpt(error.0)
     }
 }
 
