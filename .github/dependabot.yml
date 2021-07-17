@@ -13,3 +13,7 @@ updates:
     directory: "/soco"
     schedule:
       interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "/analysis"
+    schedule:
+      interval: "daily"
