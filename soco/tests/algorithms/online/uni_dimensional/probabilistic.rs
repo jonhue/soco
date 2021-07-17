@@ -5,24 +5,24 @@ mod probabilistic {
     };
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
-    use soco::cost::CostFn;
     use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
     use soco::schedule::Schedule;
 
     #[test]
     fn _1() {
+        let t_end = 1;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end: 1,
+            t_end,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(parabola),
+            hitting_cost: parabola(t_end),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
         let result = o
-            .stream(probabilistic, |_, _| false, Options::default())
+            .stream(&probabilistic, |_, _| false, Options::default())
             .unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
@@ -31,19 +31,20 @@ mod probabilistic {
 
     #[test]
     fn _2() {
+        let t_end = 1;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end: 1,
+            t_end,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::new(parabola),
+            hitting_cost: parabola(t_end),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
         let t_end = 2;
         let result = o
-            .offline_stream(probabilistic, t_end, Options::default())
+            .offline_stream(&probabilistic, t_end, Options::default())
             .unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 

@@ -12,9 +12,9 @@ use std::sync::Arc;
 pub type NormFn<'a, T> = Arc<dyn Fn(Config<T>) -> f64 + 'a>;
 
 /// Manhattan norm.
-pub fn manhattan<T>() -> NormFn<'static, T>
+pub fn manhattan<'a, T>() -> NormFn<'static, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     Arc::new(|x: Config<T>| {
         let mut result = 0.;
@@ -26,9 +26,9 @@ where
 }
 
 /// Manhattan norm scaled with switching costs.
-pub fn manhattan_scaled<T>(switching_cost: &Vec<f64>) -> NormFn<'_, T>
+pub fn manhattan_scaled<'a, T>(switching_cost: &Vec<f64>) -> NormFn<'_, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     Arc::new(move |x: Config<T>| {
         let mut result = 0.;
@@ -41,9 +41,9 @@ where
 }
 
 /// Euclidean norm.
-pub fn euclidean<T>() -> NormFn<'static, T>
+pub fn euclidean<'a, T>() -> NormFn<'static, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     Arc::new(|x: Config<T>| {
         let mut result = 0.;
@@ -62,7 +62,7 @@ pub fn mahalanobis<'a, T>(
     mean: Config<T>,
 ) -> Result<NormFn<'a, T>>
 where
-    T: RealField + Value,
+    T: RealField + Value<'a>,
 {
     let q_i = q
         .clone()
@@ -78,7 +78,7 @@ where
 /// Norm squared. `1`-strongly convex and `1`-Lipschitz smooth for the Euclidean norm and the Mahalanobis distance.
 pub fn norm_squared<'a, T>(norm: &'a NormFn<'a, T>) -> NormFn<'a, T>
 where
-    T: Value + 'a,
+    T: Value<'a>,
 {
     Arc::new(move |x: Config<T>| -> f64 { norm(x).powi(2) / 2. })
 }

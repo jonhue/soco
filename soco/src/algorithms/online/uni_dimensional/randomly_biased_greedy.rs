@@ -5,8 +5,9 @@ use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, sample_uniform};
+use serde_derive::{Deserialize, Serialize};
 
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Memory {
     /// Random number `r` representing bias.
     r: f64,
@@ -40,7 +41,6 @@ pub fn rbg(
 ) -> Result<FractionalStep<Memory>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
-    println!("r={};theta={}", m.r, options.theta);
 
     let x = next(o, t, m.r, options.theta)?;
     Ok(Step(Config::single(x), None))

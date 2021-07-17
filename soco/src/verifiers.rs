@@ -19,7 +19,7 @@ pub trait VerifiableProblem {
 
 impl<'a, T> VerifiableProblem for SmoothedConvexOptimization<'a, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -41,7 +41,7 @@ where
 
 impl<'a, T> VerifiableProblem for SimplifiedSmoothedConvexOptimization<'a, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -79,9 +79,9 @@ where
     }
 }
 
-impl<T> VerifiableProblem for SmoothedLoadOptimization<T>
+impl<'a, T> VerifiableProblem for SmoothedLoadOptimization<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -177,7 +177,7 @@ where
 
 impl<'a, T> VerifiableProblem for SmoothedBalancedLoadOptimization<'a, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn verify(&self) -> Result<()> {
         assert_validity(
@@ -250,7 +250,7 @@ where
 
 impl<'a, T> Config<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     pub fn verify(&self, t: i32, bounds: &Vec<T>) -> Result<()> {
         for (k, &j) in self.iter().enumerate() {
@@ -274,7 +274,7 @@ where
 
 impl<'a, T> Schedule<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     pub fn verify(&self, t_end: i32, bounds: &Vec<T>) -> Result<()> {
         assert_validity(

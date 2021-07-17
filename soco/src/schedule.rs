@@ -5,20 +5,19 @@ use crate::utils::access;
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use num::NumCast;
+use serde_derive::{Deserialize, Serialize};
 use std::iter::FromIterator;
 use std::ops::Index;
 
 /// Includes all configurations from time `1` to time `t_end`.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-pub struct Schedule<T>(pub Vec<Config<T>>)
-where
-    T: Value;
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct Schedule<T>(pub Vec<Config<T>>);
 pub type IntegralSchedule = Schedule<i32>;
 pub type FractionalSchedule = Schedule<f64>;
 
-impl<T> Schedule<T>
+impl<'a, T> Schedule<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     pub fn new(x: Vec<Config<T>>) -> Schedule<T> {
         Schedule(x)
@@ -111,9 +110,9 @@ where
     }
 }
 
-impl<T> Index<usize> for Schedule<T>
+impl<'a, T> Index<usize> for Schedule<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     type Output = Config<T>;
 
@@ -128,9 +127,9 @@ where
     }
 }
 
-impl<T> VecWrapper for Schedule<T>
+impl<'a, T> VecWrapper for Schedule<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     type Item = Config<T>;
 
@@ -139,9 +138,9 @@ where
     }
 }
 
-impl<T> FromIterator<Config<T>> for Schedule<T>
+impl<'a, T> FromIterator<Config<T>> for Schedule<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn from_iter<I>(iter: I) -> Self
     where

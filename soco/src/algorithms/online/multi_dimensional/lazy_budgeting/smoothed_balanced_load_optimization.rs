@@ -3,7 +3,7 @@ use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal
 use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
-use crate::cost::{CallableCostFn, CostFn};
+use crate::cost::SingleCostFn;
 use crate::problem::{
     IntegralSmoothedBalancedLoadOptimization, Online,
     SmoothedBalancedLoadOptimization,
@@ -12,18 +12,20 @@ use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::assert;
 use ordered_float::OrderedFloat;
+use serde_derive::{Deserialize, Serialize};
 
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Memory {
     /// Maps each time `u` to the corresponding load; length
     load: Vec<i32>,
     /// Schedule and memory of internally used algorithm.
-    mod_m: (IntegralSchedule, Vec<AlgBMemory>),
+    mod_m: (IntegralSchedule, Option<AlgBMemory>),
 }
 impl Default for Memory {
     fn default() -> Self {
         Memory {
             load: vec![],
-            mod_m: (Schedule::empty(), vec![]),
+            mod_m: (Schedule::empty(), None),
         }
     }
 }
@@ -49,7 +51,7 @@ pub fn lb(
     xs: &IntegralSchedule,
     Memory {
         mut load,
-        mod_m: (mut mod_xs, mut mod_ms),
+        mod_m: (mut mod_xs, mod_prev_m),
     }: Memory,
     options: Options,
 ) -> Result<IntegralStep<Memory>> {
@@ -67,7 +69,13 @@ pub fn lb(
     };
 
     // execute `n` time slots of algorithm B on modified problem instance
-    mod_o.offline_stream_from(alg_b, u_end, (), &mut mod_xs, &mut mod_ms)?;
+    let mod_prev_m = mod_o.offline_stream_from(
+        &alg_b,
+        u_end,
+        (),
+        &mut mod_xs,
+        mod_prev_m,
+    )?;
 
     // collect the resulting configuration
     let config = determine_config(&mod_o.p, xs, u_init, u_end);
@@ -75,7 +83,7 @@ pub fn lb(
         config,
         Some(Memory {
             load,
-            mod_m: (mod_xs, mod_ms),
+            mod_m: (mod_xs, mod_prev_m),
         }),
     ))
 }
@@ -88,7 +96,7 @@ fn determine_sub_time_slots(
 ) -> Result<i32> {
     let max_fract = (0..p.d as usize)
         .map(|k| -> OrderedFloat<f64> {
-            let l = p.hitting_cost[k].call(t, 0., p.bounds[k]);
+            let l = p.hitting_cost[k].call(t, 0., &p.bounds[k]);
             OrderedFloat(l / p.switching_cost[k])
         })
         .max()
@@ -112,12 +120,12 @@ fn modify_problem<'a>(
         .map(|k| {
             let hitting_cost = p.hitting_cost[k].clone();
             let bounds = p.bounds[k];
-            CostFn::new(move |u, x| {
+            SingleCostFn::certain(move |u, x| {
                 assert!(
                     u_init <= u && u <= u_end,
                     "sub time slot is outside valid sub time slot window"
                 );
-                hitting_cost.call(t, x, bounds) / n as f64
+                hitting_cost.call(t, x, &bounds) / n as f64
             })
         })
         .collect();
@@ -192,7 +200,7 @@ fn alg_b(
 
 fn deactivated_quantity(
     bound: i32,
-    hitting_cost: &CostFn<'_, f64>,
+    hitting_cost: &SingleCostFn<'_, f64>,
     switching_cost: f64,
     ms: &AlgBMemory,
     t_now: i32,
@@ -202,7 +210,7 @@ fn deactivated_quantity(
     for t in 1..=t_now - 1 {
         let cum_l =
             cumulative_idle_hitting_cost(bound, hitting_cost, t + 1, t_now - 1);
-        let l = hitting_cost.call(t_now, 0., bound);
+        let l = hitting_cost.call(t_now, 0., &bound);
 
         if cum_l <= switching_cost && switching_cost < cum_l + l {
             result += ms[t as usize - 1][k];
@@ -213,13 +221,13 @@ fn deactivated_quantity(
 
 fn cumulative_idle_hitting_cost(
     bound: i32,
-    hitting_cost: &CostFn<'_, f64>,
+    hitting_cost: &SingleCostFn<'_, f64>,
     from: i32,
     to: i32,
 ) -> f64 {
     let mut result = 0.;
     for t in from..=to {
-        result += hitting_cost.call(t, 0., bound);
+        result += hitting_cost.call(t, 0., &bound);
     }
     result
 }

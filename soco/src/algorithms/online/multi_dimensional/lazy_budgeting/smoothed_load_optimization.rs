@@ -7,10 +7,11 @@ use crate::problem::{DefaultGivenProblem, IntegralSmoothedLoadOptimization};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, sample_uniform, total_bound};
+use serde_derive::{Deserialize, Serialize};
 use std::cmp::max;
 
 /// Lane distribution at some time `t`.
-#[derive(Clone)]
+#[derive(Clone, Deserialize, Serialize)]
 pub struct Memory {
     /// Lanes of the determined schedule.
     pub lanes: Lanes,

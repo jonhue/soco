@@ -7,19 +7,17 @@ use crate::schedule::Schedule;
 use crate::utils::{assert, project};
 use crate::value::Value;
 use num::NumCast;
+use serde_derive::{Deserialize, Serialize};
 
 /// Last two lower and upper bound from some time `t` (in order).
-#[derive(Clone, Debug)]
-pub struct Memory<T>
-where
-    T: Value,
-{
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct Memory<T> {
     lower: (Option<T>, T),
     upper: (Option<T>, T),
 }
 
 /// Lazy Capacity Provisioning
-pub fn lcp<T, P>(
+pub fn lcp<'a, T, P>(
     o: Online<P>,
     t: i32,
     xs: &Schedule<T>,
@@ -27,7 +25,7 @@ pub fn lcp<T, P>(
     _: (),
 ) -> Result<Step<T, Vec<Memory<T>>>>
 where
-    T: Value,
+    T: Value<'a>,
     P: Bounded<T> + Problem,
 {
     assert(o.p.d() == 1, Failure::UnsupportedProblemDimension(o.p.d()))?;
@@ -50,9 +48,9 @@ where
 
 /// Finds a valid reference time and initial condition to base the optimization
 /// on (alternatively to time `0`).
-fn find_initial_time<T>(ms: &Vec<Memory<T>>) -> (i32, T)
+fn find_initial_time<'a, T>(ms: &Vec<Memory<T>>) -> (i32, T)
 where
-    T: Value,
+    T: Value<'a>,
 {
     for t in (2..=ms.len() as i32).rev() {
         let m = &ms[t as usize - 1];
@@ -66,17 +64,17 @@ where
 
 /// Returns `true` if the time `t` with current bounds `m` and previous bounds
 /// (at `t - 1`) `prev_m` may be used as reference time.
-fn is_valid_initial_time<T>(Memory { lower, upper }: &Memory<T>) -> bool
+fn is_valid_initial_time<'a, T>(Memory { lower, upper }: &Memory<T>) -> bool
 where
-    T: Value,
+    T: Value<'a>,
 {
     upper.1 < upper.0.unwrap() || lower.1 > lower.0.unwrap()
 }
 
 /// Shifts the memory to include new lower bound `l` and upper bound `u`.
-fn new_memory<T>(ms: Vec<Memory<T>>, l: T, u: T) -> Vec<Memory<T>>
+fn new_memory<'a, T>(ms: Vec<Memory<T>>, l: T, u: T) -> Vec<Memory<T>>
 where
-    T: Value,
+    T: Value<'a>,
 {
     let (prev_l, prev_u) = if ms.is_empty() {
         (None, None)

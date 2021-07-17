@@ -1,6 +1,6 @@
 //! Revenue loss model.
 
-use crate::cost::data_center::model::JobType;
+use crate::model::data_center::model::JobType;
 use crate::utils::pos;
 use std::collections::HashMap;
 

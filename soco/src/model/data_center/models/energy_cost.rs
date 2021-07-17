@@ -1,6 +1,6 @@
 //! Energy cost model.
 
-use crate::cost::data_center::model::Location;
+use crate::model::data_center::model::Location;
 use crate::utils::min;
 use crate::utils::pos;
 use std::collections::HashMap;

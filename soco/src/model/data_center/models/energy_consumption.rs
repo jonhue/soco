@@ -1,6 +1,6 @@
 //! Energy consumption model.
 
-use crate::cost::data_center::model::ServerType;
+use crate::model::data_center::model::ServerType;
 use std::collections::HashMap;
 
 /// Energy consumption model.

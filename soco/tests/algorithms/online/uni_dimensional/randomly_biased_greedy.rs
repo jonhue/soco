@@ -3,23 +3,23 @@ mod rbg {
     use soco::algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Options,
     };
-    use soco::cost::CostFn;
     use soco::norm::manhattan;
     use soco::problem::{Online, SmoothedConvexOptimization};
 
     #[test]
     fn _1() {
+        let t_end = 1;
         let p = SmoothedConvexOptimization {
             d: 1,
-            t_end: 1,
+            t_end,
             bounds: vec![(0., 2.)],
             switching_cost: manhattan(),
-            hitting_cost: CostFn::new(inv_e),
+            hitting_cost: inv_e(t_end),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let result = o.stream(rbg, |_, _| false, Options::default()).unwrap();
+        let result = o.stream(&rbg, |_, _| false, Options::default()).unwrap();
         result
             .0
             .verify(
@@ -31,18 +31,19 @@ mod rbg {
 
     #[test]
     fn _2() {
+        let t_end = 1;
         let p = SmoothedConvexOptimization {
             d: 1,
-            t_end: 1,
+            t_end,
             bounds: vec![(0., 2.)],
             switching_cost: manhattan(),
-            hitting_cost: CostFn::new(inv_e),
+            hitting_cost: inv_e(t_end),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
         let t_end = 2;
-        let result = o.offline_stream(rbg, t_end, Options::default()).unwrap();
+        let result = o.offline_stream(&rbg, t_end, Options::default()).unwrap();
         result
             .0
             .verify(t_end, &o.p.bounds.into_iter().map(|(_, m)| m).collect())

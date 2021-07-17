@@ -21,7 +21,7 @@ mod lb {
     //     o.verify().unwrap();
 
     //     let result = o
-    //         .offline_stream(lb, 5, Options { randomized: false })
+    //         .offline_stream(&lb, 5, Options { randomized: false })
     //         .unwrap();
     //     result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 

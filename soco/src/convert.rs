@@ -1,7 +1,7 @@
 //! Functions to convert between problem instances.
 
 use crate::config::{Config, FractionalConfig, IntegralConfig};
-use crate::cost::CostFn;
+use crate::cost::{CostFn, SingleCostFn};
 use crate::norm::manhattan_scaled;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
@@ -10,6 +10,7 @@ use crate::problem::{
     SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
 use crate::schedule::{FractionalSchedule, IntegralSchedule};
+use crate::utils::{shift_time, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use num::NumCast;
@@ -49,9 +50,13 @@ pub trait DiscretizableCostFn<'a> {
 
 impl<'a> DiscretizableCostFn<'a> for CostFn<'a, FractionalConfig> {
     fn to_i(&'a self) -> CostFn<'a, IntegralConfig> {
-        CostFn::new(move |t, x: IntegralConfig| {
-            self.call_unbounded(t, x.to_f())
-        })
+        CostFn::stretch(
+            1,
+            self.now(),
+            SingleCostFn::predictive(move |t, x: IntegralConfig| {
+                self.call_unbounded_predictive(t, x.to_f())
+            }),
+        )
     }
 }
 
@@ -62,19 +67,24 @@ pub trait RelaxableCostFn<'a> {
 
 impl<'a> RelaxableCostFn<'a> for CostFn<'a, IntegralConfig> {
     fn to_f(&'a self) -> CostFn<'a, FractionalConfig> {
-        CostFn::new(move |t, x: FractionalConfig| {
-            assert!(x.d() == 1, "cannot relax multidimensional problems");
+        CostFn::stretch(
+            1,
+            self.now(),
+            SingleCostFn::certain(move |t, x: FractionalConfig| {
+                assert!(x.d() == 1, "cannot relax multidimensional problems");
 
-            let j = x[0];
-            if j.fract() == 0. {
-                self.call_unbounded(t, Config::single(j as i32))
-            } else {
-                let l =
-                    self.call_unbounded(t, Config::single(j.floor() as i32));
-                let u = self.call_unbounded(t, Config::single(j.ceil() as i32));
-                (j.ceil() - j) * l + (j - j.floor()) * u
-            }
-        })
+                let j = x[0];
+                if j.fract() == 0. {
+                    self.call_unbounded(t, Config::single(j as i32))
+                } else {
+                    let l = self
+                        .call_unbounded(t, Config::single(j.floor() as i32));
+                    let u =
+                        self.call_unbounded(t, Config::single(j.ceil() as i32));
+                    (j.ceil() - j) * l + (j - j.floor()) * u
+                }
+            }),
+        )
     }
 }
 
@@ -126,7 +136,7 @@ impl<'a> RelaxableProblem<'a>
 
 impl<'a, T> SimplifiedSmoothedConvexOptimization<'a, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     /// Convert to an instance of Smoothed Convex Optimization.
     pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {
@@ -147,14 +157,14 @@ where
 
 impl<'a, T> SmoothedLoadOptimization<T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     /// Convert instance to an instance of Smoothed Balanced-Load Optimization.
     pub fn to_sblo(&'a self) -> SmoothedBalancedLoadOptimization<'a, T> {
-        let hitting_cost: Vec<CostFn<'a, f64>> = self
+        let hitting_cost = self
             .hitting_cost
             .iter()
-            .map(|&l| -> CostFn<'a, f64> { CostFn::new(move |_, _| l) })
+            .map(|&l| SingleCostFn::certain(move |_, _| l))
             .collect();
         SmoothedBalancedLoadOptimization {
             d: self.d,
@@ -169,7 +179,7 @@ where
 
 impl<'a, T> SmoothedBalancedLoadOptimization<'a, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     /// Convert to an instance of Simplified Smoothed Convex Optimization.
     pub fn to_ssco(&'a self) -> SimplifiedSmoothedConvexOptimization<'a, T> {
@@ -178,7 +188,11 @@ where
             t_end: self.t_end,
             bounds: self.bounds.clone(),
             switching_cost: self.switching_cost.clone(),
-            hitting_cost: CostFn::new(move |t, x| self.hit_cost(t, x)),
+            hitting_cost: CostFn::stretch(
+                1,
+                self.t_end,
+                SingleCostFn::certain(move |t, x| self.hit_cost(t, x)),
+            ),
         }
     }
 }
@@ -260,13 +274,22 @@ impl RelaxableSchedule for IntegralSchedule {
 }
 
 pub trait ResettableCostFn<'a, T> {
-    /// Shift a cost function to some new initial time `t_start`.
+    /// Shift a cost function to some new initial time `t_start` (time _before_ first time slot).
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T>;
 }
 
-impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T> {
+impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T>
+where
+    T: Clone,
+{
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T> {
-        CostFn::new(move |t, j| self.call_unbounded(t + t_start, j))
+        CostFn::stretch(
+            1,
+            unshift_time(self.now(), t_start + 1),
+            SingleCostFn::predictive(move |t, j| {
+                self.call_unbounded_predictive(shift_time(t, t_start + 1), j)
+            }),
+        )
     }
 }
 
@@ -278,7 +301,7 @@ pub trait ResettableProblem<'a, T> {
 impl<'a, T> ResettableProblem<'a, T>
     for SimplifiedSmoothedConvexOptimization<'a, T>
 where
-    T: Value,
+    T: Value<'a>,
 {
     fn reset(
         &'a self,

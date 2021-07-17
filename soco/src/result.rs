@@ -46,10 +46,4 @@ impl From<nlopt::FailState> for Failure {
     }
 }
 
-impl From<(nlopt::FailState, f64)> for Failure {
-    fn from(error: (nlopt::FailState, f64)) -> Self {
-        Failure::NlOpt(error.0)
-    }
-}
-
 pub type Result<T> = std::result::Result<T, Failure>;

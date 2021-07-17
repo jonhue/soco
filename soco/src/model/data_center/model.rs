@@ -1,24 +1,26 @@
 //! Model of a data center.
 
 use crate::config::Config;
-use crate::cost::data_center::loads::{
-    apply_loads, LoadFractions, LoadProfile, Loads,
+use crate::cost::{CostFn, SingleCostFn};
+use crate::model::data_center::loads::{
+    apply_loads_over_time, apply_predicted_loads, LoadFractions, LoadProfile,
 };
-use crate::cost::data_center::models::delay::DelayModel;
-use crate::cost::data_center::models::energy_consumption::EnergyConsumptionModel;
-use crate::cost::data_center::models::energy_cost::EnergyCostModel;
-use crate::cost::data_center::models::revenue_loss::RevenueLossModel;
-use crate::cost::data_center::models::switching_cost::SwitchingCostModel;
-use crate::cost::data_center::safe_balancing;
-use crate::cost::CostFn;
+use crate::model::data_center::models::delay::DelayModel;
+use crate::model::data_center::models::energy_consumption::EnergyConsumptionModel;
+use crate::model::data_center::models::energy_cost::EnergyCostModel;
+use crate::model::data_center::models::revenue_loss::RevenueLossModel;
+use crate::model::data_center::models::switching_cost::SwitchingCostModel;
+use crate::model::data_center::safe_balancing;
+use crate::model::{verify_update, Model, OfflineInput, OnlineInput};
 use crate::problem::{
-    SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
-    SmoothedLoadOptimization,
+    Online, SimplifiedSmoothedConvexOptimization,
+    SmoothedBalancedLoadOptimization, SmoothedLoadOptimization,
 };
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use num::NumCast;
 use num::ToPrimitive;
+use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -82,7 +84,7 @@ pub struct Location {
 }
 
 /// Model of a network of data centers.
-pub struct Model<'a> {
+pub struct DataCenterModel<'a> {
     /// Length of a time slot.
     delta: f64,
     /// Weight of revenue loss (as opposed to energy cost). `gamma > 0`.
@@ -107,7 +109,7 @@ pub struct Model<'a> {
     switching_cost_model: SwitchingCostModel,
 }
 
-impl<'a> Model<'a> {
+impl<'a> DataCenterModel<'a> {
     /// Creates a model of a singular data center.
     #[allow(clippy::too_many_arguments)]
     pub fn single(
@@ -122,7 +124,7 @@ impl<'a> Model<'a> {
         delay_model: DelayModel,
         switching_cost_model: SwitchingCostModel,
     ) -> Self {
-        Model {
+        Self {
             delta,
             gamma,
             locations: vec![Location {
@@ -155,7 +157,7 @@ impl<'a> Model<'a> {
         delay_model: DelayModel,
         switching_cost_model: SwitchingCostModel,
     ) -> Self {
-        Model {
+        Self {
             delta,
             gamma,
             locations,
@@ -202,7 +204,7 @@ impl<'a> Model<'a> {
         zs: &LoadFractions,
     ) -> f64
     where
-        T: Value,
+        T: Value<'a>,
     {
         let p = self.energy_consumption(j, x, lambda, zs);
         self.energy_cost_model.cost(t, &self.locations[j], p)
@@ -219,7 +221,7 @@ impl<'a> Model<'a> {
         zs: &LoadFractions,
     ) -> f64
     where
-        T: Value,
+        T: Value<'a>,
     {
         (0..self.server_types.len())
             .map(|k| {
@@ -270,7 +272,7 @@ impl<'a> Model<'a> {
         loads: &LoadProfile,
     ) -> f64
     where
-        T: Value,
+        T: Value<'a>,
     {
         let x = ToPrimitive::to_f64(&x_).unwrap();
         let total_load = self.total_sub_jobs(server_type, loads);
@@ -305,7 +307,7 @@ impl<'a> Model<'a> {
         zs: &LoadFractions,
     ) -> f64
     where
-        T: Value,
+        T: Value<'a>,
     {
         (0..self.locations.len())
             .map(|j| -> f64 {
@@ -327,19 +329,47 @@ impl<'a> Model<'a> {
             .sum::<f64>()
     }
 
-    /// Optimally applies loads to the model of a data center.
+    /// Optimally applies (certain) loads to the model of a data center to obtain a cost function.
     /// Referred to as `f` in the paper.
     ///
     /// * `loads` - vector of loads for all time slots that should be supported by the returned cost function
-    fn apply_loads<T>(&'a self, loads: Loads) -> CostFn<'a, Config<T>>
+    /// * `t_start` - time offset, i.e. time of first load profile
+    fn apply_loads_over_time<T>(
+        &'a self,
+        loads: Vec<LoadProfile>,
+        t_start: i32,
+    ) -> CostFn<'a, Config<T>>
     where
-        T: Value,
+        T: Value<'a>,
     {
-        apply_loads(
+        apply_loads_over_time(
             self.d_(),
             self.e_(),
             move |t, x, lambda, zs| self.objective(t, x, lambda, zs),
             loads,
+            t_start,
+        )
+    }
+
+    /// Optimally applies loads from a single to the model of a data center to obtain a cost function.
+    /// Referred to as `f` in the paper.
+    ///
+    /// * `loads` - a load profile for each predicted sample (one load profile for certainty) over the supported time horizon
+    /// * `t_start` - time offset, i.e. time of first load samples
+    fn apply_predicted_loads<T>(
+        &'a self,
+        loads: Vec<Vec<LoadProfile>>,
+        t_start: i32,
+    ) -> SingleCostFn<'a, Config<T>>
+    where
+        T: Value<'a>,
+    {
+        apply_predicted_loads(
+            self.d_(),
+            self.e_(),
+            move |t, x, lambda, zs| self.objective(t, x, lambda, zs),
+            loads,
+            t_start,
         )
     }
 
@@ -353,21 +383,68 @@ impl<'a> Model<'a> {
         (self.sources.len() * self.job_types.len()) as i32
     }
 
-    /// Generates SSCO instance from model.
-    pub fn to_ssco<T>(
-        &self,
-        loads: Loads,
-    ) -> SimplifiedSmoothedConvexOptimization<'_, T>
+    /// Generates upper bounds of the underlying problem instance.
+    fn generate_bounds<T>(&self) -> Vec<T>
     where
-        T: Value,
+        T: Value<'a>,
     {
+        (0..self.d_() as usize)
+            .map(|k_| {
+                let (j, k) = parse(self.server_types.len(), k_);
+                NumCast::from(self.locations[j].m[&self.server_types[k].key])
+                    .unwrap()
+            })
+            .collect()
+    }
+}
+
+/// Parses index of underlying representation, returns outer and inner indexes.
+fn parse(inner_len: usize, i: usize) -> (usize, usize) {
+    let outer = i / inner_len;
+    let inner = i - outer * inner_len;
+    (outer, inner)
+}
+
+/// Encodes index of underlying representation from the outer and inner indexes.
+fn encode(inner_len: usize, outer: usize, inner: usize) -> usize {
+    outer * inner_len + inner
+}
+
+#[derive(Debug)]
+pub struct DataCenterOfflineInput {
+    /// Vector of loads for all time slots that should be supported by the returned cost function.
+    loads: Vec<LoadProfile>,
+}
+impl OfflineInput for DataCenterOfflineInput {}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct DataCenterOnlineInput {
+    /// A load profile for each predicted sample (one load profile for certainty) over the supported time horizon.
+    loads: Vec<Vec<LoadProfile>>,
+}
+impl<'a> OnlineInput<'a> for DataCenterOnlineInput {}
+
+impl<'a, T>
+    Model<
+        'a,
+        SimplifiedSmoothedConvexOptimization<'a, T>,
+        DataCenterOfflineInput,
+        DataCenterOnlineInput,
+    > for DataCenterModel<'a>
+where
+    T: Value<'a>,
+{
+    fn to(
+        &'a self,
+        DataCenterOfflineInput { loads }: DataCenterOfflineInput,
+    ) -> SimplifiedSmoothedConvexOptimization<'a, T> {
         let d = self.d_();
         let t_end = loads.len() as i32;
         let bounds = self.generate_bounds();
         let switching_cost = self
             .switching_cost_model
             .switching_costs(&self.server_types);
-        let hitting_cost = self.apply_loads(loads);
+        let hitting_cost = self.apply_loads_over_time(loads, 1);
         SimplifiedSmoothedConvexOptimization {
             d,
             t_end,
@@ -377,16 +454,35 @@ impl<'a> Model<'a> {
         }
     }
 
-    /// Generates SBLO instance from model.
-    ///
+    fn update(
+        &'a self,
+        o: &mut Online<SimplifiedSmoothedConvexOptimization<'a, T>>,
+        DataCenterOnlineInput { loads }: DataCenterOnlineInput,
+    ) {
+        verify_update(o, loads.len() as i32);
+        let t_start = o.p.hitting_cost.now() + 1;
+        println!("Updating online instance to time slot {}.", t_start);
+        o.p.hitting_cost
+            .add(self.apply_predicted_loads(loads, t_start))
+    }
+}
+
+impl<'a, T>
+    Model<
+        'a,
+        SmoothedBalancedLoadOptimization<'a, T>,
+        DataCenterOfflineInput,
+        DataCenterOnlineInput,
+    > for DataCenterModel<'a>
+where
+    T: Value<'a>,
+{
+    /// Notes:
     /// * Only allows for a single location, source, and job type.
-    pub fn to_sblo<T>(
-        &self,
-        loads: Loads,
-    ) -> SmoothedBalancedLoadOptimization<'_, T>
-    where
-        T: Value,
-    {
+    fn to(
+        &'a self,
+        DataCenterOfflineInput { loads }: DataCenterOfflineInput,
+    ) -> SmoothedBalancedLoadOptimization<'a, T> {
         assert!(self.locations.len() == 1);
         let location = &self.locations[0];
         assert!(self.sources.len() == 1);
@@ -404,7 +500,7 @@ impl<'a> Model<'a> {
             .server_types
             .iter()
             .map(move |server_type| {
-                CostFn::new(move |t, l| {
+                SingleCostFn::certain(move |t, l| {
                     let s = l / self.delta;
                     let p = server_type.limit_utilization(s, || {
                         self.energy_consumption_model
@@ -438,14 +534,40 @@ impl<'a> Model<'a> {
         }
     }
 
-    /// Generates SLO instance from model.
-    ///
+    fn update(
+        &'a self,
+        o: &mut Online<SmoothedBalancedLoadOptimization<'a, T>>,
+        DataCenterOnlineInput { loads }: DataCenterOnlineInput,
+    ) {
+        verify_update(o, loads.len() as i32);
+        println!(
+            "Updating online instance to time slot {}.",
+            o.p.load.len() + 1
+        );
+        for load_profiles in loads {
+            assert!(load_profiles.len() == 1);
+            o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
+        }
+    }
+}
+
+impl<'a, T>
+    Model<
+        'a,
+        SmoothedLoadOptimization<T>,
+        DataCenterOfflineInput,
+        DataCenterOnlineInput,
+    > for DataCenterModel<'a>
+where
+    T: Value<'a>,
+{
+    /// Notes:
     /// * Only allows for a single location, source, and job type.
     /// * Assumes full utilization and averages the energy cost over the time horizon.
-    pub fn to_slo<T>(&self, loads: Loads) -> SmoothedLoadOptimization<T>
-    where
-        T: Value,
-    {
+    fn to(
+        &'a self,
+        DataCenterOfflineInput { loads }: DataCenterOfflineInput,
+    ) -> SmoothedLoadOptimization<T> {
         assert!(self.locations.len() == 1);
         let location = &self.locations[0];
         assert!(self.sources.len() == 1);
@@ -486,29 +608,19 @@ impl<'a> Model<'a> {
         }
     }
 
-    /// Generates upper bounds of the underlying problem instance.
-    fn generate_bounds<T>(&self) -> Vec<T>
-    where
-        T: Value,
-    {
-        (0..self.d_() as usize)
-            .map(|k_| {
-                let (j, k) = parse(self.server_types.len(), k_);
-                NumCast::from(self.locations[j].m[&self.server_types[k].key])
-                    .unwrap()
-            })
-            .collect()
+    fn update(
+        &'a self,
+        o: &mut Online<SmoothedLoadOptimization<T>>,
+        DataCenterOnlineInput { loads }: DataCenterOnlineInput,
+    ) {
+        verify_update(o, loads.len() as i32);
+        println!(
+            "Updating online instance to time slot {}.",
+            o.p.load.len() + 1
+        );
+        for load_profiles in loads {
+            assert!(load_profiles.len() == 1);
+            o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
+        }
     }
-}
-
-/// Parses index of underlying representation, returns outer and inner indexes.
-fn parse(inner_len: usize, i: usize) -> (usize, usize) {
-    let outer = i / inner_len;
-    let inner = i - outer * inner_len;
-    (outer, inner)
-}
-
-/// Encodes index of underlying representation from the outer and inner indexes.
-fn encode(inner_len: usize, outer: usize, inner: usize) -> usize {
-    outer * inner_len + inner
 }
