@@ -67,7 +67,7 @@ fn optimal_graph_search_py(
     Ok((result.xs.to_vec(), result.cost))
 }
 
-/// Graph-Based Fully Polynomial-Time Approximation Scheme
+/// Graph-Based Polynomial-Time Approximation Scheme
 #[pyfunction]
 #[pyo3(name = "approx_graph_search")]
 fn approx_graph_search_py(

@@ -18,7 +18,7 @@ impl Default for Options {
     }
 }
 
-/// Graph-Based Fully Polynomial-Time Approximation Scheme
+/// Graph-Based Polynomial-Time Approximation Scheme
 pub fn approx_graph_search(
     p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
     options: Options,
