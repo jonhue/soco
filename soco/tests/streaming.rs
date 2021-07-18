@@ -1,6 +1,9 @@
-use soco::{algorithms::online::uni_dimensional::randomly_biased_greedy::{
+use soco::{
+    algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Options,
-    }, hash_map, model::data_center::{
+    },
+    hash_map,
+    model::data_center::{
         loads::LoadProfile,
         model::{
             DataCenterModel, DataCenterOfflineInput, JobType, ServerType,
@@ -17,7 +20,9 @@ use soco::{algorithms::online::uni_dimensional::randomly_biased_greedy::{
             },
             switching_cost::{SwitchingCost, SwitchingCostModel},
         },
-    }, streaming::frontend};
+    },
+    streaming::frontend,
+};
 use std::sync::Arc;
 
 #[ignore]
@@ -65,15 +70,9 @@ fn integration() {
         loads: vec![LoadProfile::new(vec![10.]); t_end as usize],
     };
 
-    let result = frontend::start(
-        addr,
-        &model,
-        &rbg,
-        Options::default(),
-        0,
-        input,
-    )
-    .unwrap();
+    let result =
+        frontend::start(addr, &model, &rbg, Options::default(), 0, input)
+            .unwrap();
     result.0.verify(t_end, &vec![m as f64]).unwrap();
 
     frontend::stop(addr);

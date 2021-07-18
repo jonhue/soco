@@ -1,7 +1,4 @@
-use std::{io::Write, net::{SocketAddr, TcpStream}};
-
-use crossbeam::thread;
-
+use super::backend;
 use crate::{
     algorithms::{
         online::{Memory, OnlineAlgorithm},
@@ -13,8 +10,11 @@ use crate::{
     schedule::Schedule,
     value::Value,
 };
-
-use super::backend;
+use crossbeam::thread;
+use std::{
+    io::Write,
+    net::{SocketAddr, TcpStream},
+};
 
 /// Starts backend server in a new thread.
 /// Returns initial schedule and latest memory of the algorithm.
