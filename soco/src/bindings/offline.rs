@@ -7,6 +7,7 @@ use pyo3::prelude::*;
 
 /// Stops backend server.
 #[pyfunction]
+#[pyo3(name = "brcp")]
 fn brcp_py(
     model: DataCenterModel,
     input: DataCenterOfflineInput,

@@ -72,14 +72,6 @@ impl Default for JobType {
         }
     }
 }
-// impl<'a> FromPyObject<'a> for JobType<'a> {
-//     fn extract(ob: &'a PyAny) -> PyResult<Self> {
-//         Ok(JobType {
-//             key: ob.getattr("key").unwrap().extract().unwrap(),
-//             processing_time_on: Arc::new(|server_type| ob.getattr("processing_time_on").unwrap().call1((server_type,)).unwrap().extract().unwrap()),
-//         })
-//     }
-// }
 impl JobType {
     pub fn new(processing_times: HashMap<String, f64>) -> Self {
         JobType {
