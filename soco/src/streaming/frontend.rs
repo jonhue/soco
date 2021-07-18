@@ -17,7 +17,7 @@ use crate::{
 use super::backend;
 
 /// Starts backend server in a new thread.
-/// Returns initial schedule and last memory of the algorithm.
+/// Returns initial schedule and latest memory of the algorithm.
 pub fn start<'a, T, P, M, O, A, B>(
     addr: SocketAddr,
     model: &'a impl Model<'a, P, A, B>,
@@ -60,8 +60,6 @@ where
     })
     .unwrap();
 
-    println!("hello");
-
     Ok(result)
 }
 
@@ -76,9 +74,7 @@ pub fn next<'a>(addr: SocketAddr, input: impl OnlineInput<'a>) {
 
 /// Stops backend server.
 pub fn stop(addr: SocketAddr) {
-    println!("{:?}", addr);
     let mut stream = TcpStream::connect(addr).unwrap();
-    println!("{:?}", stream);
-    stream.write("test".as_bytes()).unwrap();
+    stream.write("".as_bytes()).unwrap();
     stream.flush().unwrap();
 }
