@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 pub mod data_center;
 
 /// Model inputs to generate offline problem.
-pub trait OfflineInput: std::fmt::Debug {}
+pub trait OfflineInput: std::fmt::Debug + Default {}
 
 /// Model inputs to update a problem instance (online) to the next time slot.
 /// Encapsulates information for the current time slot as well as all time slots in the prediction window.
@@ -15,7 +15,7 @@ pub trait OnlineInput<'a>:
 }
 
 /// Model which is used to generate problem instances and update them online.
-pub trait Model<'a, P, A, B>: Sync
+pub trait Model<'a, P, A, B>: Clone + Sync
 where
     P: Problem,
     A: OfflineInput,
@@ -26,6 +26,16 @@ where
 
     /// Performs an online update of the given problem instance `o` with some `input` (which may be uncertain).
     fn update(&'a self, o: &mut Online<P>, input: B);
+
+    // /// Generates (initial) instance of an online problem with respect to all information that is currently available.
+    // /// This problem instance can then be streamed offline using an online algorithm.
+    // fn to_online(&'a self, input: A) -> P {
+    //     let mut p = self.to(input);
+    //     if p.t_end() > 1 {
+    //         p.set_t_end(1);
+    //     }
+    //     p
+    // }
 }
 
 /// Utility to verify that the update of an online instance is valid.

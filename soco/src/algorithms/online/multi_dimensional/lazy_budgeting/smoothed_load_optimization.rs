@@ -72,7 +72,7 @@ pub fn lb(
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let bound = total_bound(&o.p.bounds);
-    let optimal_lanes = find_optimal_lanes(&o.p, bound)?;
+    let optimal_lanes = find_optimal_lanes(o.p.clone(), bound)?;
 
     let mut lanes = vec![0; bound as usize];
     for j in 0..lanes.len() {
@@ -159,11 +159,12 @@ fn active_lanes(x: &IntegralConfig, from: i32, to: i32) -> i32 {
 }
 
 fn find_optimal_lanes(
-    p: &IntegralSmoothedLoadOptimization,
+    p: IntegralSmoothedLoadOptimization,
     bound: i32,
 ) -> Result<Lanes> {
+    let d = p.d;
     let sblo_p = p.to_sblo();
     let ssco_p = sblo_p.to_ssco();
     let Path { xs, .. } = optimal_graph_search.solve(ssco_p, (), false)?;
-    Ok(build_lanes(&xs.now(), p.d, bound))
+    Ok(build_lanes(&xs.now(), d, bound))
 }

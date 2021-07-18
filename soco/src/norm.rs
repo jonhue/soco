@@ -9,7 +9,7 @@ use num::ToPrimitive;
 use std::sync::Arc;
 
 /// Norm function.
-pub type NormFn<'a, T> = Arc<dyn Fn(Config<T>) -> f64 + 'a>;
+pub type NormFn<'a, T> = Arc<dyn Fn(Config<T>) -> f64 + Send + Sync + 'a>;
 
 /// Manhattan norm.
 pub fn manhattan<'a, T>() -> NormFn<'static, T>
@@ -26,7 +26,7 @@ where
 }
 
 /// Manhattan norm scaled with switching costs.
-pub fn manhattan_scaled<'a, T>(switching_cost: &Vec<f64>) -> NormFn<'_, T>
+pub fn manhattan_scaled<'a, T>(switching_cost: Vec<f64>) -> NormFn<'a, T>
 where
     T: Value<'a>,
 {

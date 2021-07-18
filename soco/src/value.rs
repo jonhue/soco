@@ -14,8 +14,10 @@ pub trait Value<'a>:
     + Num
     + NumCast
     + PartialOrd
+    + Send
     + Serialize
     + Sum
+    + Sync
     + 'a
 {
 }
@@ -29,8 +31,10 @@ impl<'a, T> Value<'a> for T where
         + Num
         + NumCast
         + PartialOrd
+        + Send
         + Serialize
         + Sum
+        + Sync
         + 'a
 {
 }

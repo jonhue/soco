@@ -1,26 +1,31 @@
 //! Convex cost functions.
 
 use crate::config::Config;
+use crate::utils::mean;
 use crate::value::Value;
 use num::NumCast;
 use std::sync::Arc;
 
 /// Cost function (from time `t`).
 #[derive(Clone)]
-pub struct SingleCostFn<'a, T>(Arc<dyn Fn(i32, T) -> Vec<f64> + 'a>);
+pub struct SingleCostFn<'a, T>(
+    Arc<dyn Fn(i32, T) -> Vec<f64> + Send + Sync + 'a>,
+);
 impl<'a, T> SingleCostFn<'a, T> {
     /// Creates a single cost function without uncertainty.
-    pub fn certain(f: impl Fn(i32, T) -> f64 + 'a) -> Self {
+    pub fn certain(f: impl Fn(i32, T) -> f64 + Send + Sync + 'a) -> Self {
         Self::predictive(move |t, x| vec![f(t, x)])
     }
 
     /// Creates a single cost function with uncertainty.
-    pub fn predictive(f: impl Fn(i32, T) -> Vec<f64> + 'a) -> Self {
+    pub fn predictive(
+        f: impl Fn(i32, T) -> Vec<f64> + Send + Sync + 'a,
+    ) -> Self {
         Self(Arc::new(f))
     }
 
     /// Computes the hitting cost with an unbounded decision space.
-    /// Panics if cost function returns a prediction.
+    /// Returns mean if cost function returns a prediction.
     pub fn call_unbounded(&self, t: i32, x: T) -> f64 {
         assert!(
             t > 0,
@@ -28,12 +33,11 @@ impl<'a, T> SingleCostFn<'a, T> {
             t
         );
         let results = (self.0)(t, x);
-        assert!(results.len() == 1);
-        results[0]
+        mean(results)
     }
 
     /// Computes the hitting cost.
-    /// Panics if cost function returns a prediction.
+    /// Returns mean if cost function returns a prediction.
     pub fn call<B>(&self, t: i32, x: T, bounds: &B) -> f64
     where
         B: DecisionSpace<'a, T>,
@@ -107,7 +111,7 @@ where
     }
 
     /// Computes the hitting cost with an unbounded decision space.
-    /// Panics if cost function returns a prediction.
+    /// Returns mean if cost function returns a prediction.
     pub fn call_unbounded(&self, t: i32, x: T) -> f64 {
         assert!(
             t > 0,
@@ -118,7 +122,7 @@ where
     }
 
     /// Computes the hitting cost.
-    /// Panics if cost function returns a prediction.
+    /// Returns mean if cost function returns a prediction.
     pub fn call<B>(&self, t: i32, x: T, bounds: &B) -> f64
     where
         B: DecisionSpace<'a, T>,

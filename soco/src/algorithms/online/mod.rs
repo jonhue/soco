@@ -22,14 +22,14 @@ pub type FractionalStep<M> = Step<f64, M>;
 
 /// Memory of online algorithm.
 pub trait Memory<'a, P>:
-    Clone + DefaultGivenProblem<P> + Deserialize<'a> + Serialize + 'a
+    Clone + DefaultGivenProblem<P> + Deserialize<'a> + Send + Serialize + 'a
 where
     P: Problem,
 {
 }
 impl<'a, T, P> Memory<'a, P> for T
 where
-    T: Clone + DefaultGivenProblem<P> + Deserialize<'a> + Serialize + 'a,
+    T: Clone + DefaultGivenProblem<P> + Deserialize<'a> + Send + Serialize + 'a,
     P: Problem,
 {
 }

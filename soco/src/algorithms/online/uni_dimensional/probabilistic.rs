@@ -16,7 +16,7 @@ use std::sync::Arc;
 const EPSILON: f64 = 1e-5;
 
 /// Probability distribution.
-type Distribution<'a> = Arc<dyn Fn(f64) -> f64 + 'a>;
+type Distribution<'a> = Arc<dyn Fn(f64) -> f64 + Send + Sync + 'a>;
 
 #[derive(Clone, Deserialize, Serialize)]
 pub struct Memory<'a> {

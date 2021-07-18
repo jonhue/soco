@@ -106,7 +106,7 @@ where
     /// Returns resulting schedule, final memory of the algorithm.
     ///
     /// * `alg` - Online algorithm to stream.
-    /// * `t_end` - Finite time horizon.
+    /// * `t_end` - Finite time horizon. `t_end >= 1`.
     pub fn offline_stream<T, M, O>(
         &mut self,
         alg: &impl OnlineAlgorithm<'a, T, P, M, O>,
@@ -138,7 +138,7 @@ where
     /// Returns final memory of the algorithm.
     ///
     /// * `alg` - Online algorithm to stream.
-    /// * `t_end` - Finite time horizon.
+    /// * `t_end` - Finite time horizon. Must be greater or equals to the current time slot.
     /// * `xs` - Schedule.
     /// * `prev_m` - Memory of last iteration.
     pub fn offline_stream_from<T, M, O>(

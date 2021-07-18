@@ -5,7 +5,10 @@ use soco::{
     cost::{CostFn, SingleCostFn},
 };
 
-fn wrap<'a, T>(t_end: i32, f: impl Fn(i32, T) -> f64 + 'a) -> CostFn<'a, T>
+fn wrap<'a, T>(
+    t_end: i32,
+    f: impl Fn(i32, T) -> f64 + Send + Sync + 'a,
+) -> CostFn<'a, T>
 where
     T: Clone,
 {

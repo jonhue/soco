@@ -2,9 +2,14 @@
 #![allow(clippy::module_inception)]
 #![allow(clippy::ptr_arg)]
 
+use std::collections::HashMap;
+
 #[allow(unused_imports)]
 #[macro_use]
 extern crate approx;
+
+#[macro_use]
+extern crate derivative;
 
 pub mod algorithms;
 pub mod breakpoints;
@@ -24,3 +29,12 @@ mod numerics;
 mod utils;
 mod value;
 mod vec_wrapper;
+
+/// Constructs a hash map from a slice.
+pub fn hash_map<K, V>(slice: &[(K, V)]) -> HashMap<K, V>
+where
+    K: Clone + Eq + std::hash::Hash + PartialEq,
+    V: Clone,
+{
+    slice.iter().cloned().collect()
+}

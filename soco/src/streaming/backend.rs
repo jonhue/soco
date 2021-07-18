@@ -35,10 +35,13 @@ pub fn start<'a, T, P, M, O, A, B>(
             Ok(input) => {
                 println!("Received: {:?}", input);
                 model.update(&mut o, input);
+
                 let result = o.next(alg, options.clone(), xs, prev_m).unwrap();
                 let response = serde_json::to_string(&result).unwrap();
+
                 stream.write_all(response.as_bytes()).unwrap();
                 stream.flush().unwrap();
+
                 prev_m = result.1;
             }
             Err(_) => {
