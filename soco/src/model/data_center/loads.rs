@@ -221,7 +221,6 @@ where
     let init = vec![1. / solver_d as f64; solver_d];
 
     // ensure that the fractions across all dimensions of each load type sum to `1`
-    // let equality_constraints = vec![];
     let equality_constraints = (0..e as usize)
         .map(|i| -> Constraint {
             let lambda = lambda.clone();
