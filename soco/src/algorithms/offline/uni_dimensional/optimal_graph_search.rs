@@ -9,6 +9,7 @@ use crate::problem::{
 use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::{assert, is_pow_of_2};
+use noisy_float::prelude::*;
 use num::ToPrimitive;
 use std::collections::HashMap;
 
@@ -79,7 +80,7 @@ pub fn make_pow_of_2(
                 if x[0] <= p.bounds[0] {
                     p.hit_cost(t, x)
                 } else {
-                    x[0] as f64
+                    r64(x[0] as f64)
                         * (p.hit_cost(t, Config::new(p.bounds.clone()))
                             + f64::EPSILON)
                 }
@@ -177,7 +178,7 @@ fn build_cost(
     j: i32,
     inverted: bool,
 ) -> f64 {
-    let hitting_cost = p.hit_cost(t, Config::single(j));
+    let hitting_cost = p.hit_cost(t, Config::single(j)).raw();
     let delta = ToPrimitive::to_f64(&scalar_movement(j, i, inverted)).unwrap();
     let switching_cost = p.switching_cost[0] * delta;
     hitting_cost + switching_cost

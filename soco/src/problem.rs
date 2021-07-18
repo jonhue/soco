@@ -9,7 +9,8 @@ use crate::model::data_center::safe_balancing;
 use crate::norm::NormFn;
 use crate::value::Value;
 use crate::verifiers::VerifiableProblem;
-use num::ToPrimitive;
+use noisy_float::prelude::*;
+use num::{NumCast, ToPrimitive};
 
 /// Trait implemented by all finite-time-horizon problems.
 pub trait Problem: Clone + std::fmt::Debug + Send + VerifiableProblem {
@@ -95,7 +96,7 @@ impl<'a, T> SmoothedConvexOptimization<'a, T>
 where
     T: Value<'a>,
 {
-    pub fn hit_cost(&self, t: i32, x: Config<T>) -> f64 {
+    pub fn hit_cost(&self, t: i32, x: Config<T>) -> R64 {
         self.hitting_cost.call(t, x, &self.bounds)
     }
 }
@@ -123,7 +124,7 @@ impl<'a, T> SimplifiedSmoothedConvexOptimization<'a, T>
 where
     T: Value<'a>,
 {
-    pub fn hit_cost(&self, t: i32, x: Config<T>) -> f64 {
+    pub fn hit_cost(&self, t: i32, x: Config<T>) -> R64 {
         self.hitting_cost.call(t, x, &self.bounds)
     }
 }
@@ -155,7 +156,7 @@ impl<'a, T> SmoothedBalancedLoadOptimization<'a, T>
 where
     T: Value<'a>,
 {
-    pub fn hit_cost(self, t: i32, x: Config<T>) -> f64 {
+    pub fn hit_cost(self, t: i32, x: Config<T>) -> R64 {
         let bounds = self.bounds.clone();
         let loads = self
             .load
@@ -171,18 +172,18 @@ where
                   zs: &LoadFractions| {
                 assert!(self.d == x_.d());
                 (0..self.d as usize)
-                    .map(|k| -> f64 {
-                        let total_load = zs.select_loads(lambda, k)[0];
-                        let x = ToPrimitive::to_f64(&x_[k]).unwrap();
+                    .map(|k| -> R64 {
+                        let total_load = r64(zs.select_loads(lambda, k)[0]);
+                        let x = NumCast::from(x_[k]).unwrap();
                         safe_balancing(x, total_load, || {
                             x * self.hitting_cost[k].call(
                                 t,
-                                total_load / x,
+                                (total_load / x).raw(),
                                 &self.bounds[k],
                             )
                         })
                     })
-                    .sum::<f64>()
+                    .sum::<R64>()
             },
             loads,
             1,

@@ -13,7 +13,8 @@ use crate::schedule::{FractionalSchedule, IntegralSchedule};
 use crate::utils::{shift_time, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
-use num::NumCast;
+use noisy_float::prelude::*;
+use num::{NumCast, ToPrimitive};
 
 pub trait DiscretizableVector {
     /// Ceil all elements of a vector.
@@ -73,14 +74,18 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, IntegralConfig> {
             SingleCostFn::certain(move |t, x: FractionalConfig| {
                 assert!(x.d() == 1, "cannot relax multidimensional problems");
 
-                let j = x[0];
+                let j = r64(x[0]);
                 if j.fract() == 0. {
-                    self.call_unbounded(t, Config::single(j as i32))
+                    self.call_unbounded(t, Config::single(j.to_i32().unwrap()))
                 } else {
-                    let l = self
-                        .call_unbounded(t, Config::single(j.floor() as i32));
-                    let u =
-                        self.call_unbounded(t, Config::single(j.ceil() as i32));
+                    let l = self.call_unbounded(
+                        t,
+                        Config::single(j.floor().to_i32().unwrap()),
+                    );
+                    let u = self.call_unbounded(
+                        t,
+                        Config::single(j.ceil().to_i32().unwrap()),
+                    );
                     (j.ceil() - j) * l + (j - j.floor()) * u
                 }
             }),
@@ -164,7 +169,7 @@ where
         let hitting_cost = self
             .hitting_cost
             .iter()
-            .map(|&l| SingleCostFn::certain(move |_, _| l))
+            .map(|&l| SingleCostFn::certain(move |_, _| r64(l)))
             .collect();
         SmoothedBalancedLoadOptimization {
             d: self.d,

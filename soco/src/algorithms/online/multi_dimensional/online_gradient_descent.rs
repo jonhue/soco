@@ -29,7 +29,7 @@ pub fn ogd(
         default_x
     } else {
         let prev_x = xs.now();
-        let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone()));
+        let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).raw();
         let step =
             (options.eta)(t) * Config::new(prev_x.to_vec().central_diff(&f));
         project(&o.p.bounds, prev_x - step)?

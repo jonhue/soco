@@ -8,6 +8,7 @@ use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use finitediff::FiniteDiff;
+use noisy_float::prelude::*;
 use std::sync::Arc;
 
 pub struct Options<'a> {
@@ -49,12 +50,12 @@ fn bregman_projection(
     l: f64,
     x: &FractionalConfig,
 ) -> Result<FractionalConfig> {
-    let objective = |y: &[f64]| -> f64 {
+    let objective = |y: &[f64]| -> R64 {
         bregman_divergence(mirror_map, Config::new(y.to_vec()), x.clone())
     };
     // `l`-sublevel set of `f`
-    let constraint = Arc::new(|y: &[f64]| -> f64 {
-        f.call_unbounded(t, Config::new(y.to_vec())) - l
+    let constraint = Arc::new(|y: &[f64]| -> R64 {
+        f.call_unbounded(t, Config::new(y.to_vec())) - r64(l)
     });
 
     let (y, _) =
@@ -67,8 +68,8 @@ fn bregman_divergence(
     mirror_map: &NormFn<'_, f64>,
     x: FractionalConfig,
     y: FractionalConfig,
-) -> f64 {
-    let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone()));
+) -> R64 {
+    let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone())).raw();
     let mx = mirror_map(x.clone());
     let my = mirror_map(y.clone());
     let grad = Config::new(y.to_vec().central_diff(&m));

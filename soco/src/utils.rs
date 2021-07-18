@@ -21,9 +21,9 @@ pub fn frac(x: f64) -> f64 {
 }
 
 /// max{x, y}
-pub fn max<'a, T>(x: T, y: T) -> T
+pub fn max<T>(x: T, y: T) -> T
 where
-    T: Value<'a>,
+    T: PartialOrd,
 {
     if x > y {
         x
@@ -33,9 +33,9 @@ where
 }
 
 /// min{x, y}
-pub fn min<'a, T>(x: T, y: T) -> T
+pub fn min<T>(x: T, y: T) -> T
 where
-    T: Value<'a>,
+    T: PartialOrd,
 {
     if x > y {
         y
@@ -45,17 +45,17 @@ where
 }
 
 /// max{0, x}
-pub fn pos<'a, T>(x: T) -> T
+pub fn pos<T>(x: T) -> T
 where
-    T: Value<'a>,
+    T: NumCast + PartialOrd,
 {
     max(NumCast::from(0).unwrap(), x)
 }
 
 /// max{a, min{b, x}}
-pub fn project<'a, T>(x: T, a: T, b: T) -> T
+pub fn project<T>(x: T, a: T, b: T) -> T
 where
-    T: Value<'a>,
+    T: PartialOrd,
 {
     max(a, min(b, x))
 }

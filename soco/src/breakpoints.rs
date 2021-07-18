@@ -1,13 +1,13 @@
 //! Non-continuous or non-smooth points of functions.
 
-use ordered_float::OrderedFloat;
+use noisy_float::prelude::*;
 use std::sync::Arc;
 
 /// Sorted non-continuous or non-smooth points of a function.
 #[derive(Clone)]
 pub struct Breakpoints {
     /// Finite vector of breakpoints.
-    pub bs: Vec<OrderedFloat<f64>>,
+    pub bs: Vec<R64>,
     /// Function which given a breakpoint returns the previous and next breakpoints (until there are none), respectively.
     /// The function is called to obtain the next breakpoint until the piecewise integrals converge to `0` or the entire integral was integrated.
     #[allow(clippy::type_complexity)]
@@ -42,8 +42,8 @@ impl Breakpoints {
     pub fn add(&self, bs: &Vec<f64>) -> Self {
         let mut breakpoints = self.clone();
         for &b in bs {
-            if !breakpoints.bs.contains(&OrderedFloat(b)) {
-                breakpoints.bs.push(OrderedFloat(b));
+            if !breakpoints.bs.contains(&r64(b)) {
+                breakpoints.bs.push(r64(b));
             }
         }
         breakpoints.bs.sort_unstable();

@@ -5,6 +5,7 @@ use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
+use noisy_float::prelude::*;
 use std::sync::Arc;
 
 /// Memoryless Algorithm. Special case of Primal Online Balanced Descent.
@@ -32,10 +33,10 @@ fn next(
 ) -> Result<f64> {
     let bounds = vec![(0., o.p.bounds[0])];
     let objective =
-        |xs: &[f64]| -> f64 { o.p.hit_cost(t, Config::new(xs.to_vec())) };
-    let constraint = Arc::new(|xs: &[f64]| -> f64 {
-        o.p.switching_cost[0] * (xs[0] - prev_x).abs()
-            - o.p.hit_cost(t, Config::single(xs[0])) / 2.
+        |xs: &[f64]| -> R64 { o.p.hit_cost(t, Config::new(xs.to_vec())) };
+    let constraint = Arc::new(|xs: &[f64]| -> R64 {
+        r64(o.p.switching_cost[0]) * r64((xs[0] - prev_x).abs())
+            - o.p.hit_cost(t, Config::single(xs[0])) / r64(2.)
     });
 
     let (xs, _) = minimize(objective, &bounds, None, vec![constraint], vec![])?;

@@ -92,10 +92,14 @@ pub fn probabilistic<'a>(
                 + second_derivative(
                     |x: f64| {
                         // needs to be unbounded for numerical approximations
-                        o.p.hitting_cost.call_unbounded(t, Config::single(x))
+                        o.p.hitting_cost
+                            .call_unbounded(t, Config::single(x))
+                            .raw()
                     },
                     x,
-                ) / (2. * o.p.switching_cost[0])
+                )
+                .raw()
+                    / (2. * o.p.switching_cost[0])
         } else {
             0.
         }
@@ -121,16 +125,19 @@ fn find_right_bound(
     if (x_m - o.p.bounds[0]).abs() < PRECISION {
         Ok(o.p.bounds[0])
     } else {
-        find_root((x_m, o.p.bounds[0]), |x| {
+        Ok(find_root((x_m, o.p.bounds[0]), |x| {
             // needs to be unbounded for numerical approximations
-            let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
-            derivative(f, x)
+            let f =
+                |x| o.p.hitting_cost.call_unbounded(t, Config::single(x)).raw();
+            derivative(f, x).raw()
                 - 2. * o.p.switching_cost[0]
                     * piecewise_integral(breakpoints, x, f64::INFINITY, |x| {
                         prev_p(x)
                     })
                     .unwrap()
-        })
+                    .raw()
+        })?
+        .raw())
     }
 }
 
@@ -145,16 +152,19 @@ fn find_left_bound(
     if x_m < PRECISION {
         Ok(0.)
     } else {
-        find_root((0., x_m), |x| {
+        Ok(find_root((0., x_m), |x| {
             // needs to be unbounded for numerical approximations
-            let f = |x| o.p.hitting_cost.call_unbounded(t, Config::single(x));
+            let f =
+                |x| o.p.hitting_cost.call_unbounded(t, Config::single(x)).raw();
             2. * o.p.switching_cost[0]
                 * piecewise_integral(breakpoints, f64::NEG_INFINITY, x, |x| {
                     prev_p(x)
                 })
                 .unwrap()
-                - derivative(f, x)
-        })
+                .raw()
+                - derivative(f, x).raw()
+        })?
+        .raw())
     }
 }
 
@@ -164,5 +174,5 @@ fn expected_value(
     from: f64,
     to: f64,
 ) -> Result<f64> {
-    piecewise_integral(breakpoints, from, to, |x| x * prev_p(x))
+    Ok(piecewise_integral(breakpoints, from, to, |x| x * prev_p(x))?.raw())
 }

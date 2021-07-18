@@ -3,11 +3,12 @@
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use crate::result::{Failure, Result};
 use bacon_sci::integrate::{integrate, integrate_hermite, integrate_laguerre};
+use noisy_float::prelude::*;
 
 pub mod piecewise;
 
 /// Integrates `f` from `from` to `to` using an applicable quadrature method.
-pub fn integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> Result<f64> {
+pub fn integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> Result<R64> {
     let result = if from == f64::NEG_INFINITY && to == f64::INFINITY {
         infinite_integral(f)?
     } else if to == f64::INFINITY {
@@ -26,22 +27,29 @@ pub fn integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> Result<f64> {
             from, to
         )))
     } else {
-        Ok(result.apply_precision())
+        Ok(r64(result.raw().apply_precision()))
     }
 }
 
 /// Uses the double exponential method (Tanh-sinh quadrature)
-fn finite_integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> Result<f64> {
-    integrate(from, to, f, TOLERANCE).map_err(Failure::Integration)
+fn finite_integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> Result<R64> {
+    Ok(r64(
+        integrate(from, to, f, TOLERANCE).map_err(Failure::Integration)?
+    ))
 }
 
 /// Uses the Gaussian-Laguerre quadrature
-fn semi_infinite_integral(f: impl Fn(f64) -> f64) -> Result<f64> {
-    integrate_laguerre(|x| f(x) * std::f64::consts::E.powf(x), TOLERANCE)
-        .map_err(Failure::Integration)
+fn semi_infinite_integral(f: impl Fn(f64) -> f64) -> Result<R64> {
+    Ok(r64(integrate_laguerre(
+        |x| f(x) * std::f64::consts::E.powf(x),
+        TOLERANCE,
+    )
+    .map_err(Failure::Integration)?))
 }
 
 /// Uses the Gaussian-Hermite quadrature
-fn infinite_integral(f: impl Fn(f64) -> f64) -> Result<f64> {
-    integrate_hermite(|x| f(x), TOLERANCE).map_err(Failure::Integration)
+fn infinite_integral(f: impl Fn(f64) -> f64) -> Result<R64> {
+    Ok(r64(
+        integrate_hermite(|x| f(x), TOLERANCE).map_err(Failure::Integration)?
+    ))
 }

@@ -19,8 +19,8 @@ use crate::problem::{
 };
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
+use noisy_float::prelude::*;
 use num::NumCast;
-use num::ToPrimitive;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -44,11 +44,11 @@ impl Default for ServerType {
     }
 }
 impl ServerType {
-    fn limit_utilization(&self, s: f64, f: impl Fn() -> f64) -> f64 {
-        if s <= self.max_utilization {
+    fn limit_utilization(&self, s: R64, f: impl Fn() -> R64) -> R64 {
+        if s <= r64(self.max_utilization) {
             f()
         } else {
-            f64::INFINITY
+            r64(f64::INFINITY)
         }
     }
 }
@@ -79,8 +79,8 @@ impl<'a> JobType<'a> {
         }
     }
 
-    pub fn processing_time_on(&self, server_type: &ServerType) -> f64 {
-        (self.processing_time_on)(server_type)
+    pub fn processing_time_on(&self, server_type: &ServerType) -> R64 {
+        r64((self.processing_time_on)(server_type))
     }
 }
 
@@ -93,8 +93,8 @@ pub struct Source<'a> {
     routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync + 'a>,
 }
 impl<'a> Source<'a> {
-    pub fn routing_delay_to(&self, t: i32, location: &Location) -> f64 {
-        (self.routing_delay_to)(t, location)
+    pub fn routing_delay_to(&self, t: i32, location: &Location) -> R64 {
+        r64((self.routing_delay_to)(t, location))
     }
 }
 impl Default for Source<'_> {
@@ -212,7 +212,7 @@ impl<'a> DataCenterModel<'a> {
         &self,
         server_type: &ServerType,
         loads: &LoadProfile,
-    ) -> f64 {
+    ) -> R64 {
         loads
             .iter()
             .enumerate()
@@ -222,7 +222,7 @@ impl<'a> DataCenterModel<'a> {
                     self.job_types[i].processing_time_on(server_type);
                 processing_time * load
             })
-            .sum::<f64>()
+            .sum::<R64>()
     }
 
     /// Energy cost. Non-negative convex operating cost of data center `j`
@@ -235,7 +235,7 @@ impl<'a> DataCenterModel<'a> {
         x: &Config<T>,
         lambda: &LoadProfile,
         zs: &LoadFractions,
-    ) -> f64
+    ) -> R64
     where
         T: Value<'a>,
     {
@@ -252,7 +252,7 @@ impl<'a> DataCenterModel<'a> {
         x_: &Config<T>,
         lambda: &LoadProfile,
         zs: &LoadFractions,
-    ) -> f64
+    ) -> R64
     where
         T: Value<'a>,
     {
@@ -262,7 +262,7 @@ impl<'a> DataCenterModel<'a> {
                 let server_type = &self.server_types[k];
                 let total_load = self
                     .total_sub_jobs(server_type, &zs.select_loads(lambda, k_));
-                let x = ToPrimitive::to_f64(&x_[k_]).unwrap();
+                let x = NumCast::from(x_[k_]).unwrap();
                 safe_balancing(x, total_load, || {
                     let s = total_load / (x * self.delta);
                     server_type.limit_utilization(s, || {
@@ -286,12 +286,12 @@ impl<'a> DataCenterModel<'a> {
         server_type: &ServerType,
         source: &Source,
         job_type: &JobType,
-        l: f64,
-    ) -> f64 {
+        l: R64,
+    ) -> R64 {
         let delay = self.delay_model.average_delay(self.delta, l)
             + source.routing_delay_to(t, location)
             + job_type.processing_time_on(server_type);
-        self.gamma * (self.revenue_loss_model.loss(t, job_type, delay))
+        r64(self.gamma) * (self.revenue_loss_model.loss(t, job_type, delay))
     }
 
     /// Revenue loss across all sources and job types.
@@ -303,18 +303,18 @@ impl<'a> DataCenterModel<'a> {
         server_type: &ServerType,
         x_: T,
         loads: &LoadProfile,
-    ) -> f64
+    ) -> R64
     where
         T: Value<'a>,
     {
-        let x = ToPrimitive::to_f64(&x_).unwrap();
+        let x = NumCast::from(x_).unwrap();
         let total_load = self.total_sub_jobs(server_type, loads);
         safe_balancing(x, total_load, || {
             (0..self.sources.len())
-                .map(|s| -> f64 {
+                .map(|s| -> R64 {
                     (0..self.job_types.len())
                         .map(|i| {
-                            loads[encode(self.job_types.len(), s, i)]
+                            r64(loads[encode(self.job_types.len(), s, i)])
                                 * self.revenue_loss(
                                     t,
                                     location,
@@ -338,15 +338,15 @@ impl<'a> DataCenterModel<'a> {
         x: &Config<T>,
         lambda: &LoadProfile,
         zs: &LoadFractions,
-    ) -> f64
+    ) -> R64
     where
         T: Value<'a>,
     {
         (0..self.locations.len())
-            .map(|j| -> f64 {
+            .map(|j| -> R64 {
                 self.energy_cost(t, j, x, lambda, zs)
                     + (0..self.server_types.len())
-                        .map(|k| -> f64 {
+                        .map(|k| -> R64 {
                             let k_ = encode(self.server_types.len(), j, k);
                             let loads = zs.select_loads(lambda, k_);
                             self.overall_revenue_loss(
@@ -357,9 +357,9 @@ impl<'a> DataCenterModel<'a> {
                                 &loads,
                             )
                         })
-                        .sum::<f64>()
+                        .sum::<R64>()
             })
-            .sum::<f64>()
+            .sum::<R64>()
     }
 
     /// Optimally applies (certain) loads to the model of a data center to obtain a cost function.
@@ -570,7 +570,8 @@ where
             .server_types
             .iter()
             .map(move |server_type| {
-                SingleCostFn::certain(move |t, l| {
+                SingleCostFn::certain(move |t, l_| {
+                    let l = r64(l_);
                     let s = l / self.delta;
                     let p = server_type.limit_utilization(s, || {
                         self.energy_consumption_model
@@ -657,8 +658,8 @@ where
                     .map(|t| -> f64 {
                         let p = self
                             .energy_consumption_model
-                            .consumption(server_type, 1.);
-                        self.energy_cost_model.cost(t, location, p)
+                            .consumption(server_type, r64(1.));
+                        self.energy_cost_model.cost(t, location, p).raw()
                     })
                     .sum::<f64>()
                     / t_end as f64

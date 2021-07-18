@@ -13,6 +13,7 @@ use crate::problem::{
 };
 use crate::result::{Failure, Result};
 use crate::utils::{assert, is_pow_of_2};
+use noisy_float::prelude::*;
 
 pub trait Bounded<T> {
     /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the lowest possible cost.
@@ -58,13 +59,14 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
         }
 
         let p = self.reset(t_start);
-        let objective = |xs: &[f64]| -> f64 {
-            p.objective_function_with_default(
-                &xs.iter().map(|&x| Config::single(x)).collect(),
-                &Config::single(x_start),
-                inverted,
-            )
-            .unwrap()
+        let objective = |xs: &[f64]| -> R64 {
+            r64(p
+                .objective_function_with_default(
+                    &xs.iter().map(|&x| Config::single(x)).collect(),
+                    &Config::single(x_start),
+                    inverted,
+                )
+                .unwrap())
         };
         let bounds = vec![(0., p.bounds[0]); p.t_end as usize];
         let (xs, _) = find_minimizer(objective, &bounds)?;

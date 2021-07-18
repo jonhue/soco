@@ -1,7 +1,7 @@
 mod make_pow_of_2 {
+    use crate::factories::constant;
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::make_pow_of_2;
     use soco::config::Config;
-    use soco::cost::{CostFn, SingleCostFn};
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::verifiers::VerifiableProblem;
 
@@ -13,11 +13,7 @@ mod make_pow_of_2 {
             t_end,
             bounds: vec![103],
             switching_cost: vec![1.],
-            hitting_cost: CostFn::stretch(
-                1,
-                t_end,
-                SingleCostFn::certain(|_, _| 1.),
-            ),
+            hitting_cost: constant(t_end),
         };
         p.verify().unwrap();
         let transformed_p = make_pow_of_2(p.clone()).unwrap();
@@ -33,7 +29,7 @@ mod make_pow_of_2 {
         for t in 1..=transformed_p.t_end {
             for j in 0..=transformed_p.bounds[0] {
                 assert_abs_diff_eq!(
-                    transformed_p.hit_cost(t, Config::single(j)),
+                    transformed_p.hit_cost(t, Config::single(j)).raw(),
                     if j <= p.bounds[0] {
                         1.
                     } else {
