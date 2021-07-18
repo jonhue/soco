@@ -55,9 +55,7 @@ where
             let prev_x = xs.get(t - 1).unwrap_or(default).clone();
             let x = xs.get(t).unwrap().clone();
             cost += self.hit_cost(t as i32, x.clone()).raw();
-            let delta = x - prev_x;
-            println!("{};{:?}", t, delta);
-            cost += (self.switching_cost)(delta).raw();
+            cost += (self.switching_cost)(x - prev_x).raw();
         }
         Ok(cost)
     }

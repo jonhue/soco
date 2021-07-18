@@ -37,7 +37,6 @@ where
             result += switching_cost[k] / 2.
                 * ToPrimitive::to_f64(&x[k]).unwrap().abs();
         }
-        println!("=> {}", result);
         r64(result)
     })
 }
