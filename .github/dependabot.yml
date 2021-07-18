@@ -9,11 +9,15 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
+  - package-ecosystem: "pip"
+    directory: "/analysis"
+    schedule:
+      interval: "daily"
   - package-ecosystem: "cargo"
     directory: "/soco"
     schedule:
       interval: "daily"
-  - package-ecosystem: "pip"
-    directory: "/analysis"
+  - package-ecosystem: "cargo"
+    directory: "/soco_py"
     schedule:
       interval: "daily"
