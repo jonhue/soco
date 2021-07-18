@@ -16,7 +16,7 @@ use crate::model::data_center::{
 };
 use pyo3::prelude::*;
 
-fn data_center_submodule(_py: Python, m: &PyModule) -> PyResult<()> {
+pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<DataCenterModel>()?;
 
     m.add_class::<DataCenterOfflineInput>()?;
@@ -40,13 +40,6 @@ fn data_center_submodule(_py: Python, m: &PyModule) -> PyResult<()> {
 
     m.add_class::<SwitchingCostModel>()?;
     m.add_class::<SwitchingCost>()?;
-
-    Ok(())
-}
-
-pub fn submodule(py: Python, _m: &PyModule) -> PyResult<()> {
-    let data_center = PyModule::new(py, "data_center")?;
-    data_center_submodule(py, data_center)?;
 
     Ok(())
 }

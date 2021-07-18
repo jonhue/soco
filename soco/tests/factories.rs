@@ -4,6 +4,7 @@ use rand_pcg::Pcg64;
 use soco::{
     config::{FractionalConfig, IntegralConfig},
     cost::{CostFn, SingleCostFn},
+    vec_wrapper::VecWrapper,
 };
 
 fn wrap<'a, T>(
@@ -49,11 +50,10 @@ pub fn random(t_end: i32) -> CostFn<'static, IntegralConfig> {
     })
 }
 
-/// `t * exp(-x)` for a single dimension.
+/// `t * exp(-x)` for multiple dimensions.
 pub fn inv_e(t_end: i32) -> CostFn<'static, FractionalConfig> {
     wrap(t_end, |t: i32, j: FractionalConfig| {
-        assert!(j.d() == 1);
-        t as f64 * std::f64::consts::E.powf(-j[0])
+        t as f64 * j.iter().map(|x| std::f64::consts::E.powf(-x)).sum::<f64>()
     })
 }
 

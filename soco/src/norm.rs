@@ -35,8 +35,9 @@ where
         let mut result = 0.;
         for k in 0..x.d() as usize {
             result += switching_cost[k] / 2.
-                + ToPrimitive::to_f64(&x[k]).unwrap().abs();
+                * ToPrimitive::to_f64(&x[k]).unwrap().abs();
         }
+        println!("=> {}", result);
         r64(result)
     })
 }

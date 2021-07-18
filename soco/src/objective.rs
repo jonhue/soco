@@ -5,9 +5,9 @@ use crate::problem::{
     SimplifiedSmoothedConvexOptimization, SmoothedConvexOptimization,
     SmoothedLoadOptimization,
 };
-use crate::result::Result;
+use crate::result::{Result, Failure};
 use crate::schedule::Schedule;
-use crate::utils::pos;
+use crate::utils::{pos, assert};
 use crate::value::Value;
 use num::{NumCast, ToPrimitive};
 
@@ -48,12 +48,15 @@ where
         default: &Config<T>,
         inverted: bool,
     ) -> Result<f64> {
+        assert(!inverted, Failure::UnsupportedInvertedCost)?;
+
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 1).unwrap_or(default);
-            let x = xs.get(t).unwrap();
+            let prev_x = xs.get(t - 1).unwrap_or(default).clone();
+            let x = xs.get(t).unwrap().clone();
             cost += self.hit_cost(t as i32, x.clone()).raw();
-            let delta = movement(x, prev_x, inverted);
+            let delta = x - prev_x;
+            println!("{};{:?}", t, delta);
             cost += (self.switching_cost)(delta).raw();
         }
         Ok(cost)

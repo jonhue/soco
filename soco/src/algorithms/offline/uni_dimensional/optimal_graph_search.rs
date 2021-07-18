@@ -11,12 +11,14 @@ use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::{assert, is_pow_of_2};
 use noisy_float::prelude::*;
 use num::ToPrimitive;
+use pyo3::prelude::*;
 use std::collections::HashMap;
 
 /// Vertice in the graph denoting time `t` and the value `j` at time `t`.
 #[derive(Eq, Hash, PartialEq)]
 struct Vertice(i32, i32);
 
+#[pyclass]
 #[derive(Clone)]
 pub struct Options {
     /// Value at initial time `0`. Defaults to `0`.
