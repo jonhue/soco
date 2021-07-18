@@ -4,20 +4,22 @@ use crate::model::data_center::model::Location;
 use crate::utils::min;
 use crate::utils::pos;
 use noisy_float::prelude::*;
+use pyo3::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 
 /// Energy source.
+#[pyclass]
 #[derive(Clone)]
-pub struct EnergySource<'a> {
+pub struct EnergySource {
     /// Average cost of a unit of energy during time slot `t`.
-    cost: Arc<dyn Fn(i32) -> f64 + Send + Sync + 'a>,
+    cost: Arc<dyn Fn(i32) -> f64 + Send + Sync>,
     /// Average profit of an unused unit of energy during time slot `t`.
-    profit: Arc<dyn Fn(i32) -> f64 + Send + Sync + 'a>,
+    profit: Arc<dyn Fn(i32) -> f64 + Send + Sync>,
     /// Maximum amount of energy at some location during time slot `t`.
-    limit: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync + 'a>,
+    limit: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync>,
 }
-impl<'a> EnergySource<'a> {
+impl EnergySource {
     fn cost(&self, t: i32) -> R64 {
         r64((self.cost)(t))
     }
@@ -30,33 +32,35 @@ impl<'a> EnergySource<'a> {
 }
 
 /// Energy cost model. Parameters are provided separately for each location.
-#[derive(Clone)]
-pub enum EnergyCostModel<'a> {
+#[derive(Clone, FromPyObject)]
+pub enum EnergyCostModel {
     /// Linear energy cost.
-    Linear(HashMap<String, LinearEnergyCostModel<'a>>),
+    Linear(HashMap<String, LinearEnergyCostModel>),
     /// Energy cost model using (maximum) quotas.
     /// Maximum profit across all energy sources must not exceed overall energy cost.
-    Quotas(HashMap<String, QuotasEnergyCostModel<'a>>),
+    Quotas(HashMap<String, QuotasEnergyCostModel>),
 }
 
+#[pyclass]
 #[derive(Clone)]
-pub struct LinearEnergyCostModel<'a> {
+pub struct LinearEnergyCostModel {
     /// Average cost of a unit of energy during time slot `t`.
-    pub cost: Arc<dyn Fn(i32) -> f64 + Send + Sync + 'a>,
+    pub cost: Arc<dyn Fn(i32) -> f64 + Send + Sync>,
 }
-impl<'a> LinearEnergyCostModel<'a> {
+impl LinearEnergyCostModel {
     fn cost(&self, t: i32) -> R64 {
         r64((self.cost)(t))
     }
 }
 
+#[pyclass]
 #[derive(Clone)]
-pub struct QuotasEnergyCostModel<'a> {
+pub struct QuotasEnergyCostModel {
     /// Energy sources.
-    pub sources: Vec<EnergySource<'a>>,
+    pub sources: Vec<EnergySource>,
 }
 
-impl<'a> EnergyCostModel<'a> {
+impl EnergyCostModel {
     /// Energy cost at some location during time slot `t` with energy consumption `p`.
     /// Referred to as `\nu` in the paper.
     pub fn cost(&self, t: i32, location: &Location, p: R64) -> R64 {

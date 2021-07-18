@@ -10,7 +10,7 @@ use soco::{
             DEFAULT_KEY,
         },
         models::{
-            delay::DelayModel,
+            delay::{DelayModel, ProcessorSharingQueueDelayModel},
             energy_consumption::{
                 EnergyConsumptionModel, SimplifiedLinearEnergyConsumptionModel,
             },
@@ -21,7 +21,7 @@ use soco::{
             switching_cost::{SwitchingCost, SwitchingCostModel},
         },
     },
-    streaming::frontend,
+    streaming::offline,
 };
 use std::sync::Arc;
 
@@ -31,9 +31,10 @@ fn integration() {
     let addr = "127.0.0.1:5000".parse().unwrap();
 
     let t_end = 2;
+    let delta = 1.;
     let m = 10;
     let model = DataCenterModel::single(
-        1.,
+        delta,
         0.,
         vec![ServerType::default()],
         hash_map(&[(DEFAULT_KEY.to_string(), m)]),
@@ -52,7 +53,9 @@ fn integration() {
             DEFAULT_KEY.to_string(),
             MinimalDetectableDelayRevenueLossModel::default(),
         )])),
-        DelayModel::ProcessorSharingQueue,
+        DelayModel::ProcessorSharingQueue(ProcessorSharingQueueDelayModel {
+            mu: delta,
+        }),
         SwitchingCostModel::new(hash_map(&[(
             DEFAULT_KEY.to_string(),
             SwitchingCost {
@@ -71,9 +74,9 @@ fn integration() {
     };
 
     let result =
-        frontend::start(addr, &model, &rbg, Options::default(), 0, input)
+        offline::start(addr, &model, &rbg, Options::default(), 0, input)
             .unwrap();
     result.0.verify(t_end, &vec![m as f64]).unwrap();
 
-    frontend::stop(addr);
+    offline::stop(addr);
 }

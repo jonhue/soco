@@ -7,6 +7,7 @@ use crate::utils::{access, shift_time, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
+use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::iter::FromIterator;
 use std::ops::Div;
@@ -15,6 +16,7 @@ use std::ops::Mul;
 use std::sync::Arc;
 
 /// For some time `t`, encapsulates the load of `e` types.
+#[pyclass]
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct LoadProfile(Vec<f64>);
 

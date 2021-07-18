@@ -1,6 +1,5 @@
-use crate::problem::Online;
-use crate::problem::Problem;
-use serde::{Deserialize, Serialize};
+use crate::problem::{Online, Problem};
+use serde::{de::DeserializeOwned, Serialize};
 
 pub mod data_center;
 
@@ -10,12 +9,12 @@ pub trait OfflineInput: std::fmt::Debug {}
 /// Model inputs to update a problem instance (online) to the next time slot.
 /// Encapsulates information for the current time slot as well as all time slots in the prediction window.
 pub trait OnlineInput<'a>:
-    std::fmt::Debug + Deserialize<'a> + Serialize
+    std::fmt::Debug + DeserializeOwned + Serialize
 {
 }
 
 /// Model which is used to generate problem instances and update them online.
-pub trait Model<'a, P, A, B>: Clone + Sync
+pub trait Model<'a, P, A, B>: Clone
 where
     P: Problem,
     A: OfflineInput,

@@ -2,14 +2,16 @@
 
 use crate::model::data_center::model::ServerType;
 use noisy_float::prelude::*;
+use pyo3::prelude::*;
 use std::collections::HashMap;
 
 /// Switching cost model. Parameters are provided separately for each server type.
-
+#[pyclass]
 #[derive(Clone)]
 pub struct SwitchingCostModel(HashMap<String, SwitchingCost>);
 
 /// Switching cost.
+#[pyclass]
 #[derive(Clone)]
 pub struct SwitchingCost {
     /// Average cost per unit of energy.

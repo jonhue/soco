@@ -71,6 +71,11 @@ where
         Schedule([&self.0[..], &[x]].concat())
     }
 
+    /// Converts schedule to a vector of vectors.
+    pub fn to_vec(&self) -> Vec<Vec<T>> {
+        self.0.iter().map(|x| x.to_vec()).collect()
+    }
+
     /// Builds a schedule from a raw (flat) encoding `raw_xs` (used for convex optimization).
     /// `d` is the number of dimensions, `w` is the length of the time window.
     /// The length of `raw_xs` must therefore be `d * (w + 1)`.

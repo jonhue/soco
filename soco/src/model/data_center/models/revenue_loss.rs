@@ -3,10 +3,11 @@
 use crate::model::data_center::model::JobType;
 use crate::utils::pos;
 use noisy_float::prelude::*;
+use pyo3::prelude::*;
 use std::collections::HashMap;
 
 /// Revenue loss model. Parameters are provided separately for each job type.
-#[derive(Clone)]
+#[derive(Clone, FromPyObject)]
 pub enum RevenueLossModel {
     /// Linear loss based on average delay exceeding the minimal detectable delay.
     MinimalDetectableDelay(
@@ -14,6 +15,7 @@ pub enum RevenueLossModel {
     ),
 }
 
+#[pyclass]
 #[derive(Clone)]
 pub struct MinimalDetectableDelayRevenueLossModel {
     /// Minimal detectable delay of a job type.

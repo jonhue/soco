@@ -2,7 +2,7 @@
 #![allow(clippy::module_inception)]
 #![allow(clippy::ptr_arg)]
 
-use std::collections::HashMap;
+use pyo3::prelude::*;
 
 #[allow(unused_imports)]
 #[macro_use]
@@ -25,16 +25,22 @@ pub mod schedule;
 pub mod streaming;
 pub mod verifiers;
 
+mod bindings;
 mod numerics;
 mod utils;
 mod value;
 mod vec_wrapper;
 
-/// Constructs a hash map from a slice.
-pub fn hash_map<K, V>(slice: &[(K, V)]) -> HashMap<K, V>
-where
-    K: Clone + Eq + std::hash::Hash + PartialEq,
-    V: Clone,
-{
-    slice.iter().cloned().collect()
+#[pymodule]
+fn supermodule(py: Python, _m: &PyModule) -> PyResult<()> {
+    let offline = PyModule::new(py, "offline")?;
+    bindings::offline::submodule(py, offline)?;
+
+    let online = PyModule::new(py, "online")?;
+    bindings::online::submodule(py, online)?;
+
+    let model = PyModule::new(py, "model")?;
+    bindings::model::submodule(py, model)?;
+
+    Ok(())
 }

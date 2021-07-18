@@ -21,6 +21,7 @@ use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
 use num::NumCast;
+use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -28,6 +29,7 @@ use std::sync::Arc;
 pub static DEFAULT_KEY: &str = "";
 
 /// Server type.
+#[pyclass]
 #[derive(Clone)]
 pub struct ServerType {
     /// Name.
@@ -54,14 +56,15 @@ impl ServerType {
 }
 
 /// Job type.
+#[pyclass]
 #[derive(Clone)]
-pub struct JobType<'a> {
+pub struct JobType {
     /// Name.
     pub key: String,
     /// Processing time `\eta_{k,i}` of a job on some server type `k` (assuming full utilization). Must be less than the time slot length `delta`.
-    processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + Send + Sync + 'a>,
+    processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + Send + Sync>,
 }
-impl Default for JobType<'_> {
+impl Default for JobType {
     fn default() -> Self {
         JobType {
             key: DEFAULT_KEY.to_string(),
@@ -69,7 +72,15 @@ impl Default for JobType<'_> {
         }
     }
 }
-impl<'a> JobType<'a> {
+// impl<'a> FromPyObject<'a> for JobType<'a> {
+//     fn extract(ob: &'a PyAny) -> PyResult<Self> {
+//         Ok(JobType {
+//             key: ob.getattr("key").unwrap().extract().unwrap(),
+//             processing_time_on: Arc::new(|server_type| ob.getattr("processing_time_on").unwrap().call1((server_type,)).unwrap().extract().unwrap()),
+//         })
+//     }
+// }
+impl JobType {
     pub fn new(processing_times: HashMap<String, f64>) -> Self {
         JobType {
             key: DEFAULT_KEY.to_string(),
@@ -85,19 +96,20 @@ impl<'a> JobType<'a> {
 }
 
 /// Geographical source of jobs.
+#[pyclass]
 #[derive(Clone)]
-pub struct Source<'a> {
+pub struct Source {
     /// Name.
     pub key: String,
     /// Routing delay `\delta_{t,j,s}` to location `j` during time slot `t`.
-    routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync + 'a>,
+    routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync>,
 }
-impl<'a> Source<'a> {
+impl Source {
     pub fn routing_delay_to(&self, t: i32, location: &Location) -> R64 {
         r64((self.routing_delay_to)(t, location))
     }
 }
-impl Default for Source<'_> {
+impl Default for Source {
     fn default() -> Self {
         Source {
             key: DEFAULT_KEY.to_string(),
@@ -107,6 +119,7 @@ impl Default for Source<'_> {
 }
 
 /// Data center.
+#[pyclass]
 #[derive(Clone)]
 pub struct Location {
     /// Name.
@@ -116,8 +129,9 @@ pub struct Location {
 }
 
 /// Model of a network of data centers.
+#[pyclass]
 #[derive(Clone)]
-pub struct DataCenterModel<'a> {
+pub struct DataCenterModel {
     /// Length of a time slot.
     delta: f64,
     /// Weight of revenue loss (as opposed to energy cost). `gamma > 0`.
@@ -127,13 +141,13 @@ pub struct DataCenterModel<'a> {
     /// Server types.
     server_types: Vec<ServerType>,
     /// Sources, i.e. geographically centered locations.
-    sources: Vec<Source<'a>>,
+    sources: Vec<Source>,
     /// Job types.
-    job_types: Vec<JobType<'a>>,
+    job_types: Vec<JobType>,
     /// Energy consumption model.
     energy_consumption_model: EnergyConsumptionModel,
     /// Energy cost model.
-    energy_cost_model: EnergyCostModel<'a>,
+    energy_cost_model: EnergyCostModel,
     /// Revenue loss model.
     revenue_loss_model: RevenueLossModel,
     /// Delay model.
@@ -142,7 +156,41 @@ pub struct DataCenterModel<'a> {
     switching_cost_model: SwitchingCostModel,
 }
 
-impl<'a> DataCenterModel<'a> {
+#[pymethods]
+impl DataCenterModel {
+    /// Creates a new model.
+    #[allow(clippy::too_many_arguments)]
+    #[new]
+    pub fn new(
+        delta: f64,
+        gamma: f64,
+        locations: Vec<Location>,
+        server_types: Vec<ServerType>,
+        sources: Vec<Source>,
+        job_types: Vec<JobType>,
+        energy_consumption_model: EnergyConsumptionModel,
+        energy_cost_model: EnergyCostModel,
+        revenue_loss_model: RevenueLossModel,
+        delay_model: DelayModel,
+        switching_cost_model: SwitchingCostModel,
+    ) -> Self {
+        Self {
+            delta,
+            gamma,
+            locations,
+            server_types,
+            sources,
+            job_types,
+            energy_consumption_model,
+            energy_cost_model,
+            revenue_loss_model,
+            delay_model,
+            switching_cost_model,
+        }
+    }
+}
+
+impl DataCenterModel {
     /// Creates a model of a singular data center.
     #[allow(clippy::too_many_arguments)]
     pub fn single(
@@ -150,9 +198,9 @@ impl<'a> DataCenterModel<'a> {
         gamma: f64,
         server_types: Vec<ServerType>,
         m: HashMap<String, i32>,
-        job_types: Vec<JobType<'a>>,
+        job_types: Vec<JobType>,
         energy_consumption_model: EnergyConsumptionModel,
-        energy_cost_model: EnergyCostModel<'a>,
+        energy_cost_model: EnergyCostModel,
         revenue_loss_model: RevenueLossModel,
         delay_model: DelayModel,
         switching_cost_model: SwitchingCostModel,
@@ -182,10 +230,10 @@ impl<'a> DataCenterModel<'a> {
         gamma: f64,
         locations: Vec<Location>,
         server_types: Vec<ServerType>,
-        sources: Vec<Source<'a>>,
-        job_types: Vec<JobType<'a>>,
+        sources: Vec<Source>,
+        job_types: Vec<JobType>,
         energy_consumption_model: EnergyConsumptionModel,
-        energy_cost_model: EnergyCostModel<'a>,
+        energy_cost_model: EnergyCostModel,
         revenue_loss_model: RevenueLossModel,
         delay_model: DelayModel,
         switching_cost_model: SwitchingCostModel,
@@ -228,7 +276,7 @@ impl<'a> DataCenterModel<'a> {
     /// Energy cost. Non-negative convex operating cost of data center `j`
     /// during time slot `t` with configuration `x` load profile `lambda` and load fractions `zs`.
     /// Referred to as `e` in the paper.
-    fn energy_cost<T>(
+    fn energy_cost<'a, T>(
         &self,
         t: i32,
         j: usize,
@@ -246,7 +294,7 @@ impl<'a> DataCenterModel<'a> {
     /// Energy consumption of data center `j` with configuration `x_`, load profile
     /// `lambda`, and load fractions `zs`.
     /// Referred to as `\phi'` in the paper.
-    fn energy_consumption<T>(
+    fn energy_consumption<'a, T>(
         &self,
         j: usize,
         x_: &Config<T>,
@@ -288,7 +336,7 @@ impl<'a> DataCenterModel<'a> {
         job_type: &JobType,
         l: R64,
     ) -> R64 {
-        let delay = self.delay_model.average_delay(self.delta, l)
+        let delay = self.delay_model.average_delay(l)
             + source.routing_delay_to(t, location)
             + job_type.processing_time_on(server_type);
         r64(self.gamma) * (self.revenue_loss_model.loss(t, job_type, delay))
@@ -296,7 +344,7 @@ impl<'a> DataCenterModel<'a> {
 
     /// Revenue loss across all sources and job types.
     /// Referred to as `h` in the paper.
-    fn overall_revenue_loss<T>(
+    fn overall_revenue_loss<'a, T>(
         &self,
         t: i32,
         location: &Location,
@@ -332,7 +380,7 @@ impl<'a> DataCenterModel<'a> {
 
     /// Objective to be minimized when assigning jobs.
     /// Referred to as `f` in the paper.
-    fn objective<T>(
+    fn objective<'a, T>(
         &self,
         t: i32,
         x: &Config<T>,
@@ -367,7 +415,7 @@ impl<'a> DataCenterModel<'a> {
     ///
     /// * `loads` - vector of loads for all time slots that should be supported by the returned cost function
     /// * `t_start` - time offset, i.e. time of first load profile
-    fn apply_loads_over_time<T>(
+    fn apply_loads_over_time<'a, T>(
         &'a self,
         loads: Vec<LoadProfile>,
         t_start: i32,
@@ -389,7 +437,7 @@ impl<'a> DataCenterModel<'a> {
     ///
     /// * `loads` - a load profile for each predicted sample (one load profile for certainty) over the supported time horizon
     /// * `t_start` - time offset, i.e. time of first load samples
-    fn apply_predicted_loads<T>(
+    fn apply_predicted_loads<'a, T>(
         &'a self,
         loads: Vec<Vec<LoadProfile>>,
         t_start: i32,
@@ -417,7 +465,7 @@ impl<'a> DataCenterModel<'a> {
     }
 
     /// Generates upper bounds of the underlying problem instance.
-    fn generate_bounds<T>(&self) -> Vec<T>
+    fn generate_bounds<'a, T>(&self) -> Vec<T>
     where
         T: Value<'a>,
     {
@@ -443,7 +491,8 @@ fn encode(inner_len: usize, outer: usize, inner: usize) -> usize {
     outer * inner_len + inner
 }
 
-#[derive(Debug)]
+#[pyclass]
+#[derive(Clone, Debug)]
 pub struct DataCenterOfflineInput {
     /// Vector of loads for all time slots that should be supported by the returned cost function.
     pub loads: Vec<LoadProfile>,
@@ -455,7 +504,8 @@ impl Default for DataCenterOfflineInput {
 }
 impl OfflineInput for DataCenterOfflineInput {}
 
-#[derive(Debug, Deserialize, Serialize)]
+#[pyclass]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DataCenterOnlineInput {
     /// A load profile for each predicted sample (one load profile for certainty) over the supported time horizon.
     pub loads: Vec<Vec<LoadProfile>>,
@@ -468,7 +518,7 @@ impl<'a, T>
         SmoothedConvexOptimization<'a, T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
-    > for DataCenterModel<'a>
+    > for DataCenterModel
 where
     T: Value<'a>,
 {
@@ -500,7 +550,7 @@ impl<'a, T>
         SimplifiedSmoothedConvexOptimization<'a, T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
-    > for DataCenterModel<'a>
+    > for DataCenterModel
 where
     T: Value<'a>,
 {
@@ -543,7 +593,7 @@ impl<'a, T>
         SmoothedBalancedLoadOptimization<'a, T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
-    > for DataCenterModel<'a>
+    > for DataCenterModel
 where
     T: Value<'a>,
 {
@@ -628,7 +678,7 @@ impl<'a, T>
         SmoothedLoadOptimization<T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
-    > for DataCenterModel<'a>
+    > for DataCenterModel
 where
     T: Value<'a>,
 {

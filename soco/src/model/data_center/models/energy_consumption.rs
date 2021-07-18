@@ -2,10 +2,11 @@
 
 use crate::model::data_center::model::ServerType;
 use noisy_float::prelude::*;
+use pyo3::prelude::*;
 use std::collections::HashMap;
 
 /// Energy consumption model. Parameters are provided separately for each server type.
-#[derive(Clone)]
+#[derive(Clone, FromPyObject)]
 pub enum EnergyConsumptionModel {
     /// Linear model from Dayarathna et al.
     Linear(HashMap<String, LinearEnergyConsumptionModel>),
@@ -16,6 +17,7 @@ pub enum EnergyConsumptionModel {
     NonLinear(HashMap<String, NonLinearEnergyConsumptionModel>),
 }
 
+#[pyclass]
 #[derive(Clone)]
 pub struct LinearEnergyConsumptionModel {
     /// Power consumed when idling.
@@ -24,12 +26,14 @@ pub struct LinearEnergyConsumptionModel {
     pub phi_max: f64,
 }
 
+#[pyclass]
 #[derive(Clone)]
 pub struct SimplifiedLinearEnergyConsumptionModel {
     /// Power consumed at full load.
     pub phi_max: f64,
 }
 
+#[pyclass]
 #[derive(Clone)]
 pub struct NonLinearEnergyConsumptionModel {
     /// Power consumed when idling.
