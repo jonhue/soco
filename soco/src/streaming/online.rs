@@ -57,9 +57,9 @@ where
 pub fn start<'a, T, P, M, O, A, B>(
     addr: SocketAddr,
     model: &'a impl Model<'a, P, A, B>,
-    mut o: Online<P>,
+    o: &mut Online<P>,
     alg: &impl OnlineAlgorithm<'a, T, P, M, O>,
-    mut xs: Schedule<T>,
+    xs: &mut Schedule<T>,
     mut prev_m: Option<M>,
     options: O,
 ) where
@@ -79,10 +79,9 @@ pub fn start<'a, T, P, M, O, A, B>(
         match serde_json::from_reader(&mut stream) {
             Ok(input) => {
                 println!("Received: {:?}", input);
-                model.update(&mut o, input);
+                model.update(o, input);
 
-                let (x, m) =
-                    o.next(alg, options.clone(), &mut xs, prev_m).unwrap();
+                let (x, m) = o.next(alg, options.clone(), xs, prev_m).unwrap();
                 let response = serde_json::to_string(&x).unwrap();
 
                 stream.write_all(response.as_bytes()).unwrap();
