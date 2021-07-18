@@ -52,9 +52,9 @@ where
         for t in 1..=self.t_end {
             let prev_x = xs.get(t - 1).unwrap_or(default);
             let x = xs.get(t).unwrap();
-            cost += self.hit_cost(t as i32, x.clone());
+            cost += self.hit_cost(t as i32, x.clone()).raw();
             let delta = movement(x, prev_x, inverted);
-            cost += (self.switching_cost)(delta);
+            cost += (self.switching_cost)(delta).raw();
         }
         Ok(cost)
     }
@@ -78,7 +78,7 @@ where
         for t in 1..=self.t_end {
             let prev_x = xs.get(t - 1).unwrap_or(default);
             let x = xs.get(t).unwrap();
-            cost += self.hit_cost(t as i32, x.clone());
+            cost += self.hit_cost(t as i32, x.clone()).raw();
             for k in 0..self.d as usize {
                 let delta = ToPrimitive::to_f64(&scalar_movement(
                     x[k], prev_x[k], inverted,

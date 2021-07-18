@@ -224,7 +224,7 @@ fn find_immediate_predecessors(
             cost: if powering_up {
                 0.
             } else {
-                p.hit_cost(t, config.config.clone())
+                p.hit_cost(t, config.config.clone()).raw()
             },
         };
         predecessors.push(inaction);

@@ -3,30 +3,31 @@
 use crate::config::Config;
 use crate::utils::mean;
 use crate::value::Value;
+use noisy_float::prelude::*;
 use num::NumCast;
 use std::sync::Arc;
 
 /// Cost function (from time `t`).
 #[derive(Clone)]
 pub struct SingleCostFn<'a, T>(
-    Arc<dyn Fn(i32, T) -> Vec<f64> + Send + Sync + 'a>,
+    Arc<dyn Fn(i32, T) -> Vec<R64> + Send + Sync + 'a>,
 );
 impl<'a, T> SingleCostFn<'a, T> {
     /// Creates a single cost function without uncertainty.
-    pub fn certain(f: impl Fn(i32, T) -> f64 + Send + Sync + 'a) -> Self {
+    pub fn certain(f: impl Fn(i32, T) -> R64 + Send + Sync + 'a) -> Self {
         Self::predictive(move |t, x| vec![f(t, x)])
     }
 
     /// Creates a single cost function with uncertainty.
     pub fn predictive(
-        f: impl Fn(i32, T) -> Vec<f64> + Send + Sync + 'a,
+        f: impl Fn(i32, T) -> Vec<R64> + Send + Sync + 'a,
     ) -> Self {
         Self(Arc::new(f))
     }
 
     /// Computes the hitting cost with an unbounded decision space.
     /// Returns mean if cost function returns a prediction.
-    pub fn call_unbounded(&self, t: i32, x: T) -> f64 {
+    pub fn call_unbounded(&self, t: i32, x: T) -> R64 {
         assert!(
             t > 0,
             "Time slot of hitting cost must be positive (got {}).",
@@ -38,19 +39,19 @@ impl<'a, T> SingleCostFn<'a, T> {
 
     /// Computes the hitting cost.
     /// Returns mean if cost function returns a prediction.
-    pub fn call<B>(&self, t: i32, x: T, bounds: &B) -> f64
+    pub fn call<B>(&self, t: i32, x: T, bounds: &B) -> R64
     where
         B: DecisionSpace<'a, T>,
     {
         if bounds.within(&x) {
             self.call_unbounded(t, x)
         } else {
-            f64::INFINITY
+            r64(f64::INFINITY)
         }
     }
 
     /// Computes the hitting cost with an unbounded decision space.
-    pub fn call_unbounded_predictive(&self, t: i32, x: T) -> Vec<f64> {
+    pub fn call_unbounded_predictive(&self, t: i32, x: T) -> Vec<R64> {
         assert!(
             t > 0,
             "Time slot of hitting cost must be positive (got {}).",
@@ -62,14 +63,14 @@ impl<'a, T> SingleCostFn<'a, T> {
     }
 
     /// Computes the hitting cost.
-    pub fn call_predictive<B>(&self, t: i32, x: T, bounds: &B) -> Vec<f64>
+    pub fn call_predictive<B>(&self, t: i32, x: T, bounds: &B) -> Vec<R64>
     where
         B: DecisionSpace<'a, T>,
     {
         if bounds.within(&x) {
             self.call_unbounded_predictive(t, x)
         } else {
-            vec![f64::INFINITY]
+            vec![r64(f64::INFINITY)]
         }
     }
 }
@@ -112,7 +113,7 @@ where
 
     /// Computes the hitting cost with an unbounded decision space.
     /// Returns mean if cost function returns a prediction.
-    pub fn call_unbounded(&self, t: i32, x: T) -> f64 {
+    pub fn call_unbounded(&self, t: i32, x: T) -> R64 {
         assert!(
             t > 0,
             "Time slot of hitting cost must be positive (got {}).",
@@ -123,19 +124,19 @@ where
 
     /// Computes the hitting cost.
     /// Returns mean if cost function returns a prediction.
-    pub fn call<B>(&self, t: i32, x: T, bounds: &B) -> f64
+    pub fn call<B>(&self, t: i32, x: T, bounds: &B) -> R64
     where
         B: DecisionSpace<'a, T>,
     {
         if bounds.within(&x) {
             self.call_unbounded(t, x)
         } else {
-            f64::INFINITY
+            r64(f64::INFINITY)
         }
     }
 
     /// Computes the hitting cost with an unbounded decision space.
-    pub fn call_unbounded_predictive(&self, t: i32, x: T) -> Vec<f64> {
+    pub fn call_unbounded_predictive(&self, t: i32, x: T) -> Vec<R64> {
         assert!(
             t > 0,
             "Time slot of hitting cost must be positive (got {}).",
@@ -145,14 +146,14 @@ where
     }
 
     /// Computes the hitting cost.
-    pub fn call_predictive<B>(&self, t: i32, x: T, bounds: &B) -> Vec<f64>
+    pub fn call_predictive<B>(&self, t: i32, x: T, bounds: &B) -> Vec<R64>
     where
         B: DecisionSpace<'a, T>,
     {
         if bounds.within(&x) {
             self.call_unbounded_predictive(t, x)
         } else {
-            vec![f64::INFINITY]
+            vec![r64(f64::INFINITY)]
         }
     }
 

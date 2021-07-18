@@ -3,6 +3,7 @@
 use crate::model::data_center::model::Location;
 use crate::utils::min;
 use crate::utils::pos;
+use noisy_float::prelude::*;
 use std::collections::HashMap;
 use std::sync::Arc;
 
@@ -17,14 +18,14 @@ pub struct EnergySource<'a> {
     limit: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync + 'a>,
 }
 impl<'a> EnergySource<'a> {
-    fn cost(&self, t: i32) -> f64 {
-        (self.cost)(t)
+    fn cost(&self, t: i32) -> R64 {
+        r64((self.cost)(t))
     }
-    fn profit(&self, t: i32) -> f64 {
-        (self.profit)(t)
+    fn profit(&self, t: i32) -> R64 {
+        r64((self.profit)(t))
     }
-    fn limit(&self, t: i32, location: &Location) -> f64 {
-        (self.limit)(t, location)
+    fn limit(&self, t: i32, location: &Location) -> R64 {
+        r64((self.limit)(t, location))
     }
 }
 
@@ -44,8 +45,8 @@ pub struct LinearEnergyCostModel<'a> {
     pub cost: Arc<dyn Fn(i32) -> f64 + Send + Sync + 'a>,
 }
 impl<'a> LinearEnergyCostModel<'a> {
-    fn cost(&self, t: i32) -> f64 {
-        (self.cost)(t)
+    fn cost(&self, t: i32) -> R64 {
+        r64((self.cost)(t))
     }
 }
 
@@ -58,7 +59,7 @@ pub struct QuotasEnergyCostModel<'a> {
 impl<'a> EnergyCostModel<'a> {
     /// Energy cost at some location during time slot `t` with energy consumption `p`.
     /// Referred to as `\nu` in the paper.
-    pub fn cost(&self, t: i32, location: &Location, p: f64) -> f64 {
+    pub fn cost(&self, t: i32, location: &Location, p: R64) -> R64 {
         match self {
             EnergyCostModel::Linear(models) => {
                 let model = &models[&location.key];
@@ -72,8 +73,8 @@ impl<'a> EnergyCostModel<'a> {
                         .unwrap()
                 });
 
-                let mut result = 0.;
-                let mut cum_limit = 0.;
+                let mut result = r64(0.);
+                let mut cum_limit = r64(0.);
                 for source in sources {
                     let delta = pos(p - cum_limit);
                     let limit = source.limit(t, location);

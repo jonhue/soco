@@ -4,6 +4,7 @@ use crate::objective::Objective;
 use crate::problem::FractionalSmoothedConvexOptimization;
 use crate::result::Result;
 use crate::schedule::{FractionalSchedule, Schedule};
+use noisy_float::prelude::*;
 
 /// Convex Optimization
 pub fn co(
@@ -18,7 +19,7 @@ pub fn co(
         .collect();
     let objective = |raw_xs: &[f64]| {
         let xs = Schedule::from_raw(p.d, p.t_end, raw_xs);
-        p.objective_function(&xs).unwrap()
+        r64(p.objective_function(&xs).unwrap())
     };
 
     let (raw_xs, _) = find_minimizer(objective, &bounds)?;

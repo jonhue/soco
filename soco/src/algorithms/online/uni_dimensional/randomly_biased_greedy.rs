@@ -5,6 +5,7 @@ use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, sample_uniform};
+use noisy_float::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -52,10 +53,10 @@ fn next(
     r: f64,
     theta: f64,
 ) -> Result<f64> {
-    let objective = |raw_x: &[f64]| -> f64 {
+    let objective = |raw_x: &[f64]| -> R64 {
         let x = Config::new(raw_x.to_vec());
         w(&o, t - 1, theta, x.clone()).unwrap()
-            + r * theta * (o.p.switching_cost)(x)
+            + r64(r) * r64(theta) * (o.p.switching_cost)(x)
     };
 
     let (x, _) = find_minimizer(objective, &o.p.bounds)?;
@@ -67,15 +68,15 @@ fn w(
     t: i32,
     theta: f64,
     x: FractionalConfig,
-) -> Result<f64> {
+) -> Result<R64> {
     if t == 0 {
-        Ok(theta * (o.p.switching_cost)(x))
+        Ok(r64(theta) * (o.p.switching_cost)(x))
     } else {
-        let f = |raw_y: &[f64]| -> f64 {
+        let f = |raw_y: &[f64]| -> R64 {
             let y = Config::new(raw_y.to_vec());
             w(o, t - 1, theta, y.clone()).unwrap()
                 + o.p.hit_cost(t, y.clone())
-                + theta * (o.p.switching_cost)(x.clone() - y)
+                + r64(theta) * (o.p.switching_cost)(x.clone() - y)
         };
 
         let (_, opt) = find_minimizer(f, &o.p.bounds)?;

@@ -6,6 +6,7 @@ use crate::objective::Objective;
 use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::Result;
 use crate::schedule::{FractionalSchedule, Schedule};
+use noisy_float::prelude::*;
 
 /// Receding Horizon Control
 pub fn rhc(
@@ -45,7 +46,7 @@ fn next(
         (0., o.p.bounds[0]);
         FractionalSchedule::raw_encoding_len(o.p.d, o.w) as usize
     ];
-    let objective = |raw_xs: &[f64]| -> f64 {
+    let objective = |raw_xs: &[f64]| -> R64 {
         let xs = Schedule::from_raw(o.p.d, o.w, raw_xs);
         let prev_x = if prev_xs.t_end() - k > 0 {
             prev_xs[(prev_xs.t_end() - k - 1) as usize].clone()
@@ -54,8 +55,9 @@ fn next(
         };
         let p = o.p.reset(t - k);
 
-        p.objective_function_with_default(&xs, &prev_x, false)
-            .unwrap()
+        r64(p
+            .objective_function_with_default(&xs, &prev_x, false)
+            .unwrap())
     };
 
     let (raw_xs, _) = find_minimizer(objective, &bounds)?;

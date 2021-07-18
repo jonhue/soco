@@ -5,6 +5,7 @@ use crate::cost::CostFn;
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use crate::result::{Failure, Result};
 use nlopt::{Algorithm, Nlopt, Target};
+use noisy_float::prelude::*;
 use std::sync::Arc;
 
 /// Optimization direction.
@@ -14,10 +15,10 @@ enum Direction {
 }
 
 /// Convex constraint.
-pub type Constraint<'a> = Arc<dyn Fn(&[f64]) -> f64 + 'a>;
+pub type Constraint<'a> = Arc<dyn Fn(&[f64]) -> R64 + 'a>;
 
 /// Optimization result comprised of argmin and min.
-type OptimizationResult = (Vec<f64>, f64);
+type OptimizationResult = (Vec<f64>, R64);
 
 /// Determines the minimizer of `hitting_cost` at time `t` with bounds `bounds`.
 pub fn find_minimizer_of_hitting_cost(
@@ -31,7 +32,7 @@ pub fn find_minimizer_of_hitting_cost(
 
 /// Determines the minimizer of a convex function `f` with bounds `bounds`.
 pub fn find_minimizer(
-    f: impl Fn(&[f64]) -> f64,
+    f: impl Fn(&[f64]) -> R64,
     bounds: &Vec<(f64, f64)>,
 ) -> Result<OptimizationResult> {
     minimize(f, bounds, None, vec![], vec![])
@@ -40,7 +41,7 @@ pub fn find_minimizer(
 /// Determines the minimizer of a convex function `f` in `d` dimensions with
 /// `inequality_constraints` and `equality_constraints`.
 pub fn find_unbounded_minimizer(
-    f: impl Fn(&[f64]) -> f64,
+    f: impl Fn(&[f64]) -> R64,
     d: i32,
     inequality_constraints: Vec<Constraint>,
     equality_constraints: Vec<Constraint>,
@@ -58,7 +59,7 @@ pub fn find_unbounded_minimizer(
 /// Determines the maximizer of a convex function `f` in `d` dimensions with
 /// `inequality_constraints` and `equality_constraints`.
 pub fn find_unbounded_maximizer(
-    f: impl Fn(&[f64]) -> f64,
+    f: impl Fn(&[f64]) -> R64,
     d: i32,
     inequality_constraints: Vec<Constraint>,
     equality_constraints: Vec<Constraint>,
@@ -74,7 +75,7 @@ pub fn find_unbounded_maximizer(
 }
 
 pub fn minimize(
-    f: impl Fn(&[f64]) -> f64,
+    f: impl Fn(&[f64]) -> R64,
     bounds: &Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
     inequality_constraints: Vec<Constraint>,
@@ -91,7 +92,7 @@ pub fn minimize(
 }
 
 pub fn maximize(
-    f: impl Fn(&[f64]) -> f64,
+    f: impl Fn(&[f64]) -> R64,
     bounds: &Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
     inequality_constraints: Vec<Constraint>,
@@ -112,7 +113,7 @@ pub fn maximize(
 /// Optimization begins at `init` (defaults to lower bounds).
 fn optimize(
     dir: Direction,
-    f: impl Fn(&[f64]) -> f64,
+    f: impl Fn(&[f64]) -> R64,
     bounds: &Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
     inequality_constraints: Vec<Constraint>,
@@ -121,7 +122,7 @@ fn optimize(
     let d = bounds.len();
     let (lower, upper): (Vec<_>, Vec<_>) = bounds.iter().cloned().unzip();
 
-    let objective = |x: &[f64], _: Option<&mut [f64]>, _: &mut ()| f(x);
+    let objective = |x: &[f64], _: Option<&mut [f64]>, _: &mut ()| f(x).raw();
     let mut x = match init {
         // we use the upper bound of the decision space as for mose cost functions
         // this appears to be the most conservative estimate for a region of the
@@ -152,14 +153,14 @@ fn optimize(
 
     for g in inequality_constraints {
         solver.add_inequality_constraint(
-            |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| g(xs),
+            |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| g(xs).raw(),
             (),
             TOLERANCE,
         )?;
     }
     for g in equality_constraints {
         solver.add_equality_constraint(
-            |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| g(xs),
+            |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| g(xs).raw(),
             (),
             TOLERANCE,
         )?;
@@ -175,7 +176,7 @@ fn optimize(
             _ => Err(Failure::NlOpt(state)),
         },
     }?;
-    Ok((x.apply_precision(), opt))
+    Ok((x.apply_precision(), r64(opt)))
 }
 
 fn choose_algorithm(

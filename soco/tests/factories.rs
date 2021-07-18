@@ -1,3 +1,4 @@
+use noisy_float::prelude::*;
 use rand::prelude::*;
 use rand_pcg::Pcg64;
 use soco::{
@@ -12,7 +13,12 @@ fn wrap<'a, T>(
 where
     T: Clone,
 {
-    CostFn::stretch(1, t_end, SingleCostFn::certain(f))
+    CostFn::stretch(1, t_end, SingleCostFn::certain(move |t, x| r64(f(t, x))))
+}
+
+/// Returns `1`.
+pub fn constant(t_end: i32) -> CostFn<'static, IntegralConfig> {
+    wrap(t_end, |_, _| 1.)
 }
 
 /// Returns `t` if all dimensions are `0`, `0` otherwise.

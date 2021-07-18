@@ -42,8 +42,9 @@ pub fn robd(
         t,
         SingleCostFn::certain(|t, x: FractionalConfig| {
             o.p.hit_cost(t, x.clone())
-                + lambda_1 * (o.p.switching_cost)(x.clone() - prev_x.clone())
-                + lambda_2 * (o.p.switching_cost)(x - v.clone())
+                + lambda_1
+                    * (o.p.switching_cost)(x.clone() - prev_x.clone()).raw()
+                + lambda_2 * (o.p.switching_cost)(x - v.clone()).raw()
         }),
     );
     let x = Config::new(

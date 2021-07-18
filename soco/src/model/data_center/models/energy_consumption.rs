@@ -1,6 +1,7 @@
 //! Energy consumption model.
 
 use crate::model::data_center::model::ServerType;
+use noisy_float::prelude::*;
 use std::collections::HashMap;
 
 /// Energy consumption model. Parameters are provided separately for each server type.
@@ -42,19 +43,19 @@ pub struct NonLinearEnergyConsumptionModel {
 impl EnergyConsumptionModel {
     /// Energy consumption of a server of some type with utilization `s`.
     /// Referred to as `\phi` in the paper.
-    pub fn consumption(&self, server_type: &ServerType, s: f64) -> f64 {
+    pub fn consumption(&self, server_type: &ServerType, s: R64) -> R64 {
         match self {
             EnergyConsumptionModel::Linear(models) => {
                 let model = &models[&server_type.key];
-                (model.phi_max - model.phi_min) * s + model.phi_min
+                r64(model.phi_max - model.phi_min) * s + r64(model.phi_min)
             }
             EnergyConsumptionModel::SimplifiedLinear(models) => {
                 let model = &models[&server_type.key];
-                model.phi_max * (1. + s) / 2.
+                r64(model.phi_max) * (r64(1.) + s) / r64(2.)
             }
             EnergyConsumptionModel::NonLinear(models) => {
                 let model = &models[&server_type.key];
-                s.powf(model.alpha) / model.beta + model.phi_min
+                s.powf(r64(model.alpha)) / r64(model.beta) + r64(model.phi_min)
             }
         }
     }

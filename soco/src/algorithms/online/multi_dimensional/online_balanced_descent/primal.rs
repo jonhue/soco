@@ -38,8 +38,8 @@ pub fn pobd(
     let v = Config::new(
         find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
     );
-    let dist = (o.p.switching_cost)(prev_x.clone() - v.clone());
-    let minimal_hitting_cost = o.p.hit_cost(t, v.clone());
+    let dist = (o.p.switching_cost)(prev_x.clone() - v.clone()).raw();
+    let minimal_hitting_cost = o.p.hit_cost(t, v.clone()).raw();
     if dist < options.beta * minimal_hitting_cost {
         return Ok(Step(v, None));
     }
@@ -48,7 +48,8 @@ pub fn pobd(
     let b = MAX_L_FACTOR * minimal_hitting_cost;
     let l = find_root((a, b), |l: f64| {
         balance_function(o, xs, &prev_x, l, options.beta, &options.mirror_map)
-    })?;
+    })?
+    .raw();
 
     obd(
         o,
@@ -79,5 +80,5 @@ fn balance_function(
         },
     )
     .unwrap();
-    (o.p.switching_cost)(x - prev_x.clone()) - beta * l
+    (o.p.switching_cost)(x - prev_x.clone()).raw() - beta * l
 }

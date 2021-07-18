@@ -2,6 +2,7 @@
 
 use crate::model::data_center::model::JobType;
 use crate::utils::pos;
+use noisy_float::prelude::*;
 use std::collections::HashMap;
 
 /// Revenue loss model. Parameters are provided separately for each job type.
@@ -27,7 +28,7 @@ impl Default for MinimalDetectableDelayRevenueLossModel {
 impl RevenueLossModel {
     /// Revenue loss if jobs of some type have average delay `delay` during time slot `t`.
     /// Referred to as `r` in the paper.
-    pub fn loss(&self, _t: i32, job_type: &JobType, delay: f64) -> f64 {
+    pub fn loss(&self, _t: i32, job_type: &JobType, delay: R64) -> R64 {
         match self {
             RevenueLossModel::MinimalDetectableDelay(models) => {
                 let model = &models[&job_type.key];

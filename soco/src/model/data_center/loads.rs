@@ -6,6 +6,7 @@ use crate::numerics::convex_optimization::{minimize, Constraint};
 use crate::utils::{access, shift_time, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
+use noisy_float::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::iter::FromIterator;
 use std::ops::Div;
@@ -139,7 +140,7 @@ impl LoadFractions<'_> {
 pub fn apply_loads_over_time<'a, T>(
     d: i32,
     e: i32,
-    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> f64
+    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> R64
         + Send
         + Sync
         + 'a,
@@ -169,7 +170,7 @@ where
 pub fn apply_predicted_loads<'a, T>(
     d: i32,
     e: i32,
-    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> f64
+    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> R64
         + Send
         + Sync
         + 'a,
@@ -199,11 +200,11 @@ where
 pub fn apply_loads<'a, T>(
     d: i32,
     e: i32,
-    objective: &impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> f64,
+    objective: &impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> R64,
     lambda: &LoadProfile,
     t: i32,
     x: Config<T>,
-) -> f64
+) -> R64
 where
     T: Value<'a>,
 {
@@ -224,15 +225,16 @@ where
     let equality_constraints = (0..e as usize)
         .map(|i| -> Constraint {
             let lambda = lambda.clone();
-            Arc::new(move |zs_: &[f64]| -> f64 {
+            Arc::new(move |zs_: &[f64]| -> R64 {
                 let total_lambda = lambda.total();
-                if total_lambda > 0. {
+                let result = if total_lambda > 0. {
                     let zs = LoadFractions { zs_, d, e };
                     (0..d as usize).map(|k| zs.get(k, i)).sum::<f64>()
                         - lambda[i] / total_lambda
                 } else {
                     0.
-                }
+                };
+                r64(result)
             })
         })
         .collect();

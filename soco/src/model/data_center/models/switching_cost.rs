@@ -1,6 +1,7 @@
 //! Switching cost model.
 
 use crate::model::data_center::model::ServerType;
+use noisy_float::prelude::*;
 use std::collections::HashMap;
 
 /// Switching cost model. Parameters are provided separately for each server type.
@@ -33,17 +34,19 @@ impl SwitchingCostModel {
     }
 
     /// Computes switching cost for a server of some type.
-    pub fn switching_cost(&self, server_type: &ServerType) -> f64 {
+    pub fn switching_cost(&self, server_type: &ServerType) -> R64 {
         let model = self.model(server_type);
-        model.energy_cost * (model.epsilon + model.delta * model.phi_max)
-            + model.tau
-            + model.rho
+        r64(
+            model.energy_cost * (model.epsilon + model.delta * model.phi_max)
+                + model.tau
+                + model.rho,
+        )
     }
 
     /// Computes normalized switching cost for a server of some type. Approximately,
     /// measures the minimum duration a server must be asleep to outweigh the switching cost.
     /// Referred to as `\xi` in the paper.
-    pub fn normalized_switching_cost(&self, server_type: &ServerType) -> f64 {
+    pub fn normalized_switching_cost(&self, server_type: &ServerType) -> R64 {
         let model = self.model(server_type);
         self.switching_cost(server_type) / (model.energy_cost * model.phi_min)
     }
@@ -52,7 +55,7 @@ impl SwitchingCostModel {
     pub fn switching_costs(&self, server_types: &Vec<ServerType>) -> Vec<f64> {
         server_types
             .iter()
-            .map(|server_type| self.switching_cost(server_type))
+            .map(|server_type| self.switching_cost(server_type).raw())
             .collect()
     }
 
@@ -63,7 +66,7 @@ impl SwitchingCostModel {
     ) -> Vec<f64> {
         server_types
             .iter()
-            .map(|server_type| self.switching_cost(server_type))
+            .map(|server_type| self.switching_cost(server_type).raw())
             .collect()
     }
 

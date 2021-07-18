@@ -40,13 +40,14 @@ pub fn dobd(
     let v = Config::new(
         find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
     );
-    let minimal_hitting_cost = o.p.hit_cost(t, v);
+    let minimal_hitting_cost = o.p.hit_cost(t, v).raw();
 
     let a = minimal_hitting_cost;
     let b = MAX_L_FACTOR * minimal_hitting_cost;
     let l = find_root((a, b), |l: f64| {
         balance_function(o, xs, &prev_x, t, l, options.eta, &options.mirror_map)
-    })?;
+    })?
+    .raw();
 
     obd(
         o,
@@ -78,13 +79,15 @@ fn balance_function(
         },
     )
     .unwrap();
-    let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone()));
-    let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone()));
+    let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).raw();
+    let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone())).raw();
     let distance = dual(&o.p.switching_cost)(
         Config::new(x.to_vec().central_diff(&m))
             - Config::new(prev_x.to_vec().central_diff(&m)),
-    );
+    )
+    .raw();
     let hitting_cost =
-        dual(&o.p.switching_cost)(Config::new(x.to_vec().central_diff(&f)));
+        dual(&o.p.switching_cost)(Config::new(x.to_vec().central_diff(&f)))
+            .raw();
     distance / hitting_cost - eta
 }
