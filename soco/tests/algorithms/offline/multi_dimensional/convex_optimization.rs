@@ -1,5 +1,5 @@
 mod co {
-    use crate::factories::{inv_e};
+    use crate::factories::inv_e;
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::algorithms::offline::{
@@ -26,10 +26,10 @@ mod co {
         };
         p.verify().unwrap();
 
-        let result = co
-            .solve_with_default_options(p.clone(), false)
+        let result = co.solve_with_default_options(p.clone(), false).unwrap();
+        result
+            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
             .unwrap();
-        result.verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect()).unwrap();
 
         assert_eq!(
             result.to_i(),
@@ -40,7 +40,8 @@ mod co {
         );
         assert_abs_diff_eq!(
             p.objective_function(&result.to_i().to_f()).unwrap(),
-            3.5096, epsilon = 1e-4
+            3.5096,
+            epsilon = 1e-4
         );
     }
 
@@ -56,10 +57,10 @@ mod co {
         };
         p.verify().unwrap();
 
-        let result = co
-            .solve_with_default_options(p.clone(), false)
+        let result = co.solve_with_default_options(p.clone(), false).unwrap();
+        result
+            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
             .unwrap();
-        result.verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect()).unwrap();
     }
 
     #[test]
@@ -73,7 +74,11 @@ mod co {
             t_end,
             bounds: (0..d)
                 .map(|_| {
-                    (0., Pcg64::seed_from_u64((d * t_end) as u64).gen_range(1..5) as f64)
+                    (
+                        0.,
+                        Pcg64::seed_from_u64((d * t_end) as u64).gen_range(1..5)
+                            as f64,
+                    )
                 })
                 .collect(),
             switching_cost: norm_squared(&euclidean_),
@@ -81,9 +86,9 @@ mod co {
         };
         p.verify().unwrap();
 
-        let result = co
-            .solve_with_default_options(p.clone(), false)
+        let result = co.solve_with_default_options(p.clone(), false).unwrap();
+        result
+            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
             .unwrap();
-        result.verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect()).unwrap();
     }
 }

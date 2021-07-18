@@ -2,7 +2,7 @@ use crate::config::Config;
 use crate::numerics::convex_optimization::find_minimizer;
 use crate::objective::Objective;
 use crate::problem::FractionalSmoothedConvexOptimization;
-use crate::result::{Result, Failure};
+use crate::result::{Failure, Result};
 use crate::schedule::{FractionalSchedule, Schedule};
 use crate::utils::assert;
 use noisy_float::prelude::*;

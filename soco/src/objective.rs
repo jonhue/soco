@@ -5,9 +5,9 @@ use crate::problem::{
     SimplifiedSmoothedConvexOptimization, SmoothedConvexOptimization,
     SmoothedLoadOptimization,
 };
-use crate::result::{Result, Failure};
+use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
-use crate::utils::{pos, assert};
+use crate::utils::{assert, pos};
 use crate::value::Value;
 use num::{NumCast, ToPrimitive};
 

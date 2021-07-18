@@ -21,8 +21,8 @@ pub mod problem;
 pub mod result;
 pub mod schedule;
 pub mod streaming;
-pub mod verifiers;
 pub mod vec_wrapper;
+pub mod verifiers;
 
 mod bindings;
 mod numerics;
