@@ -237,7 +237,7 @@ fn cumulative_idle_hitting_cost(
 fn find_optimal_config(
     p: IntegralSmoothedBalancedLoadOptimization,
 ) -> Result<IntegralConfig> {
-    let ssco_p = p.to_ssco();
+    let ssco_p = p.into_ssco();
     let Path { xs, .. } = optimal_graph_search.solve(ssco_p, (), false)?;
     Ok(xs.now())
 }

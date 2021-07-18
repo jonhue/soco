@@ -75,6 +75,6 @@ pub fn next<'a>(addr: SocketAddr, input: impl OnlineInput<'a>) {
 /// Stops backend server.
 pub fn stop(addr: SocketAddr) {
     let mut stream = TcpStream::connect(addr).unwrap();
-    stream.write("".as_bytes()).unwrap();
+    stream.write_all("".as_bytes()).unwrap();
     stream.flush().unwrap();
 }

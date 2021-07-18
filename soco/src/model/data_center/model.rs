@@ -478,7 +478,7 @@ where
     ) -> SmoothedConvexOptimization<'a, T> {
         let ssco_p: SimplifiedSmoothedConvexOptimization<'a, T> =
             self.to(input);
-        ssco_p.to_sco()
+        ssco_p.into_sco()
     }
 
     fn update(

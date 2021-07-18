@@ -139,7 +139,7 @@ where
     T: Value<'a>,
 {
     /// Convert to an instance of Smoothed Convex Optimization.
-    pub fn to_sco(self) -> SmoothedConvexOptimization<'a, T> {
+    pub fn into_sco(self) -> SmoothedConvexOptimization<'a, T> {
         let bounds = self
             .bounds
             .iter()
@@ -160,7 +160,7 @@ where
     T: Value<'a>,
 {
     /// Convert instance to an instance of Smoothed Balanced-Load Optimization.
-    pub fn to_sblo(self) -> SmoothedBalancedLoadOptimization<'a, T> {
+    pub fn into_sblo(self) -> SmoothedBalancedLoadOptimization<'a, T> {
         let hitting_cost = self
             .hitting_cost
             .iter()
@@ -182,7 +182,7 @@ where
     T: Value<'a>,
 {
     /// Convert to an instance of Simplified Smoothed Convex Optimization.
-    pub fn to_ssco(self) -> SimplifiedSmoothedConvexOptimization<'a, T> {
+    pub fn into_ssco(self) -> SimplifiedSmoothedConvexOptimization<'a, T> {
         SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,

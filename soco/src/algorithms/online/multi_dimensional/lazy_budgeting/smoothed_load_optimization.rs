@@ -163,8 +163,8 @@ fn find_optimal_lanes(
     bound: i32,
 ) -> Result<Lanes> {
     let d = p.d;
-    let sblo_p = p.to_sblo();
-    let ssco_p = sblo_p.to_ssco();
+    let sblo_p = p.into_sblo();
+    let ssco_p = sblo_p.into_ssco();
     let Path { xs, .. } = optimal_graph_search.solve(ssco_p, (), false)?;
     Ok(build_lanes(&xs.now(), d, bound))
 }
