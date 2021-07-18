@@ -13,6 +13,8 @@ repository = "https://github.com/jonhue/bachelors-thesis"
 [dependencies]
 approx = "0.5.0"
 bacon-sci = { git = "https://github.com/aftix/bacon", branch = "master" }
+crossbeam = "0.8.1"
+derivative = "2.2.0"
 finitediff = "0.1.3"
 itertools = "0.10.1"
 nalgebra = "0.28.0"

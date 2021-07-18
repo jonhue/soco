@@ -139,7 +139,7 @@ where
     T: Value<'a>,
 {
     /// Convert to an instance of Smoothed Convex Optimization.
-    pub fn to_sco(&'a self) -> SmoothedConvexOptimization<'a, T> {
+    pub fn into_sco(self) -> SmoothedConvexOptimization<'a, T> {
         let bounds = self
             .bounds
             .iter()
@@ -149,7 +149,7 @@ where
             d: self.d,
             t_end: self.t_end,
             bounds,
-            switching_cost: manhattan_scaled(&self.switching_cost),
+            switching_cost: manhattan_scaled(self.switching_cost),
             hitting_cost: self.hitting_cost.clone(),
         }
     }
@@ -160,7 +160,7 @@ where
     T: Value<'a>,
 {
     /// Convert instance to an instance of Smoothed Balanced-Load Optimization.
-    pub fn to_sblo(&'a self) -> SmoothedBalancedLoadOptimization<'a, T> {
+    pub fn into_sblo(self) -> SmoothedBalancedLoadOptimization<'a, T> {
         let hitting_cost = self
             .hitting_cost
             .iter()
@@ -182,7 +182,7 @@ where
     T: Value<'a>,
 {
     /// Convert to an instance of Simplified Smoothed Convex Optimization.
-    pub fn to_ssco(&'a self) -> SimplifiedSmoothedConvexOptimization<'a, T> {
+    pub fn into_ssco(self) -> SimplifiedSmoothedConvexOptimization<'a, T> {
         SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
@@ -191,7 +191,7 @@ where
             hitting_cost: CostFn::stretch(
                 1,
                 self.t_end,
-                SingleCostFn::certain(move |t, x| self.hit_cost(t, x)),
+                SingleCostFn::certain(move |t, x| self.clone().hit_cost(t, x)),
             ),
         }
     }

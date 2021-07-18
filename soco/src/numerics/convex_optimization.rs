@@ -123,7 +123,13 @@ fn optimize(
 
     let objective = |x: &[f64], _: Option<&mut [f64]>, _: &mut ()| f(x);
     let mut x = match init {
-        None => lower.clone(),
+        // we use the upper bound of the decision space as for mose cost functions
+        // this appears to be the most conservative estimate for a region of the
+        // decision space where the hitting cost is not infinity
+        None => {
+            assert!(upper.iter().all(|&b| b < f64::INFINITY), "Initial guess must be set explicitly when optimization problem does not have fixed upper bounds.");
+            upper.clone()
+        }
         Some(x) => {
             assert!(x.len() == bounds.len());
             x

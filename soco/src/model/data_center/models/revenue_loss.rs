@@ -4,15 +4,24 @@ use crate::model::data_center::model::JobType;
 use crate::utils::pos;
 use std::collections::HashMap;
 
-/// Revenue loss model.
+/// Revenue loss model. Parameters are provided separately for each job type.
+#[derive(Clone)]
 pub enum RevenueLossModel {
     /// Linear loss based on average delay exceeding the minimal detectable delay.
-    MinimalDetectableDelay(HashMap<String, MinimalDetectableDelay>),
+    MinimalDetectableDelay(
+        HashMap<String, MinimalDetectableDelayRevenueLossModel>,
+    ),
 }
 
-pub struct MinimalDetectableDelay {
+#[derive(Clone)]
+pub struct MinimalDetectableDelayRevenueLossModel {
     /// Minimal detectable delay of a job type.
     delta: f64,
+}
+impl Default for MinimalDetectableDelayRevenueLossModel {
+    fn default() -> Self {
+        MinimalDetectableDelayRevenueLossModel { delta: 0. }
+    }
 }
 
 impl RevenueLossModel {

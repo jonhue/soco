@@ -10,11 +10,11 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct EnergySource<'a> {
     /// Average cost of a unit of energy during time slot `t`.
-    cost: Arc<dyn Fn(i32) -> f64 + 'a>,
+    cost: Arc<dyn Fn(i32) -> f64 + Send + Sync + 'a>,
     /// Average profit of an unused unit of energy during time slot `t`.
-    profit: Arc<dyn Fn(i32) -> f64 + 'a>,
+    profit: Arc<dyn Fn(i32) -> f64 + Send + Sync + 'a>,
     /// Maximum amount of energy at some location during time slot `t`.
-    limit: Arc<dyn Fn(i32, &Location) -> f64 + 'a>,
+    limit: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync + 'a>,
 }
 impl<'a> EnergySource<'a> {
     fn cost(&self, t: i32) -> f64 {
@@ -28,28 +28,31 @@ impl<'a> EnergySource<'a> {
     }
 }
 
-/// Energy cost model.
+/// Energy cost model. Parameters are provided separately for each location.
+#[derive(Clone)]
 pub enum EnergyCostModel<'a> {
     /// Linear energy cost.
-    Linear(HashMap<String, Linear<'a>>),
+    Linear(HashMap<String, LinearEnergyCostModel<'a>>),
     /// Energy cost model using (maximum) quotas.
     /// Maximum profit across all energy sources must not exceed overall energy cost.
-    Quotas(HashMap<String, Quotas<'a>>),
+    Quotas(HashMap<String, QuotasEnergyCostModel<'a>>),
 }
 
-pub struct Linear<'a> {
+#[derive(Clone)]
+pub struct LinearEnergyCostModel<'a> {
     /// Average cost of a unit of energy during time slot `t`.
-    cost: Arc<dyn Fn(i32) -> f64 + 'a>,
+    pub cost: Arc<dyn Fn(i32) -> f64 + Send + Sync + 'a>,
 }
-impl<'a> Linear<'a> {
+impl<'a> LinearEnergyCostModel<'a> {
     fn cost(&self, t: i32) -> f64 {
         (self.cost)(t)
     }
 }
 
-pub struct Quotas<'a> {
+#[derive(Clone)]
+pub struct QuotasEnergyCostModel<'a> {
     /// Energy sources.
-    sources: Vec<EnergySource<'a>>,
+    pub sources: Vec<EnergySource<'a>>,
 }
 
 impl<'a> EnergyCostModel<'a> {

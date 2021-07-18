@@ -11,7 +11,7 @@ use std::ops::Index;
 
 /// Includes all configurations from time `1` to time `t_end`.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
-pub struct Schedule<T>(pub Vec<Config<T>>);
+pub struct Schedule<T>(Vec<Config<T>>);
 pub type IntegralSchedule = Schedule<i32>;
 pub type FractionalSchedule = Schedule<f64>;
 

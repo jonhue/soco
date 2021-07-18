@@ -22,14 +22,14 @@ pub type FractionalStep<M> = Step<f64, M>;
 
 /// Memory of online algorithm.
 pub trait Memory<'a, P>:
-    Clone + DefaultGivenProblem<P> + Deserialize<'a> + Serialize + 'a
+    Clone + DefaultGivenProblem<P> + Deserialize<'a> + Send + Serialize + 'a
 where
     P: Problem,
 {
 }
 impl<'a, T, P> Memory<'a, P> for T
 where
-    T: Clone + DefaultGivenProblem<P> + Deserialize<'a> + Serialize + 'a,
+    T: Clone + DefaultGivenProblem<P> + Deserialize<'a> + Send + Serialize + 'a,
     P: Problem,
 {
 }
@@ -48,7 +48,7 @@ where
 /// * `prev_m` - Latest memory, is the default if nothing was memorized.
 /// * `options` - Algorithm options.
 pub trait OnlineAlgorithm<'a, T, P, M, O>:
-    Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>>
+    Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>> + Sync
 where
     T: Value<'a>,
     P: Problem + 'a,
@@ -85,7 +85,7 @@ where
     P: Problem + 'a,
     M: Memory<'a, P>,
     O: Options<P>,
-    F: Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>>,
+    F: Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>> + Sync,
 {
 }
 
@@ -113,6 +113,6 @@ where
     P: Problem + 'a,
     M: Memory<'a, P>,
     O: Options<P>,
-    F: Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>>,
+    F: Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>> + Sync,
 {
 }

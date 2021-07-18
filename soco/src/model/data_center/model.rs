@@ -14,7 +14,8 @@ use crate::model::data_center::safe_balancing;
 use crate::model::{verify_update, Model, OfflineInput, OnlineInput};
 use crate::problem::{
     Online, SimplifiedSmoothedConvexOptimization,
-    SmoothedBalancedLoadOptimization, SmoothedLoadOptimization,
+    SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
+    SmoothedLoadOptimization,
 };
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
@@ -24,12 +25,23 @@ use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 
+pub static DEFAULT_KEY: &str = "";
+
 /// Server type.
+#[derive(Clone)]
 pub struct ServerType {
     /// Name.
     pub key: String,
     /// Maximum allowed utilization. Between `0` and `1`.
     max_utilization: f64,
+}
+impl Default for ServerType {
+    fn default() -> Self {
+        ServerType {
+            key: DEFAULT_KEY.to_string(),
+            max_utilization: 1.,
+        }
+    }
 }
 impl ServerType {
     fn limit_utilization(&self, s: f64, f: impl Fn() -> f64) -> f64 {
@@ -42,24 +54,43 @@ impl ServerType {
 }
 
 /// Job type.
+#[derive(Clone)]
 pub struct JobType<'a> {
     /// Name.
     pub key: String,
     /// Processing time `\eta_{k,i}` of a job on some server type `k` (assuming full utilization). Must be less than the time slot length `delta`.
-    processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + 'a>,
+    processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + Send + Sync + 'a>,
+}
+impl Default for JobType<'_> {
+    fn default() -> Self {
+        JobType {
+            key: DEFAULT_KEY.to_string(),
+            processing_time_on: Arc::new(|_| 1.),
+        }
+    }
 }
 impl<'a> JobType<'a> {
+    pub fn new(processing_times: HashMap<String, f64>) -> Self {
+        JobType {
+            key: DEFAULT_KEY.to_string(),
+            processing_time_on: Arc::new(move |server_type| {
+                processing_times[&server_type.key]
+            }),
+        }
+    }
+
     pub fn processing_time_on(&self, server_type: &ServerType) -> f64 {
         (self.processing_time_on)(server_type)
     }
 }
 
 /// Geographical source of jobs.
+#[derive(Clone)]
 pub struct Source<'a> {
     /// Name.
     pub key: String,
     /// Routing delay `\delta_{t,j,s}` to location `j` during time slot `t`.
-    routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + 'a>,
+    routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync + 'a>,
 }
 impl<'a> Source<'a> {
     pub fn routing_delay_to(&self, t: i32, location: &Location) -> f64 {
@@ -69,13 +100,14 @@ impl<'a> Source<'a> {
 impl Default for Source<'_> {
     fn default() -> Self {
         Source {
-            key: "".to_string(),
+            key: DEFAULT_KEY.to_string(),
             routing_delay_to: Arc::new(|_, _| 0.),
         }
     }
 }
 
 /// Data center.
+#[derive(Clone)]
 pub struct Location {
     /// Name.
     pub key: String,
@@ -84,6 +116,7 @@ pub struct Location {
 }
 
 /// Model of a network of data centers.
+#[derive(Clone)]
 pub struct DataCenterModel<'a> {
     /// Length of a time slot.
     delta: f64,
@@ -413,16 +446,53 @@ fn encode(inner_len: usize, outer: usize, inner: usize) -> usize {
 #[derive(Debug)]
 pub struct DataCenterOfflineInput {
     /// Vector of loads for all time slots that should be supported by the returned cost function.
-    loads: Vec<LoadProfile>,
+    pub loads: Vec<LoadProfile>,
+}
+impl Default for DataCenterOfflineInput {
+    fn default() -> Self {
+        DataCenterOfflineInput { loads: vec![] }
+    }
 }
 impl OfflineInput for DataCenterOfflineInput {}
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct DataCenterOnlineInput {
     /// A load profile for each predicted sample (one load profile for certainty) over the supported time horizon.
-    loads: Vec<Vec<LoadProfile>>,
+    pub loads: Vec<Vec<LoadProfile>>,
 }
 impl<'a> OnlineInput<'a> for DataCenterOnlineInput {}
+
+impl<'a, T>
+    Model<
+        'a,
+        SmoothedConvexOptimization<'a, T>,
+        DataCenterOfflineInput,
+        DataCenterOnlineInput,
+    > for DataCenterModel<'a>
+where
+    T: Value<'a>,
+{
+    fn to(
+        &'a self,
+        input: DataCenterOfflineInput,
+    ) -> SmoothedConvexOptimization<'a, T> {
+        let ssco_p: SimplifiedSmoothedConvexOptimization<'a, T> =
+            self.to(input);
+        ssco_p.into_sco()
+    }
+
+    fn update(
+        &'a self,
+        o: &mut Online<SmoothedConvexOptimization<'a, T>>,
+        DataCenterOnlineInput { loads }: DataCenterOnlineInput,
+    ) {
+        verify_update(o, loads.len() as i32);
+        let t_start = o.p.hitting_cost.now() + 1;
+        println!("Updating online instance to time slot {}.", t_start);
+        o.p.hitting_cost
+            .add(self.apply_predicted_loads(loads, t_start))
+    }
+}
 
 impl<'a, T>
     Model<

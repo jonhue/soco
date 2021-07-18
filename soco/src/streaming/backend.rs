@@ -7,12 +7,12 @@ use crate::schedule::Schedule;
 use crate::value::Value;
 use std::error::Error;
 use std::io::Write;
-use std::net::{TcpListener, TcpStream, ToSocketAddrs};
+use std::net::{SocketAddr, TcpListener, TcpStream};
 
 pub fn start<'a, T, P, M, O, A, B>(
-    addr: impl ToSocketAddrs,
-    g: &'a impl Model<'a, P, A, B>,
-    o: &'a mut Online<P>,
+    addr: SocketAddr,
+    model: &'a impl Model<'a, P, A, B>,
+    mut o: Online<P>,
     alg: &impl OnlineAlgorithm<'a, T, P, M, O>,
     xs: &mut Schedule<T>,
     mut prev_m: Option<M>,
@@ -32,13 +32,16 @@ pub fn start<'a, T, P, M, O, A, B>(
         let mut stream = stream.unwrap();
         println!("Connection established!");
         match read_request(&mut stream) {
-            Ok(parameter) => {
-                println!("Received: {:?}", parameter);
-                g.update(o, parameter);
+            Ok(input) => {
+                println!("Received: {:?}", input);
+                model.update(&mut o, input);
+
                 let result = o.next(alg, options.clone(), xs, prev_m).unwrap();
                 let response = serde_json::to_string(&result).unwrap();
+
                 stream.write_all(response.as_bytes()).unwrap();
                 stream.flush().unwrap();
+
                 prev_m = result.1;
             }
             Err(_) => {

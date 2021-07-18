@@ -3,29 +3,35 @@
 use crate::model::data_center::model::ServerType;
 use std::collections::HashMap;
 
-/// Switching cost model.
+/// Switching cost model. Parameters are provided separately for each server type.
 
+#[derive(Clone)]
 pub struct SwitchingCostModel(HashMap<String, SwitchingCost>);
 
 /// Switching cost.
+#[derive(Clone)]
 pub struct SwitchingCost {
     /// Average cost per unit of energy.
-    energy_cost: f64,
+    pub energy_cost: f64,
     /// Power consumed when idling.
-    phi_min: f64,
+    pub phi_min: f64,
     /// Power consumed at full load.
-    phi_max: f64,
+    pub phi_max: f64,
     /// Additional energy consumed by toggling a server on and off.
-    epsilon: f64,
+    pub epsilon: f64,
     /// Required time in time slots for migrating connections or data.
-    delta: f64,
+    pub delta: f64,
     /// Wear-and-tear costs of toggling a server.
-    tau: f64,
+    pub tau: f64,
     /// Perceived risk associated with toggling a server.
-    rho: f64,
+    pub rho: f64,
 }
 
 impl SwitchingCostModel {
+    pub fn new(switching_costs: HashMap<String, SwitchingCost>) -> Self {
+        SwitchingCostModel(switching_costs)
+    }
+
     /// Computes switching cost for a server of some type.
     pub fn switching_cost(&self, server_type: &ServerType) -> f64 {
         let model = self.model(server_type);

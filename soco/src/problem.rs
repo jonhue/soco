@@ -12,7 +12,7 @@ use crate::verifiers::VerifiableProblem;
 use num::ToPrimitive;
 
 /// Trait implemented by all finite-time-horizon problems.
-pub trait Problem: Clone + VerifiableProblem {
+pub trait Problem: Clone + std::fmt::Debug + Send + VerifiableProblem {
     /// Number of dimensions.
     fn d(&self) -> i32;
     /// Finite, positive time horizon.
@@ -62,7 +62,7 @@ where
 }
 
 /// Online instance of a problem.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Online<T> {
     /// Problem.
     pub p: T,
@@ -74,7 +74,8 @@ pub struct Online<T> {
 }
 
 /// Smoothed Convex Optimization.
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 pub struct SmoothedConvexOptimization<'a, T> {
     /// Number of dimensions.
     pub d: i32,
@@ -83,8 +84,10 @@ pub struct SmoothedConvexOptimization<'a, T> {
     /// Vector of lower and upper bounds of each dimension.
     pub bounds: Vec<(T, T)>,
     /// Norm function.
+    #[derivative(Debug = "ignore")]
     pub switching_cost: NormFn<'a, T>,
     /// Non-negative convex cost functions.
+    #[derivative(Debug = "ignore")]
     pub hitting_cost: CostFn<'a, Config<T>>,
 }
 impl_problem!(SmoothedConvexOptimization<'a, T>);
@@ -100,7 +103,8 @@ pub type FractionalSmoothedConvexOptimization<'a> =
     SmoothedConvexOptimization<'a, f64>;
 
 /// Simplified Smoothed Convex Optimization.
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 pub struct SimplifiedSmoothedConvexOptimization<'a, T> {
     /// Number of dimensions.
     pub d: i32,
@@ -111,6 +115,7 @@ pub struct SimplifiedSmoothedConvexOptimization<'a, T> {
     /// Vector of positive real constants resembling the switching cost of each dimension.
     pub switching_cost: Vec<f64>,
     /// Non-negative convex cost functions.
+    #[derivative(Debug = "ignore")]
     pub hitting_cost: CostFn<'a, Config<T>>,
 }
 impl_problem!(SimplifiedSmoothedConvexOptimization<'a, T>);
@@ -128,7 +133,8 @@ pub type FractionalSimplifiedSmoothedConvexOptimization<'a> =
     SimplifiedSmoothedConvexOptimization<'a, f64>;
 
 /// Smoothed Balanced-Load Optimization.
-#[derive(Clone)]
+#[derive(Clone, Derivative)]
+#[derivative(Debug)]
 pub struct SmoothedBalancedLoadOptimization<'a, T> {
     /// Number of dimensions.
     pub d: i32,
@@ -139,6 +145,7 @@ pub struct SmoothedBalancedLoadOptimization<'a, T> {
     /// Vector of positive real constants resembling the switching cost of each dimension.
     pub switching_cost: Vec<f64>,
     /// Positive increasing cost functions for each dimension.
+    #[derivative(Debug = "ignore")]
     pub hitting_cost: Vec<SingleCostFn<'a, f64>>,
     /// Non-negative load at each time step.
     pub load: Vec<T>,
@@ -148,7 +155,8 @@ impl<'a, T> SmoothedBalancedLoadOptimization<'a, T>
 where
     T: Value<'a>,
 {
-    pub fn hit_cost(&'a self, t: i32, x: Config<T>) -> f64 {
+    pub fn hit_cost(self, t: i32, x: Config<T>) -> f64 {
+        let bounds = self.bounds.clone();
         let loads = self
             .load
             .iter()
@@ -179,14 +187,14 @@ where
             loads,
             1,
         )
-        .call(t, x, &self.bounds)
+        .call(t, x, &bounds)
     }
 }
 pub type IntegralSmoothedBalancedLoadOptimization<'a> =
     SmoothedBalancedLoadOptimization<'a, i32>;
 
 /// Smoothed Load Optimization.
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct SmoothedLoadOptimization<T> {
     /// Number of dimensions.
     pub d: i32,

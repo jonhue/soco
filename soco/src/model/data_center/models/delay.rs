@@ -1,6 +1,7 @@
 //! Delay model.
 
 /// Delay model.
+#[derive(Clone)]
 pub enum DelayModel {
     /// M/GI/1 Processor Sharing Queue.
     ProcessorSharingQueue,

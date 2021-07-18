@@ -139,7 +139,10 @@ impl LoadFractions<'_> {
 pub fn apply_loads_over_time<'a, T>(
     d: i32,
     e: i32,
-    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> f64 + 'a,
+    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> f64
+        + Send
+        + Sync
+        + 'a,
     loads: Vec<LoadProfile>,
     t_start: i32,
 ) -> CostFn<'a, Config<T>>
@@ -166,7 +169,10 @@ where
 pub fn apply_predicted_loads<'a, T>(
     d: i32,
     e: i32,
-    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> f64 + 'a,
+    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> f64
+        + Send
+        + Sync
+        + 'a,
     loads: Vec<Vec<LoadProfile>>,
     t_start: i32,
 ) -> SingleCostFn<'a, Config<T>>
@@ -217,12 +223,13 @@ where
     // ensure that the fractions across all dimensions of each load type sum to `1`
     let equality_constraints = (0..e as usize)
         .map(|i| -> Constraint {
+            let lambda = lambda.clone();
             Arc::new(move |zs_: &[f64]| -> f64 {
                 let total_lambda = lambda.total();
                 if total_lambda > 0. {
                     let zs = LoadFractions { zs_, d, e };
                     (0..d as usize).map(|k| zs.get(k, i)).sum::<f64>()
-                        - lambda[i] / lambda.total()
+                        - lambda[i] / total_lambda
                 } else {
                     0.
                 }

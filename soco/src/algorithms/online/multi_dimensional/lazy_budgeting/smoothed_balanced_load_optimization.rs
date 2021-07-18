@@ -153,9 +153,11 @@ fn determine_config(
     u_end: i32,
 ) -> IntegralConfig {
     let mut min_u = u_init;
-    let mut min_c = mod_p.hit_cost(u_init, mod_xs.get(u_init).unwrap().clone());
+    let mut min_c = mod_p
+        .clone()
+        .hit_cost(u_init, mod_xs.get(u_init).unwrap().clone());
     for u in u_init + 1..=u_end {
-        let c = mod_p.hit_cost(u, mod_xs.get(u).unwrap().clone());
+        let c = mod_p.clone().hit_cost(u, mod_xs.get(u).unwrap().clone());
         if c < min_c {
             min_u = u;
             min_c = c;
@@ -171,7 +173,7 @@ fn alg_b(
     mut ms: AlgBMemory,
     _: (),
 ) -> Result<IntegralStep<AlgBMemory>> {
-    let opt_x = find_optimal_config(&o.p)?;
+    let opt_x = find_optimal_config(o.p.clone())?;
     let mut m = vec![0; o.p.d as usize];
     let mut x = if xs.is_empty() {
         Config::repeat(0, o.p.d)
@@ -233,9 +235,9 @@ fn cumulative_idle_hitting_cost(
 }
 
 fn find_optimal_config(
-    p: &IntegralSmoothedBalancedLoadOptimization,
+    p: IntegralSmoothedBalancedLoadOptimization,
 ) -> Result<IntegralConfig> {
-    let ssco_p = p.to_ssco();
+    let ssco_p = p.into_ssco();
     let Path { xs, .. } = optimal_graph_search.solve(ssco_p, (), false)?;
     Ok(xs.now())
 }

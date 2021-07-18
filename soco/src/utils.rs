@@ -2,8 +2,9 @@
 
 use crate::result::{Failure, Result};
 use crate::value::Value;
-use num::NumCast;
+use num::{Num, NumCast};
 use rand::{thread_rng, Rng};
+use std::iter::Sum;
 
 /// Safely asserts `pred`.
 pub fn assert(pred: bool, failure: Failure) -> Result<()> {
@@ -99,4 +100,14 @@ pub fn shift_time(t: i32, t_start: i32) -> i32 {
 /// Move `t` from a time scale beginning at `t_start` to a time scale beginning at `1`.
 pub fn unshift_time(t: i32, t_start: i32) -> i32 {
     t - t_start + 1
+}
+
+/// Mean of a vector.
+pub fn mean<T>(xs: Vec<T>) -> T
+where
+    T: Copy + Num + NumCast + Sum,
+{
+    assert!(!xs.is_empty());
+    let n = NumCast::from(xs.len()).unwrap();
+    xs.into_iter().sum::<T>() / n
 }

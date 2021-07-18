@@ -11,7 +11,8 @@ pub struct Breakpoints {
     /// Function which given a breakpoint returns the previous and next breakpoints (until there are none), respectively.
     /// The function is called to obtain the next breakpoint until the piecewise integrals converge to `0` or the entire integral was integrated.
     #[allow(clippy::type_complexity)]
-    pub next: Option<Arc<dyn Fn(f64) -> (Option<f64>, Option<f64>)>>,
+    pub next:
+        Option<Arc<dyn Fn(f64) -> (Option<f64>, Option<f64>) + Send + Sync>>,
 }
 impl Breakpoints {
     /// Empty set of breakpoints.

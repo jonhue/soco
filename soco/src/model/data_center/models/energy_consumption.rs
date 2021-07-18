@@ -3,36 +3,40 @@
 use crate::model::data_center::model::ServerType;
 use std::collections::HashMap;
 
-/// Energy consumption model.
+/// Energy consumption model. Parameters are provided separately for each server type.
+#[derive(Clone)]
 pub enum EnergyConsumptionModel {
     /// Linear model from Dayarathna et al.
-    Linear(HashMap<String, Linear>),
+    Linear(HashMap<String, LinearEnergyConsumptionModel>),
     /// Simplification of the linear model with the assumption that servers
     /// consume half of their peak power when idling.
-    SimplifiedLinear(HashMap<String, SimplifiedLinear>),
+    SimplifiedLinear(HashMap<String, SimplifiedLinearEnergyConsumptionModel>),
     /// Non-linear model from Dayarathna et al.
-    NonLinear(HashMap<String, NonLinear>),
+    NonLinear(HashMap<String, NonLinearEnergyConsumptionModel>),
 }
 
-pub struct Linear {
+#[derive(Clone)]
+pub struct LinearEnergyConsumptionModel {
     /// Power consumed when idling.
-    phi_min: f64,
+    pub phi_min: f64,
     /// Power consumed at full load.
-    phi_max: f64,
+    pub phi_max: f64,
 }
 
-pub struct SimplifiedLinear {
+#[derive(Clone)]
+pub struct SimplifiedLinearEnergyConsumptionModel {
     /// Power consumed at full load.
-    phi_max: f64,
+    pub phi_max: f64,
 }
 
-pub struct NonLinear {
+#[derive(Clone)]
+pub struct NonLinearEnergyConsumptionModel {
     /// Power consumed when idling.
-    phi_min: f64,
+    pub phi_min: f64,
     /// Constant for computing dynamic power. `alpha > 1`.
-    alpha: f64,
+    pub alpha: f64,
     /// Constant for computing dynamic power. `beta > 0`.
-    beta: f64,
+    pub beta: f64,
 }
 
 impl EnergyConsumptionModel {

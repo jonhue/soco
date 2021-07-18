@@ -17,7 +17,7 @@ mod bcp {
             d: 1,
             t_end,
             bounds: vec![2.],
-            switching_cost: vec![1.5],
+            switching_cost: vec![1.],
             hitting_cost: inv_e(t_end),
         };
         p.verify().unwrap();
@@ -27,7 +27,7 @@ mod bcp {
 
         assert_eq!(
             result.to_i(),
-            Schedule::new(vec![Config::single(1), Config::single(1)])
+            Schedule::new(vec![Config::single(2), Config::single(2)])
         );
     }
 }
