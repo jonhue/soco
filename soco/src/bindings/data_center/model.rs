@@ -4,7 +4,6 @@ use crate::model::data_center::{
         JobType, Location, ServerType, Source,
     },
     models::{
-        delay::ProcessorSharingQueueDelayModel,
         energy_consumption::{
             LinearEnergyConsumptionModel, NonLinearEnergyConsumptionModel,
             SimplifiedLinearEnergyConsumptionModel,
@@ -26,8 +25,6 @@ pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<ServerType>()?;
     m.add_class::<Source>()?;
     m.add_class::<JobType>()?;
-
-    m.add_class::<ProcessorSharingQueueDelayModel>()?;
 
     m.add_class::<LinearEnergyConsumptionModel>()?;
     m.add_class::<SimplifiedLinearEnergyConsumptionModel>()?;

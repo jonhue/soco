@@ -10,7 +10,6 @@ use soco::{
             JobType, ServerType, DEFAULT_KEY,
         },
         models::{
-            delay::{DelayModel, ProcessorSharingQueueDelayModel},
             energy_consumption::{
                 EnergyConsumptionModel, SimplifiedLinearEnergyConsumptionModel,
             },
@@ -59,9 +58,6 @@ fn integration() {
                 DEFAULT_KEY.to_string(),
                 MinimalDetectableDelayRevenueLossModel::default(),
             )])),
-            DelayModel::ProcessorSharingQueue(
-                ProcessorSharingQueueDelayModel { c: delta },
-            ),
             SwitchingCostModel::new(hash_map(&[(
                 DEFAULT_KEY.to_string(),
                 SwitchingCost {
@@ -99,7 +95,6 @@ fn integration() {
 
     receiver.recv().unwrap();
     for t in 0..1 {
-        println!("hello");
         let input = DataCenterOnlineInput {
             loads: vec![vec![LoadProfile::raw(vec![10.])]],
         };

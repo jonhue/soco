@@ -8,7 +8,6 @@ use soco::{
             ServerType, Source, DEFAULT_KEY,
         },
         models::{
-            delay::{DelayModel, ProcessorSharingQueueDelayModel},
             energy_consumption::{
                 EnergyConsumptionModel, SimplifiedLinearEnergyConsumptionModel,
             },
@@ -52,9 +51,6 @@ fn solve() {
             DEFAULT_KEY.to_string(),
             MinimalDetectableDelayRevenueLossModel::default(),
         )])),
-        DelayModel::ProcessorSharingQueue(ProcessorSharingQueueDelayModel {
-            c: delta,
-        }),
         SwitchingCostModel::new(hash_map(&[(
             DEFAULT_KEY.to_string(),
             SwitchingCost {

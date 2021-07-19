@@ -55,6 +55,7 @@ where
 }
 
 /// Starts backend server.
+#[allow(clippy::too_many_arguments)]
 pub fn start<'a, T, P, M, O, A, B>(
     addr: SocketAddr,
     model: &'a impl Model<'a, P, A, B>,
@@ -74,7 +75,9 @@ pub fn start<'a, T, P, M, O, A, B>(
 {
     let listener = TcpListener::bind(addr).unwrap();
     println!("Backend is running.");
-    sender.map(|sender| sender.send("backend running").unwrap());
+    if let Some(sender) = sender {
+        sender.send("backend running").unwrap()
+    }
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();

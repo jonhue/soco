@@ -5,7 +5,7 @@ use crate::cost::{CostFn, SingleCostFn};
 use crate::model::data_center::loads::{
     apply_loads_over_time, apply_predicted_loads, LoadFractions, LoadProfile,
 };
-use crate::model::data_center::models::delay::DelayModel;
+use crate::model::data_center::models::delay::average_delay;
 use crate::model::data_center::models::energy_consumption::EnergyConsumptionModel;
 use crate::model::data_center::models::energy_cost::EnergyCostModel;
 use crate::model::data_center::models::revenue_loss::RevenueLossModel;
@@ -142,8 +142,6 @@ pub struct DataCenterModel {
     energy_cost_model: EnergyCostModel,
     /// Revenue loss model.
     revenue_loss_model: RevenueLossModel,
-    /// Delay model.
-    delay_model: DelayModel,
     /// Switching cost model.
     switching_cost_model: SwitchingCostModel,
 }
@@ -163,7 +161,6 @@ impl DataCenterModel {
         energy_consumption_model: EnergyConsumptionModel,
         energy_cost_model: EnergyCostModel,
         revenue_loss_model: RevenueLossModel,
-        delay_model: DelayModel,
         switching_cost_model: SwitchingCostModel,
     ) -> Self {
         Self {
@@ -176,7 +173,6 @@ impl DataCenterModel {
             energy_consumption_model,
             energy_cost_model,
             revenue_loss_model,
-            delay_model,
             switching_cost_model,
         }
     }
@@ -194,7 +190,6 @@ impl DataCenterModel {
         energy_consumption_model: EnergyConsumptionModel,
         energy_cost_model: EnergyCostModel,
         revenue_loss_model: RevenueLossModel,
-        delay_model: DelayModel,
         switching_cost_model: SwitchingCostModel,
     ) -> Self {
         Self {
@@ -210,7 +205,6 @@ impl DataCenterModel {
             energy_consumption_model,
             energy_cost_model,
             revenue_loss_model,
-            delay_model,
             switching_cost_model,
         }
     }
@@ -227,7 +221,6 @@ impl DataCenterModel {
         energy_consumption_model: EnergyConsumptionModel,
         energy_cost_model: EnergyCostModel,
         revenue_loss_model: RevenueLossModel,
-        delay_model: DelayModel,
         switching_cost_model: SwitchingCostModel,
     ) -> Self {
         Self {
@@ -240,7 +233,6 @@ impl DataCenterModel {
             energy_consumption_model,
             energy_cost_model,
             revenue_loss_model,
-            delay_model,
             switching_cost_model,
         }
     }
@@ -318,7 +310,10 @@ impl DataCenterModel {
     /// Revenue loss. Non-negative convex cost incurred by processing some job
     /// on some server during time slot `t` when a total of `l` sub jobs are
     /// processed on the server.
+    /// `number_of_jobs` is the number of jobs processed on the server and
+    /// `mean_job_duration` is their mean duration.
     /// Referred to as `q` in the paper.
+    #[allow(clippy::too_many_arguments)]
     fn revenue_loss(
         &self,
         t: i32,
@@ -326,12 +321,18 @@ impl DataCenterModel {
         server_type: &ServerType,
         source: &Source,
         job_type: &JobType,
-        l: N64,
+        number_of_jobs: N64,
+        mean_job_duration: N64,
     ) -> N64 {
-        let delay = self.delay_model.average_delay(l)
-            + source.routing_delay_to(t, location)
-            + job_type.processing_time_on(server_type);
-        n64(self.gamma) * self.revenue_loss_model.loss(t, job_type, delay)
+        let delay =
+            average_delay(self.delta, number_of_jobs, mean_job_duration)
+                + source.routing_delay_to(t, location)
+                + job_type.processing_time_on(server_type);
+        if delay.is_infinite() {
+            n64(f64::INFINITY)
+        } else {
+            n64(self.gamma) * self.revenue_loss_model.loss(t, job_type, delay)
+        }
     }
 
     /// Revenue loss across all sources and job types.
@@ -349,7 +350,16 @@ impl DataCenterModel {
     {
         let x = NumCast::from(x_).unwrap();
         let total_load = self.total_sub_jobs(server_type, loads);
-        safe_balancing(x, total_load, || {
+
+        // calculates the mean duration of jobs on a server of some type under the load profile `loads`
+        let number_of_jobs = loads.iter().sum();
+        let mean_job_duration = if number_of_jobs == n64(0.) {
+            n64(0.)
+        } else {
+            total_load / number_of_jobs
+        };
+
+        safe_balancing(x, number_of_jobs, || {
             (0..self.sources.len())
                 .map(|s| -> N64 {
                     (0..self.job_types.len())
@@ -361,7 +371,8 @@ impl DataCenterModel {
                                     server_type,
                                     &self.sources[s],
                                     &self.job_types[i],
-                                    total_load / x,
+                                    number_of_jobs / x,
+                                    mean_job_duration,
                                 )
                         })
                         .sum()
@@ -602,9 +613,7 @@ where
         assert!(self.locations.len() == 1);
         let location = &self.locations[0];
         assert!(self.sources.len() == 1);
-        let source = &self.sources[0];
         assert!(self.job_types.len() == 1);
-        let job_type = &self.job_types[0];
 
         let d = self.d_();
         let t_end = loads.len() as i32;
@@ -618,24 +627,13 @@ where
             .map(move |server_type| {
                 CostFn::new(
                     1,
-                    SingleCostFn::certain(move |t, l_| {
-                        let l = n64(l_);
-                        let s = l / self.delta;
+                    SingleCostFn::certain(move |t, l| {
+                        let s = n64(l) / self.delta;
                         let p = server_type.limit_utilization(s, || {
                             self.energy_consumption_model
                                 .consumption(server_type, s)
                         });
-                        let energy_cost =
-                            self.energy_cost_model.cost(t, location, p);
-                        let revenue_loss = self.revenue_loss(
-                            t,
-                            location,
-                            server_type,
-                            source,
-                            job_type,
-                            l,
-                        );
-                        energy_cost + revenue_loss
+                        self.energy_cost_model.cost(t, location, p)
                     }),
                 )
             })
