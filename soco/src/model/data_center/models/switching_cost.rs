@@ -36,9 +36,9 @@ impl SwitchingCostModel {
     }
 
     /// Computes switching cost for a server of some type.
-    pub fn switching_cost(&self, server_type: &ServerType) -> R64 {
+    pub fn switching_cost(&self, server_type: &ServerType) -> N64 {
         let model = self.model(server_type);
-        r64(
+        n64(
             model.energy_cost * (model.epsilon + model.delta * model.phi_max)
                 + model.tau
                 + model.rho,
@@ -48,7 +48,7 @@ impl SwitchingCostModel {
     /// Computes normalized switching cost for a server of some type. Approximately,
     /// measures the minimum duration a server must be asleep to outweigh the switching cost.
     /// Referred to as `\xi` in the paper.
-    pub fn normalized_switching_cost(&self, server_type: &ServerType) -> R64 {
+    pub fn normalized_switching_cost(&self, server_type: &ServerType) -> N64 {
         let model = self.model(server_type);
         self.switching_cost(server_type) / (model.energy_cost * model.phi_min)
     }

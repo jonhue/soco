@@ -82,7 +82,7 @@ pub fn make_pow_of_2(
                 if x[0] <= p.bounds[0] {
                     p.hit_cost(t, x)
                 } else {
-                    r64(x[0] as f64)
+                    n64(x[0] as f64)
                         * (p.hit_cost(t, Config::new(p.bounds.clone()))
                             + f64::EPSILON)
                 }

@@ -47,19 +47,19 @@ pub struct NonLinearEnergyConsumptionModel {
 impl EnergyConsumptionModel {
     /// Energy consumption of a server of some type with utilization `s`.
     /// Referred to as `\phi` in the paper.
-    pub fn consumption(&self, server_type: &ServerType, s: R64) -> R64 {
+    pub fn consumption(&self, server_type: &ServerType, s: N64) -> N64 {
         match self {
             EnergyConsumptionModel::Linear(models) => {
                 let model = &models[&server_type.key];
-                r64(model.phi_max - model.phi_min) * s + r64(model.phi_min)
+                n64(model.phi_max - model.phi_min) * s + n64(model.phi_min)
             }
             EnergyConsumptionModel::SimplifiedLinear(models) => {
                 let model = &models[&server_type.key];
-                r64(model.phi_max) * (r64(1.) + s) / r64(2.)
+                n64(model.phi_max) * (n64(1.) + s) / n64(2.)
             }
             EnergyConsumptionModel::NonLinear(models) => {
                 let model = &models[&server_type.key];
-                s.powf(r64(model.alpha)) / r64(model.beta) + r64(model.phi_min)
+                s.powf(n64(model.alpha)) / n64(model.beta) + n64(model.phi_min)
             }
         }
     }

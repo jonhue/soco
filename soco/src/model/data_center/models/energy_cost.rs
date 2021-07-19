@@ -20,14 +20,14 @@ pub struct EnergySource {
     limit: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync>,
 }
 impl EnergySource {
-    fn cost(&self, t: i32) -> R64 {
-        r64((self.cost)(t))
+    fn cost(&self, t: i32) -> N64 {
+        n64((self.cost)(t))
     }
-    fn profit(&self, t: i32) -> R64 {
-        r64((self.profit)(t))
+    fn profit(&self, t: i32) -> N64 {
+        n64((self.profit)(t))
     }
-    fn limit(&self, t: i32, location: &Location) -> R64 {
-        r64((self.limit)(t, location))
+    fn limit(&self, t: i32, location: &Location) -> N64 {
+        n64((self.limit)(t, location))
     }
 }
 
@@ -48,8 +48,8 @@ pub struct LinearEnergyCostModel {
     pub cost: Arc<dyn Fn(i32) -> f64 + Send + Sync>,
 }
 impl LinearEnergyCostModel {
-    fn cost(&self, t: i32) -> R64 {
-        r64((self.cost)(t))
+    fn cost(&self, t: i32) -> N64 {
+        n64((self.cost)(t))
     }
 }
 
@@ -63,7 +63,7 @@ pub struct QuotasEnergyCostModel {
 impl EnergyCostModel {
     /// Energy cost at some location during time slot `t` with energy consumption `p`.
     /// Referred to as `\nu` in the paper.
-    pub fn cost(&self, t: i32, location: &Location, p: R64) -> R64 {
+    pub fn cost(&self, t: i32, location: &Location, p: N64) -> N64 {
         match self {
             EnergyCostModel::Linear(models) => {
                 let model = &models[&location.key];
@@ -77,8 +77,8 @@ impl EnergyCostModel {
                         .unwrap()
                 });
 
-                let mut result = r64(0.);
-                let mut cum_limit = r64(0.);
+                let mut result = n64(0.);
+                let mut cum_limit = n64(0.);
                 for source in sources {
                     let delta = pos(p - cum_limit);
                     let limit = source.limit(t, location);

@@ -46,7 +46,7 @@ fn next(
         (0., o.p.bounds[0]);
         FractionalSchedule::raw_encoding_len(o.p.d, o.w) as usize
     ];
-    let objective = |raw_xs: &[f64]| -> R64 {
+    let objective = |raw_xs: &[f64]| -> N64 {
         let xs = Schedule::from_raw(o.p.d, o.w, raw_xs);
         let prev_x = if prev_xs.t_end() - k > 0 {
             prev_xs[(prev_xs.t_end() - k - 1) as usize].clone()
@@ -55,7 +55,7 @@ fn next(
         };
         let p = o.p.reset(t - k);
 
-        r64(p
+        n64(p
             .objective_function_with_default(&xs, &prev_x, false)
             .unwrap())
     };

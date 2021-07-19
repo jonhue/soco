@@ -14,7 +14,7 @@ fn wrap<'a, T>(
 where
     T: Clone,
 {
-    CostFn::stretch(1, t_end, SingleCostFn::certain(move |t, x| r64(f(t, x))))
+    CostFn::stretch(1, t_end, SingleCostFn::certain(move |t, x| n64(f(t, x))))
 }
 
 /// Returns `1`.

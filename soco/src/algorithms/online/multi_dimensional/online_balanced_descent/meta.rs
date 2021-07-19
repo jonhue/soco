@@ -50,12 +50,12 @@ fn bregman_projection(
     l: f64,
     x: &FractionalConfig,
 ) -> Result<FractionalConfig> {
-    let objective = |y: &[f64]| -> R64 {
+    let objective = |y: &[f64]| -> N64 {
         bregman_divergence(mirror_map, Config::new(y.to_vec()), x.clone())
     };
     // `l`-sublevel set of `f`
-    let constraint = Arc::new(|y: &[f64]| -> R64 {
-        f.call_unbounded(t, Config::new(y.to_vec())) - r64(l)
+    let constraint = Arc::new(|y: &[f64]| -> N64 {
+        f.call_unbounded(t, Config::new(y.to_vec())) - n64(l)
     });
 
     let (y, _) =
@@ -68,7 +68,7 @@ fn bregman_divergence(
     mirror_map: &NormFn<'_, f64>,
     x: FractionalConfig,
     y: FractionalConfig,
-) -> R64 {
+) -> N64 {
     let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone())).raw();
     let mx = mirror_map(x.clone());
     let my = mirror_map(y.clone());

@@ -16,7 +16,7 @@ pub fn piecewise_integral(
     from: f64,
     to: f64,
     f_: impl Fn(f64) -> f64,
-) -> Result<R64> {
+) -> Result<N64> {
     let f = |x| f_(x);
 
     // determine initial breakpoint
@@ -37,7 +37,7 @@ pub fn piecewise_integral(
         .position(|x| x.raw() > init)
         .unwrap_or(breakpoints.bs.len()) as i32;
     let prev_i =
-        if i > 0 && breakpoints.bs.get(i as usize - 1) == Some(&r64(init)) {
+        if i > 0 && breakpoints.bs.get(i as usize - 1) == Some(&n64(init)) {
             i - 2
         } else {
             i - 1
@@ -81,17 +81,17 @@ fn __piecewise_integral(
     i: i32,
     // number of consecutive integrations below tolerance
     n: i32,
-) -> Result<R64> {
+) -> Result<N64> {
     // check if limit of integration is reached
     match dir {
         Direction::Left => {
             if b <= to {
-                return Ok(r64(0.));
+                return Ok(n64(0.));
             }
         }
         Direction::Right => {
             if b >= to {
-                return Ok(r64(0.));
+                return Ok(n64(0.));
             }
         }
     }

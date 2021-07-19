@@ -95,9 +95,9 @@ fn determine_sub_time_slots(
     epsilon: f64,
 ) -> Result<i32> {
     let max_fract = (0..p.d as usize)
-        .map(|k| -> R64 {
+        .map(|k| -> N64 {
             let l = p.hitting_cost[k].call(t, 0., &p.bounds[k]);
-            l / r64(p.switching_cost[k])
+            l / n64(p.switching_cost[k])
         })
         .max()
         .unwrap()

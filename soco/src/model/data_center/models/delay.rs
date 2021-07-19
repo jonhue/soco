@@ -13,17 +13,24 @@ pub enum DelayModel {
 #[pyclass]
 #[derive(Clone)]
 pub struct ProcessorSharingQueueDelayModel {
-    /// Service rate. Should be set to the length of a time slot when using dynamic job duration.
-    pub mu: f64,
+    /// Capacity of a server, i.e. load a server can handle during a time slot.
+    /// Should be set to the length of a time slot when using dynamic job duration.
+    pub c: f64,
 }
 
 impl DelayModel {
     /// Average delay of a sub job processed on a server handling a total of `l` sub jobs.
     /// Referred to as `d` in the paper.
-    pub fn average_delay(&self, l: R64) -> R64 {
+    pub fn average_delay(&self, l: N64) -> N64 {
         match self {
             DelayModel::ProcessorSharingQueue(model) => {
-                r64(1.) / (r64(model.mu) - l)
+                // assert!(l <= n64(model.c));
+                // if l == n64(0.) {
+                //     n64(0.)
+                // } else {
+                //     n64(1.) / (n64(model.c) / l - l)
+                // }
+                n64(0.)
             }
         }
     }

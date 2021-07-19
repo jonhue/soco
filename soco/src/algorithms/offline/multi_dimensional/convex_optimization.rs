@@ -24,7 +24,7 @@ pub fn co(
         .collect();
     let objective = |raw_xs: &[f64]| {
         let xs = Schedule::from_raw(p.d, p.t_end, raw_xs);
-        r64(p.objective_function(&xs).unwrap())
+        n64(p.objective_function(&xs).unwrap())
     };
 
     let (raw_xs, _) = find_minimizer(objective, &bounds)?;
