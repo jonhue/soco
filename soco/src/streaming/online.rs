@@ -13,6 +13,7 @@ use crate::{
 use std::{
     io::Write,
     net::{SocketAddr, TcpListener, TcpStream},
+    sync::mpsc::Sender,
 };
 
 /// Generates problem instance from model and streams online algorithm using the provided input.
@@ -62,6 +63,7 @@ pub fn start<'a, T, P, M, O, A, B>(
     xs: &mut Schedule<T>,
     mut prev_m: Option<M>,
     options: O,
+    sender: Option<Sender<&str>>,
 ) where
     T: Value<'a>,
     P: Problem + 'a,
@@ -72,6 +74,7 @@ pub fn start<'a, T, P, M, O, A, B>(
 {
     let listener = TcpListener::bind(addr).unwrap();
     println!("Backend is running.");
+    sender.map(|sender| sender.send("backend running").unwrap());
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();

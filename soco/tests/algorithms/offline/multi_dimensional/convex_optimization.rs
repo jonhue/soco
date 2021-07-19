@@ -16,13 +16,12 @@ mod co {
 
     #[test]
     fn _1() {
-        let t_end = 2;
         let p = SmoothedConvexOptimization {
             d: 2,
-            t_end,
+            t_end: 2,
             bounds: vec![(0., 2.), (0., 1.)],
             switching_cost: manhattan_scaled(vec![1.5, 1.]),
-            hitting_cost: inv_e(t_end),
+            hitting_cost: inv_e(),
         };
         p.verify().unwrap();
 
@@ -47,13 +46,12 @@ mod co {
 
     #[test]
     fn _2() {
-        let t_end = 100;
         let p = SmoothedConvexOptimization {
             d: 2,
-            t_end,
+            t_end: 100,
             bounds: vec![(0., 8.), (0., 8.)],
             switching_cost: euclidean(),
-            hitting_cost: inv_e(t_end),
+            hitting_cost: inv_e(),
         };
         p.verify().unwrap();
 
@@ -82,7 +80,7 @@ mod co {
                 })
                 .collect(),
             switching_cost: norm_squared(&euclidean_),
-            hitting_cost: inv_e(t_end),
+            hitting_cost: inv_e(),
         };
         p.verify().unwrap();
 

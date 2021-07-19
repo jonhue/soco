@@ -3,7 +3,7 @@ use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal
 use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
-use crate::cost::SingleCostFn;
+use crate::cost::{CostFn, SingleCostFn};
 use crate::problem::{
     IntegralSmoothedBalancedLoadOptimization, Online,
     SmoothedBalancedLoadOptimization,
@@ -120,13 +120,16 @@ fn modify_problem<'a>(
         .map(|k| {
             let hitting_cost = p.hitting_cost[k].clone();
             let bounds = p.bounds[k];
-            SingleCostFn::certain(move |u, x| {
-                assert!(
-                    u_init <= u && u <= u_end,
-                    "sub time slot is outside valid sub time slot window"
-                );
-                hitting_cost.call(t, x, &bounds) / n as f64
-            })
+            CostFn::new(
+                u_init,
+                SingleCostFn::certain(move |u, x| {
+                    assert!(
+                        u_init <= u && u <= u_end,
+                        "sub time slot is outside valid sub time slot window"
+                    );
+                    hitting_cost.call(t, x, &bounds) / n as f64
+                }),
+            )
         })
         .collect();
 
@@ -202,7 +205,7 @@ fn alg_b(
 
 fn deactivated_quantity(
     bound: i32,
-    hitting_cost: &SingleCostFn<'_, f64>,
+    hitting_cost: &CostFn<'_, f64>,
     switching_cost: f64,
     ms: &AlgBMemory,
     t_now: i32,
@@ -223,7 +226,7 @@ fn deactivated_quantity(
 
 fn cumulative_idle_hitting_cost(
     bound: i32,
-    hitting_cost: &SingleCostFn<'_, f64>,
+    hitting_cost: &CostFn<'_, f64>,
     from: i32,
     to: i32,
 ) -> f64 {

@@ -529,11 +529,12 @@ where
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
         o.p.inc_t_end();
-        let t = o.p.hitting_cost.now() + 1;
-        let delta = loads.len() as i32;
+        let t = o.p.t_end();
+        let span = loads.len() as i32;
         println!("Updating online instance to time slot {}.", t);
-        o.p.hitting_cost.add(self.apply_predicted_loads(loads, t));
-        verify_update(o, delta, t);
+        o.p.hitting_cost
+            .add(t, self.apply_predicted_loads(loads, t));
+        verify_update(o, span);
     }
 }
 
@@ -573,11 +574,12 @@ where
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
         o.p.inc_t_end();
-        let t = o.p.hitting_cost.now() + 1;
-        let delta = loads.len() as i32;
+        let t = o.p.t_end();
+        let span = loads.len() as i32;
         println!("Updating online instance to time slot {}.", t);
-        o.p.hitting_cost.add(self.apply_predicted_loads(loads, t));
-        verify_update(o, delta, t);
+        o.p.hitting_cost
+            .add(t, self.apply_predicted_loads(loads, t));
+        verify_update(o, span);
     }
 }
 
@@ -614,25 +616,28 @@ where
             .server_types
             .iter()
             .map(move |server_type| {
-                SingleCostFn::certain(move |t, l_| {
-                    let l = n64(l_);
-                    let s = l / self.delta;
-                    let p = server_type.limit_utilization(s, || {
-                        self.energy_consumption_model
-                            .consumption(server_type, s)
-                    });
-                    let energy_cost =
-                        self.energy_cost_model.cost(t, location, p);
-                    let revenue_loss = self.revenue_loss(
-                        t,
-                        location,
-                        server_type,
-                        source,
-                        job_type,
-                        l,
-                    );
-                    energy_cost + revenue_loss
-                })
+                CostFn::new(
+                    1,
+                    SingleCostFn::certain(move |t, l_| {
+                        let l = n64(l_);
+                        let s = l / self.delta;
+                        let p = server_type.limit_utilization(s, || {
+                            self.energy_consumption_model
+                                .consumption(server_type, s)
+                        });
+                        let energy_cost =
+                            self.energy_cost_model.cost(t, location, p);
+                        let revenue_loss = self.revenue_loss(
+                            t,
+                            location,
+                            server_type,
+                            source,
+                            job_type,
+                            l,
+                        );
+                        energy_cost + revenue_loss
+                    }),
+                )
             })
             .collect();
         let load = loads
@@ -655,14 +660,18 @@ where
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
         o.p.inc_t_end();
-        let t = o.p.load.len() as i32 + 1;
-        let delta = loads.len() as i32;
+        let t = o.p.t_end();
+        assert!(t == o.p.load.len() as i32 + 1, "Loads and time slot are inconsistent. Time slot is {} but loads are present for {} time slots.", t, o.p.load.len() as i32 + 1);
+        let span = loads.len() as i32;
         println!("Updating online instance to time slot {}.", t);
         for load_profiles in loads {
-            assert!(load_profiles.len() == 1);
+            assert!(
+                load_profiles.len() == 1,
+                "Load profiles for SBLO need to be homogeneous and certain."
+            );
             o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
         }
-        verify_update(o, delta, t);
+        verify_update(o, span);
     }
 }
 
@@ -729,13 +738,14 @@ where
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
         o.p.inc_t_end();
-        let t = o.p.load.len() as i32 + 1;
-        let delta = loads.len() as i32;
+        let t = o.p.t_end();
+        assert!(t == o.p.load.len() as i32 + 1, "Loads and time slot are inconsistent. Time slot is {} but loads are present for {} time slots.", t, o.p.load.len() as i32 + 1);
+        let span = loads.len() as i32;
         println!("Updating online instance to time slot {}.", t);
         for load_profiles in loads {
             assert!(load_profiles.len() == 1);
             o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
         }
-        verify_update(o, delta, t);
+        verify_update(o, span);
     }
 }

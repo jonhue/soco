@@ -12,13 +12,12 @@ mod bcp {
 
     #[test]
     fn _1() {
-        let t_end = 2;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 2,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: inv_e(t_end),
+            hitting_cost: inv_e(),
         };
         p.verify().unwrap();
 

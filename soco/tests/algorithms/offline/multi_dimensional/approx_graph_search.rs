@@ -18,13 +18,12 @@ mod approx_graph_search {
 
     #[test]
     fn _1() {
-        let t_end = 2;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
-            t_end,
+            t_end: 2,
             bounds: vec![2, 1],
             switching_cost: vec![1.5, 1.],
-            hitting_cost: penalize_zero(t_end),
+            hitting_cost: penalize_zero(),
         };
         p.verify().unwrap();
 
@@ -55,13 +54,12 @@ mod approx_graph_search {
 
     #[test]
     fn _2() {
-        let t_end = 100;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
-            t_end,
+            t_end: 100,
             bounds: vec![8, 8],
             switching_cost: vec![1., 3.],
-            hitting_cost: random(t_end),
+            hitting_cost: random(),
         };
         p.verify().unwrap();
 
@@ -98,7 +96,7 @@ mod approx_graph_search {
                     Pcg64::seed_from_u64((d * t_end) as u64).gen_range(1.0..5.)
                 })
                 .collect(),
-            hitting_cost: random(t_end),
+            hitting_cost: random(),
         };
         p.verify().unwrap();
 

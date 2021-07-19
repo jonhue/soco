@@ -75,9 +75,8 @@ pub fn make_pow_of_2(
         t_end: p.t_end,
         bounds: vec![m],
         switching_cost: p.switching_cost.clone(),
-        hitting_cost: CostFn::stretch(
+        hitting_cost: CostFn::new(
             1,
-            p.t_end,
             SingleCostFn::certain(move |t, x: IntegralConfig| {
                 if x[0] <= p.bounds[0] {
                     p.hit_cost(t, x)

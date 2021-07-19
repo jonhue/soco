@@ -85,7 +85,6 @@ fn integration() {
             online::prepare(&model, &rbg, options.clone(), 0, input).unwrap();
         xs.verify(t_end, &vec![m as f64]).unwrap();
 
-        sender.send("preparation finished").unwrap();
         online::start(
             addr.parse().unwrap(),
             &model,
@@ -94,11 +93,13 @@ fn integration() {
             &mut xs,
             prev_m,
             options,
+            Some(sender),
         );
     });
 
     receiver.recv().unwrap();
     for t in 0..1 {
+        println!("hello");
         let input = DataCenterOnlineInput {
             loads: vec![vec![LoadProfile::raw(vec![10.])]],
         };

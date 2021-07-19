@@ -8,13 +8,12 @@ mod memoryless {
 
     #[test]
     fn _1() {
-        let t_end = 1;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 1,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: inv_e(t_end),
+            hitting_cost: inv_e(),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -27,13 +26,12 @@ mod memoryless {
 
     #[test]
     fn _2() {
-        let t_end = 1;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 1,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: inv_e(t_end),
+            hitting_cost: inv_e(),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();

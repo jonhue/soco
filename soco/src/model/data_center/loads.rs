@@ -3,7 +3,7 @@
 use crate::config::Config;
 use crate::cost::{CostFn, SingleCostFn};
 use crate::numerics::convex_optimization::{minimize, Constraint};
-use crate::utils::{access, shift_time, unshift_time};
+use crate::utils::{access, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
@@ -185,9 +185,8 @@ pub fn apply_loads_over_time<'a, T>(
 where
     T: Value<'a>,
 {
-    CostFn::stretch(
+    CostFn::new(
         t_start,
-        shift_time(loads.len() as i32, t_start),
         SingleCostFn::certain(move |t, x: Config<T>| {
             let lambda = access(&loads, unshift_time(t, t_start)).unwrap();
             apply_loads(d, e, &objective, lambda, t, x)

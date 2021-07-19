@@ -1,7 +1,7 @@
 //! Problem definition.
 
 use crate::config::Config;
-use crate::cost::{CostFn, SingleCostFn};
+use crate::cost::CostFn;
 use crate::model::data_center::loads::{
     apply_loads_over_time, LoadFractions, LoadProfile,
 };
@@ -147,7 +147,7 @@ pub struct SmoothedBalancedLoadOptimization<'a, T> {
     pub switching_cost: Vec<f64>,
     /// Positive increasing cost functions for each dimension.
     #[derivative(Debug = "ignore")]
-    pub hitting_cost: Vec<SingleCostFn<'a, f64>>,
+    pub hitting_cost: Vec<CostFn<'a, f64>>,
     /// Non-negative load at each time step.
     pub load: Vec<T>,
 }
