@@ -122,7 +122,8 @@ fn optimize(
     let d = bounds.len();
     let (lower, upper): (Vec<_>, Vec<_>) = bounds.iter().cloned().unzip();
 
-    let objective = |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| evaluate(xs, &f);
+    let objective =
+        |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| evaluate(xs, &f);
     let mut x = match init {
         // we use the upper bound of the decision space as for mose cost functions
         // this appears to be the most conservative estimate for a region of the
@@ -153,14 +154,18 @@ fn optimize(
 
     for g in inequality_constraints {
         solver.add_inequality_constraint(
-            |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| evaluate(xs, &|x| g(x)),
+            |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| {
+                evaluate(xs, &|x| g(x))
+            },
             (),
             TOLERANCE,
         )?;
     }
     for g in equality_constraints {
         solver.add_equality_constraint(
-            |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| evaluate(xs, &|x| g(x)),
+            |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| {
+                evaluate(xs, &|x| g(x))
+            },
             (),
             TOLERANCE,
         )?;

@@ -28,9 +28,10 @@ where
 }
 
 /// Utility to verify that the update of an online instance is valid.
-pub fn verify_update<P>(o: &Online<P>, delta: i32)
+pub fn verify_update<P>(o: &Online<P>, delta: i32, t: i32)
 where
     P: Problem,
 {
+    assert!(o.p.t_end() == t, "The current time slot is invalid. Set to {} but cost functions imply {}", o.p.t_end(), t);
     assert!(delta == o.w + 1, "There should be information for each time slot in the prediction window (`w = {}`) plus the current time slot. Got information for `{}` time slots.", o.w, delta);
 }

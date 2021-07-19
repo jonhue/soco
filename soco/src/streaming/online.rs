@@ -76,15 +76,16 @@ pub fn start<'a, T, P, M, O, A, B>(
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
         println!("Connection established!");
-        match serde_json::from_reader(&mut stream) {
+
+        match bincode::deserialize_from(&mut stream) {
             Ok(input) => {
                 println!("Received: {:?}", input);
                 model.update(o, input);
 
                 let (x, m) = o.next(alg, options.clone(), xs, prev_m).unwrap();
-                let response = serde_json::to_string(&x).unwrap();
+                let response = bincode::serialize(&(x, m.clone())).unwrap();
 
-                stream.write_all(response.as_bytes()).unwrap();
+                stream.write_all(&response).unwrap();
                 stream.flush().unwrap();
 
                 prev_m = m;
@@ -105,19 +106,20 @@ pub fn stop(addr: SocketAddr) {
 }
 
 /// Executes next iteration of online algorithm.
-pub fn next<'a, T, P, M>(
+pub fn next<'a, T, P, M, B>(
     addr: SocketAddr,
-    input: impl OnlineInput<'a>,
+    input: B,
 ) -> (Config<T>, Option<M>)
 where
     T: Value<'a>,
     P: Problem + 'a,
     M: Memory<'a, P>,
+    B: OnlineInput<'a>,
 {
     let mut stream = TcpStream::connect(addr).unwrap();
     stream
-        .write_all(serde_json::to_string(&input).unwrap().as_bytes())
+        .write_all(&bincode::serialize(&input).unwrap())
         .unwrap();
     stream.flush().unwrap();
-    serde_json::from_reader(&mut stream).unwrap()
+    bincode::deserialize_from(&mut stream).unwrap()
 }

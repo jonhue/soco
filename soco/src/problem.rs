@@ -10,7 +10,7 @@ use crate::norm::NormFn;
 use crate::value::Value;
 use crate::verifiers::VerifiableProblem;
 use noisy_float::prelude::*;
-use num::{NumCast};
+use num::NumCast;
 
 /// Trait implemented by all finite-time-horizon problems.
 pub trait Problem: Clone + std::fmt::Debug + Send + VerifiableProblem {

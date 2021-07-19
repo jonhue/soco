@@ -13,7 +13,7 @@ use crate::model::data_center::models::switching_cost::SwitchingCostModel;
 use crate::model::data_center::safe_balancing;
 use crate::model::{verify_update, Model, OfflineInput, OnlineInput};
 use crate::problem::{
-    Online, SimplifiedSmoothedConvexOptimization,
+    Online, Problem, SimplifiedSmoothedConvexOptimization,
     SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
     SmoothedLoadOptimization,
 };
@@ -528,11 +528,12 @@ where
         o: &mut Online<SmoothedConvexOptimization<'a, T>>,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
-        verify_update(o, loads.len() as i32);
-        let t_start = o.p.hitting_cost.now() + 1;
-        println!("Updating online instance to time slot {}.", t_start);
-        o.p.hitting_cost
-            .add(self.apply_predicted_loads(loads, t_start))
+        o.p.inc_t_end();
+        let t = o.p.hitting_cost.now() + 1;
+        let delta = loads.len() as i32;
+        println!("Updating online instance to time slot {}.", t);
+        o.p.hitting_cost.add(self.apply_predicted_loads(loads, t));
+        verify_update(o, delta, t);
     }
 }
 
@@ -571,11 +572,12 @@ where
         o: &mut Online<SimplifiedSmoothedConvexOptimization<'a, T>>,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
-        verify_update(o, loads.len() as i32);
-        let t_start = o.p.hitting_cost.now() + 1;
-        println!("Updating online instance to time slot {}.", t_start);
-        o.p.hitting_cost
-            .add(self.apply_predicted_loads(loads, t_start))
+        o.p.inc_t_end();
+        let t = o.p.hitting_cost.now() + 1;
+        let delta = loads.len() as i32;
+        println!("Updating online instance to time slot {}.", t);
+        o.p.hitting_cost.add(self.apply_predicted_loads(loads, t));
+        verify_update(o, delta, t);
     }
 }
 
@@ -652,15 +654,15 @@ where
         o: &mut Online<SmoothedBalancedLoadOptimization<'a, T>>,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
-        verify_update(o, loads.len() as i32);
-        println!(
-            "Updating online instance to time slot {}.",
-            o.p.load.len() + 1
-        );
+        o.p.inc_t_end();
+        let t = o.p.load.len() as i32 + 1;
+        let delta = loads.len() as i32;
+        println!("Updating online instance to time slot {}.", t);
         for load_profiles in loads {
             assert!(load_profiles.len() == 1);
             o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
         }
+        verify_update(o, delta, t);
     }
 }
 
@@ -726,14 +728,14 @@ where
         o: &mut Online<SmoothedLoadOptimization<T>>,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
-        verify_update(o, loads.len() as i32);
-        println!(
-            "Updating online instance to time slot {}.",
-            o.p.load.len() + 1
-        );
+        o.p.inc_t_end();
+        let t = o.p.load.len() as i32 + 1;
+        let delta = loads.len() as i32;
+        println!("Updating online instance to time slot {}.", t);
         for load_profiles in loads {
             assert!(load_profiles.len() == 1);
             o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
         }
+        verify_update(o, delta, t);
     }
 }
