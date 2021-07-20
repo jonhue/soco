@@ -1,5 +1,6 @@
 mod bcp {
     use crate::factories::inv_e;
+    use soco::algorithms::offline::OfflineResult;
     use soco::algorithms::offline::{
         uni_dimensional::capacity_provisioning::brcp,
         OfflineAlgorithmWithDefaultOptions,
@@ -12,17 +13,19 @@ mod bcp {
 
     #[test]
     fn _1() {
-        let t_end = 2;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 2,
             bounds: vec![2.],
             switching_cost: vec![1.],
-            hitting_cost: inv_e(t_end),
+            hitting_cost: inv_e(),
         };
         p.verify().unwrap();
 
-        let result = brcp.solve_with_default_options(p.clone(), false).unwrap();
+        let result = brcp
+            .solve_with_default_options(p.clone(), false)
+            .unwrap()
+            .xs();
         result.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(

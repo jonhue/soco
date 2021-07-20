@@ -3,11 +3,12 @@
 use crate::config::Config;
 use crate::cost::{CostFn, SingleCostFn};
 use crate::numerics::convex_optimization::{minimize, Constraint};
-use crate::utils::{access, shift_time, unshift_time};
+use crate::utils::{access, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
-use serde_derive::{Deserialize, Serialize};
+use pyo3::prelude::*;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::iter::FromIterator;
 use std::ops::Div;
 use std::ops::Index;
@@ -15,17 +16,23 @@ use std::ops::Mul;
 use std::sync::Arc;
 
 /// For some time `t`, encapsulates the load of `e` types.
-#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
-pub struct LoadProfile(Vec<f64>);
+#[pyclass]
+#[derive(Clone, Debug, PartialEq)]
+pub struct LoadProfile(Vec<N64>);
 
 impl LoadProfile {
+    /// Creates a new load profile from a raw vector.
+    pub fn raw(l: Vec<f64>) -> LoadProfile {
+        LoadProfile(l.iter().map(|&z| n64(z)).collect())
+    }
+
     /// Creates a new load profile from a vector.
-    pub fn new(l: Vec<f64>) -> LoadProfile {
+    pub fn new(l: Vec<N64>) -> LoadProfile {
         LoadProfile(l)
     }
 
     /// Creates a load profile with a single load type.
-    pub fn single(l: f64) -> LoadProfile {
+    pub fn single(l: N64) -> LoadProfile {
         LoadProfile(vec![l])
     }
 
@@ -35,18 +42,37 @@ impl LoadProfile {
     }
 
     /// Sum of loads across all load types.
-    pub fn total(&self) -> f64 {
+    pub fn total(&self) -> N64 {
         self.0.iter().copied().sum()
     }
 
     /// Converts load profile to a vector.
-    pub fn to_vec(&self) -> Vec<f64> {
+    pub fn to_vec(&self) -> Vec<N64> {
         self.0.clone()
+    }
+
+    /// Converts load profile to a vector.
+    pub fn to_raw(&self) -> Vec<f64> {
+        self.0.iter().map(|l| l.raw()).collect()
+    }
+}
+
+impl Serialize for LoadProfile {
+    #[inline]
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        self.to_raw().serialize(s)
+    }
+}
+
+impl<'a> Deserialize<'a> for LoadProfile {
+    #[inline]
+    fn deserialize<D: Deserializer<'a>>(d: D) -> Result<Self, D::Error> {
+        Vec::<f64>::deserialize(d).map(LoadProfile::raw)
     }
 }
 
 impl Index<usize> for LoadProfile {
-    type Output = f64;
+    type Output = N64;
 
     fn index(&self, i: usize) -> &Self::Output {
         assert!(
@@ -60,17 +86,17 @@ impl Index<usize> for LoadProfile {
 }
 
 impl VecWrapper for LoadProfile {
-    type Item = f64;
+    type Item = N64;
 
     fn to_vec(&self) -> &Vec<Self::Item> {
         &self.0
     }
 }
 
-impl FromIterator<f64> for LoadProfile {
+impl FromIterator<N64> for LoadProfile {
     fn from_iter<I>(iter: I) -> Self
     where
-        I: IntoIterator<Item = f64>,
+        I: IntoIterator<Item = N64>,
     {
         let mut l = vec![];
         for j in iter {
@@ -80,11 +106,11 @@ impl FromIterator<f64> for LoadProfile {
     }
 }
 
-impl Mul<Vec<f64>> for LoadProfile {
+impl Mul<Vec<N64>> for LoadProfile {
     type Output = LoadProfile;
 
     /// Applies fractions to loads.
-    fn mul(self, z: Vec<f64>) -> Self::Output {
+    fn mul(self, z: Vec<N64>) -> Self::Output {
         self.iter()
             .zip(&z)
             .map(|(&l, &z)| l * z)
@@ -92,41 +118,50 @@ impl Mul<Vec<f64>> for LoadProfile {
     }
 }
 
-impl Div<f64> for LoadProfile {
+impl Div<N64> for LoadProfile {
     type Output = LoadProfile;
 
     /// Divides loads by scalar.
-    fn div(self, other: f64) -> Self::Output {
+    fn div(self, other: N64) -> Self::Output {
         self.iter().map(|&l| l / other).collect()
     }
 }
 
 /// Assignment of load fractions to dimensions for each job type.
-pub struct LoadFractions<'a> {
+pub struct LoadFractions {
     /// Stores for each dimension `k in [d]` the fractions of loads `i in [e]` that are handled.
     /// Flat representation where position `k * e + i` represents the fraction of jobs of type `i` assigned to servers of type `k`.
-    zs_: &'a [f64],
+    zs: Vec<N64>,
     /// Number of dimensions.
     d: i32,
     /// Number of job types.
     e: i32,
 }
 
-impl LoadFractions<'_> {
+impl LoadFractions {
     /// Returns the load fraction for dimension `k` and job type `i`.
-    pub fn get(&self, k: usize, i: usize) -> f64 {
+    pub fn get(&self, k: usize, i: usize) -> N64 {
         assert!(k < self.d as usize);
         assert!(i < self.e as usize);
-        self.zs_[k * self.e as usize + i]
+        self.zs[k * self.e as usize + i]
     }
 
     /// Selects loads for dimension `k`.
     pub fn select_loads(&self, lambda: &LoadProfile, k: usize) -> LoadProfile {
-        self.zs_[k * self.e as usize..k * self.e as usize + self.e as usize]
+        self.zs[k * self.e as usize..k * self.e as usize + self.e as usize]
             .iter()
             .enumerate()
             .map(|(i, z)| lambda[i] * z)
             .collect()
+    }
+}
+impl LoadFractions {
+    fn new(zs_: &[f64], d: i32, e: i32) -> Self {
+        LoadFractions {
+            zs: zs_.iter().map(|&z| n64(z)).collect(),
+            d,
+            e,
+        }
     }
 }
 
@@ -140,7 +175,7 @@ impl LoadFractions<'_> {
 pub fn apply_loads_over_time<'a, T>(
     d: i32,
     e: i32,
-    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> R64
+    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> N64
         + Send
         + Sync
         + 'a,
@@ -150,9 +185,8 @@ pub fn apply_loads_over_time<'a, T>(
 where
     T: Value<'a>,
 {
-    CostFn::stretch(
+    CostFn::new(
         t_start,
-        shift_time(loads.len() as i32, t_start),
         SingleCostFn::certain(move |t, x: Config<T>| {
             let lambda = access(&loads, unshift_time(t, t_start)).unwrap();
             apply_loads(d, e, &objective, lambda, t, x)
@@ -170,7 +204,7 @@ where
 pub fn apply_predicted_loads<'a, T>(
     d: i32,
     e: i32,
-    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> R64
+    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> N64
         + Send
         + Sync
         + 'a,
@@ -200,11 +234,11 @@ where
 pub fn apply_loads<'a, T>(
     d: i32,
     e: i32,
-    objective: &impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> R64,
+    objective: &impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> N64,
     lambda: &LoadProfile,
     t: i32,
     x: Config<T>,
-) -> R64
+) -> N64
 where
     T: Value<'a>,
 {
@@ -214,7 +248,7 @@ where
     let solver_d = (d * e) as usize;
     let bounds = vec![(0., 1.); solver_d];
     let objective = |zs_: &[f64]| {
-        let zs = LoadFractions { zs_, d, e };
+        let zs = LoadFractions::new(zs_, d, e);
         objective(t, &x, lambda, &zs)
     };
 
@@ -225,16 +259,15 @@ where
     let equality_constraints = (0..e as usize)
         .map(|i| -> Constraint {
             let lambda = lambda.clone();
-            Arc::new(move |zs_: &[f64]| -> R64 {
+            Arc::new(move |zs_: &[f64]| -> N64 {
                 let total_lambda = lambda.total();
-                let result = if total_lambda > 0. {
-                    let zs = LoadFractions { zs_, d, e };
-                    (0..d as usize).map(|k| zs.get(k, i)).sum::<f64>()
+                if total_lambda > 0. {
+                    let zs = LoadFractions::new(zs_, d, e);
+                    (0..d as usize).map(|k| zs.get(k, i)).sum::<N64>()
                         - lambda[i] / total_lambda
                 } else {
-                    0.
-                };
-                r64(result)
+                    n64(0.)
+                }
             })
         })
         .collect();

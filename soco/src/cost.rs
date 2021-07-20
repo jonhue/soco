@@ -5,174 +5,125 @@ use crate::utils::mean;
 use crate::value::Value;
 use noisy_float::prelude::*;
 use num::NumCast;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
-/// Cost function (from time `t`).
+/// Cost function (from time `t_start`).
 #[derive(Clone)]
 pub struct SingleCostFn<'a, T>(
-    Arc<dyn Fn(i32, T) -> Vec<R64> + Send + Sync + 'a>,
+    Arc<dyn Fn(i32, T) -> Vec<N64> + Send + Sync + 'a>,
 );
 impl<'a, T> SingleCostFn<'a, T> {
     /// Creates a single cost function without uncertainty.
-    pub fn certain(f: impl Fn(i32, T) -> R64 + Send + Sync + 'a) -> Self {
+    pub fn certain(f: impl Fn(i32, T) -> N64 + Send + Sync + 'a) -> Self {
         Self::predictive(move |t, x| vec![f(t, x)])
     }
 
     /// Creates a single cost function with uncertainty.
     pub fn predictive(
-        f: impl Fn(i32, T) -> Vec<R64> + Send + Sync + 'a,
+        f: impl Fn(i32, T) -> Vec<N64> + Send + Sync + 'a,
     ) -> Self {
         Self(Arc::new(f))
     }
 
     /// Computes the hitting cost with an unbounded decision space.
     /// Returns mean if cost function returns a prediction.
-    pub fn call_unbounded(&self, t: i32, x: T) -> R64 {
-        assert!(
-            t > 0,
-            "Time slot of hitting cost must be positive (got {}).",
-            t
-        );
-        let results = (self.0)(t, x);
-        mean(results)
-    }
-
-    /// Computes the hitting cost.
-    /// Returns mean if cost function returns a prediction.
-    pub fn call<B>(&self, t: i32, x: T, bounds: &B) -> R64
-    where
-        B: DecisionSpace<'a, T>,
-    {
-        if bounds.within(&x) {
-            self.call_unbounded(t, x)
-        } else {
-            r64(f64::INFINITY)
-        }
+    fn call_unbounded(&self, t_start: i32, t: i32, x: T) -> N64 {
+        mean(self.call_unbounded_predictive(t_start, t, x))
     }
 
     /// Computes the hitting cost with an unbounded decision space.
-    pub fn call_unbounded_predictive(&self, t: i32, x: T) -> Vec<R64> {
+    fn call_unbounded_predictive(
+        &self,
+        t_start: i32,
+        t: i32,
+        x: T,
+    ) -> Vec<N64> {
         assert!(
-            t > 0,
-            "Time slot of hitting cost must be positive (got {}).",
+            t >= t_start,
+            "Time slot of hitting cost must be greater or equals to `t = {}` (got {}).",
+            t_start,
             t
         );
         let results = (self.0)(t, x);
+        if t == t_start {
+            assert!(
+                results.len() == 1,
+                "Hitting costs must be certain for the current time slot."
+            )
+        }
         assert!(!results.is_empty());
         results
     }
-
-    /// Computes the hitting cost.
-    pub fn call_predictive<B>(&self, t: i32, x: T, bounds: &B) -> Vec<R64>
-    where
-        B: DecisionSpace<'a, T>,
-    {
-        if bounds.within(&x) {
-            self.call_unbounded_predictive(t, x)
-        } else {
-            vec![r64(f64::INFINITY)]
-        }
-    }
 }
 
-/// Vector of cost functions that arrived over time. Individual cost functions may have different domains.
+/// Cost functions that arrived over time. Individual cost functions may have different domains.
 /// For example, in a predictive online setting, a cost function arriving at time `t` generally has the domain `[t, t + w]`.
 #[derive(Clone)]
-pub struct CostFn<'a, T>(Vec<SingleCostFn<'a, T>>);
+pub struct CostFn<'a, T>(BTreeMap<i32, SingleCostFn<'a, T>>);
 impl<'a, T> CostFn<'a, T>
 where
     T: Clone,
 {
-    /// Creates cost function from a vector of arriving cost functions `fs` beginning from some time `t_start >= 1`.
-    pub fn new(t_start: i32, fs_: Vec<SingleCostFn<'a, T>>) -> Self {
-        let mut fs: Vec<SingleCostFn<'a, T>> = vec![
-            SingleCostFn::certain(
-                |_, _| panic!("This time slot has no assigned cost function.")
-            );
-            t_start as usize - 1
-        ];
-        fs.extend(fs_);
+    /// Creates initial cost function from some time `t >= 1`.
+    pub fn new(t: i32, f: SingleCostFn<'a, T>) -> Self {
+        let mut fs = BTreeMap::new();
+        fs.insert(t, f);
         CostFn(fs)
-    }
-
-    /// Stretches a single cost function `f` over an interval from some time `t_start >= 1` to `t_end`.
-    pub fn stretch(t_start: i32, t_end: i32, f: SingleCostFn<'a, T>) -> Self {
-        Self::new(t_start, vec![f; (t_end - t_start + 1) as usize])
-    }
-
-    /// Creates a single cost function `f` at time `t`.
-    pub fn single(t: i32, f: SingleCostFn<'a, T>) -> Self {
-        Self::stretch(t, t, f)
     }
 
     /// Adds a new cost function which may return uncertain predictions.
     /// Must always return at least one sample (which corresponds to certainty).
-    pub fn add(&mut self, f: SingleCostFn<'a, T>) {
-        self.0.push(f)
+    pub fn add(&mut self, t: i32, f: SingleCostFn<'a, T>) {
+        self.0.insert(t, f);
     }
 
     /// Computes the hitting cost with an unbounded decision space.
     /// Returns mean if cost function returns a prediction.
-    pub fn call_unbounded(&self, t: i32, x: T) -> R64 {
-        assert!(
-            t > 0,
-            "Time slot of hitting cost must be positive (got {}).",
-            t
-        );
-        self.get(t).call_unbounded(t, x)
+    pub fn call_unbounded(&self, t: i32, x: T) -> N64 {
+        let (&t_start, f) = self.get(t);
+        f.call_unbounded(t_start, t, x)
     }
 
     /// Computes the hitting cost.
     /// Returns mean if cost function returns a prediction.
-    pub fn call<B>(&self, t: i32, x: T, bounds: &B) -> R64
+    pub fn call<B>(&self, t: i32, x: T, bounds: &B) -> N64
     where
         B: DecisionSpace<'a, T>,
     {
         if bounds.within(&x) {
             self.call_unbounded(t, x)
         } else {
-            r64(f64::INFINITY)
+            n64(f64::INFINITY)
         }
     }
 
     /// Computes the hitting cost with an unbounded decision space.
-    pub fn call_unbounded_predictive(&self, t: i32, x: T) -> Vec<R64> {
-        assert!(
-            t > 0,
-            "Time slot of hitting cost must be positive (got {}).",
-            t
-        );
-        self.get(t).call_unbounded_predictive(t, x)
+    pub fn call_unbounded_predictive(&self, t: i32, x: T) -> Vec<N64> {
+        let (&t_start, f) = self.get(t);
+        f.call_unbounded_predictive(t_start, t, x)
     }
 
     /// Computes the hitting cost.
-    pub fn call_predictive<B>(&self, t: i32, x: T, bounds: &B) -> Vec<R64>
+    pub fn call_predictive<B>(&self, t: i32, x: T, bounds: &B) -> Vec<N64>
     where
         B: DecisionSpace<'a, T>,
     {
         if bounds.within(&x) {
             self.call_unbounded_predictive(t, x)
         } else {
-            vec![r64(f64::INFINITY)]
+            vec![n64(f64::INFINITY)]
         }
-    }
-
-    /// Returns the time of the latest cost function.
-    pub fn now(&self) -> i32 {
-        self.0.len() as i32
     }
 
     /// Finds the most recent version of the cost function which assigns a value to time slot `t`.
     ///
     /// If `t` is in the future (or now), the current cost function is used.
     /// If `t` is in the past, the cost function from time `t` is used.
-    fn get(&self, t: i32) -> &SingleCostFn<'a, T> {
-        assert!(
-            self.now() > 0,
-            "Cannot call a cost function without implementations."
-        );
-        let version = if t >= self.now() { self.now() } else { t };
-        &self.0[version as usize - 1]
+    ///
+    /// Returns cost function and time slot of cost function.
+    fn get(&self, t: i32) -> (&i32, &SingleCostFn<'a, T>) {
+        self.0.range(1..=t).last().expect("Cost function does not have an implementation for the given time slot")
     }
 }
 

@@ -7,6 +7,7 @@ use crate::schedule::Schedule;
 use crate::utils::{assert, project};
 use crate::value::Value;
 use num::NumCast;
+use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
 /// Last two lower and upper bound from some time `t` (in order).
@@ -14,6 +15,14 @@ use serde_derive::{Deserialize, Serialize};
 pub struct Memory<T> {
     lower: (Option<T>, T),
     upper: (Option<T>, T),
+}
+impl<T> IntoPy<PyObject> for Memory<T>
+where
+    T: IntoPy<PyObject>,
+{
+    fn into_py(self, py: Python) -> PyObject {
+        (self.lower, self.upper).into_py(py)
+    }
 }
 
 /// Lazy Capacity Provisioning

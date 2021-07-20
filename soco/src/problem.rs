@@ -1,7 +1,7 @@
 //! Problem definition.
 
 use crate::config::Config;
-use crate::cost::{CostFn, SingleCostFn};
+use crate::cost::CostFn;
 use crate::model::data_center::loads::{
     apply_loads_over_time, LoadFractions, LoadProfile,
 };
@@ -10,7 +10,7 @@ use crate::norm::NormFn;
 use crate::value::Value;
 use crate::verifiers::VerifiableProblem;
 use noisy_float::prelude::*;
-use num::{NumCast, ToPrimitive};
+use num::NumCast;
 
 /// Trait implemented by all finite-time-horizon problems.
 pub trait Problem: Clone + std::fmt::Debug + Send + VerifiableProblem {
@@ -96,7 +96,7 @@ impl<'a, T> SmoothedConvexOptimization<'a, T>
 where
     T: Value<'a>,
 {
-    pub fn hit_cost(&self, t: i32, x: Config<T>) -> R64 {
+    pub fn hit_cost(&self, t: i32, x: Config<T>) -> N64 {
         self.hitting_cost.call(t, x, &self.bounds)
     }
 }
@@ -124,7 +124,7 @@ impl<'a, T> SimplifiedSmoothedConvexOptimization<'a, T>
 where
     T: Value<'a>,
 {
-    pub fn hit_cost(&self, t: i32, x: Config<T>) -> R64 {
+    pub fn hit_cost(&self, t: i32, x: Config<T>) -> N64 {
         self.hitting_cost.call(t, x, &self.bounds)
     }
 }
@@ -147,7 +147,7 @@ pub struct SmoothedBalancedLoadOptimization<'a, T> {
     pub switching_cost: Vec<f64>,
     /// Positive increasing cost functions for each dimension.
     #[derivative(Debug = "ignore")]
-    pub hitting_cost: Vec<SingleCostFn<'a, f64>>,
+    pub hitting_cost: Vec<CostFn<'a, f64>>,
     /// Non-negative load at each time step.
     pub load: Vec<T>,
 }
@@ -156,12 +156,12 @@ impl<'a, T> SmoothedBalancedLoadOptimization<'a, T>
 where
     T: Value<'a>,
 {
-    pub fn hit_cost(self, t: i32, x: Config<T>) -> R64 {
+    pub fn hit_cost(self, t: i32, x: Config<T>) -> N64 {
         let bounds = self.bounds.clone();
         let loads = self
             .load
             .iter()
-            .map(|l| LoadProfile::single(ToPrimitive::to_f64(l).unwrap()))
+            .map(|&l| LoadProfile::single(NumCast::from(l).unwrap()))
             .collect();
         apply_loads_over_time(
             self.d,
@@ -172,8 +172,8 @@ where
                   zs: &LoadFractions| {
                 assert!(self.d == x_.d());
                 (0..self.d as usize)
-                    .map(|k| -> R64 {
-                        let total_load = r64(zs.select_loads(lambda, k)[0]);
+                    .map(|k| -> N64 {
+                        let total_load = zs.select_loads(lambda, k)[0];
                         let x = NumCast::from(x_[k]).unwrap();
                         safe_balancing(x, total_load, || {
                             x * self.hitting_cost[k].call(
@@ -183,7 +183,7 @@ where
                             )
                         })
                     })
-                    .sum::<R64>()
+                    .sum::<N64>()
             },
             loads,
             1,

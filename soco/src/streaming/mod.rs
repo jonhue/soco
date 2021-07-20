@@ -1,3 +1,3 @@
-pub mod backend;
-pub mod frontend;
+pub mod offline;
+pub mod online;
 pub mod utils;

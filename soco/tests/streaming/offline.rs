@@ -1,16 +1,13 @@
+use crate::utils::hash_map;
 use soco::{
-    algorithms::online::uni_dimensional::randomly_biased_greedy::{
-        rbg, Options,
-    },
-    hash_map,
+    algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search,
     model::data_center::{
         loads::LoadProfile,
         model::{
-            DataCenterModel, DataCenterOfflineInput, JobType, ServerType,
-            DEFAULT_KEY,
+            DataCenterModel, DataCenterOfflineInput, JobType, Location,
+            ServerType, Source, DEFAULT_KEY,
         },
         models::{
-            delay::DelayModel,
             energy_consumption::{
                 EnergyConsumptionModel, SimplifiedLinearEnergyConsumptionModel,
             },
@@ -21,22 +18,24 @@ use soco::{
             switching_cost::{SwitchingCost, SwitchingCostModel},
         },
     },
-    streaming::frontend,
+    streaming::offline,
 };
 use std::sync::Arc;
 
-#[ignore]
 #[test]
-fn integration() {
-    let addr = "127.0.0.1:5000".parse().unwrap();
-
-    let t_end = 2;
+fn solve() {
+    let t_end = 100;
+    let delta = 1.;
     let m = 10;
-    let model = DataCenterModel::single(
-        1.,
+    let model = DataCenterModel::new(
+        delta,
         0.,
+        vec![Location {
+            key: DEFAULT_KEY.to_string(),
+            m: hash_map(&[(DEFAULT_KEY.to_string(), m)]),
+        }],
         vec![ServerType::default()],
-        hash_map(&[(DEFAULT_KEY.to_string(), m)]),
+        vec![Source::default()],
         vec![JobType::default()],
         EnergyConsumptionModel::SimplifiedLinear(hash_map(&[(
             DEFAULT_KEY.to_string(),
@@ -52,7 +51,6 @@ fn integration() {
             DEFAULT_KEY.to_string(),
             MinimalDetectableDelayRevenueLossModel::default(),
         )])),
-        DelayModel::ProcessorSharingQueue,
         SwitchingCostModel::new(hash_map(&[(
             DEFAULT_KEY.to_string(),
             SwitchingCost {
@@ -67,13 +65,11 @@ fn integration() {
         )])),
     );
     let input = DataCenterOfflineInput {
-        loads: vec![LoadProfile::new(vec![10.]); t_end as usize],
+        loads: vec![LoadProfile::raw(vec![10.]); t_end as usize],
     };
 
-    let result =
-        frontend::start(addr, &model, &rbg, Options::default(), 0, input)
+    let (xs, _) =
+        offline::solve(&model, &optimal_graph_search, (), input, false)
             .unwrap();
-    result.0.verify(t_end, &vec![m as f64]).unwrap();
-
-    frontend::stop(addr);
+    xs.verify(t_end, &vec![m]).unwrap();
 }

@@ -38,7 +38,7 @@ pub fn robd(
     let v = Config::new(
         find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
     );
-    let regularization_function: CostFn<'_, FractionalConfig> = CostFn::single(
+    let regularization_function: CostFn<'_, FractionalConfig> = CostFn::new(
         t,
         SingleCostFn::certain(|t, x: FractionalConfig| {
             o.p.hit_cost(t, x.clone())

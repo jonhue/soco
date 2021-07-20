@@ -2,20 +2,25 @@
 
 use noisy_float::prelude::*;
 
-/// Delay model.
-#[derive(Clone)]
-pub enum DelayModel {
-    /// M/GI/1 Processor Sharing Queue.
-    ProcessorSharingQueue,
-}
-
-impl DelayModel {
-    /// Average delay of a sub job processed on a server handling a total of `l`
-    /// sub jobs when the time slot length is `delta`.
-    /// Referred to as `d` in the paper.
-    pub fn average_delay(&self, delta: f64, l: R64) -> R64 {
-        match self {
-            DelayModel::ProcessorSharingQueue => r64(1.) / (r64(delta) - l),
+/// Average delay of a job processed on a server handling a total of
+/// `number_of_jobs` jobs with average duration `mean_job_duration` using
+/// the model of a M/GI/1 Processor Sharing Queue.
+/// `delta` is the duration of a time slot.
+/// Referred to as `d` in the paper.
+pub fn average_delay(
+    delta: f64,
+    number_of_jobs: N64,
+    mean_job_duration: N64,
+) -> N64 {
+    if number_of_jobs != n64(0.) && mean_job_duration != n64(0.) {
+        let service_rate = n64(1.) / mean_job_duration;
+        let arrival_rate = number_of_jobs / delta;
+        if arrival_rate < service_rate {
+            n64(1.) / (service_rate - arrival_rate)
+        } else {
+            n64(f64::INFINITY)
         }
+    } else {
+        n64(0.)
     }
 }

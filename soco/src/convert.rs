@@ -10,7 +10,7 @@ use crate::problem::{
     SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
 use crate::schedule::{FractionalSchedule, IntegralSchedule};
-use crate::utils::{shift_time, unshift_time};
+use crate::utils::shift_time;
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
@@ -45,36 +45,34 @@ impl RelaxableVector for Vec<i32> {
 }
 
 pub trait DiscretizableCostFn<'a> {
-    /// Discretize a fractional cost function.
+    /// Discretize a certain fractional cost function.
     fn to_i(&'a self) -> CostFn<'a, IntegralConfig>;
 }
 
 impl<'a> DiscretizableCostFn<'a> for CostFn<'a, FractionalConfig> {
     fn to_i(&'a self) -> CostFn<'a, IntegralConfig> {
-        CostFn::stretch(
+        CostFn::new(
             1,
-            self.now(),
-            SingleCostFn::predictive(move |t, x: IntegralConfig| {
-                self.call_unbounded_predictive(t, x.to_f())
+            SingleCostFn::certain(move |t, x: IntegralConfig| {
+                self.call_unbounded(t, x.to_f())
             }),
         )
     }
 }
 
 pub trait RelaxableCostFn<'a> {
-    /// Relax an integral cost function to the fractional setting.
+    /// Relax a certain integral cost function to the fractional setting.
     fn to_f(&'a self) -> CostFn<'a, FractionalConfig>;
 }
 
 impl<'a> RelaxableCostFn<'a> for CostFn<'a, IntegralConfig> {
     fn to_f(&'a self) -> CostFn<'a, FractionalConfig> {
-        CostFn::stretch(
+        CostFn::new(
             1,
-            self.now(),
             SingleCostFn::certain(move |t, x: FractionalConfig| {
                 assert!(x.d() == 1, "cannot relax multidimensional problems");
 
-                let j = r64(x[0]);
+                let j = n64(x[0]);
                 if j.fract() == 0. {
                     self.call_unbounded(t, Config::single(j.to_i32().unwrap()))
                 } else {
@@ -169,7 +167,7 @@ where
         let hitting_cost = self
             .hitting_cost
             .iter()
-            .map(|&l| SingleCostFn::certain(move |_, _| r64(l)))
+            .map(|&l| CostFn::new(1, SingleCostFn::certain(move |_, _| n64(l))))
             .collect();
         SmoothedBalancedLoadOptimization {
             d: self.d,
@@ -193,9 +191,8 @@ where
             t_end: self.t_end,
             bounds: self.bounds.clone(),
             switching_cost: self.switching_cost.clone(),
-            hitting_cost: CostFn::stretch(
+            hitting_cost: CostFn::new(
                 1,
-                self.t_end,
                 SingleCostFn::certain(move |t, x| self.clone().hit_cost(t, x)),
             ),
         }
@@ -279,7 +276,7 @@ impl RelaxableSchedule for IntegralSchedule {
 }
 
 pub trait ResettableCostFn<'a, T> {
-    /// Shift a cost function to some new initial time `t_start` (time _before_ first time slot).
+    /// Shift a certain cost function to some new initial time `t_start` (a time _before_ first time slot).
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T>;
 }
 
@@ -288,11 +285,10 @@ where
     T: Clone,
 {
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T> {
-        CostFn::stretch(
+        CostFn::new(
             1,
-            unshift_time(self.now(), t_start + 1),
-            SingleCostFn::predictive(move |t, j| {
-                self.call_unbounded_predictive(shift_time(t, t_start + 1), j)
+            SingleCostFn::certain(move |t, j| {
+                self.call_unbounded(shift_time(t, t_start + 1), j)
             }),
         )
     }

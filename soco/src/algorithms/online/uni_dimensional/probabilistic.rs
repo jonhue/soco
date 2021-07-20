@@ -10,6 +10,7 @@ use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
+use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::sync::Arc;
 
@@ -31,7 +32,7 @@ fn default_p<'a>() -> Distribution<'a> {
         panic!("This is dummy distribution returned after deserializing the memory struct.");
     })
 }
-impl<'a> Default for Memory<'_> {
+impl Default for Memory<'_> {
     fn default() -> Self {
         Memory {
             p: Arc::new(|x| {
@@ -46,7 +47,13 @@ impl<'a> Default for Memory<'_> {
         }
     }
 }
+impl IntoPy<PyObject> for Memory<'_> {
+    fn into_py(self, py: Python) -> PyObject {
+        self.breakpoints.into_py(py)
+    }
+}
 
+#[pyclass]
 #[derive(Clone)]
 pub struct Options {
     /// Breakpoints of piecewise linear hitting costs.

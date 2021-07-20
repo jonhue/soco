@@ -1,10 +1,12 @@
-use crate::algorithms::graph_search::Path;
+use crate::algorithms::offline::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::{
     graph_search::graph_search, Values,
 };
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
+use pyo3::prelude::*;
 
+#[pyclass]
 #[derive(Clone)]
 pub struct Options {
     /// `gamma > 1`. Default is `1.1`.
@@ -16,7 +18,7 @@ impl Default for Options {
     }
 }
 
-/// Graph-Based Approximation Algorithm
+/// Graph-Based Polynomial-Time Approximation Scheme
 pub fn approx_graph_search(
     p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
     options: Options,

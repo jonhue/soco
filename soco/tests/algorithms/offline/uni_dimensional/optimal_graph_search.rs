@@ -7,13 +7,12 @@ mod make_pow_of_2 {
 
     #[test]
     fn _1() {
-        let t_end = 1_000;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 1_000,
             bounds: vec![103],
             switching_cost: vec![1.],
-            hitting_cost: constant(t_end),
+            hitting_cost: constant(),
         };
         p.verify().unwrap();
         let transformed_p = make_pow_of_2(p.clone()).unwrap();
@@ -57,13 +56,12 @@ mod optimal_graph_search {
 
     #[test]
     fn _1() {
-        let t_end = 2;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 2,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: penalize_zero(t_end),
+            hitting_cost: penalize_zero(),
         };
         p.verify().unwrap();
 
@@ -91,13 +89,12 @@ mod optimal_graph_search {
 
     #[test]
     fn _2() {
-        let t_end = 100;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 100,
             bounds: vec![8],
             switching_cost: vec![1.],
-            hitting_cost: random(t_end),
+            hitting_cost: random(),
         };
         p.verify().unwrap();
 
@@ -120,13 +117,12 @@ mod optimal_graph_search {
 
     #[test]
     fn _3() {
-        let t_end = 1_000;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 1_000,
             bounds: vec![9],
             switching_cost: vec![1.],
-            hitting_cost: random(t_end),
+            hitting_cost: random(),
         };
         p.verify().unwrap();
 
@@ -156,13 +152,12 @@ mod optimal_graph_search {
 
     #[test]
     fn _4() {
-        let t_end = 2;
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 2,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: penalize_zero(t_end),
+            hitting_cost: penalize_zero(),
         };
         p.verify().unwrap();
 

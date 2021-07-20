@@ -1,9 +1,8 @@
-use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
-use crate::algorithms::offline::OfflineAlgorithm;
+use crate::algorithms::offline::{OfflineAlgorithm, OfflineResult};
 use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
-use crate::cost::SingleCostFn;
+use crate::cost::{CostFn, SingleCostFn};
 use crate::problem::{
     IntegralSmoothedBalancedLoadOptimization, Online,
     SmoothedBalancedLoadOptimization,
@@ -95,9 +94,9 @@ fn determine_sub_time_slots(
     epsilon: f64,
 ) -> Result<i32> {
     let max_fract = (0..p.d as usize)
-        .map(|k| -> R64 {
+        .map(|k| -> N64 {
             let l = p.hitting_cost[k].call(t, 0., &p.bounds[k]);
-            l / r64(p.switching_cost[k])
+            l / n64(p.switching_cost[k])
         })
         .max()
         .unwrap()
@@ -120,13 +119,16 @@ fn modify_problem<'a>(
         .map(|k| {
             let hitting_cost = p.hitting_cost[k].clone();
             let bounds = p.bounds[k];
-            SingleCostFn::certain(move |u, x| {
-                assert!(
-                    u_init <= u && u <= u_end,
-                    "sub time slot is outside valid sub time slot window"
-                );
-                hitting_cost.call(t, x, &bounds) / n as f64
-            })
+            CostFn::new(
+                u_init,
+                SingleCostFn::certain(move |u, x| {
+                    assert!(
+                        u_init <= u && u <= u_end,
+                        "sub time slot is outside valid sub time slot window"
+                    );
+                    hitting_cost.call(t, x, &bounds) / n as f64
+                }),
+            )
         })
         .collect();
 
@@ -202,7 +204,7 @@ fn alg_b(
 
 fn deactivated_quantity(
     bound: i32,
-    hitting_cost: &SingleCostFn<'_, f64>,
+    hitting_cost: &CostFn<'_, f64>,
     switching_cost: f64,
     ms: &AlgBMemory,
     t_now: i32,
@@ -223,7 +225,7 @@ fn deactivated_quantity(
 
 fn cumulative_idle_hitting_cost(
     bound: i32,
-    hitting_cost: &SingleCostFn<'_, f64>,
+    hitting_cost: &CostFn<'_, f64>,
     from: i32,
     to: i32,
 ) -> f64 {
@@ -238,6 +240,6 @@ fn find_optimal_config(
     p: IntegralSmoothedBalancedLoadOptimization,
 ) -> Result<IntegralConfig> {
     let ssco_p = p.into_ssco();
-    let Path { xs, .. } = optimal_graph_search.solve(ssco_p, (), false)?;
-    Ok(xs.now())
+    let result = optimal_graph_search.solve(ssco_p, (), false)?;
+    Ok(result.xs().now())
 }

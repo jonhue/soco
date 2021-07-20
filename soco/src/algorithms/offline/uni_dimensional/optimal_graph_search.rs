@@ -1,4 +1,4 @@
-use crate::algorithms::graph_search::{Path, Paths};
+use crate::algorithms::offline::graph_search::{Path, Paths};
 use crate::config::{Config, IntegralConfig};
 use crate::cost::{CostFn, SingleCostFn};
 use crate::objective::scalar_movement;
@@ -11,12 +11,14 @@ use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::{assert, is_pow_of_2};
 use noisy_float::prelude::*;
 use num::ToPrimitive;
+use pyo3::prelude::*;
 use std::collections::HashMap;
 
 /// Vertice in the graph denoting time `t` and the value `j` at time `t`.
 #[derive(Eq, Hash, PartialEq)]
 struct Vertice(i32, i32);
 
+#[pyclass]
 #[derive(Clone)]
 pub struct Options {
     /// Value at initial time `0`. Defaults to `0`.
@@ -73,14 +75,13 @@ pub fn make_pow_of_2(
         t_end: p.t_end,
         bounds: vec![m],
         switching_cost: p.switching_cost.clone(),
-        hitting_cost: CostFn::stretch(
+        hitting_cost: CostFn::new(
             1,
-            p.t_end,
             SingleCostFn::certain(move |t, x: IntegralConfig| {
                 if x[0] <= p.bounds[0] {
                     p.hit_cost(t, x)
                 } else {
-                    r64(x[0] as f64)
+                    n64(x[0] as f64)
                         * (p.hit_cost(t, Config::new(p.bounds.clone()))
                             + f64::EPSILON)
                 }

@@ -8,13 +8,12 @@ mod rbg {
 
     #[test]
     fn _1() {
-        let t_end = 1;
         let p = SmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 1,
             bounds: vec![(0., 2.)],
             switching_cost: manhattan(),
-            hitting_cost: inv_e(t_end),
+            hitting_cost: inv_e(),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -31,13 +30,12 @@ mod rbg {
 
     #[test]
     fn _2() {
-        let t_end = 1;
         let p = SmoothedConvexOptimization {
             d: 1,
-            t_end,
+            t_end: 1,
             bounds: vec![(0., 2.)],
             switching_cost: manhattan(),
-            hitting_cost: inv_e(t_end),
+            hitting_cost: inv_e(),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();

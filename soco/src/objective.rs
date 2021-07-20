@@ -1,13 +1,14 @@
 //! Objective function.
 
-use crate::config::Config;
+use crate::config::{Config, IntegralConfig};
+use crate::convert::{RelaxableConfig, RelaxableSchedule};
 use crate::problem::{
-    SimplifiedSmoothedConvexOptimization, SmoothedConvexOptimization,
+    Problem, SimplifiedSmoothedConvexOptimization, SmoothedConvexOptimization,
     SmoothedLoadOptimization,
 };
-use crate::result::Result;
-use crate::schedule::Schedule;
-use crate::utils::pos;
+use crate::result::{Failure, Result};
+use crate::schedule::{IntegralSchedule, Schedule};
+use crate::utils::{assert, pos};
 use crate::value::Value;
 use num::{NumCast, ToPrimitive};
 
@@ -16,20 +17,20 @@ where
     T: Value<'a>,
 {
     /// Objective Function. Calculates the cost of a schedule.
-    fn objective_function(&'a self, xs: &Schedule<T>) -> Result<f64> {
+    fn objective_function(&self, xs: &Schedule<T>) -> Result<f64> {
         let default = self.default_config();
         self.objective_function_with_default(xs, &default, false)
     }
 
     /// Inverted Objective Function. Calculates the cost of a schedule. Pays the
     /// switching cost for powering down rather than powering up.
-    fn inverted_objective_function(&'a self, xs: &Schedule<T>) -> Result<f64> {
+    fn inverted_objective_function(&self, xs: &Schedule<T>) -> Result<f64> {
         let default = self.default_config();
         self.objective_function_with_default(xs, &default, true)
     }
 
     fn objective_function_with_default(
-        &'a self,
+        &self,
         xs: &Schedule<T>,
         default: &Config<T>,
         inverted: bool,
@@ -48,13 +49,14 @@ where
         default: &Config<T>,
         inverted: bool,
     ) -> Result<f64> {
+        assert(!inverted, Failure::UnsupportedInvertedCost)?;
+
         let mut cost = 0.;
         for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 1).unwrap_or(default);
-            let x = xs.get(t).unwrap();
+            let prev_x = xs.get(t - 1).unwrap_or(default).clone();
+            let x = xs.get(t).unwrap().clone();
             cost += self.hit_cost(t as i32, x.clone()).raw();
-            let delta = movement(x, prev_x, inverted);
-            cost += (self.switching_cost)(delta).raw();
+            cost += (self.switching_cost)(x - prev_x).raw();
         }
         Ok(cost)
     }
@@ -92,6 +94,30 @@ where
 
     fn default_config(&self) -> Config<T> {
         Config::repeat(NumCast::from(0).unwrap(), self.d)
+    }
+}
+
+/// Implements integral objective for a relaxed problem instance which also implements a fractional objective.
+/// Used by the uni-dimensional randomized algorithm.
+impl<'a, P> Objective<'a, i32> for P
+where
+    P: Problem + Objective<'a, f64>,
+{
+    fn objective_function_with_default(
+        &self,
+        xs: &IntegralSchedule,
+        default: &IntegralConfig,
+        inverted: bool,
+    ) -> Result<f64> {
+        self.objective_function_with_default(
+            &xs.to_f(),
+            &default.to_f(),
+            inverted,
+        )
+    }
+
+    fn default_config(&self) -> IntegralConfig {
+        Config::repeat(0, self.d())
     }
 }
 

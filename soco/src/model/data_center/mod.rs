@@ -7,13 +7,13 @@ pub mod model;
 pub mod models;
 
 /// Ensures that `x` is greater than zero and handles edge cases appropriately.
-pub fn safe_balancing(x: R64, total_load: R64, f: impl Fn() -> R64) -> R64 {
+pub fn safe_balancing(x: N64, total_load: N64, f: impl Fn() -> N64) -> N64 {
     if x > 0. {
         f()
     } else if total_load > 0. {
-        r64(f64::INFINITY)
+        n64(f64::INFINITY)
     } else {
         assert!(total_load == 0.);
-        r64(0.)
+        n64(0.)
     }
 }

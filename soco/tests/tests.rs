@@ -6,3 +6,4 @@ extern crate approx;
 mod algorithms;
 mod factories;
 mod streaming;
+mod utils;

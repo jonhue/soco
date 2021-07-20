@@ -1,6 +1,5 @@
-use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
-use crate::algorithms::offline::OfflineAlgorithm;
+use crate::algorithms::offline::{OfflineAlgorithm, OfflineResult};
 use crate::algorithms::online::{IntegralStep, Online, Step};
 use crate::config::{Config, IntegralConfig};
 use crate::problem::{DefaultGivenProblem, IntegralSmoothedLoadOptimization};
@@ -165,6 +164,6 @@ fn find_optimal_lanes(
     let d = p.d;
     let sblo_p = p.into_sblo();
     let ssco_p = sblo_p.into_ssco();
-    let Path { xs, .. } = optimal_graph_search.solve(ssco_p, (), false)?;
-    Ok(build_lanes(&xs.now(), d, bound))
+    let result = optimal_graph_search.solve(ssco_p, (), false)?;
+    Ok(build_lanes(&result.xs().now(), d, bound))
 }
