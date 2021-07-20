@@ -1,4 +1,4 @@
-use crate::algorithms::graph_search::{Path, Paths};
+use crate::algorithms::offline::graph_search::{Path, Paths};
 use crate::config::{Config, IntegralConfig};
 use crate::cost::{CostFn, SingleCostFn};
 use crate::objective::scalar_movement;

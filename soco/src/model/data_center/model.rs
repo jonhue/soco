@@ -419,17 +419,18 @@ impl DataCenterModel {
     /// * `loads` - vector of loads for all time slots that should be supported by the returned cost function
     /// * `t_start` - time offset, i.e. time of first load profile
     fn apply_loads_over_time<'a, T>(
-        &'a self,
+        &self,
         loads: Vec<LoadProfile>,
         t_start: i32,
     ) -> CostFn<'a, Config<T>>
     where
         T: Value<'a>,
     {
+        let model = self.clone();
         apply_loads_over_time(
             self.d_(),
             self.e_(),
-            move |t, x, lambda, zs| self.objective(t, x, lambda, zs),
+            move |t, x, lambda, zs| model.objective(t, x, lambda, zs),
             loads,
             t_start,
         )
@@ -441,17 +442,18 @@ impl DataCenterModel {
     /// * `loads` - a load profile for each predicted sample (one load profile for certainty) over the supported time horizon
     /// * `t_start` - time offset, i.e. time of first load samples
     fn apply_predicted_loads<'a, T>(
-        &'a self,
+        &self,
         loads: Vec<Vec<LoadProfile>>,
         t_start: i32,
     ) -> SingleCostFn<'a, Config<T>>
     where
         T: Value<'a>,
     {
+        let model = self.clone();
         apply_predicted_loads(
             self.d_(),
             self.e_(),
-            move |t, x, lambda, zs| self.objective(t, x, lambda, zs),
+            move |t, x, lambda, zs| model.objective(t, x, lambda, zs),
             loads,
             t_start,
         )
@@ -513,11 +515,10 @@ pub struct DataCenterOnlineInput {
     /// A load profile for each predicted sample (one load profile for certainty) over the supported time horizon.
     pub loads: Vec<Vec<LoadProfile>>,
 }
-impl<'a> OnlineInput<'a> for DataCenterOnlineInput {}
+impl OnlineInput for DataCenterOnlineInput {}
 
 impl<'a, T>
     Model<
-        'a,
         SmoothedConvexOptimization<'a, T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
@@ -526,7 +527,7 @@ where
     T: Value<'a>,
 {
     fn to(
-        &'a self,
+        &self,
         input: DataCenterOfflineInput,
     ) -> SmoothedConvexOptimization<'a, T> {
         let ssco_p: SimplifiedSmoothedConvexOptimization<'a, T> =
@@ -535,7 +536,7 @@ where
     }
 
     fn update(
-        &'a self,
+        &self,
         o: &mut Online<SmoothedConvexOptimization<'a, T>>,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
@@ -551,7 +552,6 @@ where
 
 impl<'a, T>
     Model<
-        'a,
         SimplifiedSmoothedConvexOptimization<'a, T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
@@ -560,7 +560,7 @@ where
     T: Value<'a>,
 {
     fn to(
-        &'a self,
+        &self,
         DataCenterOfflineInput { loads }: DataCenterOfflineInput,
     ) -> SimplifiedSmoothedConvexOptimization<'a, T> {
         let d = self.d_();
@@ -580,7 +580,7 @@ where
     }
 
     fn update(
-        &'a self,
+        &self,
         o: &mut Online<SimplifiedSmoothedConvexOptimization<'a, T>>,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
@@ -596,7 +596,6 @@ where
 
 impl<'a, T>
     Model<
-        'a,
         SmoothedBalancedLoadOptimization<'a, T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
@@ -607,7 +606,7 @@ where
     /// Notes:
     /// * Only allows for a single location, source, and job type.
     fn to(
-        &'a self,
+        &self,
         DataCenterOfflineInput { loads }: DataCenterOfflineInput,
     ) -> SmoothedBalancedLoadOptimization<'a, T> {
         assert!(self.locations.len() == 1);
@@ -623,17 +622,23 @@ where
             .switching_costs(&self.server_types);
         let hitting_cost = self
             .server_types
-            .iter()
+            .clone()
+            .into_iter()
             .map(move |server_type| {
+                let location = location.clone();
+                let energy_consumption_model =
+                    self.energy_consumption_model.clone();
+                let energy_cost_model = self.energy_cost_model.clone();
+                let delta = self.delta;
                 CostFn::new(
                     1,
                     SingleCostFn::certain(move |t, l| {
-                        let s = n64(l) / self.delta;
+                        let s = n64(l) / delta;
                         let p = server_type.limit_utilization(s, || {
-                            self.energy_consumption_model
-                                .consumption(server_type, s)
+                            energy_consumption_model
+                                .consumption(&server_type, s)
                         });
-                        self.energy_cost_model.cost(t, location, p)
+                        energy_cost_model.cost(t, &location, p)
                     }),
                 )
             })
@@ -653,7 +658,7 @@ where
     }
 
     fn update(
-        &'a self,
+        &self,
         o: &mut Online<SmoothedBalancedLoadOptimization<'a, T>>,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
@@ -675,7 +680,6 @@ where
 
 impl<'a, T>
     Model<
-        'a,
         SmoothedLoadOptimization<T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
@@ -687,7 +691,7 @@ where
     /// * Only allows for a single location, source, and job type.
     /// * Assumes full utilization and averages the energy cost over the time horizon.
     fn to(
-        &'a self,
+        &self,
         DataCenterOfflineInput { loads }: DataCenterOfflineInput,
     ) -> SmoothedLoadOptimization<T> {
         assert!(self.locations.len() == 1);
@@ -731,7 +735,7 @@ where
     }
 
     fn update(
-        &'a self,
+        &self,
         o: &mut Online<SmoothedLoadOptimization<T>>,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {

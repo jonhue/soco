@@ -1,8 +1,9 @@
 use crate::algorithms::capacity_provisioning::Bounded;
+use crate::algorithms::offline::PureOfflineResult;
 use crate::config::Config;
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Failure, Result};
-use crate::schedule::{FractionalSchedule, Schedule};
+use crate::schedule::Schedule;
 use crate::utils::{assert, project};
 
 /// Backward-Recurrent Capacity Provisioning
@@ -10,7 +11,7 @@ pub fn brcp(
     p: FractionalSimplifiedSmoothedConvexOptimization<'_>,
     _: (),
     inverted: bool,
-) -> Result<FractionalSchedule> {
+) -> Result<PureOfflineResult<f64>> {
     assert(!inverted, Failure::UnsupportedInvertedCost)?;
     assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
 
@@ -22,7 +23,7 @@ pub fn brcp(
         xs.shift(Config::single(x));
     }
 
-    Ok(xs)
+    Ok(PureOfflineResult { xs })
 }
 
 fn next(

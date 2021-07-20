@@ -9,6 +9,7 @@ use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, frac, project, sample_uniform};
+use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
 /// Memory.
@@ -25,6 +26,11 @@ impl Default for Memory<'_> {
             y: Config::single(0.),
             relaxation_m: None,
         }
+    }
+}
+impl IntoPy<PyObject> for Memory<'_> {
+    fn into_py(self, py: Python) -> PyObject {
+        (self.y.to_vec(), self.relaxation_m).into_py(py)
     }
 }
 

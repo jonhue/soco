@@ -20,7 +20,7 @@ use soco::{
             switching_cost::{SwitchingCost, SwitchingCostModel},
         },
     },
-    problem::SmoothedConvexOptimization,
+    problem::FractionalSmoothedConvexOptimization,
     streaming::online,
 };
 use std::{
@@ -77,20 +77,17 @@ fn integration() {
 
         let options = Options::default();
 
-        let (mut o, (mut xs, prev_m)) =
-            online::prepare(&model, &rbg, options.clone(), 0, input).unwrap();
-        xs.verify(t_end, &vec![m as f64]).unwrap();
-
-        online::start(
+        let (xs, _, _) = online::start(
             addr.parse().unwrap(),
-            &model,
-            &mut o,
+            model,
             &rbg,
-            &mut xs,
-            prev_m,
             options,
+            0,
+            input,
             Some(sender),
-        );
+        )
+        .unwrap();
+        xs.verify(t_end, &vec![m as f64]).unwrap();
     });
 
     receiver.recv().unwrap();
@@ -98,9 +95,9 @@ fn integration() {
         let input = DataCenterOnlineInput {
             loads: vec![vec![LoadProfile::raw(vec![10.])]],
         };
-        let (x, _) = online::next::<
+        let (x, _, _) = online::next::<
             f64,
-            SmoothedConvexOptimization<f64>,
+            FractionalSmoothedConvexOptimization,
             Memory,
             DataCenterOnlineInput,
         >(addr.parse().unwrap(), input);

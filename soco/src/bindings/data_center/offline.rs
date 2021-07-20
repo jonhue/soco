@@ -20,6 +20,8 @@ use crate::{
 };
 use pyo3::prelude::*;
 
+type Response<T> = (Vec<Vec<T>>, f64);
+
 /// Backward-Recurrent Capacity Provisioning
 #[pyfunction]
 #[pyo3(name = "brcp")]
@@ -27,10 +29,10 @@ fn brcp_py(
     model: DataCenterModel,
     input: DataCenterOfflineInput,
     inverted: bool,
-) -> PyResult<Vec<Vec<f64>>> {
-    Ok(offline::solve(&model, &brcp, (), input, inverted)
-        .unwrap()
-        .to_vec())
+) -> PyResult<Response<f64>> {
+    let (xs, cost) =
+        offline::solve(&model, &brcp, (), input, inverted).unwrap();
+    Ok((xs.to_vec(), cost))
 }
 
 /// Graph-Based Optimal Algorithm (uni-dimensional)
@@ -41,8 +43,8 @@ fn optimal_graph_search_1d_py(
     input: DataCenterOfflineInput,
     options: OptimalGraphSearch1dOptions,
     inverted: bool,
-) -> PyResult<(Vec<Vec<i32>>, f64)> {
-    let result = offline::solve(
+) -> PyResult<Response<i32>> {
+    let (xs, cost) = offline::solve(
         &model,
         &optimal_graph_search_1d,
         options,
@@ -50,7 +52,7 @@ fn optimal_graph_search_1d_py(
         inverted,
     )
     .unwrap();
-    Ok((result.xs.to_vec(), result.cost))
+    Ok((xs.to_vec(), cost))
 }
 
 /// Graph-Based Optimal Algorithm
@@ -60,11 +62,11 @@ fn optimal_graph_search_py(
     model: DataCenterModel,
     input: DataCenterOfflineInput,
     inverted: bool,
-) -> PyResult<(Vec<Vec<i32>>, f64)> {
-    let result =
+) -> PyResult<Response<i32>> {
+    let (xs, cost) =
         offline::solve(&model, &optimal_graph_search, (), input, inverted)
             .unwrap();
-    Ok((result.xs.to_vec(), result.cost))
+    Ok((xs.to_vec(), cost))
 }
 
 /// Graph-Based Polynomial-Time Approximation Scheme
@@ -75,11 +77,11 @@ fn approx_graph_search_py(
     input: DataCenterOfflineInput,
     options: ApproxGraphSearchOptions,
     inverted: bool,
-) -> PyResult<(Vec<Vec<i32>>, f64)> {
-    let result =
+) -> PyResult<Response<i32>> {
+    let (xs, cost) =
         offline::solve(&model, &approx_graph_search, options, input, inverted)
             .unwrap();
-    Ok((result.xs.to_vec(), result.cost))
+    Ok((xs.to_vec(), cost))
 }
 
 /// Convex Optimization
@@ -89,10 +91,9 @@ fn co_py(
     model: DataCenterModel,
     input: DataCenterOfflineInput,
     inverted: bool,
-) -> PyResult<Vec<Vec<f64>>> {
-    Ok(offline::solve(&model, &co, (), input, inverted)
-        .unwrap()
-        .to_vec())
+) -> PyResult<Response<f64>> {
+    let (xs, cost) = offline::solve(&model, &co, (), input, inverted).unwrap();
+    Ok((xs.to_vec(), cost))
 }
 
 pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {

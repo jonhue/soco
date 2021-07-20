@@ -6,8 +6,10 @@ use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, sample_uniform};
 use noisy_float::prelude::*;
+use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
+#[pyclass]
 #[derive(Clone, Deserialize, Serialize)]
 pub struct Memory {
     /// Random number `r` representing bias.
@@ -21,6 +23,7 @@ impl Default for Memory {
     }
 }
 
+#[pyclass]
 #[derive(Clone)]
 pub struct Options {
     /// Scaling factor for norm. `theta >= 1. Defaults to `1`.

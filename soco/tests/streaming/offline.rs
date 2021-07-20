@@ -68,8 +68,8 @@ fn solve() {
         loads: vec![LoadProfile::raw(vec![10.]); t_end as usize],
     };
 
-    let result =
+    let (xs, _) =
         offline::solve(&model, &optimal_graph_search, (), input, false)
             .unwrap();
-    result.xs.verify(t_end, &vec![m]).unwrap();
+    xs.verify(t_end, &vec![m]).unwrap();
 }

@@ -1,4 +1,4 @@
-use crate::algorithms::graph_search::Path;
+use crate::algorithms::offline::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::{
     graph_search::graph_search, Values,
 };

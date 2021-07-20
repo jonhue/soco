@@ -1,6 +1,5 @@
-use crate::algorithms::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
-use crate::algorithms::offline::OfflineAlgorithm;
+use crate::algorithms::offline::{OfflineAlgorithm, OfflineResult};
 use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
 use crate::cost::{CostFn, SingleCostFn};
@@ -241,6 +240,6 @@ fn find_optimal_config(
     p: IntegralSmoothedBalancedLoadOptimization,
 ) -> Result<IntegralConfig> {
     let ssco_p = p.into_ssco();
-    let Path { xs, .. } = optimal_graph_search.solve(ssco_p, (), false)?;
-    Ok(xs.now())
+    let result = optimal_graph_search.solve(ssco_p, (), false)?;
+    Ok(result.xs().now())
 }

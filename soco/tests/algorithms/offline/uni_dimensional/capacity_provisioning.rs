@@ -1,5 +1,6 @@
 mod bcp {
     use crate::factories::inv_e;
+    use soco::algorithms::offline::OfflineResult;
     use soco::algorithms::offline::{
         uni_dimensional::capacity_provisioning::brcp,
         OfflineAlgorithmWithDefaultOptions,
@@ -21,7 +22,10 @@ mod bcp {
         };
         p.verify().unwrap();
 
-        let result = brcp.solve_with_default_options(p.clone(), false).unwrap();
+        let result = brcp
+            .solve_with_default_options(p.clone(), false)
+            .unwrap()
+            .xs();
         result.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(

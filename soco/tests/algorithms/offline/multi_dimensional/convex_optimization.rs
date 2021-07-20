@@ -2,6 +2,7 @@ mod co {
     use crate::factories::inv_e;
     use rand::prelude::*;
     use rand_pcg::Pcg64;
+    use soco::algorithms::offline::OfflineResult;
     use soco::algorithms::offline::{
         multi_dimensional::convex_optimization::co,
         OfflineAlgorithmWithDefaultOptions,
@@ -25,7 +26,10 @@ mod co {
         };
         p.verify().unwrap();
 
-        let result = co.solve_with_default_options(p.clone(), false).unwrap();
+        let result = co
+            .solve_with_default_options(p.clone(), false)
+            .unwrap()
+            .xs();
         result
             .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
             .unwrap();
@@ -55,7 +59,10 @@ mod co {
         };
         p.verify().unwrap();
 
-        let result = co.solve_with_default_options(p.clone(), false).unwrap();
+        let result = co
+            .solve_with_default_options(p.clone(), false)
+            .unwrap()
+            .xs();
         result
             .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
             .unwrap();
@@ -84,7 +91,10 @@ mod co {
         };
         p.verify().unwrap();
 
-        let result = co.solve_with_default_options(p.clone(), false).unwrap();
+        let result = co
+            .solve_with_default_options(p.clone(), false)
+            .unwrap()
+            .xs();
         result
             .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
             .unwrap();
