@@ -1,3 +1,4 @@
+black==21.7b0
 greykite==0.2.0
 matplotlib==3.4.2
 numpy==1.21.1

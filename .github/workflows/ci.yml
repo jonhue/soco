@@ -3,10 +3,9 @@ name: CI
 on: [push]
 
 jobs:
-  build:
-
+  rust:
+    name: Rust
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@main
     - uses: actions-rs/toolchain@v1.0.7
@@ -35,3 +34,18 @@ jobs:
     #   with:
     #     command: package
     #     args: --manifest-path=soco/Cargo.toml
+
+  python:
+    name: Python
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@main
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r analysis/requirements.txt
+    - name: Black
+      run: black analysis --check
