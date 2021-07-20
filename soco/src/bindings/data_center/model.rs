@@ -1,5 +1,4 @@
 use crate::model::data_center::{
-    loads::LoadProfile,
     model::{
         DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
         JobType, Location, ServerType, Source,
@@ -37,8 +36,6 @@ pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<MinimalDetectableDelayRevenueLossModel>()?;
 
     m.add_class::<SwitchingCost>()?;
-
-    m.add_class::<LoadProfile>()?;
 
     Ok(())
 }
