@@ -20,10 +20,10 @@ pub enum EnergyConsumptionModel {
 #[pyclass]
 #[derive(Clone)]
 pub struct LinearEnergyConsumptionModel {
-    /// Power consumed when idling.
+    /// Power consumed when idling in a unit of time.
     #[pyo3(get, set)]
     pub phi_min: f64,
-    /// Power consumed at full load.
+    /// Power consumed at full load in a unit of time.
     #[pyo3(get, set)]
     pub phi_max: f64,
 }
@@ -38,7 +38,7 @@ impl LinearEnergyConsumptionModel {
 #[pyclass]
 #[derive(Clone)]
 pub struct SimplifiedLinearEnergyConsumptionModel {
-    /// Power consumed at full load.
+    /// Power consumed at full load in a unit of time.
     #[pyo3(get, set)]
     pub phi_max: f64,
 }
@@ -53,7 +53,7 @@ impl SimplifiedLinearEnergyConsumptionModel {
 #[pyclass]
 #[derive(Clone)]
 pub struct NonLinearEnergyConsumptionModel {
-    /// Power consumed when idling.
+    /// Power consumed when idling in a unit of time.
     #[pyo3(get, set)]
     pub phi_min: f64,
     /// Constant for computing dynamic power. `alpha > 1`.
@@ -78,19 +78,28 @@ impl NonLinearEnergyConsumptionModel {
 impl EnergyConsumptionModel {
     /// Energy consumption of a server of some type with utilization `s`.
     /// Referred to as `\phi` in the paper.
-    pub fn consumption(&self, server_type: &ServerType, s: N64) -> N64 {
+    pub fn consumption(
+        &self,
+        delta: f64,
+        server_type: &ServerType,
+        s: N64,
+    ) -> N64 {
         match self {
             EnergyConsumptionModel::Linear(models) => {
                 let model = &models[&server_type.key];
-                n64(model.phi_max - model.phi_min) * s + n64(model.phi_min)
+                n64(delta)
+                    * (n64(model.phi_max - model.phi_min) * s
+                        + n64(model.phi_min))
             }
             EnergyConsumptionModel::SimplifiedLinear(models) => {
                 let model = &models[&server_type.key];
-                n64(model.phi_max) * (n64(1.) + s) / n64(2.)
+                n64(delta) * (n64(model.phi_max) * (n64(1.) + s) / n64(2.))
             }
             EnergyConsumptionModel::NonLinear(models) => {
                 let model = &models[&server_type.key];
-                s.powf(n64(model.alpha)) / n64(model.beta) + n64(model.phi_min)
+                n64(delta)
+                    * (s.powf(n64(model.alpha)) / n64(model.beta)
+                        + n64(model.phi_min))
             }
         }
     }

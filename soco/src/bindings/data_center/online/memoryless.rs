@@ -18,7 +18,7 @@ fn start(
     input: DataCenterOfflineInput,
     w: i32,
 ) -> PyResult<Response<f64, ()>> {
-    let (xs, cost, _) = online::start(
+    let ((xs, cost), (int_xs, int_cost), _) = online::start(
         addr.parse().unwrap(),
         model,
         &memoryless,
@@ -28,7 +28,7 @@ fn start(
         None,
     )
     .unwrap();
-    Ok((xs.to_vec(), cost, None))
+    Ok(((xs.to_vec(), cost), (int_xs.to_vec(), int_cost), None))
 }
 
 /// Executes next iteration of the algorithm.
@@ -37,13 +37,13 @@ fn next(
     addr: String,
     input: DataCenterOnlineInput,
 ) -> PyResult<StepResponse<f64, ()>> {
-    let (x, cost, _) = online::next::<
+    let ((x, cost), (int_x, int_cost), _) = online::next::<
         f64,
         FractionalSimplifiedSmoothedConvexOptimization,
         (),
         DataCenterOnlineInput,
     >(addr.parse().unwrap(), input);
-    Ok((x.to_vec(), cost, None))
+    Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), None))
 }
 
 /// Memoryless Algorithm

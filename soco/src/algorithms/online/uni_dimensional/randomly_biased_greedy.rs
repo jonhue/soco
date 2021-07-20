@@ -10,7 +10,7 @@ use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
 #[pyclass]
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory {
     /// Random number `r` representing bias.
     r: f64,

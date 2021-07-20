@@ -2,6 +2,7 @@ mod optimal_graph_search {
     use crate::factories::{penalize_zero, random};
     use rand::prelude::*;
     use rand_pcg::Pcg64;
+    use soco::algorithms::offline::OfflineOptions;
     use soco::algorithms::offline::{
         multi_dimensional::optimal_graph_search::optimal_graph_search,
         OfflineAlgorithmWithDefaultOptions,
@@ -24,11 +25,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result = optimal_graph_search
-            .solve_with_default_options(p.clone(), false)
+            .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result = optimal_graph_search
-            .solve_with_default_options(p.clone(), true)
+            .solve_with_default_options(p.clone(), OfflineOptions::inverted())
             .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -60,11 +61,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result = optimal_graph_search
-            .solve_with_default_options(p.clone(), false)
+            .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result = optimal_graph_search
-            .solve_with_default_options(p.clone(), true)
+            .solve_with_default_options(p.clone(), OfflineOptions::inverted())
             .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -97,11 +98,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result = optimal_graph_search
-            .solve_with_default_options(p.clone(), false)
+            .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result = optimal_graph_search
-            .solve_with_default_options(p.clone(), true)
+            .solve_with_default_options(p.clone(), OfflineOptions::inverted())
             .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 

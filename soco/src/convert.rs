@@ -9,7 +9,7 @@ use crate::problem::{
     SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
     SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
-use crate::schedule::{FractionalSchedule, IntegralSchedule};
+use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::shift_time;
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
@@ -23,24 +23,30 @@ pub trait DiscretizableVector {
     fn floor(&self) -> Vec<i32>;
 }
 
-impl DiscretizableVector for Vec<f64> {
+impl<'a, T> DiscretizableVector for Vec<T>
+where
+    T: Value<'a>,
+{
     fn ceil(&self) -> Vec<i32> {
-        self.iter().map(|&x| x.ceil() as i32).collect()
+        self.iter().map(|&x| x.ceil()).collect()
     }
 
     fn floor(&self) -> Vec<i32> {
-        self.iter().map(|&x| x.floor() as i32).collect()
+        self.iter().map(|&x| x.floor()).collect()
     }
 }
 
-pub trait RelaxableVector {
-    /// Convert an integral vector to a fractional vector.
-    fn to_f(&self) -> Vec<f64>;
+pub trait CastableVector<T> {
+    fn to(&self) -> Vec<T>;
 }
 
-impl RelaxableVector for Vec<i32> {
-    fn to_f(&self) -> Vec<f64> {
-        self.iter().map(|&x| x as f64).collect()
+impl<'a, T, U> CastableVector<T> for Vec<U>
+where
+    T: Value<'a>,
+    U: Value<'a>,
+{
+    fn to(&self) -> Vec<T> {
+        self.iter().map(|&x| NumCast::from(x).unwrap()).collect()
     }
 }
 
@@ -54,7 +60,7 @@ impl<'a> DiscretizableCostFn<'a> for CostFn<'a, FractionalConfig> {
         CostFn::new(
             1,
             SingleCostFn::certain(move |t, x: IntegralConfig| {
-                self.call_unbounded(t, x.to_f())
+                self.call_unbounded(t, x.to())
             }),
         )
     }
@@ -130,7 +136,7 @@ impl<'a> RelaxableProblem<'a>
         SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
-            bounds: self.bounds.to_f(),
+            bounds: self.bounds.to(),
             switching_cost: self.switching_cost.clone(),
             hitting_cost: self.hitting_cost.to_f(),
         }
@@ -243,7 +249,10 @@ pub trait DiscretizableConfig {
     fn floor(&self) -> IntegralConfig;
 }
 
-impl DiscretizableConfig for FractionalConfig {
+impl<'a, T> DiscretizableConfig for Config<T>
+where
+    T: Value<'a>,
+{
     fn ceil(&self) -> IntegralConfig {
         Config::new(self.to_vec().ceil())
     }
@@ -253,14 +262,17 @@ impl DiscretizableConfig for FractionalConfig {
     }
 }
 
-pub trait RelaxableConfig {
-    /// Convert an integral config to a fractional config.
-    fn to_f(&self) -> FractionalConfig;
+pub trait CastableConfig<T> {
+    fn to(&self) -> Config<T>;
 }
 
-impl RelaxableConfig for IntegralConfig {
-    fn to_f(&self) -> FractionalConfig {
-        Config::new(self.to_vec().to_f())
+impl<'a, T, U> CastableConfig<T> for Config<U>
+where
+    T: Value<'a>,
+    U: Value<'a>,
+{
+    fn to(&self) -> Config<T> {
+        Config::new(self.to_vec().to())
     }
 }
 
@@ -269,20 +281,26 @@ pub trait DiscretizableSchedule {
     fn to_i(&self) -> IntegralSchedule;
 }
 
-impl DiscretizableSchedule for FractionalSchedule {
+impl<'a, T> DiscretizableSchedule for Schedule<T>
+where
+    T: Value<'a>,
+{
     fn to_i(&self) -> IntegralSchedule {
         self.iter().map(|x| x.ceil()).collect()
     }
 }
 
-pub trait RelaxableSchedule {
-    /// Relax an integral schedule to a fractional schedule.
-    fn to_f(&self) -> FractionalSchedule;
+pub trait CastableSchedule<T> {
+    fn to(&self) -> Schedule<T>;
 }
 
-impl RelaxableSchedule for IntegralSchedule {
-    fn to_f(&self) -> FractionalSchedule {
-        self.iter().map(|x| x.to_f()).collect()
+impl<'a, T, U> CastableSchedule<T> for Schedule<U>
+where
+    T: Value<'a>,
+    U: Value<'a>,
+{
+    fn to(&self) -> Schedule<T> {
+        self.iter().map(|x| x.to()).collect()
     }
 }
 

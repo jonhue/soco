@@ -19,10 +19,12 @@ const EPSILON: f64 = 1e-5;
 /// Probability distribution.
 type Distribution<'a> = Arc<dyn Fn(f64) -> f64 + Send + Sync + 'a>;
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Derivative, Deserialize, Serialize)]
+#[derivative(Debug)]
 pub struct Memory<'a> {
     /// Probability distribution.
     #[serde(skip, default = "default_p")]
+    #[derivative(Debug = "ignore")]
     p: Distribution<'a>,
     /// List of non-continuous or non-smooth points of the probability distribution.
     breakpoints: Vec<f64>,

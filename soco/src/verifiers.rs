@@ -27,8 +27,8 @@ where
             format!("number of dimensions must be positive, is {}", self.d),
         )?;
         assert_validity(
-            self.t_end > 0,
-            format!("time horizon must be positive, is {}", self.t_end),
+            self.t_end >= 0,
+            format!("time horizon must be non-negative, is {}", self.t_end),
         )?;
         assert_validity(
             self.bounds.len() == self.d as usize,
@@ -49,8 +49,8 @@ where
             format!("number of dimensions must be positive, is {}", self.d),
         )?;
         assert_validity(
-            self.t_end > 0,
-            format!("time horizon must be positive, is {}", self.t_end),
+            self.t_end >= 0,
+            format!("time horizon must be non-negative, is {}", self.t_end),
         )?;
         assert_validity(
             self.bounds.len() == self.d as usize,
@@ -89,8 +89,8 @@ where
             format!("number of dimensions must be positive, is {}", self.d),
         )?;
         assert_validity(
-            self.t_end > 0,
-            format!("time horizon must be positive, is {}", self.t_end),
+            self.t_end >= 0,
+            format!("time horizon must be non-negative, is {}", self.t_end),
         )?;
         assert_validity(
             self.bounds.len() == self.d as usize,
@@ -185,8 +185,8 @@ where
             format!("number of dimensions must be positive, is {}", self.d),
         )?;
         assert_validity(
-            self.t_end > 0,
-            format!("time horizon must be positive, is {}", self.t_end),
+            self.t_end >= 0,
+            format!("time horizon must be non-negative, is {}", self.t_end),
         )?;
         assert_validity(
             self.bounds.len() == self.d as usize,

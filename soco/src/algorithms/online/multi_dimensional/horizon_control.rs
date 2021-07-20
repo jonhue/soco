@@ -56,7 +56,7 @@ fn next(
         let p = o.p.reset(t - k);
 
         n64(p
-            .objective_function_with_default(&xs, &prev_x, false)
+            .objective_function_with_default(&xs, &prev_x, 1., false)
             .unwrap())
     };
 

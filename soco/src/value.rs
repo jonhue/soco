@@ -11,6 +11,7 @@ pub trait Value<'a>:
     + Copy
     + Debug
     + DeserializeOwned
+    + Discretizable
     + Display
     + Num
     + NumCast
@@ -28,6 +29,7 @@ impl<'a, T> Value<'a> for T where
         + Copy
         + Debug
         + DeserializeOwned
+        + Discretizable
         + Display
         + Num
         + NumCast
@@ -38,4 +40,39 @@ impl<'a, T> Value<'a> for T where
         + Sync
         + 'a
 {
+}
+
+pub trait Discretizable {
+    fn ceil(self) -> i32;
+    fn floor(self) -> i32;
+}
+
+impl Discretizable for i32 {
+    fn ceil(self) -> i32 {
+        self
+    }
+
+    fn floor(self) -> i32 {
+        self
+    }
+}
+
+impl Discretizable for f64 {
+    fn ceil(self) -> i32 {
+        self.ceil() as i32
+    }
+
+    fn floor(self) -> i32 {
+        self.floor() as i32
+    }
+}
+
+impl Discretizable for usize {
+    fn ceil(self) -> i32 {
+        self as i32
+    }
+
+    fn floor(self) -> i32 {
+        self as i32
+    }
 }

@@ -19,6 +19,7 @@ use crate::problem::{
 };
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
+use log::info;
 use noisy_float::prelude::*;
 use num::NumCast;
 use pyo3::prelude::*;
@@ -74,7 +75,8 @@ pub struct JobType {
     /// Name.
     #[pyo3(get, set)]
     pub key: String,
-    /// Processing time `\eta_{k,i}` of a job on some server type `k` (assuming full utilization). Must be less than the time slot length `delta`.
+    /// Processing time `\eta_{k,i}` of a job on some server type `k` (assuming full utilization).
+    /// Must be less or equals to the length of a time slot `delta` for some server type.
     processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + Send + Sync>,
 }
 impl Default for JobType {
@@ -109,9 +111,9 @@ impl JobType {
                 Python::with_gil(|py| {
                     processing_time_on
                         .call1(py, (server_type.clone(),))
-                        .unwrap()
+                        .expect("job type `processing_time_on` method invalid")
                         .extract(py)
-                        .unwrap()
+                        .expect("job type `processing_time_on` method invalid")
                 })
             }),
         }
@@ -151,9 +153,9 @@ impl Source {
                 Python::with_gil(|py| {
                     routing_delay_to
                         .call1(py, (t, location.clone()))
-                        .unwrap()
+                        .expect("source `routing_delay_to` method invalid")
                         .extract(py)
-                        .unwrap()
+                        .expect("source `routing_delay_to` method invalid")
                 })
             }),
         }
@@ -309,9 +311,11 @@ impl DataCenterModel {
                 safe_balancing(x, total_load, || {
                     let s = total_load / (x * self.delta);
                     server_type.limit_utilization(s, || {
-                        x * self
-                            .energy_consumption_model
-                            .consumption(server_type, s)
+                        x * self.energy_consumption_model.consumption(
+                            self.delta,
+                            server_type,
+                            s,
+                        )
                     })
                 })
             })
@@ -554,7 +558,7 @@ where
         o.p.inc_t_end();
         let t = o.p.t_end();
         let span = loads.len() as i32;
-        println!("Updating online instance to time slot {}.", t);
+        info!("Updating online instance to time slot {}.", t);
         o.p.hitting_cost
             .add(t, self.apply_predicted_loads(loads, t));
         verify_update(o, span);
@@ -598,7 +602,7 @@ where
         o.p.inc_t_end();
         let t = o.p.t_end();
         let span = loads.len() as i32;
-        println!("Updating online instance to time slot {}.", t);
+        info!("Updating online instance to time slot {}.", t);
         o.p.hitting_cost
             .add(t, self.apply_predicted_loads(loads, t));
         verify_update(o, span);
@@ -646,8 +650,11 @@ where
                     SingleCostFn::certain(move |t, l| {
                         let s = n64(l) / delta;
                         let p = server_type.limit_utilization(s, || {
-                            energy_consumption_model
-                                .consumption(&server_type, s)
+                            energy_consumption_model.consumption(
+                                delta,
+                                &server_type,
+                                s,
+                            )
                         });
                         energy_cost_model.cost(t, &location, p)
                     }),
@@ -677,7 +684,7 @@ where
         let t = o.p.t_end();
         assert!(t == o.p.load.len() as i32 + 1, "Loads and time slot are inconsistent. Time slot is {} but loads are present for {} time slots.", t, o.p.load.len() as i32 + 1);
         let span = loads.len() as i32;
-        println!("Updating online instance to time slot {}.", t);
+        info!("Updating online instance to time slot {}.", t);
         for load_profiles in loads {
             assert!(
                 load_profiles.len() == 1,
@@ -722,9 +729,11 @@ where
             .map(move |server_type| {
                 (0..t_end)
                     .map(|t| -> f64 {
-                        let p = self
-                            .energy_consumption_model
-                            .consumption(server_type, n64(1.));
+                        let p = self.energy_consumption_model.consumption(
+                            self.delta,
+                            server_type,
+                            n64(1.),
+                        );
                         self.energy_cost_model.cost(t, location, p).raw()
                     })
                     .sum::<f64>()
@@ -754,7 +763,7 @@ where
         let t = o.p.t_end();
         assert!(t == o.p.load.len() as i32 + 1, "Loads and time slot are inconsistent. Time slot is {} but loads are present for {} time slots.", t, o.p.load.len() as i32 + 1);
         let span = loads.len() as i32;
-        println!("Updating online instance to time slot {}.", t);
+        info!("Updating online instance to time slot {}.", t);
         for load_profiles in loads {
             assert!(load_profiles.len() == 1);
             o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());

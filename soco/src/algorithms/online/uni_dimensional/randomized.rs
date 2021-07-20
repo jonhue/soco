@@ -4,7 +4,7 @@ use crate::algorithms::online::uni_dimensional::probabilistic::{
 use crate::algorithms::online::{IntegralStep, OnlineAlgorithm, Step};
 use crate::breakpoints::Breakpoints;
 use crate::config::{Config, FractionalConfig};
-use crate::convert::RelaxableSchedule;
+use crate::convert::CastableSchedule;
 use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
@@ -13,7 +13,7 @@ use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
 /// Memory.
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory<'a> {
     /// Fractional number of servers determined by fractional relaxation.
     y: FractionalConfig,
@@ -50,7 +50,7 @@ pub fn randomized<'a>(
 
     let Step(y, relaxation_m) = probabilistic.next(
         o,
-        &xs.to_f(),
+        &xs.to(),
         prev_m.relaxation_m,
         RelaxationOptions {
             breakpoints: Breakpoints::grid(1.),

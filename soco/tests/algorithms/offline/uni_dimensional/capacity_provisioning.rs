@@ -1,10 +1,10 @@
 mod bcp {
     use crate::factories::inv_e;
-    use soco::algorithms::offline::OfflineResult;
     use soco::algorithms::offline::{
         uni_dimensional::capacity_provisioning::brcp,
         OfflineAlgorithmWithDefaultOptions,
     };
+    use soco::algorithms::offline::{OfflineOptions, OfflineResult};
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
@@ -23,7 +23,7 @@ mod bcp {
         p.verify().unwrap();
 
         let result = brcp
-            .solve_with_default_options(p.clone(), false)
+            .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap()
             .xs();
         result.verify(p.t_end, &p.bounds).unwrap();

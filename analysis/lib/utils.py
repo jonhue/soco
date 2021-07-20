@@ -2,6 +2,10 @@ from typing import List
 from dataclasses import dataclass
 from scipy.stats import median_abs_deviation, mode
 import numpy as np
+import seaborn as sb
+import matplotlib.pyplot as plt
+import tikzplotlib
+import pandas as pd
 
 
 @dataclass
@@ -50,3 +54,18 @@ def distance_distribution(series: np.array) -> np.array:
     result = series - np.roll(series, 1)
     result[0] = series[0]
     return result
+
+
+def plot_cdf(samples: np.array, label: str, name: str):
+    sb.ecdfplot(samples)
+    plt.xlabel(label)
+    plt.ylabel("proportion")
+    tikzplotlib.save(f"out/figures/{name}.tex")
+
+
+def plot(x: np.array, y: np.array, xlabel: str, ylabel: str, name: str):
+    df = pd.DataFrame({"x": x, "y": y})
+    sb.lineplot(x="x", y="y", data=df)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    tikzplotlib.save(f"out/figures/{name}.tex")

@@ -7,8 +7,10 @@ mod probabilistic;
 mod randomized;
 mod randomly_biased_greedy;
 
-type Response<T, M> = (Vec<Vec<T>>, f64, Option<M>);
-type StepResponse<T, M> = (Vec<T>, f64, Option<M>);
+/// Obtained result, integral result, and last memory.
+type Response<T, M> = ((Vec<Vec<T>>, f64), (Vec<Vec<i32>>, f64), Option<M>);
+/// Obtained result, integral result, and last memory.
+type StepResponse<T, M> = ((Vec<T>, f64), (Vec<i32>, f64), Option<M>);
 
 /// Stops backend server.
 #[pyfunction]

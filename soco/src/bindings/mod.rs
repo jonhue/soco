@@ -6,6 +6,8 @@ mod utils;
 
 #[pymodule]
 pub fn soco(py: Python, m: &PyModule) -> PyResult<()> {
+    pyo3_log::init();
+
     let data_center = PyModule::new(py, "data_center")?;
     data_center::submodule(py, data_center)?;
     make_package(py, data_center, "soco.data_center");
