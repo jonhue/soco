@@ -6,8 +6,7 @@ use pyo3::prelude::*;
 use std::collections::HashMap;
 
 /// Switching cost model. Parameters are provided separately for each server type.
-#[pyclass]
-#[derive(Clone)]
+#[derive(Clone, FromPyObject)]
 pub struct SwitchingCostModel(HashMap<String, SwitchingCost>);
 
 /// Switching cost.
@@ -15,19 +14,49 @@ pub struct SwitchingCostModel(HashMap<String, SwitchingCost>);
 #[derive(Clone)]
 pub struct SwitchingCost {
     /// Average cost per unit of energy.
+    #[pyo3(get, set)]
     pub energy_cost: f64,
     /// Power consumed when idling.
+    #[pyo3(get, set)]
     pub phi_min: f64,
     /// Power consumed at full load.
+    #[pyo3(get, set)]
     pub phi_max: f64,
     /// Additional energy consumed by toggling a server on and off.
+    #[pyo3(get, set)]
     pub epsilon: f64,
     /// Required time in time slots for migrating connections or data.
+    #[pyo3(get, set)]
     pub delta: f64,
     /// Wear-and-tear costs of toggling a server.
+    #[pyo3(get, set)]
     pub tau: f64,
     /// Perceived risk associated with toggling a server.
+    #[pyo3(get, set)]
     pub rho: f64,
+}
+#[pymethods]
+impl SwitchingCost {
+    #[new]
+    fn constructor(
+        energy_cost: f64,
+        phi_min: f64,
+        phi_max: f64,
+        epsilon: f64,
+        delta: f64,
+        tau: f64,
+        rho: f64,
+    ) -> Self {
+        SwitchingCost {
+            energy_cost,
+            phi_min,
+            phi_max,
+            epsilon,
+            delta,
+            tau,
+            rho,
+        }
+    }
 }
 
 impl SwitchingCostModel {

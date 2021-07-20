@@ -10,11 +10,19 @@ use pyo3::prelude::*;
 #[derive(Clone)]
 pub struct Options {
     /// `gamma > 1`. Default is `1.1`.
+    #[pyo3(get, set)]
     pub gamma: f64,
 }
 impl Default for Options {
     fn default() -> Self {
         Options { gamma: 1.1 }
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(gamma: f64) -> Self {
+        Options { gamma }
     }
 }
 

@@ -57,6 +57,7 @@ impl IntoPy<PyObject> for Memory<'_> {
 #[derive(Clone)]
 pub struct Options {
     /// Breakpoints of piecewise linear hitting costs.
+    #[pyo3(get, set)]
     pub breakpoints: Breakpoints,
 }
 impl Default for Options {
@@ -64,6 +65,13 @@ impl Default for Options {
         Options {
             breakpoints: Breakpoints::empty(),
         }
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(breakpoints: Breakpoints) -> Self {
+        Options { breakpoints }
     }
 }
 

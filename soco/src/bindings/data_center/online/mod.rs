@@ -23,18 +23,23 @@ pub fn submodule(py: Python, m: &PyModule) -> PyResult<()> {
     let lazy_capacity_provisioning =
         PyModule::new(py, "lazy_capacity_provisioning")?;
     lazy_capacity_provisioning::submodule(py, lazy_capacity_provisioning)?;
+    m.add_submodule(lazy_capacity_provisioning)?;
 
     let memoryless = PyModule::new(py, "memoryless")?;
     memoryless::submodule(py, memoryless)?;
+    m.add_submodule(memoryless)?;
 
     let probabilistic = PyModule::new(py, "probabilistic")?;
     probabilistic::submodule(py, probabilistic)?;
+    m.add_submodule(probabilistic)?;
 
     let randomized = PyModule::new(py, "randomized")?;
     randomized::submodule(py, randomized)?;
+    m.add_submodule(randomized)?;
 
     let randomly_biased_greedy = PyModule::new(py, "randomly_biased_greedy")?;
     randomly_biased_greedy::submodule(py, randomly_biased_greedy)?;
+    m.add_submodule(randomly_biased_greedy)?;
 
     Ok(())
 }

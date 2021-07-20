@@ -16,7 +16,6 @@ use std::ops::Mul;
 use std::sync::Arc;
 
 /// For some time `t`, encapsulates the load of `e` types.
-#[pyclass]
 #[derive(Clone, Debug, PartialEq)]
 pub struct LoadProfile(Vec<N64>);
 
@@ -54,6 +53,18 @@ impl LoadProfile {
     /// Converts load profile to a vector.
     pub fn to_raw(&self) -> Vec<f64> {
         self.0.iter().map(|l| l.raw()).collect()
+    }
+}
+
+impl<'a> FromPyObject<'a> for LoadProfile {
+    fn extract(ob: &'a PyAny) -> PyResult<Self> {
+        Ok(LoadProfile::raw(ob.extract()?))
+    }
+}
+
+impl IntoPy<PyObject> for LoadProfile {
+    fn into_py(self, py: Python) -> PyObject {
+        self.to_raw().into_py(py)
     }
 }
 

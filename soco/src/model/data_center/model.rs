@@ -33,8 +33,10 @@ pub static DEFAULT_KEY: &str = "";
 #[derive(Clone)]
 pub struct ServerType {
     /// Name.
+    #[pyo3(get, set)]
     pub key: String,
     /// Maximum allowed utilization. Between `0` and `1`.
+    #[pyo3(get, set)]
     max_utilization: f64,
 }
 impl Default for ServerType {
@@ -54,12 +56,23 @@ impl ServerType {
         }
     }
 }
+#[pymethods]
+impl ServerType {
+    #[new]
+    fn constructor(key: String, max_utilization: f64) -> Self {
+        ServerType {
+            key,
+            max_utilization,
+        }
+    }
+}
 
 /// Job type.
 #[pyclass]
 #[derive(Clone)]
 pub struct JobType {
     /// Name.
+    #[pyo3(get, set)]
     pub key: String,
     /// Processing time `\eta_{k,i}` of a job on some server type `k` (assuming full utilization). Must be less than the time slot length `delta`.
     processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + Send + Sync>,
@@ -73,7 +86,7 @@ impl Default for JobType {
     }
 }
 impl JobType {
-    pub fn new(processing_times: HashMap<String, f64>) -> Self {
+    pub fn from_map(processing_times: HashMap<String, f64>) -> Self {
         JobType {
             key: DEFAULT_KEY.to_string(),
             processing_time_on: Arc::new(move |server_type| {
@@ -86,12 +99,31 @@ impl JobType {
         n64((self.processing_time_on)(server_type))
     }
 }
+#[pymethods]
+impl JobType {
+    #[new]
+    fn constructor(key: String, processing_time_on: Py<PyAny>) -> Self {
+        JobType {
+            key,
+            processing_time_on: Arc::new(move |server_type| {
+                Python::with_gil(|py| {
+                    processing_time_on
+                        .call1(py, (server_type.clone(),))
+                        .unwrap()
+                        .extract(py)
+                        .unwrap()
+                })
+            }),
+        }
+    }
+}
 
 /// Geographical source of jobs.
 #[pyclass]
 #[derive(Clone)]
 pub struct Source {
     /// Name.
+    #[pyo3(get, set)]
     pub key: String,
     /// Routing delay `\delta_{t,j,s}` to location `j` during time slot `t`.
     routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync>,
@@ -109,15 +141,42 @@ impl Default for Source {
         }
     }
 }
+#[pymethods]
+impl Source {
+    #[new]
+    fn constructor(key: String, routing_delay_to: Py<PyAny>) -> Self {
+        Source {
+            key,
+            routing_delay_to: Arc::new(move |t, location| {
+                Python::with_gil(|py| {
+                    routing_delay_to
+                        .call1(py, (t, location.clone()))
+                        .unwrap()
+                        .extract(py)
+                        .unwrap()
+                })
+            }),
+        }
+    }
+}
 
 /// Data center.
 #[pyclass]
 #[derive(Clone)]
 pub struct Location {
     /// Name.
+    #[pyo3(get, set)]
     pub key: String,
     /// Maximum number of servers of each type.
+    #[pyo3(get, set)]
     pub m: HashMap<String, i32>,
+}
+#[pymethods]
+impl Location {
+    #[new]
+    fn constructor(key: String, m: HashMap<String, i32>) -> Self {
+        Location { key, m }
+    }
 }
 
 /// Model of a network of data centers.
@@ -125,24 +184,34 @@ pub struct Location {
 #[derive(Clone)]
 pub struct DataCenterModel {
     /// Length of a time slot.
+    #[pyo3(get, set)]
     delta: f64,
     /// Weight of revenue loss (as opposed to energy cost). `gamma >= 0`.
+    #[pyo3(get, set)]
     gamma: f64,
     /// Locations.
+    #[pyo3(get, set)]
     locations: Vec<Location>,
     /// Server types.
+    #[pyo3(get, set)]
     server_types: Vec<ServerType>,
     /// Sources, i.e. geographically centered locations.
+    #[pyo3(get, set)]
     sources: Vec<Source>,
     /// Job types.
+    #[pyo3(get, set)]
     job_types: Vec<JobType>,
     /// Energy consumption model.
+    #[pyo3(set)]
     energy_consumption_model: EnergyConsumptionModel,
     /// Energy cost model.
+    #[pyo3(set)]
     energy_cost_model: EnergyCostModel,
     /// Revenue loss model.
+    #[pyo3(set)]
     revenue_loss_model: RevenueLossModel,
     /// Switching cost model.
+    #[pyo3(set)]
     switching_cost_model: SwitchingCostModel,
 }
 
@@ -179,64 +248,6 @@ impl DataCenterModel {
 }
 
 impl DataCenterModel {
-    /// Creates a model of a singular data center.
-    #[allow(clippy::too_many_arguments)]
-    pub fn single(
-        delta: f64,
-        gamma: f64,
-        server_types: Vec<ServerType>,
-        m: HashMap<String, i32>,
-        job_types: Vec<JobType>,
-        energy_consumption_model: EnergyConsumptionModel,
-        energy_cost_model: EnergyCostModel,
-        revenue_loss_model: RevenueLossModel,
-        switching_cost_model: SwitchingCostModel,
-    ) -> Self {
-        Self {
-            delta,
-            gamma,
-            locations: vec![Location {
-                key: DEFAULT_KEY.to_string(),
-                m,
-            }],
-            server_types,
-            sources: vec![Source::default()],
-            job_types,
-            energy_consumption_model,
-            energy_cost_model,
-            revenue_loss_model,
-            switching_cost_model,
-        }
-    }
-
-    /// Creates a model of a network of data centers.
-    #[allow(clippy::too_many_arguments)]
-    pub fn network(
-        delta: f64,
-        gamma: f64,
-        locations: Vec<Location>,
-        server_types: Vec<ServerType>,
-        sources: Vec<Source>,
-        job_types: Vec<JobType>,
-        energy_consumption_model: EnergyConsumptionModel,
-        energy_cost_model: EnergyCostModel,
-        revenue_loss_model: RevenueLossModel,
-        switching_cost_model: SwitchingCostModel,
-    ) -> Self {
-        Self {
-            delta,
-            gamma,
-            locations,
-            server_types,
-            sources,
-            job_types,
-            energy_consumption_model,
-            energy_cost_model,
-            revenue_loss_model,
-            switching_cost_model,
-        }
-    }
-
     /// Calculates cumulative sub jobs of servers of some type, i.e. the number
     /// of sub jobs handled by all servers of this type, when they are assigned
     /// the load profile `loads`.
@@ -496,8 +507,8 @@ fn encode(inner_len: usize, outer: usize, inner: usize) -> usize {
     outer * inner_len + inner
 }
 
-#[pyclass]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, FromPyObject)]
+#[pyo3(transparent)]
 pub struct DataCenterOfflineInput {
     /// Vector of loads for all time slots that should be supported by the returned cost function.
     pub loads: Vec<LoadProfile>,
@@ -509,8 +520,8 @@ impl Default for DataCenterOfflineInput {
 }
 impl OfflineInput for DataCenterOfflineInput {}
 
-#[pyclass]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, FromPyObject, Serialize)]
+#[pyo3(transparent)]
 pub struct DataCenterOnlineInput {
     /// A load profile for each predicted sample (one load profile for certainty) over the supported time horizon.
     pub loads: Vec<Vec<LoadProfile>>,

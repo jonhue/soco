@@ -21,27 +21,58 @@ pub enum EnergyConsumptionModel {
 #[derive(Clone)]
 pub struct LinearEnergyConsumptionModel {
     /// Power consumed when idling.
+    #[pyo3(get, set)]
     pub phi_min: f64,
     /// Power consumed at full load.
+    #[pyo3(get, set)]
     pub phi_max: f64,
+}
+#[pymethods]
+impl LinearEnergyConsumptionModel {
+    #[new]
+    fn constructor(phi_min: f64, phi_max: f64) -> Self {
+        LinearEnergyConsumptionModel { phi_min, phi_max }
+    }
 }
 
 #[pyclass]
 #[derive(Clone)]
 pub struct SimplifiedLinearEnergyConsumptionModel {
     /// Power consumed at full load.
+    #[pyo3(get, set)]
     pub phi_max: f64,
+}
+#[pymethods]
+impl SimplifiedLinearEnergyConsumptionModel {
+    #[new]
+    fn constructor(phi_max: f64) -> Self {
+        SimplifiedLinearEnergyConsumptionModel { phi_max }
+    }
 }
 
 #[pyclass]
 #[derive(Clone)]
 pub struct NonLinearEnergyConsumptionModel {
     /// Power consumed when idling.
+    #[pyo3(get, set)]
     pub phi_min: f64,
     /// Constant for computing dynamic power. `alpha > 1`.
+    #[pyo3(get, set)]
     pub alpha: f64,
     /// Constant for computing dynamic power. `beta > 0`.
+    #[pyo3(get, set)]
     pub beta: f64,
+}
+#[pymethods]
+impl NonLinearEnergyConsumptionModel {
+    #[new]
+    fn constructor(phi_min: f64, alpha: f64, beta: f64) -> Self {
+        NonLinearEnergyConsumptionModel {
+            phi_min,
+            alpha,
+            beta,
+        }
+    }
 }
 
 impl EnergyConsumptionModel {

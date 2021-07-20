@@ -30,6 +30,37 @@ impl EnergySource {
         n64((self.limit)(t, location))
     }
 }
+#[pymethods]
+impl EnergySource {
+    #[new]
+    fn constructor(
+        cost: Py<PyAny>,
+        profit: Py<PyAny>,
+        limit: Py<PyAny>,
+    ) -> Self {
+        EnergySource {
+            cost: Arc::new(move |t| {
+                Python::with_gil(|py| {
+                    cost.call1(py, (t,)).unwrap().extract(py).unwrap()
+                })
+            }),
+            profit: Arc::new(move |t| {
+                Python::with_gil(|py| {
+                    profit.call1(py, (t,)).unwrap().extract(py).unwrap()
+                })
+            }),
+            limit: Arc::new(move |t, location| {
+                Python::with_gil(|py| {
+                    limit
+                        .call1(py, (t, location.clone()))
+                        .unwrap()
+                        .extract(py)
+                        .unwrap()
+                })
+            }),
+        }
+    }
+}
 
 /// Energy cost model. Parameters are provided separately for each location.
 #[derive(Clone, FromPyObject)]
@@ -52,12 +83,33 @@ impl LinearEnergyCostModel {
         n64((self.cost)(t))
     }
 }
+#[pymethods]
+impl LinearEnergyCostModel {
+    #[new]
+    fn constructor(cost: Py<PyAny>) -> Self {
+        LinearEnergyCostModel {
+            cost: Arc::new(move |t| {
+                Python::with_gil(|py| {
+                    cost.call1(py, (t,)).unwrap().extract(py).unwrap()
+                })
+            }),
+        }
+    }
+}
 
 #[pyclass]
 #[derive(Clone)]
 pub struct QuotasEnergyCostModel {
     /// Energy sources.
+    #[pyo3(get, set)]
     pub sources: Vec<EnergySource>,
+}
+#[pymethods]
+impl QuotasEnergyCostModel {
+    #[new]
+    fn constructor(sources: Vec<EnergySource>) -> Self {
+        QuotasEnergyCostModel { sources }
+    }
 }
 
 impl EnergyCostModel {

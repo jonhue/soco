@@ -7,7 +7,7 @@ use soco::{
         loads::LoadProfile,
         model::{
             DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
-            JobType, ServerType, DEFAULT_KEY,
+            JobType, Location, ServerType, Source, DEFAULT_KEY,
         },
         models::{
             energy_consumption::{
@@ -38,11 +38,15 @@ fn integration() {
     let (sender, receiver) = channel();
     let server = thread::spawn(move || {
         let delta = 1.;
-        let model = DataCenterModel::single(
+        let model = DataCenterModel::new(
             delta,
             0.,
+            vec![Location {
+                key: DEFAULT_KEY.to_string(),
+                m: hash_map(&[(DEFAULT_KEY.to_string(), m)]),
+            }],
             vec![ServerType::default()],
-            hash_map(&[(DEFAULT_KEY.to_string(), m)]),
+            vec![Source::default()],
             vec![JobType::default()],
             EnergyConsumptionModel::SimplifiedLinear(hash_map(&[(
                 DEFAULT_KEY.to_string(),
