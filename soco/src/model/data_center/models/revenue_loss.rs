@@ -19,11 +19,19 @@ pub enum RevenueLossModel {
 #[derive(Clone)]
 pub struct MinimalDetectableDelayRevenueLossModel {
     /// Minimal detectable delay of a job type.
+    #[pyo3(get, set)]
     delta: f64,
 }
 impl Default for MinimalDetectableDelayRevenueLossModel {
     fn default() -> Self {
         MinimalDetectableDelayRevenueLossModel { delta: 0. }
+    }
+}
+#[pymethods]
+impl MinimalDetectableDelayRevenueLossModel {
+    #[new]
+    fn constructor(delta: f64) -> Self {
+        MinimalDetectableDelayRevenueLossModel { delta }
     }
 }
 

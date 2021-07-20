@@ -22,11 +22,19 @@ struct Vertice(i32, i32);
 #[derive(Clone)]
 pub struct Options {
     /// Value at initial time `0`. Defaults to `0`.
+    #[pyo3(get, set)]
     pub x_start: i32,
 }
 impl Default for Options {
     fn default() -> Self {
         Options { x_start: 0 }
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(x_start: i32) -> Self {
+        Options { x_start }
     }
 }
 

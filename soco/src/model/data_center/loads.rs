@@ -57,6 +57,14 @@ impl LoadProfile {
     }
 }
 
+#[pymethods]
+impl LoadProfile {
+    #[new]
+    fn constructor(l: Vec<f64>) -> Self {
+        LoadProfile::raw(l)
+    }
+}
+
 impl Serialize for LoadProfile {
     #[inline]
     fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {

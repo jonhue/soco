@@ -1,9 +1,11 @@
 //! Non-continuous or non-smooth points of functions.
 
 use noisy_float::prelude::*;
+use pyo3::prelude::*;
 use std::sync::Arc;
 
 /// Sorted non-continuous or non-smooth points of a function.
+#[pyclass]
 #[derive(Clone)]
 pub struct Breakpoints {
     /// Finite vector of breakpoints.
@@ -53,5 +55,12 @@ impl Breakpoints {
 impl Default for Breakpoints {
     fn default() -> Self {
         Breakpoints::empty()
+    }
+}
+#[pymethods]
+impl Breakpoints {
+    #[new]
+    fn constructor(bs: Vec<f64>) -> Self {
+        Breakpoints::from(bs)
     }
 }

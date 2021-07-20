@@ -27,11 +27,19 @@ impl Default for Memory {
 #[derive(Clone)]
 pub struct Options {
     /// Scaling factor for norm. `theta >= 1. Defaults to `1`.
+    #[pyo3(get, set)]
     pub theta: f64,
 }
 impl Default for Options {
     fn default() -> Self {
         Options { theta: 1. }
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(theta: f64) -> Self {
+        Options { theta }
     }
 }
 
