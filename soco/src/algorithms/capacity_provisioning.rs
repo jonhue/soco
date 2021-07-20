@@ -17,8 +17,17 @@ use crate::utils::assert;
 use noisy_float::prelude::*;
 
 pub trait Bounded<T> {
-    /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the lowest possible cost.
     fn find_lower_bound(
+        &self,
+        t: i32,
+        t_start: i32,
+        x_start: T,
+    ) -> Result<T> {
+        self.find_alpha_unfair_lower_bound(1., t, t_start, x_start)
+    }
+
+    /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the lowest possible cost.
+    fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
         t: i32,
@@ -26,8 +35,17 @@ pub trait Bounded<T> {
         x_start: T,
     ) -> Result<T>;
 
-    /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the highest possible cost.
     fn find_upper_bound(
+        &self,
+        t: i32,
+        t_start: i32,
+        x_start: T,
+    ) -> Result<T> {
+        self.find_alpha_unfair_upper_bound(1., t, t_start, x_start)
+    }
+
+    /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the highest possible cost.
+    fn find_alpha_unfair_upper_bound(
         &self,
         alpha: f64,
         t: i32,
@@ -37,7 +55,7 @@ pub trait Bounded<T> {
 }
 
 impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
-    fn find_lower_bound(
+    fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
         t: i32,
@@ -47,7 +65,7 @@ impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
         self.find_bound(alpha, false, t, t_start, x_start)
     }
 
-    fn find_upper_bound(
+    fn find_alpha_unfair_upper_bound(
         &self,
         alpha: f64,
         t: i32,
@@ -92,7 +110,7 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
 }
 
 impl Bounded<i32> for IntegralSimplifiedSmoothedConvexOptimization<'_> {
-    fn find_lower_bound(
+    fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
         t: i32,
@@ -102,7 +120,7 @@ impl Bounded<i32> for IntegralSimplifiedSmoothedConvexOptimization<'_> {
         self.find_bound(alpha, false, t, t_start, x_start)
     }
 
-    fn find_upper_bound(
+    fn find_alpha_unfair_upper_bound(
         &self,
         alpha: f64,
         t: i32,

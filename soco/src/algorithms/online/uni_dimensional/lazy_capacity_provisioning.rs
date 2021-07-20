@@ -49,8 +49,8 @@ where
     let (t_start, x_start) = find_initial_time(&ms);
 
     let i = xs.now_with_default(Config::single(NumCast::from(0).unwrap()))[0];
-    let l = o.p.find_lower_bound(1., o.p.t_end(), t_start, x_start)?;
-    let u = o.p.find_upper_bound(1., o.p.t_end(), t_start, x_start)?;
+    let l = o.p.find_lower_bound(o.p.t_end(), t_start, x_start)?;
+    let u = o.p.find_upper_bound(o.p.t_end(), t_start, x_start)?;
     let j = project(i, l, u);
     Ok(Step(Config::single(j), Some(new_memory(ms, l, u))))
 }
