@@ -60,11 +60,12 @@ where
 {
 }
 
-/// Result of an offlien algorithm.
+/// Result of an offline algorithm.
 pub trait OfflineResult<T> {
     fn xs(self) -> Schedule<T>;
 }
 
+/// Result of an offline algorithm which only returns the obtained schedule.
 pub struct PureOfflineResult<T> {
     xs: Schedule<T>,
 }
