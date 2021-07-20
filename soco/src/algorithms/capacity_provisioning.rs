@@ -17,12 +17,7 @@ use crate::utils::assert;
 use noisy_float::prelude::*;
 
 pub trait Bounded<T> {
-    fn find_lower_bound(
-        &self,
-        t: i32,
-        t_start: i32,
-        x_start: T,
-    ) -> Result<T> {
+    fn find_lower_bound(&self, t: i32, t_start: i32, x_start: T) -> Result<T> {
         self.find_alpha_unfair_lower_bound(1., t, t_start, x_start)
     }
 
@@ -35,12 +30,7 @@ pub trait Bounded<T> {
         x_start: T,
     ) -> Result<T>;
 
-    fn find_upper_bound(
-        &self,
-        t: i32,
-        t_start: i32,
-        x_start: T,
-    ) -> Result<T> {
+    fn find_upper_bound(&self, t: i32, t_start: i32, x_start: T) -> Result<T> {
         self.find_alpha_unfair_upper_bound(1., t, t_start, x_start)
     }
 
