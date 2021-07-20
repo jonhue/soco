@@ -220,7 +220,7 @@ impl DataCenterModel {
     /// Creates a new model.
     #[allow(clippy::too_many_arguments)]
     #[new]
-    fn constructor(
+    pub fn new(
         delta: f64,
         gamma: f64,
         locations: Vec<Location>,

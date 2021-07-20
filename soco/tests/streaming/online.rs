@@ -1,15 +1,7 @@
 use crate::utils::hash_map;
-use soco::{
-    algorithms::online::uni_dimensional::randomly_biased_greedy::{
+use soco::{algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Memory, Options,
-    },
-    model::data_center::{
-        loads::LoadProfile,
-        model::{
-            DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
-            JobType, ServerType, DEFAULT_KEY,
-        },
-        models::{
+    }, model::data_center::{loads::LoadProfile, model::{DEFAULT_KEY, DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput, JobType, Location, ServerType, Source}, models::{
             energy_consumption::{
                 EnergyConsumptionModel, SimplifiedLinearEnergyConsumptionModel,
             },
@@ -18,11 +10,7 @@ use soco::{
                 MinimalDetectableDelayRevenueLossModel, RevenueLossModel,
             },
             switching_cost::{SwitchingCost, SwitchingCostModel},
-        },
-    },
-    problem::FractionalSmoothedConvexOptimization,
-    streaming::online,
-};
+        }}, problem::FractionalSmoothedConvexOptimization, streaming::online};
 use std::{
     sync::{mpsc::channel, Arc},
     thread,
@@ -38,11 +26,15 @@ fn integration() {
     let (sender, receiver) = channel();
     let server = thread::spawn(move || {
         let delta = 1.;
-        let model = DataCenterModel::single(
+        let model = DataCenterModel::new(
             delta,
             0.,
+            vec![Location {
+                key: DEFAULT_KEY.to_string(),
+                m: hash_map(&[(DEFAULT_KEY.to_string(), m)]),
+            }],
             vec![ServerType::default()],
-            hash_map(&[(DEFAULT_KEY.to_string(), m)]),
+            vec![Source::default()],
             vec![JobType::default()],
             EnergyConsumptionModel::SimplifiedLinear(hash_map(&[(
                 DEFAULT_KEY.to_string(),
