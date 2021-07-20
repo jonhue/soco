@@ -179,13 +179,8 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(result.cost, 0.);
         assert_abs_diff_eq!(
             result.cost,
-            p.objective_function_with_default(
-                &result.xs,
-                &Config::single(2),
-                1.,
-                false
-            )
-            .unwrap()
+            p.objective_function_with_default(&result.xs, &Config::single(2))
+                .unwrap()
         );
     }
 }
