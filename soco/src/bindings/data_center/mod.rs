@@ -1,5 +1,5 @@
-use pyo3::prelude::*;
 use super::utils::make_package;
+use pyo3::prelude::*;
 
 mod model;
 mod offline;

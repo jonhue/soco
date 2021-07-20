@@ -23,7 +23,11 @@ pub fn submodule(py: Python, m: &PyModule) -> PyResult<()> {
     let lazy_capacity_provisioning =
         PyModule::new(py, "lazy_capacity_provisioning")?;
     lazy_capacity_provisioning::submodule(py, lazy_capacity_provisioning)?;
-    make_package(py, lazy_capacity_provisioning, "soco.data_center.online.lazy_capacity_provisioning");
+    make_package(
+        py,
+        lazy_capacity_provisioning,
+        "soco.data_center.online.lazy_capacity_provisioning",
+    );
     m.add_submodule(lazy_capacity_provisioning)?;
 
     let memoryless = PyModule::new(py, "memoryless")?;
@@ -43,7 +47,11 @@ pub fn submodule(py: Python, m: &PyModule) -> PyResult<()> {
 
     let randomly_biased_greedy = PyModule::new(py, "randomly_biased_greedy")?;
     randomly_biased_greedy::submodule(py, randomly_biased_greedy)?;
-    make_package(py, randomly_biased_greedy, "soco.data_center.online.randomly_biased_greedy");
+    make_package(
+        py,
+        randomly_biased_greedy,
+        "soco.data_center.online.randomly_biased_greedy",
+    );
     m.add_submodule(randomly_biased_greedy)?;
 
     Ok(())
