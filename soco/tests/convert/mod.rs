@@ -26,6 +26,7 @@ mod into_sco {
             Config::new(vec![0, 1]),
         ]);
 
+        assert!(p.objective_function(&xs).unwrap().is_finite());
         assert_abs_diff_eq!(
             p.objective_function(&xs).unwrap(),
             p_sco.objective_function(&xs).unwrap(),
@@ -62,6 +63,7 @@ mod into_sco {
                 .collect(),
         );
 
+        assert!(p.objective_function(&xs).unwrap().is_finite());
         assert_abs_diff_eq!(
             p.objective_function(&xs).unwrap(),
             p_sco.objective_function(&xs).unwrap(),
@@ -99,6 +101,7 @@ mod into_ssco {
             Config::new(vec![0, 1]),
         ]);
 
+        assert!(p_ssco.objective_function(&xs).unwrap().is_finite());
         p_ssco.objective_function(&xs).unwrap();
     }
 
@@ -135,6 +138,7 @@ mod into_ssco {
                 .collect(),
         );
 
+        assert!(p_ssco.objective_function(&xs).unwrap().is_finite());
         p_ssco.objective_function(&xs).unwrap();
     }
 }
@@ -168,6 +172,7 @@ mod into_sblo {
             Config::new(vec![0, 1]),
         ]);
 
+        assert!(p.objective_function(&xs).unwrap().is_finite());
         assert_abs_diff_eq!(
             p.objective_function(&xs).unwrap(),
             p_ssco.objective_function(&xs).unwrap(),
@@ -207,6 +212,7 @@ mod into_sblo {
                 .collect(),
         );
 
+        assert!(p.objective_function(&xs).unwrap().is_finite());
         assert_abs_diff_eq!(
             p.objective_function(&xs).unwrap(),
             p_ssco.objective_function(&xs).unwrap(),
