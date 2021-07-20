@@ -1,7 +1,15 @@
 use crate::utils::hash_map;
-use soco::{algorithms::online::uni_dimensional::randomly_biased_greedy::{
+use soco::{
+    algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Memory, Options,
-    }, model::data_center::{loads::LoadProfile, model::{DEFAULT_KEY, DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput, JobType, Location, ServerType, Source}, models::{
+    },
+    model::data_center::{
+        loads::LoadProfile,
+        model::{
+            DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+            JobType, Location, ServerType, Source, DEFAULT_KEY,
+        },
+        models::{
             energy_consumption::{
                 EnergyConsumptionModel, SimplifiedLinearEnergyConsumptionModel,
             },
@@ -10,7 +18,11 @@ use soco::{algorithms::online::uni_dimensional::randomly_biased_greedy::{
                 MinimalDetectableDelayRevenueLossModel, RevenueLossModel,
             },
             switching_cost::{SwitchingCost, SwitchingCostModel},
-        }}, problem::FractionalSmoothedConvexOptimization, streaming::online};
+        },
+    },
+    problem::FractionalSmoothedConvexOptimization,
+    streaming::online,
+};
 use std::{
     sync::{mpsc::channel, Arc},
     thread,
