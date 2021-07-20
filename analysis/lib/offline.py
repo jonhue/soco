@@ -20,17 +20,16 @@ def evaluate_1d(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, fl
     _, cost_optimal_graph_search = optimal_graph_search(model, inp, False)
     _, cost_co = co(model, inp, False)
 
-    # # sanity checks
-    # assert cost_optimal_graph_search_1d == cost_optimal_graph_search
-    # assert cost_brcp == cost_co
-    # assert cost_brcp <= cost_optimal_graph_search_1d
+    # sanity checks
+    assert cost_optimal_graph_search_1d == cost_optimal_graph_search
+    assert cost_brcp == cost_co
+    assert cost_brcp <= cost_optimal_graph_search_1d
 
     return cost_brcp, cost_optimal_graph_search_1d
 
 
 def evaluate(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, float]:
     _, cost_optimal_graph_search = optimal_graph_search(model, inp, False)
-    # _, cost_approx_graph_search = approx_graph_search(model, inp, ApproxGraphSearchOptions(1.1), False)
     _, cost_co = co(model, inp, False)
 
     # sanity checks
