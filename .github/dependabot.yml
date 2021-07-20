@@ -17,7 +17,3 @@ updates:
     directory: "/soco"
     schedule:
       interval: "daily"
-  - package-ecosystem: "cargo"
-    directory: "/soco_py"
-    schedule:
-      interval: "daily"
