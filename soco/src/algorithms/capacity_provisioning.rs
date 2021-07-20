@@ -77,7 +77,7 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
         let p = self.reset(t_start);
         let objective = |xs: &[f64]| -> N64 {
             n64(p
-                .objective_function_with_default(
+                ._objective_function_with_default(
                     &xs.iter().map(|&x| Config::single(x)).collect(),
                     &Config::single(x_start),
                     alpha,

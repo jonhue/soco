@@ -18,15 +18,15 @@ where
 {
     /// Objective Function. Calculates the cost of a schedule.
     fn objective_function(&self, xs: &Schedule<T>) -> Result<f64> {
-        let default = self.default_config();
-        self.objective_function_with_default(xs, &default, 1., false)
+        let default = self._default_config();
+        self._objective_function_with_default(xs, &default, 1., false)
     }
 
     /// Inverted Objective Function. Calculates the cost of a schedule. Pays the
     /// switching cost for powering down rather than powering up.
     fn inverted_objective_function(&self, xs: &Schedule<T>) -> Result<f64> {
-        let default = self.default_config();
-        self.objective_function_with_default(xs, &default, 1., true)
+        let default = self._default_config();
+        self._objective_function_with_default(xs, &default, 1., true)
     }
 
     /// `\alpha`-unfair Objective Function. Calculates the cost of a schedule.
@@ -35,11 +35,19 @@ where
         xs: &Schedule<T>,
         alpha: f64,
     ) -> Result<f64> {
-        let default = self.default_config();
-        self.objective_function_with_default(xs, &default, alpha, false)
+        let default = self._default_config();
+        self._objective_function_with_default(xs, &default, alpha, false)
     }
 
     fn objective_function_with_default(
+        &self,
+        xs: &Schedule<T>,
+        default: &Config<T>,
+    ) -> Result<f64> {
+        self._objective_function_with_default(xs, default, 1., false)
+    }
+
+    fn _objective_function_with_default(
         &self,
         xs: &Schedule<T>,
         default: &Config<T>,
@@ -49,25 +57,25 @@ where
 
     /// Movement in the decision space.
     fn movement(&self, xs: &Schedule<T>, inverted: bool) -> Result<f64> {
-        let default = self.default_config();
-        self.movement_with_default(xs, &default, inverted)
+        let default = self._default_config();
+        self._movement_with_default(xs, &default, inverted)
     }
 
-    fn movement_with_default(
+    fn _movement_with_default(
         &self,
         xs: &Schedule<T>,
         default: &Config<T>,
         inverted: bool,
     ) -> Result<f64>;
 
-    fn default_config(&self) -> Config<T>;
+    fn _default_config(&self) -> Config<T>;
 }
 
 impl<'a, T> Objective<'a, T> for SmoothedConvexOptimization<'a, T>
 where
     T: Value<'a>,
 {
-    fn objective_function_with_default(
+    fn _objective_function_with_default(
         &self,
         xs: &Schedule<T>,
         default: &Config<T>,
@@ -86,7 +94,7 @@ where
         Ok(cost)
     }
 
-    fn movement_with_default(
+    fn _movement_with_default(
         &self,
         xs: &Schedule<T>,
         default: &Config<T>,
@@ -103,7 +111,7 @@ where
         Ok(movement)
     }
 
-    fn default_config(&self) -> Config<T> {
+    fn _default_config(&self) -> Config<T> {
         Config::repeat(NumCast::from(0).unwrap(), self.d)
     }
 }
@@ -112,7 +120,7 @@ impl<'a, T> Objective<'a, T> for SimplifiedSmoothedConvexOptimization<'a, T>
 where
     T: Value<'a>,
 {
-    fn objective_function_with_default(
+    fn _objective_function_with_default(
         &self,
         xs: &Schedule<T>,
         default: &Config<T>,
@@ -135,7 +143,7 @@ where
         Ok(cost)
     }
 
-    fn movement_with_default(
+    fn _movement_with_default(
         &self,
         xs: &Schedule<T>,
         default: &Config<T>,
@@ -156,7 +164,7 @@ where
         Ok(movement)
     }
 
-    fn default_config(&self) -> Config<T> {
+    fn _default_config(&self) -> Config<T> {
         Config::repeat(NumCast::from(0).unwrap(), self.d)
     }
 }
@@ -167,14 +175,14 @@ impl<'a, P> Objective<'a, i32> for P
 where
     P: Problem + Objective<'a, f64>,
 {
-    fn objective_function_with_default(
+    fn _objective_function_with_default(
         &self,
         xs: &IntegralSchedule,
         default: &IntegralConfig,
         alpha: f64,
         inverted: bool,
     ) -> Result<f64> {
-        self.objective_function_with_default(
+        self._objective_function_with_default(
             &xs.to(),
             &default.to(),
             alpha,
@@ -182,16 +190,16 @@ where
         )
     }
 
-    fn movement_with_default(
+    fn _movement_with_default(
         &self,
         xs: &IntegralSchedule,
         default: &IntegralConfig,
         inverted: bool,
     ) -> Result<f64> {
-        self.movement_with_default(&xs.to(), &default.to(), inverted)
+        self._movement_with_default(&xs.to(), &default.to(), inverted)
     }
 
-    fn default_config(&self) -> IntegralConfig {
+    fn _default_config(&self) -> IntegralConfig {
         Config::repeat(0, self.d())
     }
 }
@@ -200,7 +208,7 @@ impl<'a, T> Objective<'a, T> for SmoothedLoadOptimization<T>
 where
     T: Value<'a>,
 {
-    fn objective_function_with_default(
+    fn _objective_function_with_default(
         &self,
         xs: &Schedule<T>,
         default: &Config<T>,
@@ -224,7 +232,7 @@ where
         Ok(cost)
     }
 
-    fn movement_with_default(
+    fn _movement_with_default(
         &self,
         xs: &Schedule<T>,
         default: &Config<T>,
@@ -245,7 +253,7 @@ where
         Ok(movement)
     }
 
-    fn default_config(&self) -> Config<T> {
+    fn _default_config(&self) -> Config<T> {
         Config::repeat(NumCast::from(0).unwrap(), self.d)
     }
 }

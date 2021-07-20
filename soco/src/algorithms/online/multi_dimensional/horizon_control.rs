@@ -55,9 +55,7 @@ fn next(
         };
         let p = o.p.reset(t - k);
 
-        n64(p
-            .objective_function_with_default(&xs, &prev_x, 1., false)
-            .unwrap())
+        n64(p.objective_function_with_default(&xs, &prev_x).unwrap())
     };
 
     let (raw_xs, _) = find_minimizer(objective, &bounds)?;
