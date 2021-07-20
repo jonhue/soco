@@ -142,40 +142,29 @@ where
     T: Value<'a>,
 {
     /// Convert to an instance of Smoothed Convex Optimization.
+    /// This assumes that time slots are added after this conversion.
     pub fn into_sco(self) -> SmoothedConvexOptimization<'a, T> {
         let bounds = self
             .bounds
             .iter()
             .map(|&u| (NumCast::from(0).unwrap(), u))
             .collect();
+        let switching_cost = manhattan_scaled(self.switching_cost.clone());
         SmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds,
-            switching_cost: manhattan_scaled(self.switching_cost),
-            hitting_cost: self.hitting_cost.clone(),
-        }
-    }
-}
-
-impl<'a, T> SmoothedLoadOptimization<T>
-where
-    T: Value<'a>,
-{
-    /// Convert instance to an instance of Smoothed Balanced-Load Optimization.
-    pub fn into_sblo(self) -> SmoothedBalancedLoadOptimization<'a, T> {
-        let hitting_cost = self
-            .hitting_cost
-            .iter()
-            .map(|&l| CostFn::new(1, SingleCostFn::certain(move |_, _| n64(l))))
-            .collect();
-        SmoothedBalancedLoadOptimization {
-            d: self.d,
-            t_end: self.t_end,
-            bounds: self.bounds.clone(),
-            switching_cost: self.switching_cost.clone(),
-            hitting_cost,
-            load: self.load.clone(),
+            switching_cost: switching_cost.clone(),
+            hitting_cost: CostFn::new(
+                1,
+                SingleCostFn::certain(move |t: i32, x: Config<T>| {
+                    if t == self.t_end {
+                        self.clone().hit_cost(t, x.clone()) + switching_cost(x)
+                    } else {
+                        self.clone().hit_cost(t, x)
+                    }
+                }),
+            ),
         }
     }
 }
@@ -195,6 +184,28 @@ where
                 1,
                 SingleCostFn::certain(move |t, x| self.clone().hit_cost(t, x)),
             ),
+        }
+    }
+}
+
+impl<'a, T> SmoothedLoadOptimization<T>
+where
+    T: Value<'a>,
+{
+    /// Convert instance to an instance of Smoothed Balanced-Load Optimization.
+    pub fn into_sblo(self) -> SmoothedBalancedLoadOptimization<'a, T> {
+        let hitting_cost = self
+            .hitting_cost
+            .iter()
+            .map(|&c| CostFn::new(1, SingleCostFn::certain(move |_, _| n64(c))))
+            .collect();
+        SmoothedBalancedLoadOptimization {
+            d: self.d,
+            t_end: self.t_end,
+            bounds: self.bounds.clone(),
+            switching_cost: self.switching_cost.clone(),
+            hitting_cost,
+            load: self.load.clone(),
         }
     }
 }

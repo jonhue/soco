@@ -128,6 +128,7 @@ impl Div<N64> for LoadProfile {
 }
 
 /// Assignment of load fractions to dimensions for each job type.
+#[derive(Debug)]
 pub struct LoadFractions {
     /// Stores for each dimension `k in [d]` the fractions of loads `i in [e]` that are handled.
     /// Flat representation where position `k * e + i` represents the fraction of jobs of type `i` assigned to servers of type `k`.
@@ -253,7 +254,10 @@ where
     };
 
     // assigns each dimension a fraction of each load type
-    let init = vec![1. / solver_d as f64; solver_d];
+    // note: when starting with the feasible uniform distribution, solver nay get
+    // stuck when all surrounding objectives are inf (e.g. if one dimension is set
+    // to 0 and cannot take any load)
+    let init = vec![0.; solver_d];
 
     // ensure that the fractions across all dimensions of each load type sum to `1`
     let equality_constraints = (0..e as usize)
