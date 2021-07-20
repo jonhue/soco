@@ -248,64 +248,6 @@ impl DataCenterModel {
 }
 
 impl DataCenterModel {
-    /// Creates a model of a singular data center.
-    #[allow(clippy::too_many_arguments)]
-    pub fn single(
-        delta: f64,
-        gamma: f64,
-        server_types: Vec<ServerType>,
-        m: HashMap<String, i32>,
-        job_types: Vec<JobType>,
-        energy_consumption_model: EnergyConsumptionModel,
-        energy_cost_model: EnergyCostModel,
-        revenue_loss_model: RevenueLossModel,
-        switching_cost_model: SwitchingCostModel,
-    ) -> Self {
-        Self {
-            delta,
-            gamma,
-            locations: vec![Location {
-                key: DEFAULT_KEY.to_string(),
-                m,
-            }],
-            server_types,
-            sources: vec![Source::default()],
-            job_types,
-            energy_consumption_model,
-            energy_cost_model,
-            revenue_loss_model,
-            switching_cost_model,
-        }
-    }
-
-    /// Creates a model of a network of data centers.
-    #[allow(clippy::too_many_arguments)]
-    pub fn network(
-        delta: f64,
-        gamma: f64,
-        locations: Vec<Location>,
-        server_types: Vec<ServerType>,
-        sources: Vec<Source>,
-        job_types: Vec<JobType>,
-        energy_consumption_model: EnergyConsumptionModel,
-        energy_cost_model: EnergyCostModel,
-        revenue_loss_model: RevenueLossModel,
-        switching_cost_model: SwitchingCostModel,
-    ) -> Self {
-        Self {
-            delta,
-            gamma,
-            locations,
-            server_types,
-            sources,
-            job_types,
-            energy_consumption_model,
-            energy_cost_model,
-            revenue_loss_model,
-            switching_cost_model,
-        }
-    }
-
     /// Calculates cumulative sub jobs of servers of some type, i.e. the number
     /// of sub jobs handled by all servers of this type, when they are assigned
     /// the load profile `loads`.
@@ -565,11 +507,10 @@ fn encode(inner_len: usize, outer: usize, inner: usize) -> usize {
     outer * inner_len + inner
 }
 
-#[pyclass]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, FromPyObject)]
+#[pyo3(transparent)]
 pub struct DataCenterOfflineInput {
     /// Vector of loads for all time slots that should be supported by the returned cost function.
-    #[pyo3(get, set)]
     pub loads: Vec<LoadProfile>,
 }
 impl Default for DataCenterOfflineInput {
@@ -578,29 +519,14 @@ impl Default for DataCenterOfflineInput {
     }
 }
 impl OfflineInput for DataCenterOfflineInput {}
-#[pymethods]
-impl DataCenterOfflineInput {
-    #[new]
-    fn constructor(loads: Vec<LoadProfile>) -> Self {
-        DataCenterOfflineInput { loads }
-    }
-}
 
-#[pyclass]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, FromPyObject, Serialize)]
+#[pyo3(transparent)]
 pub struct DataCenterOnlineInput {
     /// A load profile for each predicted sample (one load profile for certainty) over the supported time horizon.
-    #[pyo3(get, set)]
     pub loads: Vec<Vec<LoadProfile>>,
 }
 impl OnlineInput for DataCenterOnlineInput {}
-#[pymethods]
-impl DataCenterOnlineInput {
-    #[new]
-    fn constructor(loads: Vec<Vec<LoadProfile>>) -> Self {
-        DataCenterOnlineInput { loads }
-    }
-}
 
 impl<'a, T>
     Model<

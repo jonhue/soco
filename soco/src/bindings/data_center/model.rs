@@ -1,8 +1,5 @@
 use crate::model::data_center::{
-    model::{
-        DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
-        JobType, Location, ServerType, Source,
-    },
+    model::{DataCenterModel, JobType, Location, ServerType, Source},
     models::{
         energy_consumption::{
             LinearEnergyConsumptionModel, NonLinearEnergyConsumptionModel,
@@ -17,9 +14,6 @@ use pyo3::prelude::*;
 
 pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<DataCenterModel>()?;
-
-    m.add_class::<DataCenterOfflineInput>()?;
-    m.add_class::<DataCenterOnlineInput>()?;
 
     m.add_class::<Location>()?;
     m.add_class::<ServerType>()?;
