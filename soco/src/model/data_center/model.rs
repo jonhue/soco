@@ -18,11 +18,14 @@ use crate::problem::{
     SmoothedLoadOptimization,
 };
 use crate::value::Value;
-use crate::vec_wrapper::VecWrapper;
 use log::info;
 use noisy_float::prelude::*;
 use num::NumCast;
 use pyo3::prelude::*;
+use rayon::iter::{
+    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
+    ParallelIterator,
+};
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -259,9 +262,9 @@ impl DataCenterModel {
         loads: &LoadProfile,
     ) -> N64 {
         loads
-            .iter()
+            .par_iter()
             .enumerate()
-            .map(|(i_, &load)| {
+            .map(|(i_, load)| {
                 let (_, i) = parse(self.job_types.len(), i_);
                 let processing_time =
                     self.job_types[i].processing_time_on(server_type);
@@ -367,7 +370,7 @@ impl DataCenterModel {
         let total_load = self.total_sub_jobs(server_type, loads);
 
         // calculates the mean duration of jobs on a server of some type under the load profile `loads`
-        let number_of_jobs = loads.iter().sum();
+        let number_of_jobs = loads.par_iter().sum();
         let mean_job_duration = if number_of_jobs == n64(0.) {
             n64(0.)
         } else {
@@ -638,7 +641,7 @@ where
         let hitting_cost = self
             .server_types
             .clone()
-            .into_iter()
+            .into_par_iter()
             .map(move |server_type| {
                 let location = location.clone();
                 let energy_consumption_model =
@@ -662,7 +665,7 @@ where
             })
             .collect();
         let load = loads
-            .iter()
+            .par_iter()
             .map(|lambda| NumCast::from(lambda[0]).unwrap())
             .collect();
         SmoothedBalancedLoadOptimization {
@@ -725,7 +728,7 @@ where
             .switching_costs(&self.server_types);
         let hitting_cost = self
             .server_types
-            .iter()
+            .par_iter()
             .map(move |server_type| {
                 (0..t_end)
                     .map(|t| -> f64 {
@@ -741,7 +744,7 @@ where
             })
             .collect();
         let load = loads
-            .iter()
+            .par_iter()
             .map(|lambda| NumCast::from(lambda[0]).unwrap())
             .collect();
         SmoothedLoadOptimization {

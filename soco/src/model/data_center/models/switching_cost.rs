@@ -3,6 +3,7 @@
 use crate::model::data_center::model::ServerType;
 use noisy_float::prelude::*;
 use pyo3::prelude::*;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::collections::HashMap;
 
 /// Switching cost model. Parameters are provided separately for each server type.
@@ -94,7 +95,7 @@ impl SwitchingCostModel {
     /// Builds vector of switching costs for all server types.
     pub fn switching_costs(&self, server_types: &Vec<ServerType>) -> Vec<f64> {
         server_types
-            .iter()
+            .par_iter()
             .map(|server_type| self.model(server_type).switching_cost().raw())
             .collect()
     }
@@ -105,7 +106,7 @@ impl SwitchingCostModel {
         server_types: &Vec<ServerType>,
     ) -> Vec<f64> {
         server_types
-            .iter()
+            .par_iter()
             .map(|server_type| {
                 self.model(server_type).normalized_switching_cost().raw()
             })

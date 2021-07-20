@@ -3,10 +3,15 @@
 use crate::config::Config;
 use crate::utils::access;
 use crate::value::Value;
-use crate::vec_wrapper::VecWrapper;
 use num::NumCast;
+use rayon::{
+    iter::{
+        FromParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
+        ParallelIterator,
+    },
+    vec::IntoIter,
+};
 use serde_derive::{Deserialize, Serialize};
-use std::iter::FromIterator;
 use std::ops::Index;
 
 /// Includes all configurations from time `1` to time `t_end`.
@@ -73,7 +78,12 @@ where
 
     /// Converts schedule to a vector of vectors.
     pub fn to_vec(&self) -> Vec<Vec<T>> {
-        self.0.iter().map(|x| x.to_vec()).collect()
+        self.0.par_iter().map(|x| x.to_vec()).collect()
+    }
+
+    /// Converts schedule to a vector of configs.
+    pub fn to_outer_vec(&self) -> &Vec<Config<T>> {
+        &self.0
     }
 
     /// Builds a schedule from a raw (flat) encoding `raw_xs` (used for convex optimization).
@@ -132,29 +142,26 @@ where
     }
 }
 
-impl<'a, T> VecWrapper for Schedule<T>
+impl<'a, T> FromParallelIterator<Config<T>> for Schedule<T>
+where
+    T: Value<'a>,
+{
+    fn from_par_iter<I>(iter: I) -> Self
+    where
+        I: IntoParallelIterator<Item = Config<T>>,
+    {
+        Schedule::new(Vec::<Config<T>>::from_par_iter(iter))
+    }
+}
+
+impl<'a, T> IntoParallelIterator for &Schedule<T>
 where
     T: Value<'a>,
 {
     type Item = Config<T>;
+    type Iter = IntoIter<Config<T>>;
 
-    fn to_vec(&self) -> &Vec<Self::Item> {
-        &self.0
-    }
-}
-
-impl<'a, T> FromIterator<Config<T>> for Schedule<T>
-where
-    T: Value<'a>,
-{
-    fn from_iter<I>(iter: I) -> Self
-    where
-        I: IntoIterator<Item = Config<T>>,
-    {
-        let mut xs = vec![];
-        for x in iter {
-            xs.push(x);
-        }
-        Schedule::new(xs)
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.clone().into_par_iter()
     }
 }

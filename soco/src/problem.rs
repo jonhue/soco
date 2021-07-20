@@ -11,6 +11,7 @@ use crate::value::Value;
 use crate::verifiers::VerifiableProblem;
 use noisy_float::prelude::*;
 use num::NumCast;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 /// Trait implemented by all finite-time-horizon problems.
 pub trait Problem: Clone + std::fmt::Debug + Send + VerifiableProblem {
@@ -160,7 +161,7 @@ where
         let bounds = self.bounds.clone();
         let loads = self
             .load
-            .iter()
+            .par_iter()
             .map(|&l| LoadProfile::single(NumCast::from(l).unwrap()))
             .collect();
         apply_loads_over_time(

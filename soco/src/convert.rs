@@ -12,9 +12,9 @@ use crate::problem::{
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::shift_time;
 use crate::value::Value;
-use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
 use num::{NumCast, ToPrimitive};
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 pub trait DiscretizableVector {
     /// Ceil all elements of a vector.
@@ -28,11 +28,11 @@ where
     T: Value<'a>,
 {
     fn ceil(&self) -> Vec<i32> {
-        self.iter().map(|&x| x.ceil()).collect()
+        self.par_iter().map(|&x| x.ceil()).collect()
     }
 
     fn floor(&self) -> Vec<i32> {
-        self.iter().map(|&x| x.floor()).collect()
+        self.par_iter().map(|&x| x.floor()).collect()
     }
 }
 
@@ -46,7 +46,9 @@ where
     U: Value<'a>,
 {
     fn to(&self) -> Vec<T> {
-        self.iter().map(|&x| NumCast::from(x).unwrap()).collect()
+        self.par_iter()
+            .map(|&x| NumCast::from(x).unwrap())
+            .collect()
     }
 }
 
@@ -152,7 +154,7 @@ where
     pub fn into_sco(self) -> SmoothedConvexOptimization<'a, T> {
         let bounds = self
             .bounds
-            .iter()
+            .par_iter()
             .map(|&u| (NumCast::from(0).unwrap(), u))
             .collect();
         let switching_cost = manhattan_scaled(self.switching_cost.clone());
@@ -202,7 +204,7 @@ where
     pub fn into_sblo(self) -> SmoothedBalancedLoadOptimization<'a, T> {
         let hitting_cost = self
             .hitting_cost
-            .iter()
+            .par_iter()
             .map(|&c| CostFn::new(1, SingleCostFn::certain(move |_, _| n64(c))))
             .collect();
         SmoothedBalancedLoadOptimization {
@@ -286,7 +288,7 @@ where
     T: Value<'a>,
 {
     fn to_i(&self) -> IntegralSchedule {
-        self.iter().map(|x| x.ceil()).collect()
+        self.par_iter().map(|x| x.ceil()).collect()
     }
 }
 
@@ -300,7 +302,7 @@ where
     U: Value<'a>,
 {
     fn to(&self) -> Schedule<T> {
-        self.iter().map(|x| x.to()).collect()
+        self.par_iter().map(|x| x.to()).collect()
     }
 }
 

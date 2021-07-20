@@ -1,9 +1,12 @@
 //! Definition of configurations.
 
 use crate::value::Value;
-use crate::vec_wrapper::VecWrapper;
+use rayon::iter::{
+    FromParallelIterator, IndexedParallelIterator, IntoParallelIterator,
+    IntoParallelRefIterator, ParallelIterator,
+};
+use rayon::vec::IntoIter;
 use serde_derive::{Deserialize, Serialize};
-use std::iter::FromIterator;
 use std::ops::Add;
 use std::ops::Div;
 use std::ops::Index;
@@ -85,30 +88,27 @@ where
     }
 }
 
-impl<'a, T> VecWrapper for Config<T>
+impl<'a, T> FromParallelIterator<T> for Config<T>
+where
+    T: Value<'a>,
+{
+    fn from_par_iter<I>(iter: I) -> Self
+    where
+        I: IntoParallelIterator<Item = T>,
+    {
+        Config::new(Vec::<T>::from_par_iter(iter))
+    }
+}
+
+impl<'a, T> IntoParallelIterator for &Config<T>
 where
     T: Value<'a>,
 {
     type Item = T;
+    type Iter = IntoIter<T>;
 
-    fn to_vec(&self) -> &Vec<Self::Item> {
-        &self.0
-    }
-}
-
-impl<'a, T> FromIterator<T> for Config<T>
-where
-    T: Value<'a>,
-{
-    fn from_iter<I>(iter: I) -> Self
-    where
-        I: IntoIterator<Item = T>,
-    {
-        let mut x = Config::empty();
-        for j in iter {
-            x.push(j);
-        }
-        x
+    fn into_par_iter(self) -> Self::Iter {
+        self.to_vec().into_par_iter()
     }
 }
 
@@ -119,9 +119,9 @@ where
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
-        self.iter()
-            .zip(other.iter())
-            .map(|(&x, &y)| x + y)
+        self.par_iter()
+            .zip(other.par_iter())
+            .map(|(x, y)| x + y)
             .collect()
     }
 }
@@ -133,9 +133,9 @@ where
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
-        self.iter()
-            .zip(other.iter())
-            .map(|(&x, &y)| x - y)
+        self.par_iter()
+            .zip(other.par_iter())
+            .map(|(x, y)| x - y)
             .collect()
     }
 }
@@ -148,7 +148,10 @@ where
 
     /// Dot product of transposed `self` with `other`.
     fn mul(self, other: Self) -> Self::Output {
-        self.iter().zip(other.iter()).map(|(&x, &y)| x * y).sum()
+        self.par_iter()
+            .zip(other.par_iter())
+            .map(|(x, y)| x * y)
+            .sum()
     }
 }
 
@@ -157,7 +160,7 @@ impl<'a> Mul<FractionalConfig> for f64 {
 
     /// Scales config with scalar.
     fn mul(self, other: FractionalConfig) -> Self::Output {
-        other.iter().map(|&j| self * j).collect()
+        other.par_iter().map(|j| self * j).collect()
     }
 }
 
@@ -166,6 +169,6 @@ impl<'a> Div<f64> for FractionalConfig {
 
     /// Divides config by scalar.
     fn div(self, other: f64) -> Self::Output {
-        self.iter().map(|&j| j / other).collect()
+        self.par_iter().map(|j| j / other).collect()
     }
 }

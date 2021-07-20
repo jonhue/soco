@@ -5,11 +5,14 @@ use crate::cost::{CostFn, SingleCostFn};
 use crate::numerics::convex_optimization::{minimize, Constraint};
 use crate::utils::{access, unshift_time};
 use crate::value::Value;
-use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
 use pyo3::prelude::*;
+use rayon::iter::{
+    FromParallelIterator, IndexedParallelIterator, IntoParallelIterator,
+    IntoParallelRefIterator, ParallelIterator,
+};
+use rayon::vec::IntoIter;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::iter::FromIterator;
 use std::ops::Div;
 use std::ops::Index;
 use std::ops::Mul;
@@ -22,7 +25,7 @@ pub struct LoadProfile(Vec<N64>);
 impl LoadProfile {
     /// Creates a new load profile from a raw vector.
     pub fn raw(l: Vec<f64>) -> LoadProfile {
-        LoadProfile(l.iter().map(|&z| n64(z)).collect())
+        LoadProfile(l.par_iter().map(|&z| n64(z)).collect())
     }
 
     /// Creates a new load profile from a vector.
@@ -42,7 +45,7 @@ impl LoadProfile {
 
     /// Sum of loads across all load types.
     pub fn total(&self) -> N64 {
-        self.0.iter().copied().sum()
+        self.0.par_iter().copied().sum()
     }
 
     /// Converts load profile to a vector.
@@ -52,7 +55,7 @@ impl LoadProfile {
 
     /// Converts load profile to a vector.
     pub fn to_raw(&self) -> Vec<f64> {
-        self.0.iter().map(|l| l.raw()).collect()
+        self.0.par_iter().map(|l| l.raw()).collect()
     }
 }
 
@@ -96,24 +99,21 @@ impl Index<usize> for LoadProfile {
     }
 }
 
-impl VecWrapper for LoadProfile {
-    type Item = N64;
-
-    fn to_vec(&self) -> &Vec<Self::Item> {
-        &self.0
+impl FromParallelIterator<N64> for LoadProfile {
+    fn from_par_iter<I>(iter: I) -> Self
+    where
+        I: IntoParallelIterator<Item = N64>,
+    {
+        LoadProfile::new(Vec::<N64>::from_par_iter(iter))
     }
 }
 
-impl FromIterator<N64> for LoadProfile {
-    fn from_iter<I>(iter: I) -> Self
-    where
-        I: IntoIterator<Item = N64>,
-    {
-        let mut l = vec![];
-        for j in iter {
-            l.push(j);
-        }
-        LoadProfile::new(l)
+impl IntoParallelIterator for &LoadProfile {
+    type Item = N64;
+    type Iter = IntoIter<N64>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.to_vec().into_par_iter()
     }
 }
 
@@ -122,9 +122,9 @@ impl Mul<Vec<N64>> for LoadProfile {
 
     /// Applies fractions to loads.
     fn mul(self, z: Vec<N64>) -> Self::Output {
-        self.iter()
+        self.par_iter()
             .zip(&z)
-            .map(|(&l, &z)| l * z)
+            .map(|(l, &z)| l * z)
             .collect::<LoadProfile>()
     }
 }
@@ -134,7 +134,7 @@ impl Div<N64> for LoadProfile {
 
     /// Divides loads by scalar.
     fn div(self, other: N64) -> Self::Output {
-        self.iter().map(|&l| l / other).collect()
+        self.par_iter().map(|l| l / other).collect()
     }
 }
 
@@ -161,7 +161,7 @@ impl LoadFractions {
     /// Selects loads for dimension `k`.
     pub fn select_loads(&self, lambda: &LoadProfile, k: usize) -> LoadProfile {
         self.zs[k * self.e as usize..k * self.e as usize + self.e as usize]
-            .iter()
+            .par_iter()
             .enumerate()
             .map(|(i, z)| lambda[i] * z)
             .collect()
@@ -170,7 +170,7 @@ impl LoadFractions {
 impl LoadFractions {
     fn new(zs_: &[f64], d: i32, e: i32) -> Self {
         LoadFractions {
-            zs: zs_.iter().map(|&z| n64(z)).collect(),
+            zs: zs_.par_iter().map(|&z| n64(z)).collect(),
             d,
             e,
         }
@@ -229,7 +229,7 @@ where
     SingleCostFn::predictive(move |t, x: Config<T>| {
         access(&loads, unshift_time(t, t_start))
             .unwrap()
-            .iter()
+            .par_iter()
             .map(|lambda| apply_loads(d, e, &objective, lambda, t, x.clone()))
             .collect()
     })

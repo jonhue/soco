@@ -1,5 +1,5 @@
 mod co {
-    use crate::factories::inv_e;
+    use crate::{factories::inv_e, utils::upper_bounds};
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::algorithms::offline::{
@@ -30,9 +30,7 @@ mod co {
             .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap()
             .xs();
-        result
-            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
-            .unwrap();
+        result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
 
         let int_result = result.to_i();
         let cast_int_result: Schedule<f64> = int_result.to();
@@ -65,9 +63,7 @@ mod co {
             .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap()
             .xs();
-        result
-            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
-            .unwrap();
+        result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
     }
 
     #[test]
@@ -97,9 +93,7 @@ mod co {
             .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap()
             .xs();
-        result
-            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
-            .unwrap();
+        result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
     }
 
     #[test]
@@ -133,9 +127,7 @@ mod co {
             )
             .unwrap()
             .xs();
-        result
-            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
-            .unwrap();
+        result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
         assert!(p.movement(&result, false).unwrap() <= l);
     }
 }

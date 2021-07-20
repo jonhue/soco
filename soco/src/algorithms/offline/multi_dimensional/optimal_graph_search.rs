@@ -1,3 +1,5 @@
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+
 use crate::algorithms::offline::graph_search::Path;
 use crate::algorithms::offline::multi_dimensional::{
     graph_search::graph_search, Values,
@@ -15,7 +17,7 @@ pub fn optimal_graph_search(
     let max_bound = p.bounds.iter().max().unwrap();
     let values = Values {
         values: (0..=*max_bound).collect(),
-        bound_indices: p.bounds.iter().map(|&m| m as usize).collect(),
+        bound_indices: p.bounds.par_iter().map(|&m| m as usize).collect(),
     };
     graph_search(p, values, offline_options)
 }

@@ -7,6 +7,10 @@ use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
 use noisy_float::prelude::*;
+use rayon::iter::{
+    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
+    ParallelIterator,
+};
 use std::sync::Arc;
 
 /// Convex Optimization
@@ -20,12 +24,12 @@ pub fn co(
     let d = p.d;
     let t_end = p.t_end;
 
-    let (lower, upper): (Vec<_>, Vec<_>) = p.bounds.iter().cloned().unzip();
+    let (lower, upper): (Vec<_>, Vec<_>) = p.bounds.par_iter().cloned().unzip();
     let extended_lower = Schedule::build_raw(t_end, &Config::new(lower));
     let extended_upper = Schedule::build_raw(t_end, &Config::new(upper));
     let bounds = extended_lower
-        .into_iter()
-        .zip(extended_upper.into_iter())
+        .into_par_iter()
+        .zip(extended_upper.into_par_iter())
         .collect();
 
     let objective = |raw_xs: &[f64]| {

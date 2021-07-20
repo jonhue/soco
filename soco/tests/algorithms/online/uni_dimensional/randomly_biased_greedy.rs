@@ -1,5 +1,5 @@
 mod rbg {
-    use crate::factories::inv_e;
+    use crate::{factories::inv_e, utils::upper_bounds};
     use soco::algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Options,
     };
@@ -21,10 +21,7 @@ mod rbg {
         let result = o.stream(&rbg, |_, _| false, Options::default()).unwrap();
         result
             .0
-            .verify(
-                o.p.t_end,
-                &o.p.bounds.into_iter().map(|(_, m)| m).collect(),
-            )
+            .verify(o.p.t_end, &upper_bounds(&o.p.bounds))
             .unwrap();
     }
 
@@ -42,9 +39,6 @@ mod rbg {
 
         let t_end = 2;
         let result = o.offline_stream(&rbg, t_end, Options::default()).unwrap();
-        result
-            .0
-            .verify(t_end, &o.p.bounds.into_iter().map(|(_, m)| m).collect())
-            .unwrap();
+        result.0.verify(t_end, &upper_bounds(&o.p.bounds)).unwrap();
     }
 }

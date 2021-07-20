@@ -1,10 +1,13 @@
 use noisy_float::prelude::*;
 use rand::prelude::*;
 use rand_pcg::Pcg64;
+use rayon::iter::{
+    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
+    ParallelIterator,
+};
 use soco::{
     config::{FractionalConfig, IntegralConfig},
     cost::{CostFn, SingleCostFn},
-    vec_wrapper::VecWrapper,
 };
 
 fn wrap<'a, T>(f: impl Fn(i32, T) -> f64 + Send + Sync + 'a) -> CostFn<'a, T>
@@ -36,7 +39,7 @@ pub fn random() -> CostFn<'static, IntegralConfig> {
     wrap(|t: i32, j: IntegralConfig| {
         let r: f64 = j
             .to_vec()
-            .into_iter()
+            .into_par_iter()
             .enumerate()
             .map(|(k, i)| {
                 Pcg64::seed_from_u64(t as u64 * k as u64).gen_range(0.0..1.)
@@ -50,7 +53,10 @@ pub fn random() -> CostFn<'static, IntegralConfig> {
 /// `t * exp(-x)` for multiple dimensions.
 pub fn inv_e() -> CostFn<'static, FractionalConfig> {
     wrap(|t: i32, j: FractionalConfig| {
-        t as f64 * j.iter().map(|x| std::f64::consts::E.powf(-x)).sum::<f64>()
+        t as f64
+            * j.par_iter()
+                .map(|x| std::f64::consts::E.powf(-x))
+                .sum::<f64>()
     })
 }
 
