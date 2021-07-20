@@ -54,6 +54,11 @@ pub fn inv_e() -> CostFn<'static, FractionalConfig> {
     })
 }
 
+/// `t * exp(-x)` for multiple dimensions.
+pub fn inv_e_sblo() -> CostFn<'static, f64> {
+    wrap(|t: i32, x: f64| t as f64 * std::f64::consts::E.powf(-x))
+}
+
 /// `1 / t * x^2` for a single dimension.
 pub fn parabola() -> CostFn<'static, FractionalConfig> {
     wrap(|t: i32, j: FractionalConfig| {
