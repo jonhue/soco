@@ -7,6 +7,9 @@ use crate::value::Value;
 use nalgebra::{DMatrix, DVector, RealField};
 use noisy_float::prelude::*;
 use num::{NumCast, ToPrimitive};
+use rayon::iter::{
+    IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator,
+};
 use std::sync::Arc;
 
 /// Norm function.
@@ -18,11 +21,10 @@ where
     T: Value<'a>,
 {
     Arc::new(|x: Config<T>| {
-        let mut result = 0.;
-        for k in 0..x.d() as usize {
-            result += ToPrimitive::to_f64(&x[k]).unwrap().abs();
-        }
-        n64(result)
+        n64(x
+            .par_iter()
+            .map(|j| ToPrimitive::to_f64(&j).unwrap().abs())
+            .sum())
     })
 }
 
@@ -32,12 +34,13 @@ where
     T: Value<'a>,
 {
     Arc::new(move |x: Config<T>| {
-        let mut result = 0.;
-        for k in 0..x.d() as usize {
-            result += switching_cost[k] / 2.
-                * ToPrimitive::to_f64(&x[k]).unwrap().abs();
-        }
-        n64(result)
+        n64(x
+            .par_iter()
+            .enumerate()
+            .map(|(k, j)| {
+                switching_cost[k] / 2. * ToPrimitive::to_f64(&j).unwrap().abs()
+            })
+            .sum())
     })
 }
 
@@ -47,11 +50,11 @@ where
     T: Value<'a>,
 {
     Arc::new(|x: Config<T>| {
-        let mut result = 0.;
-        for k in 0..x.d() as usize {
-            result += ToPrimitive::to_f64(&x[k]).unwrap().powi(2);
-        }
-        n64(result.sqrt())
+        n64(x
+            .par_iter()
+            .map(|j| ToPrimitive::to_f64(&j).unwrap().powi(2))
+            .sum::<f64>()
+            .sqrt())
     })
 }
 

@@ -37,5 +37,5 @@ where
 
     let xs = result.xs();
     let cost = p.objective_function(&xs)?;
-    Ok((xs, cost))
+    Ok((xs, cost.raw()))
 }

@@ -10,21 +10,23 @@ use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::{assert, pos};
 use crate::value::Value;
-use num::{NumCast, ToPrimitive};
+use noisy_float::prelude::*;
+use num::NumCast;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 pub trait Objective<'a, T>
 where
     T: Value<'a>,
 {
     /// Objective Function. Calculates the cost of a schedule.
-    fn objective_function(&self, xs: &Schedule<T>) -> Result<f64> {
+    fn objective_function(&self, xs: &Schedule<T>) -> Result<N64> {
         let default = self._default_config();
         self._objective_function_with_default(xs, &default, 1., false)
     }
 
     /// Inverted Objective Function. Calculates the cost of a schedule. Pays the
     /// switching cost for powering down rather than powering up.
-    fn inverted_objective_function(&self, xs: &Schedule<T>) -> Result<f64> {
+    fn inverted_objective_function(&self, xs: &Schedule<T>) -> Result<N64> {
         let default = self._default_config();
         self._objective_function_with_default(xs, &default, 1., true)
     }
@@ -34,7 +36,7 @@ where
         &self,
         xs: &Schedule<T>,
         alpha: f64,
-    ) -> Result<f64> {
+    ) -> Result<N64> {
         let default = self._default_config();
         self._objective_function_with_default(xs, &default, alpha, false)
     }
@@ -43,7 +45,7 @@ where
         &self,
         xs: &Schedule<T>,
         default: &Config<T>,
-    ) -> Result<f64> {
+    ) -> Result<N64> {
         self._objective_function_with_default(xs, default, 1., false)
     }
 
@@ -53,10 +55,10 @@ where
         default: &Config<T>,
         alpha: f64,
         inverted: bool,
-    ) -> Result<f64>;
+    ) -> Result<N64>;
 
     /// Movement in the decision space.
-    fn movement(&self, xs: &Schedule<T>, inverted: bool) -> Result<f64> {
+    fn movement(&self, xs: &Schedule<T>, inverted: bool) -> Result<N64> {
         let default = self._default_config();
         self._movement_with_default(xs, &default, inverted)
     }
@@ -66,7 +68,7 @@ where
         xs: &Schedule<T>,
         default: &Config<T>,
         inverted: bool,
-    ) -> Result<f64>;
+    ) -> Result<N64>;
 
     fn _default_config(&self) -> Config<T>;
 }
@@ -81,17 +83,18 @@ where
         default: &Config<T>,
         alpha: f64,
         inverted: bool,
-    ) -> Result<f64> {
+    ) -> Result<N64> {
         assert(!inverted, Failure::UnsupportedInvertedCost)?;
 
-        let mut cost = 0.;
-        for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 1).unwrap_or(default).clone();
-            let x = xs.get(t).unwrap().clone();
-            cost += self.hit_cost(t as i32, x.clone()).raw();
-            cost += alpha * (self.switching_cost)(x - prev_x).raw();
-        }
-        Ok(cost)
+        Ok(sum_over_schedule(
+            self.t_end,
+            xs,
+            default,
+            |t, prev_x, x| {
+                self.hit_cost(t as i32, x.clone())
+                    + n64(alpha) * (self.switching_cost)(x - prev_x)
+            },
+        ))
     }
 
     fn _movement_with_default(
@@ -99,16 +102,15 @@ where
         xs: &Schedule<T>,
         default: &Config<T>,
         inverted: bool,
-    ) -> Result<f64> {
+    ) -> Result<N64> {
         assert(!inverted, Failure::UnsupportedInvertedCost)?;
 
-        let mut movement = 0.;
-        for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 1).unwrap_or(default).clone();
-            let x = xs.get(t).unwrap().clone();
-            movement += (self.switching_cost)(x - prev_x).raw();
-        }
-        Ok(movement)
+        Ok(sum_over_schedule(
+            self.t_end,
+            xs,
+            default,
+            |_, prev_x, x| (self.switching_cost)(x - prev_x),
+        ))
     }
 
     fn _default_config(&self) -> Config<T> {
@@ -126,21 +128,25 @@ where
         default: &Config<T>,
         alpha: f64,
         inverted: bool,
-    ) -> Result<f64> {
-        let mut cost = 0.;
-        for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 1).unwrap_or(default);
-            let x = xs.get(t).unwrap();
-            cost += self.hit_cost(t as i32, x.clone()).raw();
-            for k in 0..self.d as usize {
-                let delta = ToPrimitive::to_f64(&scalar_movement(
-                    x[k], prev_x[k], inverted,
-                ))
-                .unwrap();
-                cost += alpha * self.switching_cost[k] * delta;
-            }
-        }
-        Ok(cost)
+    ) -> Result<N64> {
+        Ok(sum_over_schedule(
+            self.t_end,
+            xs,
+            default,
+            |t, prev_x, x| {
+                self.hit_cost(t as i32, x.clone())
+                    + (0..self.d as usize)
+                        .into_par_iter()
+                        .map(|k| {
+                            let delta: N64 = NumCast::from(scalar_movement(
+                                x[k], prev_x[k], inverted,
+                            ))
+                            .unwrap();
+                            n64(alpha) * n64(self.switching_cost[k]) * delta
+                        })
+                        .sum::<N64>()
+            },
+        ))
     }
 
     fn _movement_with_default(
@@ -148,20 +154,24 @@ where
         xs: &Schedule<T>,
         default: &Config<T>,
         inverted: bool,
-    ) -> Result<f64> {
-        let mut movement = 0.;
-        for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 1).unwrap_or(default).clone();
-            let x = xs.get(t).unwrap().clone();
-            for k in 0..self.d as usize {
-                let delta = ToPrimitive::to_f64(&scalar_movement(
-                    x[k], prev_x[k], inverted,
-                ))
-                .unwrap();
-                movement += self.switching_cost[k] * delta;
-            }
-        }
-        Ok(movement)
+    ) -> Result<N64> {
+        Ok(sum_over_schedule(
+            self.t_end,
+            xs,
+            default,
+            |_, prev_x, x| {
+                (0..self.d as usize)
+                    .into_par_iter()
+                    .map(|k| -> N64 {
+                        let delta: N64 = NumCast::from(scalar_movement(
+                            x[k], prev_x[k], inverted,
+                        ))
+                        .unwrap();
+                        n64(self.switching_cost[k]) * delta
+                    })
+                    .sum()
+            },
+        ))
     }
 
     fn _default_config(&self) -> Config<T> {
@@ -181,7 +191,7 @@ where
         default: &IntegralConfig,
         alpha: f64,
         inverted: bool,
-    ) -> Result<f64> {
+    ) -> Result<N64> {
         self._objective_function_with_default(
             &xs.to(),
             &default.to(),
@@ -195,7 +205,7 @@ where
         xs: &IntegralSchedule,
         default: &IntegralConfig,
         inverted: bool,
-    ) -> Result<f64> {
+    ) -> Result<N64> {
         self._movement_with_default(&xs.to(), &default.to(), inverted)
     }
 
@@ -214,22 +224,26 @@ where
         default: &Config<T>,
         alpha: f64,
         inverted: bool,
-    ) -> Result<f64> {
-        let mut cost = 0.;
-        for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 1).unwrap_or(default);
-            let x = xs.get(t).unwrap();
-            for k in 0..self.d as usize {
-                cost +=
-                    self.hitting_cost[k] * ToPrimitive::to_f64(&x[k]).unwrap();
-                let delta = ToPrimitive::to_f64(&scalar_movement(
-                    x[k], prev_x[k], inverted,
-                ))
-                .unwrap();
-                cost += alpha * self.switching_cost[k] * delta;
-            }
-        }
-        Ok(cost)
+    ) -> Result<N64> {
+        Ok(sum_over_schedule(
+            self.t_end,
+            xs,
+            default,
+            |_, prev_x, x| {
+                (0..self.d as usize)
+                    .into_par_iter()
+                    .map(|k| -> N64 {
+                        let delta: N64 = NumCast::from(scalar_movement(
+                            x[k], prev_x[k], inverted,
+                        ))
+                        .unwrap();
+                        let j: N64 = NumCast::from(x[k]).unwrap();
+                        n64(self.hitting_cost[k]) * j
+                            + n64(alpha) * n64(self.switching_cost[k]) * delta
+                    })
+                    .sum()
+            },
+        ))
     }
 
     fn _movement_with_default(
@@ -237,25 +251,48 @@ where
         xs: &Schedule<T>,
         default: &Config<T>,
         inverted: bool,
-    ) -> Result<f64> {
-        let mut movement = 0.;
-        for t in 1..=self.t_end {
-            let prev_x = xs.get(t - 1).unwrap_or(default).clone();
-            let x = xs.get(t).unwrap().clone();
-            for k in 0..self.d as usize {
-                let delta = ToPrimitive::to_f64(&scalar_movement(
-                    x[k], prev_x[k], inverted,
-                ))
-                .unwrap();
-                movement += self.switching_cost[k] * delta;
-            }
-        }
-        Ok(movement)
+    ) -> Result<N64> {
+        Ok(sum_over_schedule(
+            self.t_end,
+            xs,
+            default,
+            |_, prev_x, x| {
+                (0..self.d as usize)
+                    .into_par_iter()
+                    .map(|k| -> N64 {
+                        let delta: N64 = NumCast::from(scalar_movement(
+                            x[k], prev_x[k], inverted,
+                        ))
+                        .unwrap();
+                        n64(self.switching_cost[k]) * delta
+                    })
+                    .sum()
+            },
+        ))
     }
 
     fn _default_config(&self) -> Config<T> {
         Config::repeat(NumCast::from(0).unwrap(), self.d)
     }
+}
+
+fn sum_over_schedule<'a, T>(
+    t_end: i32,
+    xs: &Schedule<T>,
+    default: &Config<T>,
+    f: impl Fn(i32, Config<T>, Config<T>) -> N64 + Send + Sync,
+) -> N64
+where
+    T: Value<'a>,
+{
+    (1..=t_end)
+        .into_par_iter()
+        .map(|t| {
+            let prev_x = xs.get(t - 1).unwrap_or(default).clone();
+            let x = xs.get(t).unwrap().clone();
+            f(t, prev_x, x)
+        })
+        .sum()
 }
 
 pub fn scalar_movement<'a, T>(j: T, prev_j: T, inverted: bool) -> T
@@ -273,9 +310,8 @@ pub fn movement<'a, T>(
 where
     T: Value<'a>,
 {
-    let mut result = Config::empty();
-    for i in 0..x.d() as usize {
-        result.push(scalar_movement(x[i], prev_x[i], inverted));
-    }
-    result
+    (0..x.d() as usize)
+        .into_par_iter()
+        .map(|k| scalar_movement(x[k], prev_x[k], inverted))
+        .collect()
 }

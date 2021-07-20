@@ -5,6 +5,9 @@ use crate::utils::mean;
 use crate::value::Value;
 use noisy_float::prelude::*;
 use num::NumCast;
+use rayon::iter::{
+    IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator,
+};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -137,12 +140,9 @@ where
 {
     fn within(&self, x: &Config<T>) -> bool {
         assert!(x.d() == self.len() as i32);
-        for k in 0..self.len() {
-            if x[k] < self[k].0 || x[k] > self[k].1 {
-                return false;
-            }
-        }
-        true
+        self.par_iter()
+            .enumerate()
+            .all(|(k, &(l, u))| x[k] >= l && x[k] <= u)
     }
 }
 impl<'a, T> DecisionSpace<'_, Config<T>> for Vec<T>
@@ -151,12 +151,9 @@ where
 {
     fn within(&self, x: &Config<T>) -> bool {
         assert!(x.d() == self.len() as i32);
-        for k in 0..self.len() {
-            if x[k] < NumCast::from(0).unwrap() || x[k] > self[k] {
-                return false;
-            }
-        }
-        true
+        self.par_iter()
+            .enumerate()
+            .all(|(k, &u)| x[k] >= NumCast::from(0).unwrap() && x[k] <= u)
     }
 }
 impl<'a, T, U> DecisionSpace<'a, T> for U

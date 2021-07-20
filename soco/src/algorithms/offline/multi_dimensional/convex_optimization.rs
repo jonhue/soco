@@ -34,7 +34,7 @@ pub fn co(
 
     let objective = |raw_xs: &[f64]| {
         let xs = Schedule::from_raw(d, t_end, raw_xs);
-        n64(p.alpha_unfair_objective_function(&xs, alpha).unwrap())
+        p.alpha_unfair_objective_function(&xs, alpha).unwrap()
     };
 
     // l-constrained movement
@@ -43,7 +43,7 @@ pub fn co(
             let p = p.clone();
             vec![Arc::new(move |raw_xs: &[f64]| -> N64 {
                 let xs = Schedule::from_raw(d, t_end, raw_xs);
-                n64(p.movement(&xs, false).unwrap()) - n64(l)
+                p.movement(&xs, false).unwrap() - n64(l)
             })]
         }
         None => vec![],
