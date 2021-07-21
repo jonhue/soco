@@ -203,7 +203,7 @@ impl LoadFractions {
 impl LoadFractions {
     fn new(zs_: &[f64], d: i32, e: i32) -> Self {
         LoadFractions {
-            zs: zs_.par_iter().map(|&z| n64(z)).collect(),
+            zs: zs_.iter().map(|&z| n64(z)).collect(),
             d,
             e,
         }
