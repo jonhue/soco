@@ -157,25 +157,22 @@ fn determine_config(
     u_init: i32,
     u_end: i32,
 ) -> IntegralConfig {
-    let identity = || {
+    let (min_u, _) = (u_init + 1..=u_end).into_iter().fold(
         (
             u_init,
             mod_p
                 .clone()
                 .hit_cost(u_init, mod_xs.get(u_init).unwrap().clone()),
-        )
-    };
-    let (min_u, _) = (u_init + 1..=u_end)
-        .into_par_iter()
-        .fold(identity, |(min_u, min_c), u| {
+        ),
+        |(min_u, min_c), u| {
             let c = mod_p.clone().hit_cost(u, mod_xs.get(u).unwrap().clone());
             if c < min_c {
                 (u, c)
             } else {
                 (min_u, min_c)
             }
-        })
-        .reduce(identity, |a, b| if a.1 <= b.1 { a } else { b });
+        },
+    );
     mod_xs.get(min_u).unwrap().clone()
 }
 
@@ -252,7 +249,7 @@ fn cumulative_idle_hitting_cost(
     to: i32,
 ) -> f64 {
     (from..=to)
-        .into_par_iter()
+        .into_iter()
         .map(|t| hitting_cost.call(t, 0., &bound).raw())
         .sum()
 }
