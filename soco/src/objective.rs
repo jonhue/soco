@@ -12,7 +12,6 @@ use crate::utils::{assert, pos};
 use crate::value::Value;
 use noisy_float::prelude::*;
 use num::NumCast;
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 pub trait Objective<'a, T>
 where
