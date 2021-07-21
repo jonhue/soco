@@ -1,7 +1,6 @@
 //! Utilities.
 
 use crate::result::{Failure, Result};
-use crate::value::Value;
 use num::{Num, NumCast};
 use rand::{thread_rng, Rng};
 use std::iter::Sum;
@@ -72,18 +71,6 @@ pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<&T> {
     } else {
         None
     }
-}
-
-/// Computes the sum of bounds across all dimensions.
-pub fn total_bound<'a, T>(bounds: &Vec<T>) -> T
-where
-    T: Value<'a>,
-{
-    let mut result: T = NumCast::from(0).unwrap();
-    for &b in bounds {
-        result = result + b;
-    }
-    result
 }
 
 /// Randomly samples a uniform value in `[a,b]`.

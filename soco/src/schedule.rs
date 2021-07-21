@@ -3,7 +3,6 @@
 use crate::config::Config;
 use crate::utils::access;
 use crate::value::Value;
-use num::NumCast;
 use rayon::{
     iter::{
         FromParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
@@ -96,26 +95,28 @@ where
             "length of raw encoding does not match expected length"
         );
 
-        let mut xs = Schedule::empty();
-        for t in 0..w as usize {
-            let i = d as usize * t;
-            let x = Config::new(raw_xs[i..i + d as usize].to_vec());
-            xs.push(x);
-        }
-        xs
+        Schedule::new(
+            (0..w as usize)
+                .into_par_iter()
+                .map(|t| {
+                    let i = d as usize * t;
+                    Config::new(raw_xs[i..i + d as usize].to_vec())
+                })
+                .collect(),
+        )
     }
 
     /// Builds a raw (flat) encoding of a schedule (used for convex optimization) by stretching a config across the time window `w`.
     pub fn build_raw(w: i32, x: &Config<T>) -> Vec<T> {
-        let l = Schedule::<T>::raw_encoding_len(x.d(), w) as usize;
-
-        let mut raw_xs = vec![NumCast::from(0).unwrap(); l];
-        for t in 0..w as usize {
-            let i = x.d() as usize * t;
-            for k in 0..x.d() as usize {
-                raw_xs[i + k] = x[k];
-            }
-        }
+        let raw_xs: Vec<T> = (0..w as usize)
+            .into_par_iter()
+            .flat_map(|_| x.par_iter())
+            .collect();
+        assert_eq!(
+            raw_xs.len() as i32,
+            Schedule::<T>::raw_encoding_len(x.d(), w),
+            "length of raw encoding does not match expected length"
+        );
         raw_xs
     }
 

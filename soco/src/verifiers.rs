@@ -60,6 +60,20 @@ where
             format!("length of vector of switching costs must equal dimension, {} != {}", self.switching_cost.len(), self.d),
         )?;
 
+        // (0..self.d as usize).into_par_iter().map(|k| {
+        //     assert_validity(
+        //         self.bounds[k] > NumCast::from(0).unwrap(),
+        //         format!("upper bound of dimension {} must be positive", k + 1),
+        //     )?;
+        //     assert_validity(
+        //         self.switching_cost[k] > 0.,
+        //         format!(
+        //             "switching cost of dimension {} must be positive",
+        //             k + 1
+        //         ),
+        //     )
+        // }).sum()?;
+
         for k in 0..self.d as usize {
             assert_validity(
                 self.bounds[k] > NumCast::from(0).unwrap(),
