@@ -687,14 +687,14 @@ where
         let t = o.p.t_end();
         assert!(t == o.p.load.len() as i32 + 1, "Loads and time slot are inconsistent. Time slot is {} but loads are present for {} time slots.", t, o.p.load.len() as i32 + 1);
         let span = loads.len() as i32;
+        assert!(span == 1);
         info!("Updating online instance to time slot {}.", t);
-        for load_profiles in loads {
-            assert!(
-                load_profiles.len() == 1,
-                "Load profiles for SBLO need to be homogeneous and certain."
-            );
-            o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
-        }
+        let load_profiles = &loads[0];
+        assert!(
+            load_profiles.len() == 1,
+            "Load profiles for SBLO need to be homogeneous and certain."
+        );
+        o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
         verify_update(o, span);
     }
 }
@@ -766,11 +766,11 @@ where
         let t = o.p.t_end();
         assert!(t == o.p.load.len() as i32 + 1, "Loads and time slot are inconsistent. Time slot is {} but loads are present for {} time slots.", t, o.p.load.len() as i32 + 1);
         let span = loads.len() as i32;
+        assert!(span == 1);
         info!("Updating online instance to time slot {}.", t);
-        for load_profiles in loads {
-            assert!(load_profiles.len() == 1);
-            o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
-        }
+        let load_profiles = &loads[0];
+        assert!(load_profiles.len() == 1);
+        o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
         verify_update(o, span);
     }
 }
