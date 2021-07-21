@@ -13,6 +13,7 @@ use crate::utils::{assert, is_pow_of_2};
 use noisy_float::prelude::*;
 use num::ToPrimitive;
 use pyo3::prelude::*;
+use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::collections::HashMap;
 
 /// Vertice in the graph denoting time `t` and the value `j` at time `t`.
@@ -152,24 +153,28 @@ fn find_schedule(
         prev_rows = rows;
     }
 
-    let mut result = Path {
+    let identity = || Path {
         xs: Schedule::empty(),
         cost: f64::INFINITY,
     };
-    for i in prev_rows {
-        let path = &paths[&Vertice(p.t_end, i)];
-        let cost = alpha
-            * p.switching_cost[0]
-            * scalar_movement(0, i, inverted) as f64;
-        let picked_cost = path.cost + cost;
-        if picked_cost < result.cost {
-            result = Path {
-                xs: path.xs.clone(),
-                cost: picked_cost,
-            };
-        }
-    }
-    result
+    prev_rows
+        .par_iter()
+        .fold(identity, |result, &i| {
+            let path = &paths[&Vertice(p.t_end, i)];
+            let cost = alpha
+                * p.switching_cost[0]
+                * scalar_movement(0, i, inverted) as f64;
+            let picked_cost = path.cost + cost;
+            if picked_cost < result.cost {
+                Path {
+                    xs: path.xs.clone(),
+                    cost: picked_cost,
+                }
+            } else {
+                result
+            }
+        })
+        .reduce(identity, |a, b| if a.cost <= b.cost { a } else { b })
 }
 
 fn find_shortest_subpath(
