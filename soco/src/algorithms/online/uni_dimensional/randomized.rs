@@ -50,7 +50,7 @@ pub fn randomized<'a>(
 
     let Step(y, relaxation_m) = probabilistic.next(
         o,
-        &xs.to(),
+        &xs.clone().cast(),
         prev_m.relaxation_m,
         RelaxationOptions {
             breakpoints: Breakpoints::grid(1.),

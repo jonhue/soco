@@ -3,7 +3,7 @@
 use crate::value::Value;
 use rayon::iter::{
     FromParallelIterator, IndexedParallelIterator, IntoParallelIterator,
-    IntoParallelRefIterator, ParallelIterator,
+    ParallelIterator,
 };
 use rayon::vec::IntoIter;
 use serde_derive::{Deserialize, Serialize};
@@ -100,7 +100,7 @@ where
     }
 }
 
-impl<'a, T> IntoParallelIterator for &Config<T>
+impl<'a, T> IntoParallelIterator for Config<T>
 where
     T: Value<'a>,
 {
@@ -108,7 +108,7 @@ where
     type Iter = IntoIter<T>;
 
     fn into_par_iter(self) -> Self::Iter {
-        self.to_vec().into_par_iter()
+        self.0.into_par_iter()
     }
 }
 
@@ -119,8 +119,8 @@ where
     type Output = Self;
 
     fn add(self, other: Self) -> Self::Output {
-        self.par_iter()
-            .zip(other.par_iter())
+        self.into_par_iter()
+            .zip(other.into_par_iter())
             .map(|(x, y)| x + y)
             .collect()
     }
@@ -133,8 +133,8 @@ where
     type Output = Self;
 
     fn sub(self, other: Self) -> Self::Output {
-        self.par_iter()
-            .zip(other.par_iter())
+        self.into_par_iter()
+            .zip(other.into_par_iter())
             .map(|(x, y)| x - y)
             .collect()
     }
@@ -148,8 +148,8 @@ where
 
     /// Dot product of transposed `self` with `other`.
     fn mul(self, other: Self) -> Self::Output {
-        self.par_iter()
-            .zip(other.par_iter())
+        self.into_par_iter()
+            .zip(other.into_par_iter())
             .map(|(x, y)| x * y)
             .sum()
     }
@@ -160,7 +160,7 @@ impl<'a> Mul<FractionalConfig> for f64 {
 
     /// Scales config with scalar.
     fn mul(self, other: FractionalConfig) -> Self::Output {
-        other.par_iter().map(|j| self * j).collect()
+        other.into_par_iter().map(|j| self * j).collect()
     }
 }
 
@@ -169,6 +169,6 @@ impl<'a> Div<f64> for FractionalConfig {
 
     /// Divides config by scalar.
     fn div(self, other: f64) -> Self::Output {
-        self.par_iter().map(|j| j / other).collect()
+        self.into_par_iter().map(|j| j / other).collect()
     }
 }

@@ -2,8 +2,7 @@ use noisy_float::prelude::*;
 use rand::prelude::*;
 use rand_pcg::Pcg64;
 use rayon::iter::{
-    IndexedParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
-    ParallelIterator,
+    IndexedParallelIterator, IntoParallelIterator, ParallelIterator,
 };
 use soco::{
     config::{FractionalConfig, IntegralConfig},
@@ -54,7 +53,7 @@ pub fn random() -> CostFn<'static, IntegralConfig> {
 pub fn inv_e() -> CostFn<'static, FractionalConfig> {
     wrap(|t: i32, j: FractionalConfig| {
         t as f64
-            * j.par_iter()
+            * j.into_par_iter()
                 .map(|x| std::f64::consts::E.powf(-x))
                 .sum::<f64>()
     })

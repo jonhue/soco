@@ -14,7 +14,9 @@ use crate::utils::shift_time;
 use crate::value::Value;
 use noisy_float::prelude::*;
 use num::{NumCast, ToPrimitive};
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use rayon::iter::{
+    IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
+};
 
 pub trait DiscretizableVector {
     /// Ceil all elements of a vector.
@@ -37,7 +39,7 @@ where
 }
 
 pub trait CastableVector<T> {
-    fn to(&self) -> Vec<T>;
+    fn cast(&self) -> Vec<T>;
 }
 
 impl<'a, T, U> CastableVector<T> for Vec<U>
@@ -45,7 +47,7 @@ where
     T: Value<'a>,
     U: Value<'a>,
 {
-    fn to(&self) -> Vec<T> {
+    fn cast(&self) -> Vec<T> {
         self.par_iter()
             .map(|&x| NumCast::from(x).unwrap())
             .collect()
@@ -62,7 +64,7 @@ impl<'a> DiscretizableCostFn<'a> for CostFn<'a, FractionalConfig> {
         CostFn::new(
             1,
             SingleCostFn::certain(move |t, x: IntegralConfig| {
-                self.call_unbounded(t, x.to())
+                self.call_unbounded(t, x.cast())
             }),
         )
     }
@@ -138,7 +140,7 @@ impl<'a> RelaxableProblem<'a>
         SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
-            bounds: self.bounds.to(),
+            bounds: self.bounds.cast(),
             switching_cost: self.switching_cost.clone(),
             hitting_cost: self.hitting_cost.to_f(),
         }
@@ -265,7 +267,7 @@ where
 }
 
 pub trait CastableConfig<T> {
-    fn to(&self) -> Config<T>;
+    fn cast(&self) -> Config<T>;
 }
 
 impl<'a, T, U> CastableConfig<T> for Config<U>
@@ -273,27 +275,27 @@ where
     T: Value<'a>,
     U: Value<'a>,
 {
-    fn to(&self) -> Config<T> {
-        Config::new(self.to_vec().to())
+    fn cast(&self) -> Config<T> {
+        Config::new(self.to_vec().cast())
     }
 }
 
 pub trait DiscretizableSchedule {
     /// Discretize a schedule.
-    fn to_i(&self) -> IntegralSchedule;
+    fn into_i(self) -> IntegralSchedule;
 }
 
 impl<'a, T> DiscretizableSchedule for Schedule<T>
 where
     T: Value<'a>,
 {
-    fn to_i(&self) -> IntegralSchedule {
-        self.par_iter().map(|x| x.ceil()).collect()
+    fn into_i(self) -> IntegralSchedule {
+        self.into_par_iter().map(|x| x.ceil()).collect()
     }
 }
 
 pub trait CastableSchedule<T> {
-    fn to(&self) -> Schedule<T>;
+    fn cast(self) -> Schedule<T>;
 }
 
 impl<'a, T, U> CastableSchedule<T> for Schedule<U>
@@ -301,8 +303,8 @@ where
     T: Value<'a>,
     U: Value<'a>,
 {
-    fn to(&self) -> Schedule<T> {
-        self.par_iter().map(|x| x.to()).collect()
+    fn cast(self) -> Schedule<T> {
+        self.into_par_iter().map(|x| x.cast()).collect()
     }
 }
 

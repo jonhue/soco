@@ -32,8 +32,8 @@ mod co {
             .xs();
         result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
 
-        let int_result = result.to_i();
-        let cast_int_result: Schedule<f64> = int_result.to();
+        let int_result = result.into_i();
+        let cast_int_result: Schedule<f64> = int_result.clone().cast();
         assert_eq!(
             int_result,
             Schedule::new(vec![

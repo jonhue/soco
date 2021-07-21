@@ -25,8 +25,8 @@ pub fn co(
     let t_end = p.t_end;
 
     let (lower, upper): (Vec<_>, Vec<_>) = p.bounds.par_iter().cloned().unzip();
-    let extended_lower = Schedule::build_raw(t_end, &Config::new(lower));
-    let extended_upper = Schedule::build_raw(t_end, &Config::new(upper));
+    let extended_lower = Schedule::build_raw(t_end, Config::new(lower));
+    let extended_upper = Schedule::build_raw(t_end, Config::new(upper));
     let bounds = extended_lower
         .into_par_iter()
         .zip(extended_upper.into_par_iter())

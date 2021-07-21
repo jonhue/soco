@@ -107,10 +107,10 @@ where
     }
 
     /// Builds a raw (flat) encoding of a schedule (used for convex optimization) by stretching a config across the time window `w`.
-    pub fn build_raw(w: i32, x: &Config<T>) -> Vec<T> {
+    pub fn build_raw(w: i32, x: Config<T>) -> Vec<T> {
         let raw_xs: Vec<T> = (0..w as usize)
             .into_par_iter()
-            .flat_map(|_| x.par_iter())
+            .flat_map(|_| x.clone().into_par_iter())
             .collect();
         assert_eq!(
             raw_xs.len() as i32,
@@ -155,7 +155,7 @@ where
     }
 }
 
-impl<'a, T> IntoParallelIterator for &Schedule<T>
+impl<'a, T> IntoParallelIterator for Schedule<T>
 where
     T: Value<'a>,
 {
@@ -163,6 +163,6 @@ where
     type Iter = IntoIter<Config<T>>;
 
     fn into_par_iter(self) -> Self::Iter {
-        self.0.clone().into_par_iter()
+        self.0.into_par_iter()
     }
 }

@@ -108,12 +108,12 @@ impl FromParallelIterator<N64> for LoadProfile {
     }
 }
 
-impl IntoParallelIterator for &LoadProfile {
+impl IntoParallelIterator for LoadProfile {
     type Item = N64;
     type Iter = IntoIter<N64>;
 
     fn into_par_iter(self) -> Self::Iter {
-        self.to_vec().into_par_iter()
+        self.0.into_par_iter()
     }
 }
 
@@ -122,7 +122,7 @@ impl Mul<Vec<N64>> for LoadProfile {
 
     /// Applies fractions to loads.
     fn mul(self, z: Vec<N64>) -> Self::Output {
-        self.par_iter()
+        self.into_par_iter()
             .zip(&z)
             .map(|(l, &z)| l * z)
             .collect::<LoadProfile>()
@@ -134,7 +134,7 @@ impl Div<N64> for LoadProfile {
 
     /// Divides loads by scalar.
     fn div(self, other: N64) -> Self::Output {
-        self.par_iter().map(|l| l / other).collect()
+        self.into_par_iter().map(|l| l / other).collect()
     }
 }
 

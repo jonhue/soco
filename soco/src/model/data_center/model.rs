@@ -259,10 +259,10 @@ impl DataCenterModel {
     fn total_sub_jobs(
         &self,
         server_type: &ServerType,
-        loads: &LoadProfile,
+        loads: LoadProfile,
     ) -> N64 {
         loads
-            .par_iter()
+            .into_par_iter()
             .enumerate()
             .map(|(i_, load)| {
                 let (_, i) = parse(self.job_types.len(), i_);
@@ -309,7 +309,7 @@ impl DataCenterModel {
                 let k_ = encode(self.server_types.len(), j, k);
                 let server_type = &self.server_types[k];
                 let total_load = self
-                    .total_sub_jobs(server_type, &zs.select_loads(lambda, k_));
+                    .total_sub_jobs(server_type, zs.select_loads(lambda, k_));
                 let x = NumCast::from(x_[k_]).unwrap();
                 safe_balancing(x, total_load, || {
                     let s = total_load / (x * self.delta);
@@ -361,16 +361,16 @@ impl DataCenterModel {
         location: &Location,
         server_type: &ServerType,
         x_: T,
-        loads: &LoadProfile,
+        loads: LoadProfile,
     ) -> N64
     where
         T: Value<'a>,
     {
         let x = NumCast::from(x_).unwrap();
-        let total_load = self.total_sub_jobs(server_type, loads);
+        let total_load = self.total_sub_jobs(server_type, loads.clone());
 
         // calculates the mean duration of jobs on a server of some type under the load profile `loads`
-        let number_of_jobs = loads.par_iter().sum();
+        let number_of_jobs = loads.clone().into_par_iter().sum();
         let mean_job_duration = if number_of_jobs == n64(0.) {
             n64(0.)
         } else {
@@ -423,7 +423,7 @@ impl DataCenterModel {
                                 &self.locations[j],
                                 &self.server_types[k],
                                 x[k_],
-                                &loads,
+                                loads,
                             )
                         })
                         .sum::<N64>()
