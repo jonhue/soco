@@ -286,7 +286,7 @@ where
     T: Value<'a>,
 {
     (1..=t_end)
-        .into_par_iter()
+        .into_iter()
         .map(|t| {
             let prev_x = xs.get(t - 1).unwrap_or(default).clone();
             let x = xs.get(t).unwrap().clone();
