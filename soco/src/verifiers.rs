@@ -10,6 +10,7 @@ use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
 use crate::value::Value;
+use crate::vec_wrapper::VecWrapper;
 use num::NumCast;
 
 pub trait VerifiableProblem {
@@ -252,7 +253,7 @@ where
     T: Value<'a>,
 {
     pub fn verify(&self, t: i32, bounds: &Vec<T>) -> Result<()> {
-        for (k, &j) in self.to_vec().iter().enumerate() {
+        for (k, &j) in self.iter().enumerate() {
             assert_validity(
                 j >= NumCast::from(0).unwrap(),
                 format!(
@@ -281,7 +282,7 @@ where
             format!("schedule must have a value for each time step, `t_end` is {} and schedule contains {} steps", t_end, self.t_end()),
         )?;
 
-        for (t, x) in self.to_outer_vec().iter().enumerate() {
+        for (t, x) in self.iter().enumerate() {
             x.verify(t as i32, bounds)?;
         }
 

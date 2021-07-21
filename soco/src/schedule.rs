@@ -80,11 +80,6 @@ where
         self.0.iter().map(|x| x.to_vec()).collect()
     }
 
-    /// Converts schedule to a vector of configs.
-    pub fn to_outer_vec(&self) -> &Vec<Config<T>> {
-        &self.0
-    }
-
     /// Builds a schedule from a raw (flat) encoding `raw_xs` (used for convex optimization).
     /// `d` is the number of dimensions, `w` is the length of the time window.
     /// The length of `raw_xs` must therefore be `d * w`.
