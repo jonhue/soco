@@ -276,12 +276,12 @@ where
     }
 }
 
-pub trait DiscretizableSchedule<'a> {
+pub trait DiscretizableSchedule {
     /// Discretize a schedule.
     fn to_i(&self) -> IntegralSchedule;
 }
 
-impl<'a, T> DiscretizableSchedule<'a> for Schedule<T>
+impl<'a, T> DiscretizableSchedule for Schedule<T>
 where
     T: Value<'a>,
 {
@@ -290,11 +290,11 @@ where
     }
 }
 
-pub trait CastableSchedule<'a, T> {
+pub trait CastableSchedule<T> {
     fn to(&self) -> Schedule<T>;
 }
 
-impl<'a, T, U> CastableSchedule<'a, T> for Schedule<U>
+impl<'a, T, U> CastableSchedule<T> for Schedule<U>
 where
     T: Value<'a>,
     U: Value<'a>,
