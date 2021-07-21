@@ -11,6 +11,7 @@ use rayon::iter::{
     FromParallelIterator, IndexedParallelIterator, IntoParallelIterator,
     IntoParallelRefIterator, ParallelIterator,
 };
+use rayon::slice::Iter;
 use rayon::vec::IntoIter;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::ops::Div;
@@ -105,6 +106,15 @@ impl FromParallelIterator<N64> for LoadProfile {
         I: IntoParallelIterator<Item = N64>,
     {
         LoadProfile::new(Vec::<N64>::from_par_iter(iter))
+    }
+}
+
+impl<'a> IntoParallelIterator for &'a LoadProfile {
+    type Item = &'a N64;
+    type Iter = Iter<'a, N64>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.par_iter()
     }
 }
 

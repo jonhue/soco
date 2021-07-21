@@ -29,7 +29,7 @@ mod bcp {
         result.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(
-            result.into_i(),
+            result.to_i(),
             Schedule::new(vec![Config::single(2), Config::single(2)])
         );
     }

@@ -21,7 +21,7 @@ mod fractional_lcp {
         let result = o.stream(&lcp, |_, _| false, ()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
-        assert_eq!(result.0.into_i(), Schedule::new(vec![Config::single(0)]));
+        assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(0)]));
     }
 
     #[test]
@@ -41,7 +41,7 @@ mod fractional_lcp {
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
         assert_eq!(
-            result.0.into_i(),
+            result.0.to_i(),
             Schedule::new(vec![Config::single(0), Config::single(2)])
         );
     }

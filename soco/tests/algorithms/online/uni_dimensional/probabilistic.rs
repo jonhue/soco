@@ -25,7 +25,7 @@ mod probabilistic {
             .unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
-        assert_eq!(result.0.into_i(), Schedule::new(vec![Config::single(1)]));
+        assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(1)]));
     }
 
     #[test]
@@ -47,7 +47,7 @@ mod probabilistic {
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
         assert_eq!(
-            result.0.into_i(),
+            result.0.to_i(),
             Schedule::new(vec![Config::single(1), Config::single(1)])
         );
     }

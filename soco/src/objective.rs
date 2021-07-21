@@ -193,8 +193,8 @@ where
         inverted: bool,
     ) -> Result<N64> {
         self._objective_function_with_default(
-            &xs.clone().cast(),
-            &default.cast(),
+            &xs.to(),
+            &default.to(),
             alpha,
             inverted,
         )
@@ -206,11 +206,7 @@ where
         default: &IntegralConfig,
         inverted: bool,
     ) -> Result<N64> {
-        self._movement_with_default(
-            &xs.clone().cast(),
-            &default.cast(),
-            inverted,
-        )
+        self._movement_with_default(&xs.to(), &default.to(), inverted)
     }
 
     fn _default_config(&self) -> IntegralConfig {

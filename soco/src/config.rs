@@ -3,8 +3,9 @@
 use crate::value::Value;
 use rayon::iter::{
     FromParallelIterator, IndexedParallelIterator, IntoParallelIterator,
-    ParallelIterator,
+    IntoParallelRefIterator, ParallelIterator,
 };
+use rayon::slice::Iter;
 use rayon::vec::IntoIter;
 use serde_derive::{Deserialize, Serialize};
 use std::ops::Add;
@@ -97,6 +98,18 @@ where
         I: IntoParallelIterator<Item = T>,
     {
         Config::new(Vec::<T>::from_par_iter(iter))
+    }
+}
+
+impl<'data, T> IntoParallelIterator for &'data Config<T>
+where
+    T: Value<'data>,
+{
+    type Item = &'data T;
+    type Iter = Iter<'data, T>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.par_iter()
     }
 }
 
