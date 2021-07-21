@@ -46,7 +46,7 @@ mod optimal_graph_search {
         uni_dimensional::optimal_graph_search::{
             make_pow_of_2, optimal_graph_search, Options,
         },
-        OfflineAlgorithm, OfflineAlgorithmWithDefaultOptions,
+        OfflineAlgorithm, OfflineAlgorithmWithDefaultOptions, OfflineOptions,
     };
     use soco::config::Config;
     use soco::objective::Objective;
@@ -66,11 +66,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result = optimal_graph_search
-            .solve_with_default_options(p.clone(), false)
+            .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result = optimal_graph_search
-            .solve_with_default_options(p.clone(), true)
+            .solve_with_default_options(p.clone(), OfflineOptions::inverted())
             .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -99,11 +99,11 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result = optimal_graph_search
-            .solve_with_default_options(p.clone(), false)
+            .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result = optimal_graph_search
-            .solve_with_default_options(p.clone(), true)
+            .solve_with_default_options(p.clone(), OfflineOptions::inverted())
             .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -128,14 +128,20 @@ mod optimal_graph_search {
 
         let transformed_p = make_pow_of_2(p).unwrap();
         let result = optimal_graph_search
-            .solve_with_default_options(transformed_p.clone(), false)
+            .solve_with_default_options(
+                transformed_p.clone(),
+                OfflineOptions::default(),
+            )
             .unwrap();
         result
             .xs
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
         let inv_result = optimal_graph_search
-            .solve_with_default_options(transformed_p.clone(), true)
+            .solve_with_default_options(
+                transformed_p.clone(),
+                OfflineOptions::inverted(),
+            )
             .unwrap();
         inv_result
             .xs
@@ -162,7 +168,7 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let result = optimal_graph_search
-            .solve(p.clone(), Options { x_start: 2 }, false)
+            .solve(p.clone(), Options { x_start: 2 }, OfflineOptions::default())
             .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -173,12 +179,8 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(result.cost, 0.);
         assert_abs_diff_eq!(
             result.cost,
-            p.objective_function_with_default(
-                &result.xs,
-                &Config::single(2),
-                false
-            )
-            .unwrap()
+            p.objective_function_with_default(&result.xs, &Config::single(2))
+                .unwrap()
         );
     }
 }

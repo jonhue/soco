@@ -4,6 +4,7 @@ use crate::{
         Options,
     },
     config::Config,
+    convert::{CastableSchedule, DiscretizableSchedule},
     model::{Model, OfflineInput, OnlineInput},
     objective::Objective,
     problem::{Online, Problem},
@@ -11,6 +12,7 @@ use crate::{
     schedule::Schedule,
     value::Value,
 };
+use log::info;
 use std::{
     io::Write,
     net::{SocketAddr, TcpListener, TcpStream},
@@ -18,6 +20,10 @@ use std::{
     thread,
 };
 
+/// Generates problem instance from model and streams online algorithm using the provided input.
+/// Then, starts backend.
+/// Returns initial schedule, initial integral schedule, and latest memory of the algorithm.
+#[allow(clippy::type_complexity)]
 pub fn start<T, P, M, O, A, B>(
     addr: SocketAddr,
     model: impl Model<P, A, B> + 'static,
@@ -26,7 +32,7 @@ pub fn start<T, P, M, O, A, B>(
     w: i32,
     input: A,
     sender: Option<Sender<&'static str>>,
-) -> Result<(Schedule<T>, f64, Option<M>)>
+) -> Result<((Schedule<T>, f64), (Schedule<i32>, f64), Option<M>)>
 where
     T: Value<'static>,
     P: Objective<'static, T> + Problem + 'static,
@@ -36,7 +42,7 @@ where
     B: OnlineInput,
 {
     let (mut o, result) = prepare(&model, alg, options.clone(), w, input)?;
-    let (mut xs, _, prev_m) = result.clone();
+    let ((mut xs, _), _, prev_m) = result.clone();
 
     thread::spawn(move || {
         run(addr, model, &mut o, alg, &mut xs, prev_m, options, sender);
@@ -46,7 +52,7 @@ where
 }
 
 /// Generates problem instance from model and streams online algorithm using the provided input.
-/// Returns problem instance, initial schedule, and latest memory of the algorithm.
+/// Returns problem instance, initial schedule, initial integral schedule, and latest memory of the algorithm.
 ///
 /// The returned values can be used to start the backend and stream the algorithm live.
 #[allow(clippy::type_complexity)]
@@ -56,7 +62,10 @@ fn prepare<'a, T, P, M, O, A, B>(
     options: O,
     w: i32,
     input: A,
-) -> Result<(Online<P>, (Schedule<T>, f64, Option<M>))>
+) -> Result<(
+    Online<P>,
+    ((Schedule<T>, f64), (Schedule<i32>, f64), Option<M>),
+)>
 where
     T: Value<'a>,
     P: Objective<'a, T> + Problem + 'a,
@@ -72,16 +81,18 @@ where
     }
     let mut o = Online { p, w };
     o.verify()?;
-    println!("Generated a problem instance: {:?}", o);
+    info!("Generated a problem instance: {:?}", o);
 
-    println!("Simulating until time slot {}.", t_end);
+    info!("Simulating until time slot {}.", t_end);
     let (xs, m) = if t_end >= 1 {
         o.offline_stream(&alg, t_end, options)?
     } else {
         (Schedule::empty(), None)
     };
     let cost = o.p.objective_function(&xs)?;
-    Ok((o, (xs, cost, m)))
+    let int_xs = xs.to_i();
+    let int_cost = o.p.objective_function(&int_xs.to())?;
+    Ok((o, ((xs, cost), (int_xs, int_cost), m)))
 }
 
 /// Starts backend server.
@@ -104,32 +115,36 @@ fn run<'a, T, P, M, O, A, B>(
     B: OnlineInput,
 {
     let listener = TcpListener::bind(addr).unwrap();
-    println!("Backend is running.");
+    info!("[server] Running on {:?}.", addr);
     if let Some(sender) = sender {
-        sender.send("backend running").unwrap()
+        sender.send("[server] Running.").unwrap()
     }
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
-        println!("Connection established!");
+        info!("[server] Connection established!");
 
         match bincode::deserialize_from(&mut stream) {
             Ok(input) => {
-                println!("Received: {:?}", input);
+                info!("[server] Received: {:?}", input);
                 model.update(o, input);
+                info!("[server] Updated problem instance.");
 
                 let (x, m) = o.next(alg, options.clone(), xs, prev_m).unwrap();
                 let cost = o.p.objective_function(&xs).unwrap();
-                let response =
-                    bincode::serialize(&(x, cost, m.clone())).unwrap();
+                let int_xs = xs.to_i();
+                let int_cost = o.p.objective_function(&int_xs.to()).unwrap();
+                let result = ((x, cost), (int_xs.now(), int_cost), m.clone());
+                let response = bincode::serialize(&result).unwrap();
 
                 stream.write_all(&response).unwrap();
                 stream.flush().unwrap();
+                info!("[server] Sent: {:?}", result);
 
                 prev_m = m;
             }
             Err(_) => {
-                println!("Stopping server.");
+                info!("[server] Server stopped.");
                 break;
             }
         }
@@ -137,10 +152,12 @@ fn run<'a, T, P, M, O, A, B>(
 }
 
 /// Executes next iteration of online algorithm.
+/// Returns obtained result, integral result, and memory.
+#[allow(clippy::type_complexity)]
 pub fn next<'a, T, P, M, B>(
     addr: SocketAddr,
     input: B,
-) -> (Config<T>, f64, Option<M>)
+) -> ((Config<T>, f64), (Config<i32>, f64), Option<M>)
 where
     T: Value<'a>,
     P: Problem + 'a,
@@ -148,16 +165,22 @@ where
     B: OnlineInput,
 {
     let mut stream = TcpStream::connect(addr).unwrap();
+    info!("[client] Connected to {:?}.", addr);
     stream
         .write_all(&bincode::serialize(&input).unwrap())
         .unwrap();
     stream.flush().unwrap();
-    bincode::deserialize_from(&mut stream).unwrap()
+    info!("[client] Sent: {:?}", input);
+    let result = bincode::deserialize_from(&mut stream).unwrap();
+    info!("[client] Received: {:?}", result);
+    result
 }
 
 /// Stops backend server.
 pub fn stop(addr: SocketAddr) {
     let mut stream = TcpStream::connect(addr).unwrap();
+    info!("[client] Connected to {:?}.", addr);
     stream.write_all("".as_bytes()).unwrap();
     stream.flush().unwrap();
+    info!("[client] Stopping server.");
 }

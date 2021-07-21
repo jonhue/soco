@@ -20,7 +20,7 @@ fn start(
     input: DataCenterOfflineInput,
     w: i32,
 ) -> PyResult<Response<f64, Vec<Memory<f64>>>> {
-    let (xs, cost, m) = online::start(
+    let ((xs, cost), (int_xs, int_cost), m) = online::start(
         addr.parse().unwrap(),
         model,
         &lcp::<f64, FractionalSimplifiedSmoothedConvexOptimization>,
@@ -30,7 +30,7 @@ fn start(
         None,
     )
     .unwrap();
-    Ok((xs.to_vec(), cost, m))
+    Ok(((xs.to_vec(), cost), (int_xs.to_vec(), int_cost), m))
 }
 
 /// Executes next iteration of the algorithm.
@@ -39,13 +39,13 @@ fn next(
     addr: String,
     input: DataCenterOnlineInput,
 ) -> PyResult<StepResponse<f64, Vec<Memory<f64>>>> {
-    let (x, cost, m) = online::next::<
+    let ((x, cost), (int_x, int_cost), m) = online::next::<
         f64,
         FractionalSimplifiedSmoothedConvexOptimization,
         Vec<Memory<f64>>,
         DataCenterOnlineInput,
     >(addr.parse().unwrap(), input);
-    Ok((x.to_vec(), cost, m))
+    Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), m))
 }
 
 /// Lazy Capacity Provisioning

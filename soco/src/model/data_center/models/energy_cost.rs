@@ -41,21 +41,28 @@ impl EnergySource {
         EnergySource {
             cost: Arc::new(move |t| {
                 Python::with_gil(|py| {
-                    cost.call1(py, (t,)).unwrap().extract(py).unwrap()
+                    cost.call1(py, (t,))
+                        .expect("energy source `cost` method invalid")
+                        .extract(py)
+                        .expect("energy source `cost` method invalid")
                 })
             }),
             profit: Arc::new(move |t| {
                 Python::with_gil(|py| {
-                    profit.call1(py, (t,)).unwrap().extract(py).unwrap()
+                    profit
+                        .call1(py, (t,))
+                        .expect("energy source `profit` method invalid")
+                        .extract(py)
+                        .expect("energy source `profit` method invalid")
                 })
             }),
             limit: Arc::new(move |t, location| {
                 Python::with_gil(|py| {
                     limit
                         .call1(py, (t, location.clone()))
-                        .unwrap()
+                        .expect("energy source `limit` method invalid")
                         .extract(py)
-                        .unwrap()
+                        .expect("energy source `limit` method invalid")
                 })
             }),
         }
@@ -90,7 +97,14 @@ impl LinearEnergyCostModel {
         LinearEnergyCostModel {
             cost: Arc::new(move |t| {
                 Python::with_gil(|py| {
-                    cost.call1(py, (t,)).unwrap().extract(py).unwrap()
+                    cost.call1(py, (t,))
+                        .expect(
+                            "linear energy cost model `cost` method invalid",
+                        )
+                        .extract(py)
+                        .expect(
+                            "linear energy cost model `cost` method invalid",
+                        )
                 })
             }),
         }

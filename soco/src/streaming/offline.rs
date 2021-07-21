@@ -1,6 +1,6 @@
 use crate::{
     algorithms::{
-        offline::{OfflineAlgorithm, OfflineResult},
+        offline::{OfflineAlgorithm, OfflineOptions, OfflineResult},
         Options,
     },
     model::{Model, OfflineInput, OnlineInput},
@@ -10,14 +10,15 @@ use crate::{
     schedule::Schedule,
     value::Value,
 };
+use log::info;
 
 /// Generates problem instance from model and solves it using an offline algorithm.
 pub fn solve<'a, T, R, P, O, A, B>(
     model: &'a impl Model<P, A, B>,
     alg: &impl OfflineAlgorithm<T, R, P, O>,
     options: O,
+    offline_options: OfflineOptions,
     input: A,
-    inverted: bool,
 ) -> Result<(Schedule<T>, f64)>
 where
     T: Value<'a>,
@@ -29,10 +30,10 @@ where
 {
     let p = model.to(input);
     p.verify()?;
-    println!("Generated a problem instance: {:?}", p);
+    info!("Generated a problem instance: {:?}", p);
 
-    println!("Simulating until time slot {}.", p.t_end());
-    let result = alg.solve(p.clone(), options, inverted)?;
+    info!("Simulating until time slot {}.", p.t_end());
+    let result = alg.solve(p.clone(), options, offline_options)?;
 
     let xs = result.xs();
     let cost = p.objective_function(&xs)?;

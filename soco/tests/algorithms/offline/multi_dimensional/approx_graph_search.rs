@@ -7,7 +7,7 @@ mod approx_graph_search {
             multi_dimensional::approx_graph_search::{
                 approx_graph_search, Options,
             },
-            OfflineAlgorithm,
+            OfflineAlgorithm, OfflineOptions,
         },
         config::Config,
         objective::Objective,
@@ -28,11 +28,11 @@ mod approx_graph_search {
         p.verify().unwrap();
 
         let result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, false)
+            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::default())
             .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, true)
+            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::inverted())
             .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -64,11 +64,11 @@ mod approx_graph_search {
         p.verify().unwrap();
 
         let result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, false)
+            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::default())
             .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, true)
+            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::inverted())
             .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 
@@ -101,11 +101,11 @@ mod approx_graph_search {
         p.verify().unwrap();
 
         let result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, false)
+            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::default())
             .unwrap();
         result.xs.verify(p.t_end, &p.bounds).unwrap();
         let inv_result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, true)
+            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::inverted())
             .unwrap();
         inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
 

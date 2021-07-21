@@ -35,6 +35,23 @@ pub struct SwitchingCost {
     #[pyo3(get, set)]
     pub rho: f64,
 }
+impl SwitchingCost {
+    /// Computes switching cost for a server of some type.
+    pub fn switching_cost(&self) -> N64 {
+        n64(
+            self.energy_cost * (self.epsilon + self.delta * self.phi_max)
+                + self.tau
+                + self.rho,
+        )
+    }
+
+    /// Computes normalized switching cost for a server of some type. Approximately,
+    /// measures the minimum duration a server must be asleep to outweigh the switching cost.
+    /// Referred to as `\xi` in the paper.
+    pub fn normalized_switching_cost(&self) -> N64 {
+        self.switching_cost() / (self.energy_cost * self.phi_min)
+    }
+}
 #[pymethods]
 impl SwitchingCost {
     #[new]
@@ -57,6 +74,16 @@ impl SwitchingCost {
             rho,
         }
     }
+
+    #[pyo3(name = "switching_cost")]
+    fn switching_cost_py(&self) -> PyResult<f64> {
+        Ok(self.switching_cost().raw())
+    }
+
+    #[pyo3(name = "normalized_switching_cost")]
+    fn normalized_switching_cost_py(&self) -> PyResult<f64> {
+        Ok(self.normalized_switching_cost().raw())
+    }
 }
 
 impl SwitchingCostModel {
@@ -64,29 +91,11 @@ impl SwitchingCostModel {
         SwitchingCostModel(switching_costs)
     }
 
-    /// Computes switching cost for a server of some type.
-    pub fn switching_cost(&self, server_type: &ServerType) -> N64 {
-        let model = self.model(server_type);
-        n64(
-            model.energy_cost * (model.epsilon + model.delta * model.phi_max)
-                + model.tau
-                + model.rho,
-        )
-    }
-
-    /// Computes normalized switching cost for a server of some type. Approximately,
-    /// measures the minimum duration a server must be asleep to outweigh the switching cost.
-    /// Referred to as `\xi` in the paper.
-    pub fn normalized_switching_cost(&self, server_type: &ServerType) -> N64 {
-        let model = self.model(server_type);
-        self.switching_cost(server_type) / (model.energy_cost * model.phi_min)
-    }
-
     /// Builds vector of switching costs for all server types.
     pub fn switching_costs(&self, server_types: &Vec<ServerType>) -> Vec<f64> {
         server_types
             .iter()
-            .map(|server_type| self.switching_cost(server_type).raw())
+            .map(|server_type| self.model(server_type).switching_cost().raw())
             .collect()
     }
 
@@ -97,7 +106,9 @@ impl SwitchingCostModel {
     ) -> Vec<f64> {
         server_types
             .iter()
-            .map(|server_type| self.switching_cost(server_type).raw())
+            .map(|server_type| {
+                self.model(server_type).normalized_switching_cost().raw()
+            })
             .collect()
     }
 

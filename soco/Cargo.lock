@@ -21,6 +21,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "arc-swap"
+version = "1.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e906254e445520903e7fc9da4f709886c84ae4bc4ddaf0e093188d66df4dc820"
+
+[[package]]
 name = "autocfg"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -189,6 +195,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0382880606dff6d15c9476c416d18690b72742aa7b605bb6dd6ec9030fbf07eb"
 dependencies = [
  "scopeguard",
+]
+
+[[package]]
+name = "log"
+version = "0.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "51b9bbe6c47d51fc3e1a9b945965946b4c44142ab8792c50835a980d362c2710"
+dependencies = [
+ "cfg-if",
 ]
 
 [[package]]
@@ -510,6 +525,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "pyo3-log"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f9d42fe53a9ba733c9dd4289f73389dafa35b6ad0e2e07fbb480e5a111b83749"
+dependencies = [
+ "arc-swap",
+ "log",
+ "pyo3",
+]
+
+[[package]]
 name = "pyo3-macros"
 version = "0.14.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -735,11 +761,13 @@ dependencies = [
  "derivative",
  "finitediff",
  "itertools",
+ "log",
  "nalgebra 0.28.0",
  "nlopt",
  "noisy_float",
  "num",
  "pyo3",
+ "pyo3-log",
  "rand 0.8.4",
  "rand_pcg 0.3.1",
  "serde",

@@ -81,7 +81,7 @@ fn integration() {
 
         let options = Options::default();
 
-        let (xs, _, _) = online::start(
+        let ((xs, _), (int_xs, _), _) = online::start(
             addr.parse().unwrap(),
             model,
             &rbg,
@@ -92,6 +92,7 @@ fn integration() {
         )
         .unwrap();
         xs.verify(t_end, &vec![m as f64]).unwrap();
+        int_xs.verify(t_end, &vec![m]).unwrap();
     });
 
     receiver.recv().unwrap();
@@ -99,13 +100,14 @@ fn integration() {
         let input = DataCenterOnlineInput {
             loads: vec![vec![LoadProfile::raw(vec![10.])]],
         };
-        let (x, _, _) = online::next::<
+        let ((x, _), (int_x, _), _) = online::next::<
             f64,
             FractionalSmoothedConvexOptimization,
             Memory,
             DataCenterOnlineInput,
         >(addr.parse().unwrap(), input);
         x.verify(t_end + t, &vec![m as f64]).unwrap();
+        int_x.verify(t_end + t, &vec![m]).unwrap();
     }
     online::stop(addr.parse().unwrap());
 

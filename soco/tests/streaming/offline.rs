@@ -1,6 +1,9 @@
 use crate::utils::hash_map;
 use soco::{
-    algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search,
+    algorithms::offline::{
+        multi_dimensional::optimal_graph_search::optimal_graph_search,
+        OfflineOptions,
+    },
     model::data_center::{
         loads::LoadProfile,
         model::{
@@ -68,8 +71,13 @@ fn solve() {
         loads: vec![LoadProfile::raw(vec![10.]); t_end as usize],
     };
 
-    let (xs, _) =
-        offline::solve(&model, &optimal_graph_search, (), input, false)
-            .unwrap();
+    let (xs, _) = offline::solve(
+        &model,
+        &optimal_graph_search,
+        (),
+        OfflineOptions::default(),
+        input,
+    )
+    .unwrap();
     xs.verify(t_end, &vec![m]).unwrap();
 }

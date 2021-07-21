@@ -2,13 +2,13 @@ mod co {
     use crate::factories::inv_e;
     use rand::prelude::*;
     use rand_pcg::Pcg64;
-    use soco::algorithms::offline::OfflineResult;
     use soco::algorithms::offline::{
         multi_dimensional::convex_optimization::co,
         OfflineAlgorithmWithDefaultOptions,
     };
+    use soco::algorithms::offline::{OfflineOptions, OfflineResult};
     use soco::config::Config;
-    use soco::convert::{DiscretizableSchedule, RelaxableSchedule};
+    use soco::convert::{CastableSchedule, DiscretizableSchedule};
     use soco::norm::{euclidean, manhattan_scaled, norm_squared};
     use soco::objective::Objective;
     use soco::problem::SmoothedConvexOptimization;
@@ -27,22 +27,24 @@ mod co {
         p.verify().unwrap();
 
         let result = co
-            .solve_with_default_options(p.clone(), false)
+            .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap()
             .xs();
         result
             .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
             .unwrap();
 
+        let int_result = result.to_i();
+        let cast_int_result: Schedule<f64> = int_result.to();
         assert_eq!(
-            result.to_i(),
+            int_result,
             Schedule::new(vec![
                 Config::new(vec![2, 1]),
                 Config::new(vec![2, 1])
             ])
         );
         assert_abs_diff_eq!(
-            p.objective_function(&result.to_i().to_f()).unwrap(),
+            p.objective_function(&cast_int_result).unwrap(),
             3.5096,
             epsilon = 1e-4
         );
@@ -60,7 +62,7 @@ mod co {
         p.verify().unwrap();
 
         let result = co
-            .solve_with_default_options(p.clone(), false)
+            .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap()
             .xs();
         result
@@ -92,11 +94,48 @@ mod co {
         p.verify().unwrap();
 
         let result = co
-            .solve_with_default_options(p.clone(), false)
+            .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap()
             .xs();
         result
             .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
             .unwrap();
+    }
+
+    #[test]
+    fn _4() {
+        let euclidean_ = euclidean();
+
+        let d = 4;
+        let t_end = 10;
+        let p = SmoothedConvexOptimization {
+            d,
+            t_end,
+            bounds: (0..d)
+                .map(|_| {
+                    (
+                        0.,
+                        Pcg64::seed_from_u64((d * t_end) as u64).gen_range(1..5)
+                            as f64,
+                    )
+                })
+                .collect(),
+            switching_cost: norm_squared(&euclidean_),
+            hitting_cost: inv_e(),
+        };
+        p.verify().unwrap();
+
+        let l = 10.;
+        let result = co
+            .solve_with_default_options(
+                p.clone(),
+                OfflineOptions::l_constrained(l),
+            )
+            .unwrap()
+            .xs();
+        result
+            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
+            .unwrap();
+        assert!(p.movement(&result, false).unwrap() <= l);
     }
 }

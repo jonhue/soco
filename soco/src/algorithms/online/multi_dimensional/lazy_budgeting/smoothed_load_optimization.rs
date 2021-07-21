@@ -164,6 +164,6 @@ fn find_optimal_lanes(
     let d = p.d;
     let sblo_p = p.into_sblo();
     let ssco_p = sblo_p.into_ssco();
-    let result = optimal_graph_search.solve(ssco_p, (), false)?;
+    let result = optimal_graph_search.solve(ssco_p, (), Default::default())?;
     Ok(build_lanes(&result.xs().now(), d, bound))
 }

@@ -4,6 +4,7 @@ use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use crate::result::{Failure, Result};
+use log::warn;
 use nlopt::{Algorithm, Nlopt, Target};
 use noisy_float::prelude::*;
 use std::sync::Arc;
@@ -175,7 +176,7 @@ fn optimize(
         Ok((_, opt)) => Ok(opt),
         Err((state, opt)) => match state {
             nlopt::FailState::RoundoffLimited => {
-                println!("Warning: NLOpt terminated with a roundoff error.");
+                warn!("Warning: NLOpt terminated with a roundoff error.");
                 Ok(opt)
             }
             _ => Err(Failure::NlOpt(state)),

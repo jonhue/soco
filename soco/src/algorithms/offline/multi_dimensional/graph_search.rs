@@ -1,10 +1,12 @@
 use crate::algorithms::offline::graph_search::{Path, Paths};
 use crate::algorithms::offline::multi_dimensional::Values;
+use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
 use crate::objective::scalar_movement;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
-use crate::result::Result;
+use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
+use crate::utils::assert;
 use std::collections::HashMap;
 
 /// Tracks the value as well as the index in which the value appears in the respective dimension.
@@ -34,12 +36,14 @@ struct Edge {
 pub fn graph_search(
     p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
     values: Values,
-    inverted: bool,
+    OfflineOptions { inverted, alpha, l }: OfflineOptions,
 ) -> Result<Path> {
+    assert(l.is_none(), Failure::UnsupportedLConstrainedMovement)?;
+
     let mut paths: Paths<Vertice> = HashMap::new();
     for t in 1..=p.t_end {
-        handle_layer(&p, inverted, t, true, &values, &mut paths, None)?;
-        handle_layer(&p, inverted, t, false, &values, &mut paths, None)?;
+        handle_layer(&p, alpha, inverted, t, true, &values, &mut paths, None)?;
+        handle_layer(&p, alpha, inverted, t, false, &values, &mut paths, None)?;
     }
 
     Ok(paths[&Vertice {
@@ -54,8 +58,10 @@ struct HandleLayerState {
     configs: Vec<InternalConfig>,
 }
 
+#[allow(clippy::too_many_arguments)]
 fn handle_layer(
     p: &IntegralSimplifiedSmoothedConvexOptimization,
+    alpha: f64,
     inverted: bool,
     t: i32,
     powering_up: bool,
@@ -91,6 +97,7 @@ fn handle_layer(
         loop {
             handle_config(
                 p,
+                alpha,
                 inverted,
                 t,
                 state.k,
@@ -110,12 +117,23 @@ fn handle_layer(
 
     state.configs.append(&mut added_configs);
     state.k += 1;
-    handle_layer(p, inverted, t, powering_up, values, paths, Some(state))
+    handle_layer(
+        p,
+        alpha,
+        inverted,
+        t,
+        powering_up,
+        values,
+        paths,
+        Some(state),
+    )
 }
 
 /// updates paths up to vertex representing some config; then returns next config
+#[allow(clippy::too_many_arguments)]
 fn handle_config(
     p: &IntegralSimplifiedSmoothedConvexOptimization,
+    alpha: f64,
     inverted: bool,
     t: i32,
     k: i32,
@@ -126,6 +144,7 @@ fn handle_config(
     // find all immediate predecessors
     let predecessors = find_immediate_predecessors(
         p,
+        alpha,
         inverted,
         t,
         powering_up,
@@ -204,8 +223,10 @@ fn build_config(
     Some(config)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn find_immediate_predecessors(
     p: &IntegralSimplifiedSmoothedConvexOptimization,
+    alpha: f64,
     inverted: bool,
     t: i32,
     powering_up: bool,
@@ -252,7 +273,8 @@ fn find_immediate_predecessors(
                     cost: if powering_up && !inverted
                         || !powering_up && inverted
                     {
-                        p.switching_cost[l as usize - 1]
+                        alpha
+                            * p.switching_cost[l as usize - 1]
                             * scalar_movement(
                                 config.config[l as usize - 1],
                                 prev_config.config[l as usize - 1],

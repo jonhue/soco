@@ -1,5 +1,5 @@
 use crate::algorithms::capacity_provisioning::Bounded;
-use crate::algorithms::offline::PureOfflineResult;
+use crate::algorithms::offline::{OfflineOptions, PureOfflineResult};
 use crate::config::Config;
 use crate::problem::FractionalSimplifiedSmoothedConvexOptimization;
 use crate::result::{Failure, Result};
@@ -10,16 +10,17 @@ use crate::utils::{assert, project};
 pub fn brcp(
     p: FractionalSimplifiedSmoothedConvexOptimization<'_>,
     _: (),
-    inverted: bool,
+    OfflineOptions { inverted, alpha, l }: OfflineOptions,
 ) -> Result<PureOfflineResult<f64>> {
     assert(!inverted, Failure::UnsupportedInvertedCost)?;
+    assert(l.is_none(), Failure::UnsupportedLConstrainedMovement)?;
     assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
 
     let mut xs = Schedule::empty();
 
     let mut x = 0.;
     for t in (1..=p.t_end).rev() {
-        x = next(&p, t, x)?;
+        x = next(&p, alpha, t, x)?;
         xs.shift(Config::single(x));
     }
 
@@ -28,11 +29,12 @@ pub fn brcp(
 
 fn next(
     p: &FractionalSimplifiedSmoothedConvexOptimization<'_>,
+    alpha: f64,
     t: i32,
     x: f64,
 ) -> Result<f64> {
-    let l = p.find_lower_bound(t, 0, 0.)?;
-    let u = p.find_upper_bound(t, 0, 0.)?;
+    let l = p.find_alpha_unfair_lower_bound(alpha, t, 0, 0.)?;
+    let u = p.find_alpha_unfair_upper_bound(alpha, t, 0, 0.)?;
 
     Ok(project(x, l, u))
 }

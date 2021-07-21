@@ -14,8 +14,6 @@ pub enum Failure {
     InvalidInterval { from: f64, to: f64 },
     #[error("The given matrix must be invertible to compute the Mahalanobis distance.")]
     MatrixMustBeInvertible,
-    #[error("The uni-dimensional optimal integral algorithm requires that the bound `m` is a power of two. Use `make_pow_of_2` to transform your problem instance before use.")]
-    MustBePowOf2,
     #[error("NLopt returned with an error.")]
     NlOpt(nlopt::FailState),
     #[error("When solving an online problem, the time horizon `T` should equal the current time slot plus the prediction window. But instead we have `T = {t_end}`, `t = {t}`, and `w = {w}`.")]
@@ -34,6 +32,8 @@ pub enum Failure {
     MustBeRelaxedProblem,
     #[error("This algorithm does not support inverted movement costs. Set `inverted = false`.")]
     UnsupportedInvertedCost,
+    #[error("This algorithm does not support `L`-constrained movement. Set `l = None`.")]
+    UnsupportedLConstrainedMovement,
     #[error("This online algorithm does not support a prediction window. Set `w = 0` (was {0}).")]
     UnsupportedPredictionWindow(i32),
     #[error("This online algorithm does not support multi-dimensional problems. Set `d = 1` (was {0}).")]

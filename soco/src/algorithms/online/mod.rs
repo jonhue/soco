@@ -25,6 +25,7 @@ pub type FractionalStep<M> = Step<f64, M>;
 /// Memory of online algorithm.
 pub trait Memory<'a, P>:
     Clone
+    + std::fmt::Debug
     + DefaultGivenProblem<P>
     + DeserializeOwned
     + IntoPy<PyObject>
@@ -38,6 +39,7 @@ where
 impl<'a, T, P> Memory<'a, P> for T
 where
     T: Clone
+        + std::fmt::Debug
         + DefaultGivenProblem<P>
         + DeserializeOwned
         + IntoPy<PyObject>
