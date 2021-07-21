@@ -1,7 +1,5 @@
 //! Numerical computation.
 
-use rayon::iter::{IntoParallelIterator, ParallelIterator};
-
 pub mod convex_optimization;
 pub mod finite_differences;
 pub mod quadrature;
@@ -26,6 +24,6 @@ where
     T: ApplicablePrecision + Send,
 {
     fn apply_precision(self) -> Vec<T> {
-        self.into_par_iter().map(T::apply_precision).collect()
+        self.into_iter().map(T::apply_precision).collect()
     }
 }

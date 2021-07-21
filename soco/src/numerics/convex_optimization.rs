@@ -7,7 +7,6 @@ use crate::result::{Failure, Result};
 use log::warn;
 use nlopt::{Algorithm, Nlopt, Target};
 use noisy_float::prelude::*;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use std::sync::Arc;
 
 /// Optimization direction.
@@ -122,7 +121,7 @@ fn optimize(
     equality_constraints: Vec<Constraint>,
 ) -> Result<OptimizationResult> {
     let d = bounds.len();
-    let (lower, upper): (Vec<_>, Vec<_>) = bounds.par_iter().cloned().unzip();
+    let (lower, upper): (Vec<_>, Vec<_>) = bounds.iter().cloned().unzip();
 
     let objective =
         |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| evaluate(xs, &f);
@@ -131,7 +130,7 @@ fn optimize(
         // this appears to be the most conservative estimate for a region of the
         // decision space where the hitting cost is not infinity
         None => {
-            assert!(upper.par_iter().all(|&b| b < f64::INFINITY), "Initial guess must be set explicitly when optimization problem does not have fixed upper bounds.");
+            assert!(upper.iter().all(|&b| b < f64::INFINITY), "Initial guess must be set explicitly when optimization problem does not have fixed upper bounds.");
             upper.clone()
         }
         Some(x) => {
@@ -219,7 +218,7 @@ fn build_empty_bounds(d: i32) -> (Vec<(f64, f64)>, Vec<f64>) {
 /// It appears that NLOpt sometimes produces NaN values for no reason.
 /// This is to ensure that NaN values are not chosen.
 fn evaluate(xs: &[f64], f: &impl Fn(&[f64]) -> N64) -> f64 {
-    if xs.par_iter().any(|&x| x.is_nan()) {
+    if xs.iter().any(|&x| x.is_nan()) {
         f64::NAN
     } else {
         f(xs).raw()

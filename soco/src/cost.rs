@@ -5,9 +5,6 @@ use crate::utils::mean;
 use crate::value::Value;
 use noisy_float::prelude::*;
 use num::NumCast;
-use rayon::iter::{
-    IndexedParallelIterator, IntoParallelRefIterator, ParallelIterator,
-};
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
@@ -140,7 +137,7 @@ where
 {
     fn within(&self, x: &Config<T>) -> bool {
         assert!(x.d() == self.len() as i32);
-        self.par_iter()
+        self.iter()
             .enumerate()
             .all(|(k, &(l, u))| x[k] >= l && x[k] <= u)
     }
@@ -151,7 +148,7 @@ where
 {
     fn within(&self, x: &Config<T>) -> bool {
         assert!(x.d() == self.len() as i32);
-        self.par_iter()
+        self.iter()
             .enumerate()
             .all(|(k, &u)| x[k] >= NumCast::from(0).unwrap() && x[k] <= u)
     }

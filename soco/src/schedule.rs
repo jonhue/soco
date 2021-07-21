@@ -1,18 +1,17 @@
 //! Definition of schedules.
 
-use crate::config::Config;
 use crate::utils::access;
 use crate::value::Value;
+use crate::{config::Config, vec_wrapper::VecWrapper};
 use rayon::{
     iter::{
         FromParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
-        ParallelIterator,
     },
     slice::Iter,
     vec::IntoIter,
 };
 use serde_derive::{Deserialize, Serialize};
-use std::ops::Index;
+use std::{iter::FromIterator, ops::Index};
 
 /// Includes all configurations from time `1` to time `t_end`.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -78,7 +77,7 @@ where
 
     /// Converts schedule to a vector of vectors.
     pub fn to_vec(&self) -> Vec<Vec<T>> {
-        self.0.par_iter().map(|x| x.to_vec()).collect()
+        self.0.iter().map(|x| x.to_vec()).collect()
     }
 
     /// Converts schedule to a vector of configs.
@@ -98,7 +97,7 @@ where
 
         Schedule::new(
             (0..w as usize)
-                .into_par_iter()
+                .into_iter()
                 .map(|t| {
                     let i = d as usize * t;
                     Config::new(raw_xs[i..i + d as usize].to_vec())
@@ -108,10 +107,10 @@ where
     }
 
     /// Builds a raw (flat) encoding of a schedule (used for convex optimization) by stretching a config across the time window `w`.
-    pub fn build_raw(w: i32, x: &'a Config<T>) -> Vec<T> {
+    pub fn build_raw(w: i32, x: &Config<T>) -> Vec<T> {
         let raw_xs: Vec<T> = (0..w as usize)
-            .into_par_iter()
-            .flat_map(|_| x.par_iter().cloned())
+            .into_iter()
+            .flat_map(|_| x.iter().cloned())
             .collect();
         assert_eq!(
             raw_xs.len() as i32,
@@ -141,6 +140,33 @@ where
             t + 1
         );
         &self.0[t]
+    }
+}
+
+impl<'a, T> VecWrapper for Schedule<T>
+where
+    T: Value<'a>,
+{
+    type Item = Config<T>;
+
+    fn to_vec(&self) -> &Vec<Self::Item> {
+        &self.0
+    }
+}
+
+impl<'a, T> FromIterator<Config<T>> for Schedule<T>
+where
+    T: Value<'a>,
+{
+    fn from_iter<I>(iter: I) -> Self
+    where
+        I: IntoIterator<Item = Config<T>>,
+    {
+        let mut xs = vec![];
+        for x in iter {
+            xs.push(x);
+        }
+        Schedule::new(xs)
     }
 }
 

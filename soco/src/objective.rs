@@ -136,7 +136,7 @@ where
             |t, prev_x, x| {
                 self.hit_cost(t as i32, x.clone())
                     + (0..self.d as usize)
-                        .into_par_iter()
+                        .into_iter()
                         .map(|k| {
                             let delta: N64 = NumCast::from(scalar_movement(
                                 x[k], prev_x[k], inverted,
@@ -161,7 +161,7 @@ where
             default,
             |_, prev_x, x| {
                 (0..self.d as usize)
-                    .into_par_iter()
+                    .into_iter()
                     .map(|k| -> N64 {
                         let delta: N64 = NumCast::from(scalar_movement(
                             x[k], prev_x[k], inverted,
@@ -231,7 +231,7 @@ where
             default,
             |_, prev_x, x| {
                 (0..self.d as usize)
-                    .into_par_iter()
+                    .into_iter()
                     .map(|k| -> N64 {
                         let delta: N64 = NumCast::from(scalar_movement(
                             x[k], prev_x[k], inverted,
@@ -258,7 +258,7 @@ where
             default,
             |_, prev_x, x| {
                 (0..self.d as usize)
-                    .into_par_iter()
+                    .into_iter()
                     .map(|k| -> N64 {
                         let delta: N64 = NumCast::from(scalar_movement(
                             x[k], prev_x[k], inverted,
@@ -311,7 +311,7 @@ where
     T: Value<'a>,
 {
     (0..x.d() as usize)
-        .into_par_iter()
+        .into_iter()
         .map(|k| scalar_movement(x[k], prev_x[k], inverted))
         .collect()
 }

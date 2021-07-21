@@ -6,9 +6,7 @@ use crate::problem::{DefaultGivenProblem, IntegralSmoothedLoadOptimization};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, sample_uniform};
-use rayon::iter::{
-    IntoParallelIterator, IntoParallelRefIterator, ParallelIterator,
-};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 use std::cmp::max;
 
@@ -24,7 +22,7 @@ pub struct Memory {
 }
 impl DefaultGivenProblem<IntegralSmoothedLoadOptimization> for Memory {
     fn default(p: &IntegralSmoothedLoadOptimization) -> Self {
-        let bound: i32 = p.bounds.par_iter().sum();
+        let bound: i32 = p.bounds.iter().sum();
         Memory {
             lanes: vec![0; bound as usize],
             horizons: vec![0; bound as usize],
@@ -73,7 +71,7 @@ pub fn lb(
 ) -> Result<IntegralStep<Memory>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
-    let bound = o.p.bounds.par_iter().sum();
+    let bound = o.p.bounds.iter().sum();
     let optimal_lanes = find_optimal_lanes(o.p.clone(), bound)?;
 
     let (lanes, horizons) = (0..bound as usize)

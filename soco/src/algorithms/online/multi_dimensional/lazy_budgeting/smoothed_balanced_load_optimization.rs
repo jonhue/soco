@@ -194,7 +194,7 @@ fn alg_b(
     };
 
     let (m, x) = (0..o.p.d as usize)
-        .into_par_iter()
+        .into_iter()
         .map(|k| {
             let j = prev_x[k]
                 - deactivated_quantity(

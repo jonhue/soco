@@ -15,7 +15,6 @@ use crate::problem::{
 use crate::result::{Failure, Result};
 use crate::utils::assert;
 use noisy_float::prelude::*;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 
 pub trait Bounded<T> {
     fn find_lower_bound(&self, t: i32, t_start: i32, x_start: T) -> Result<T> {
@@ -86,7 +85,7 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
         let p = self.reset(t_start);
         let objective = |xs: &[f64]| -> N64 {
             p._objective_function_with_default(
-                &xs.par_iter().map(|&x| Config::single(x)).collect(),
+                &xs.iter().map(|&x| Config::single(x)).collect(),
                 &Config::single(x_start),
                 alpha,
                 inverted,

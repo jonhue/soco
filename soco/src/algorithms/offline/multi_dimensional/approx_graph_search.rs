@@ -6,7 +6,6 @@ use crate::algorithms::offline::OfflineOptions;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 use pyo3::prelude::*;
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
 use rayon::slice::ParallelSliceMut;
 
 #[pyclass(name = "ApproxGraphSearchOptions")]
@@ -47,7 +46,7 @@ fn cache_bound_indices(
 ) -> Values {
     let values = build_values(bounds, gamma);
     let bound_indices = bounds
-        .par_iter()
+        .iter()
         .map(|m| values.iter().position(|j| j == m).unwrap())
         .collect();
     Values {

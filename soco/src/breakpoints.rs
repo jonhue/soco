@@ -2,10 +2,7 @@
 
 use noisy_float::prelude::*;
 use pyo3::prelude::*;
-use rayon::{
-    iter::{IntoParallelRefIterator, ParallelExtend, ParallelIterator},
-    slice::ParallelSliceMut,
-};
+use rayon::slice::ParallelSliceMut;
 use std::sync::Arc;
 
 /// Sorted non-continuous or non-smooth points of a function.
@@ -47,11 +44,11 @@ impl Breakpoints {
     /// Adds breakpoints in `bs` to the set of breakpoints, unless already included.
     pub fn add(&self, bs: &Vec<f64>) -> Self {
         let new_bs = bs
-            .par_iter()
+            .iter()
             .filter(|&&b| !self.bs.contains(&n64(b)))
             .map(|&b| n64(b));
         let mut breakpoints = self.clone();
-        breakpoints.bs.par_extend(new_bs);
+        breakpoints.bs.extend(new_bs);
         breakpoints.bs.par_sort_unstable();
         breakpoints
     }

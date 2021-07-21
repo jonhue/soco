@@ -4,12 +4,10 @@ use crate::config::{Config, FractionalConfig};
 use crate::numerics::convex_optimization::find_unbounded_maximizer;
 use crate::result::{Failure, Result};
 use crate::value::Value;
+use crate::vec_wrapper::VecWrapper;
 use nalgebra::{DMatrix, DVector, RealField};
 use noisy_float::prelude::*;
 use num::{NumCast, ToPrimitive};
-use rayon::iter::{
-    IndexedParallelIterator, IntoParallelIterator, ParallelIterator,
-};
 use std::sync::Arc;
 
 /// Norm function.
@@ -22,8 +20,8 @@ where
 {
     Arc::new(|x: Config<T>| {
         n64(x
-            .into_par_iter()
-            .map(|j| ToPrimitive::to_f64(&j).unwrap().abs())
+            .iter()
+            .map(|j| ToPrimitive::to_f64(j).unwrap().abs())
             .sum())
     })
 }
@@ -35,10 +33,10 @@ where
 {
     Arc::new(move |x: Config<T>| {
         n64(x
-            .into_par_iter()
+            .iter()
             .enumerate()
             .map(|(k, j)| {
-                switching_cost[k] / 2. * ToPrimitive::to_f64(&j).unwrap().abs()
+                switching_cost[k] / 2. * ToPrimitive::to_f64(j).unwrap().abs()
             })
             .sum())
     })
@@ -51,8 +49,8 @@ where
 {
     Arc::new(|x: Config<T>| {
         n64(x
-            .into_par_iter()
-            .map(|j| ToPrimitive::to_f64(&j).unwrap().powi(2))
+            .iter()
+            .map(|j| ToPrimitive::to_f64(j).unwrap().powi(2))
             .sum::<f64>()
             .sqrt())
     })
