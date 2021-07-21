@@ -13,6 +13,7 @@ use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::assert;
 use noisy_float::prelude::*;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
 #[derive(Clone, Deserialize, Serialize)]
@@ -156,17 +157,25 @@ fn determine_config(
     u_init: i32,
     u_end: i32,
 ) -> IntegralConfig {
-    let mut min_u = u_init;
-    let mut min_c = mod_p
-        .clone()
-        .hit_cost(u_init, mod_xs.get(u_init).unwrap().clone());
-    for u in u_init + 1..=u_end {
-        let c = mod_p.clone().hit_cost(u, mod_xs.get(u).unwrap().clone());
-        if c < min_c {
-            min_u = u;
-            min_c = c;
-        }
-    }
+    let identity = || {
+        (
+            u_init,
+            mod_p
+                .clone()
+                .hit_cost(u_init, mod_xs.get(u_init).unwrap().clone()),
+        )
+    };
+    let (min_u, _) = (u_init + 1..=u_end)
+        .into_par_iter()
+        .fold(identity, |(min_u, min_c), u| {
+            let c = mod_p.clone().hit_cost(u, mod_xs.get(u).unwrap().clone());
+            if c < min_c {
+                (u, c)
+            } else {
+                (min_u, min_c)
+            }
+        })
+        .reduce(identity, |a, b| if a.1 <= b.1 { a } else { b });
     mod_xs.get(min_u).unwrap().clone()
 }
 
@@ -178,30 +187,34 @@ fn alg_b(
     _: (),
 ) -> Result<IntegralStep<AlgBMemory>> {
     let opt_x = find_optimal_config(o.p.clone())?;
-    let mut m = vec![0; o.p.d as usize];
-    let mut x = if xs.is_empty() {
+    let prev_x = if xs.is_empty() {
         Config::repeat(0, o.p.d)
     } else {
         xs.now()
     };
 
-    for k in 0..o.p.d as usize {
-        x[k] -= deactivated_quantity(
-            o.p.bounds[k],
-            &o.p.hitting_cost[k],
-            o.p.switching_cost[k],
-            &ms,
-            t,
-            k,
-        );
-        if x[k] < opt_x[k] {
-            m[k] = opt_x[k] - x[k];
-            x[k] = opt_x[k];
-        }
-    }
+    let (m, x) = (0..o.p.d as usize)
+        .into_par_iter()
+        .map(|k| {
+            let j = prev_x[k]
+                - deactivated_quantity(
+                    o.p.bounds[k],
+                    &o.p.hitting_cost[k],
+                    o.p.switching_cost[k],
+                    &ms,
+                    t,
+                    k,
+                );
+            if j < opt_x[k] {
+                (opt_x[k] - j, opt_x[k])
+            } else {
+                (0, j)
+            }
+        })
+        .unzip();
 
     ms.push(m);
-    Ok(Step(x, Some(ms)))
+    Ok(Step(Config::new(x), Some(ms)))
 }
 
 fn deactivated_quantity(
@@ -212,17 +225,24 @@ fn deactivated_quantity(
     t_now: i32,
     k: usize,
 ) -> i32 {
-    let mut result = 0;
-    for t in 1..=t_now - 1 {
-        let cum_l =
-            cumulative_idle_hitting_cost(bound, hitting_cost, t + 1, t_now - 1);
-        let l = hitting_cost.call(t_now, 0., &bound).raw();
+    (1..=t_now - 1)
+        .into_par_iter()
+        .map(|t| {
+            let cum_l = cumulative_idle_hitting_cost(
+                bound,
+                hitting_cost,
+                t + 1,
+                t_now - 1,
+            );
+            let l = hitting_cost.call(t_now, 0., &bound).raw();
 
-        if cum_l <= switching_cost && switching_cost < cum_l + l {
-            result += ms[t as usize - 1][k];
-        }
-    }
-    result
+            if cum_l <= switching_cost && switching_cost < cum_l + l {
+                ms[t as usize - 1][k]
+            } else {
+                0
+            }
+        })
+        .sum()
 }
 
 fn cumulative_idle_hitting_cost(
@@ -231,11 +251,10 @@ fn cumulative_idle_hitting_cost(
     from: i32,
     to: i32,
 ) -> f64 {
-    let mut result = 0.;
-    for t in from..=to {
-        result += hitting_cost.call(t, 0., &bound).raw();
-    }
-    result
+    (from..=to)
+        .into_par_iter()
+        .map(|t| hitting_cost.call(t, 0., &bound).raw())
+        .sum()
 }
 
 fn find_optimal_config(
