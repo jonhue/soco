@@ -19,3 +19,7 @@ Times are given in seconds beginning from the start of the trace. Indexes begin 
 * `server_types`
   * `utilization` - utilization for each machine over time
 * `locations` - for each server type number of machines in each location -->
+
+## Prerequisites
+
+Prerequisites are the [Python bindings](https://github.com/jonhue/bachelors-thesis/tree/main/soco#python-bindings) for the `soco` crate and the Python packages listed in [`requirements.txt`](requirements.txt) which can be installed in the current environment by running `pip install -r requirements.txt`.
