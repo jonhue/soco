@@ -14,8 +14,8 @@ pub enum Failure {
     InvalidInterval { from: f64, to: f64 },
     #[error("The given matrix must be invertible to compute the Mahalanobis distance.")]
     MatrixMustBeInvertible,
-    #[error("NLopt returned with an error.")]
-    NlOpt(nlopt::FailState),
+    // #[error("NLopt returned with an error.")]
+    // NlOpt(nlopt::FailState),
     #[error("When solving an online problem, the time horizon `T` should equal the current time slot plus the prediction window. But instead we have `T = {t_end}`, `t = {t}`, and `w = {w}`.")]
     OnlineInsufficientInformation { t_end: i32, t: i32, w: i32 },
     #[error("When solving an online problem from a given time slot, the property `t_end` (current time slot) must always be one time slot ahead of the length of the obtained schedule (number of previous time slots). Yet, the number of previous time slots is {previous_time_slots} and the current time slot is {current_time_slot}.")]
@@ -40,10 +40,10 @@ pub enum Failure {
     UnsupportedProblemDimension(i32),
 }
 
-impl From<nlopt::FailState> for Failure {
-    fn from(error: nlopt::FailState) -> Self {
-        Failure::NlOpt(error)
-    }
-}
+// impl From<nlopt::FailState> for Failure {
+//     fn from(error: nlopt::FailState) -> Self {
+//         Failure::NlOpt(error)
+//     }
+// }
 
 pub type Result<T> = std::result::Result<T, Failure>;
