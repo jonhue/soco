@@ -1,9 +1,10 @@
-from typing import List
+from typing import List, Optional
 from dataclasses import dataclass
 from scipy.stats import median_abs_deviation, mode
 import numpy as np
 import seaborn as sb
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import tikzplotlib
 import pandas as pd
 
@@ -56,10 +57,14 @@ def distance_distribution(series: np.array) -> np.array:
     return result
 
 
-def plot_cdf(samples: np.array, label: str, name: str):
-    sb.ecdfplot(samples)
+def plot_cdf(
+    samples: np.array, label: str, name: str, xaxis_factor: Optional[float] = None
+):
+    fig = sb.ecdfplot(samples)
     plt.xlabel(label)
     plt.ylabel("proportion")
+    # if xaxis_factor is not None:
+    #     scale_xaxis(fig, xaxis_factor)
     tikzplotlib.save(f"out/figures/{name}.tex")
 
 
@@ -69,3 +74,8 @@ def plot(x: np.array, y: np.array, xlabel: str, ylabel: str, name: str):
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     tikzplotlib.save(f"out/figures/{name}.tex")
+
+
+def scale_xaxis(fig, factor: float):
+    ticks = ticker.FuncFormatter(lambda x, pos: "{0:g}".format(round(x * factor, 2)))
+    fig.xaxis.set_major_formatter(ticks)
