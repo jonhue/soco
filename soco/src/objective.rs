@@ -12,6 +12,7 @@ use crate::utils::{assert, pos};
 use crate::value::Value;
 use noisy_float::prelude::*;
 use num::NumCast;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 pub trait Objective<'a, T>
 where
@@ -285,7 +286,7 @@ where
     T: Value<'a>,
 {
     (1..=t_end)
-        .into_iter()
+        .into_par_iter()
         .map(|t| {
             let prev_x = xs.get(t - 1).unwrap_or(default).clone();
             let x = xs.get(t).unwrap().clone();
