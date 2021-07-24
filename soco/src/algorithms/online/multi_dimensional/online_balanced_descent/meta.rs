@@ -57,10 +57,10 @@ fn bregman_projection(
     };
     // `l`-sublevel set of `f`
     let constraint = Constraint {
-        g: Arc::new(|y: &[f64], _: &mut ()| -> N64 {
+        data: (),
+        g: Arc::new(|y, _| {
             f.call_unbounded(t, Config::new(y.to_vec())) - n64(l)
         }),
-        data: (),
     };
 
     let (y, _) =
