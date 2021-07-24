@@ -305,9 +305,8 @@ where
 
     // ensure that the fractions across all dimensions of each load type sum to `1`
     let equality_constraints = (0..e as usize)
-        .map(|i| -> Constraint {
-            let lambda = lambda.clone();
-            Arc::new(move |zs_: &[f64]| -> N64 {
+        .map(|i| Constraint {
+            g: Arc::new(move |zs_: &[f64], lambda: &mut LoadProfile| -> N64 {
                 let total_lambda = lambda.total();
                 if total_lambda > 0. {
                     let zs = LoadFractions::new(zs_, d, e);
@@ -316,7 +315,8 @@ where
                 } else {
                     n64(0.)
                 }
-            })
+            }),
+            data: lambda.clone(),
         })
         .collect();
 

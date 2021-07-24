@@ -1,7 +1,9 @@
 //! Norms.
 
 use crate::config::{Config, FractionalConfig};
-use crate::numerics::convex_optimization::find_unbounded_maximizer;
+use crate::numerics::convex_optimization::{
+    find_unbounded_maximizer, Constraint,
+};
 use crate::result::{Failure, Result};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
@@ -90,9 +92,12 @@ pub fn dual<'a>(norm: &'a NormFn<'a, f64>) -> NormFn<'a, f64> {
     Arc::new(move |x: FractionalConfig| {
         let objective =
             |z: &[f64]| -> N64 { n64(Config::new(z.to_vec()) * x.clone()) };
-        let constraint = Arc::new(|z: &[f64]| -> N64 {
-            norm(Config::new(z.to_vec())) - n64(1.)
-        });
+        let constraint = Constraint {
+            g: Arc::new(|z: &[f64], _: &mut ()| -> N64 {
+                norm(Config::new(z.to_vec())) - n64(1.)
+            }),
+            data: (),
+        };
 
         let (z, _) = find_unbounded_maximizer(
             objective,

@@ -16,7 +16,10 @@ enum Direction {
 }
 
 /// Convex constraint.
-pub type Constraint<'a> = Arc<dyn Fn(&[f64]) -> N64 + 'a>;
+pub struct Constraint<'a, T> {
+    pub g: Arc<dyn Fn(&[f64], &mut T) -> N64 + 'a>,
+    pub data: T,
+}
 
 /// Optimization result comprised of argmin and min.
 type OptimizationResult = (Vec<f64>, N64);
@@ -36,16 +39,22 @@ pub fn find_minimizer(
     f: impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
 ) -> Result<OptimizationResult> {
-    minimize(f, bounds, None, vec![], vec![])
+    minimize(
+        f,
+        bounds,
+        None,
+        Vec::<Constraint<()>>::new(),
+        Vec::<Constraint<()>>::new(),
+    )
 }
 
 /// Determines the minimizer of a convex function `f` in `d` dimensions with
 /// `inequality_constraints` and `equality_constraints`.
-pub fn find_unbounded_minimizer(
+pub fn find_unbounded_minimizer<T>(
     f: impl Fn(&[f64]) -> N64,
     d: i32,
-    inequality_constraints: Vec<Constraint>,
-    equality_constraints: Vec<Constraint>,
+    inequality_constraints: Vec<Constraint<T>>,
+    equality_constraints: Vec<Constraint<T>>,
 ) -> Result<OptimizationResult> {
     let (bounds, init) = build_empty_bounds(d);
     minimize(
@@ -59,11 +68,11 @@ pub fn find_unbounded_minimizer(
 
 /// Determines the maximizer of a convex function `f` in `d` dimensions with
 /// `inequality_constraints` and `equality_constraints`.
-pub fn find_unbounded_maximizer(
+pub fn find_unbounded_maximizer<T>(
     f: impl Fn(&[f64]) -> N64,
     d: i32,
-    inequality_constraints: Vec<Constraint>,
-    equality_constraints: Vec<Constraint>,
+    inequality_constraints: Vec<Constraint<T>>,
+    equality_constraints: Vec<Constraint<T>>,
 ) -> Result<OptimizationResult> {
     let (bounds, init) = build_empty_bounds(d);
     maximize(
@@ -75,12 +84,12 @@ pub fn find_unbounded_maximizer(
     )
 }
 
-pub fn minimize(
+pub fn minimize<T>(
     f: impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
-    inequality_constraints: Vec<Constraint>,
-    equality_constraints: Vec<Constraint>,
+    inequality_constraints: Vec<Constraint<T>>,
+    equality_constraints: Vec<Constraint<T>>,
 ) -> Result<OptimizationResult> {
     optimize(
         Direction::Minimize,
@@ -92,12 +101,12 @@ pub fn minimize(
     )
 }
 
-pub fn maximize(
+pub fn maximize<T>(
     f: impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
-    inequality_constraints: Vec<Constraint>,
-    equality_constraints: Vec<Constraint>,
+    inequality_constraints: Vec<Constraint<T>>,
+    equality_constraints: Vec<Constraint<T>>,
 ) -> Result<OptimizationResult> {
     optimize(
         Direction::Maximize,
@@ -112,19 +121,20 @@ pub fn maximize(
 /// Determines the optimum of a convex function `f` w.r.t some direction `dir`
 /// with bounds `bounds`, `inequality_constraints`, and `equality_constraints`.
 /// Optimization begins at `init` (defaults to lower bounds).
-fn optimize(
+fn optimize<T>(
     dir: Direction,
     f: impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
-    inequality_constraints: Vec<Constraint>,
-    equality_constraints: Vec<Constraint>,
+    inequality_constraints: Vec<Constraint<T>>,
+    equality_constraints: Vec<Constraint<T>>,
 ) -> Result<OptimizationResult> {
     let d = bounds.len();
     let (lower, upper): (Vec<_>, Vec<_>) = bounds.iter().cloned().unzip();
 
-    let objective =
-        |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| evaluate(xs, &f);
+    let objective = |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| {
+        evaluate(xs, &mut (), &|x, _| f(x))
+    };
     let mut x = match init {
         // we use the upper bound of the decision space as for mose cost functions
         // this appears to be the most conservative estimate for a region of the
@@ -153,21 +163,21 @@ fn optimize(
     solver.set_upper_bounds(&upper)?;
     solver.set_xtol_rel(TOLERANCE)?;
 
-    for g in inequality_constraints {
-        solver.add_inequality_constraint(
-            |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| {
-                evaluate(xs, &|x| g(x))
-            },
-            (),
-            TOLERANCE,
-        )?;
+    for Constraint { g, data } in inequality_constraints {
+        let f = |xs: &[f64], _: Option<&mut [f64]>, data: &mut T| {
+            evaluate(xs, data, &|x, data| g(x, data))
+        };
+        // let xs = vec![];
+        // f(&xs, None, &mut ());
+        // panic!();
+        solver.add_inequality_constraint(f, data, TOLERANCE)?;
     }
-    for g in equality_constraints {
+    for Constraint { g, data } in equality_constraints {
         solver.add_equality_constraint(
-            |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| {
-                evaluate(xs, &|x| g(x))
+            |xs: &[f64], _: Option<&mut [f64]>, data: &mut T| {
+                evaluate(xs, data, &|x, data| g(x, data))
             },
-            (),
+            data,
             TOLERANCE,
         )?;
     }
@@ -217,10 +227,14 @@ fn build_empty_bounds(d: i32) -> (Vec<(f64, f64)>, Vec<f64>) {
 
 /// It appears that NLOpt sometimes produces NaN values for no reason.
 /// This is to ensure that NaN values are not chosen.
-fn evaluate(xs: &[f64], f: &impl Fn(&[f64]) -> N64) -> f64 {
+fn evaluate<D>(
+    xs: &[f64],
+    data: &mut D,
+    f: &impl Fn(&[f64], &mut D) -> N64,
+) -> f64 {
     if xs.iter().any(|&x| x.is_nan()) {
         f64::NAN
     } else {
-        f(xs).raw()
+        f(xs, data).raw()
     }
 }
