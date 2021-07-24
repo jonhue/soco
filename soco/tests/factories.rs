@@ -50,7 +50,7 @@ pub fn random() -> CostFn<'static, IntegralConfig> {
 /// `t * exp(-x)` for multiple dimensions.
 pub fn inv_e() -> CostFn<'static, FractionalConfig> {
     wrap(|t: i32, j: FractionalConfig| {
-        t as f64 * j.iter().map(|x| std::f64::consts::E.powf(-x)).sum::<f64>()
+        t as f64 * j.iter().map(|&x| std::f64::consts::E.powf(-x)).sum::<f64>()
     })
 }
 

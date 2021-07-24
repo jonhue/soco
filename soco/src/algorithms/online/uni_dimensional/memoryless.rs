@@ -1,6 +1,6 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::Config;
-use crate::numerics::convex_optimization::minimize;
+use crate::numerics::convex_optimization::{minimize, Constraint};
 use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
@@ -34,10 +34,13 @@ fn next(
     let bounds = vec![(0., o.p.bounds[0])];
     let objective =
         |xs: &[f64]| -> N64 { o.p.hit_cost(t, Config::new(xs.to_vec())) };
-    let constraint = Arc::new(|xs: &[f64]| -> N64 {
-        n64(o.p.switching_cost[0]) * n64((xs[0] - prev_x).abs())
-            - o.p.hit_cost(t, Config::single(xs[0])) / n64(2.)
-    });
+    let constraint = Constraint {
+        data: (),
+        g: Arc::new(|xs, _| {
+            n64(o.p.switching_cost[0]) * n64((xs[0] - prev_x).abs())
+                - o.p.hit_cost(t, Config::single(xs[0])) / n64(2.)
+        }),
+    };
 
     let (xs, _) = minimize(objective, &bounds, None, vec![constraint], vec![])?;
     Ok(xs[0])

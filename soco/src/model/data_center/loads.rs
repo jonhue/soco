@@ -8,6 +8,12 @@ use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
 use pyo3::prelude::*;
+use rayon::iter::{
+    FromParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
+    ParallelIterator,
+};
+use rayon::slice::Iter;
+use rayon::vec::IntoIter;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::iter::FromIterator;
 use std::ops::Div;
@@ -117,6 +123,33 @@ impl FromIterator<N64> for LoadProfile {
     }
 }
 
+impl FromParallelIterator<N64> for LoadProfile {
+    fn from_par_iter<I>(iter: I) -> Self
+    where
+        I: IntoParallelIterator<Item = N64>,
+    {
+        LoadProfile::new(Vec::<N64>::from_par_iter(iter))
+    }
+}
+
+impl<'a> IntoParallelIterator for &'a LoadProfile {
+    type Item = &'a N64;
+    type Iter = Iter<'a, N64>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.par_iter()
+    }
+}
+
+impl IntoParallelIterator for LoadProfile {
+    type Item = N64;
+    type Iter = IntoIter<N64>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.into_par_iter()
+    }
+}
+
 impl Mul<Vec<N64>> for LoadProfile {
     type Output = LoadProfile;
 
@@ -163,7 +196,7 @@ impl LoadFractions {
         self.zs[k * self.e as usize..k * self.e as usize + self.e as usize]
             .iter()
             .enumerate()
-            .map(|(i, z)| lambda[i] * z)
+            .map(|(i, &z)| lambda[i] * z)
             .collect()
     }
 }
@@ -229,7 +262,7 @@ where
     SingleCostFn::predictive(move |t, x: Config<T>| {
         access(&loads, unshift_time(t, t_start))
             .unwrap()
-            .iter()
+            .par_iter()
             .map(|lambda| apply_loads(d, e, &objective, lambda, t, x.clone()))
             .collect()
     })
@@ -272,9 +305,9 @@ where
 
     // ensure that the fractions across all dimensions of each load type sum to `1`
     let equality_constraints = (0..e as usize)
-        .map(|i| -> Constraint {
-            let lambda = lambda.clone();
-            Arc::new(move |zs_: &[f64]| -> N64 {
+        .map(|i| Constraint {
+            data: lambda.clone(),
+            g: Arc::new(move |zs_, lambda| {
                 let total_lambda = lambda.total();
                 if total_lambda > 0. {
                     let zs = LoadFractions::new(zs_, d, e);
@@ -283,7 +316,7 @@ where
                 } else {
                     n64(0.)
                 }
-            })
+            }),
         })
         .collect();
 

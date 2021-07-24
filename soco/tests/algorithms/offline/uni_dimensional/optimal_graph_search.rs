@@ -83,7 +83,8 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(result.cost, 1.);
         assert_abs_diff_eq!(
             result.cost,
-            p.objective_function(&result.xs).unwrap()
+            p.objective_function(&result.xs).unwrap().raw(),
+            epsilon = 1.
         );
     }
 
@@ -111,7 +112,8 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(result.cost, inv_result.cost);
         assert_abs_diff_eq!(
             result.cost,
-            p.objective_function(&result.xs).unwrap()
+            p.objective_function(&result.xs).unwrap().raw(),
+            epsilon = 1.
         );
     }
 
@@ -152,7 +154,8 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(result.cost, inv_result.cost);
         assert_abs_diff_eq!(
             result.cost,
-            transformed_p.objective_function(&result.xs).unwrap()
+            transformed_p.objective_function(&result.xs).unwrap().raw(),
+            epsilon = 1.
         );
     }
 
@@ -181,6 +184,8 @@ mod optimal_graph_search {
             result.cost,
             p.objective_function_with_default(&result.xs, &Config::single(2))
                 .unwrap()
+                .raw(),
+            epsilon = 1.
         );
     }
 }

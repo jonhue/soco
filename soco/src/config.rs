@@ -2,6 +2,11 @@
 
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
+use rayon::iter::{
+    FromParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
+};
+use rayon::slice::Iter;
+use rayon::vec::IntoIter;
 use serde_derive::{Deserialize, Serialize};
 use std::iter::FromIterator;
 use std::ops::Add;
@@ -109,6 +114,42 @@ where
             x.push(j);
         }
         x
+    }
+}
+
+impl<'a, T> FromParallelIterator<T> for Config<T>
+where
+    T: Value<'a>,
+{
+    fn from_par_iter<I>(iter: I) -> Self
+    where
+        I: IntoParallelIterator<Item = T>,
+    {
+        Config::new(Vec::<T>::from_par_iter(iter))
+    }
+}
+
+impl<'data, T> IntoParallelIterator for &'data Config<T>
+where
+    T: Value<'data>,
+{
+    type Item = &'data T;
+    type Iter = Iter<'data, T>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.par_iter()
+    }
+}
+
+impl<'a, T> IntoParallelIterator for Config<T>
+where
+    T: Value<'a>,
+{
+    type Item = T;
+    type Iter = IntoIter<T>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.into_par_iter()
     }
 }
 

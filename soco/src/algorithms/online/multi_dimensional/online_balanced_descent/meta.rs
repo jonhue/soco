@@ -2,7 +2,9 @@ use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::norm::NormFn;
-use crate::numerics::convex_optimization::find_unbounded_minimizer;
+use crate::numerics::convex_optimization::{
+    find_unbounded_minimizer, Constraint,
+};
 use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
@@ -54,9 +56,12 @@ fn bregman_projection(
         bregman_divergence(mirror_map, Config::new(y.to_vec()), x.clone())
     };
     // `l`-sublevel set of `f`
-    let constraint = Arc::new(|y: &[f64]| -> N64 {
-        f.call_unbounded(t, Config::new(y.to_vec())) - n64(l)
-    });
+    let constraint = Constraint {
+        data: (),
+        g: Arc::new(|y, _| {
+            f.call_unbounded(t, Config::new(y.to_vec())) - n64(l)
+        }),
+    };
 
     let (y, _) =
         find_unbounded_minimizer(objective, x.d(), vec![constraint], vec![])?;

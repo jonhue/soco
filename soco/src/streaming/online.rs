@@ -89,9 +89,9 @@ where
     } else {
         (Schedule::empty(), None)
     };
-    let cost = o.p.objective_function(&xs)?;
+    let cost = o.p.objective_function(&xs)?.raw();
     let int_xs = xs.to_i();
-    let int_cost = o.p.objective_function(&int_xs.to())?;
+    let int_cost = o.p.objective_function(&int_xs.to())?.raw();
     Ok((o, ((xs, cost), (int_xs, int_cost), m)))
 }
 
@@ -131,9 +131,10 @@ fn run<'a, T, P, M, O, A, B>(
                 info!("[server] Updated problem instance.");
 
                 let (x, m) = o.next(alg, options.clone(), xs, prev_m).unwrap();
-                let cost = o.p.objective_function(&xs).unwrap();
+                let cost = o.p.objective_function(&xs).unwrap().raw();
                 let int_xs = xs.to_i();
-                let int_cost = o.p.objective_function(&int_xs.to()).unwrap();
+                let int_cost =
+                    o.p.objective_function(&int_xs.to()).unwrap().raw();
                 let result = ((x, cost), (int_xs.now(), int_cost), m.clone());
                 let response = bincode::serialize(&result).unwrap();
 

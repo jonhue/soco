@@ -1,3 +1,5 @@
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
+
 use crate::algorithms::offline::graph_search::{Path, Paths};
 use crate::algorithms::offline::multi_dimensional::Values;
 use crate::algorithms::offline::OfflineOptions;
@@ -234,38 +236,22 @@ fn find_immediate_predecessors(
     config: &InternalConfig,
     all_values: &Values,
 ) -> Vec<Edge> {
-    let mut predecessors = vec![];
-
-    if t > 1 || !powering_up {
-        let inaction = Edge {
-            from: Vertice {
-                config: config.clone(),
-                powering_up: !powering_up,
-            },
-            cost: if powering_up {
-                0.
-            } else {
-                p.hit_cost(t, config.config.clone()).raw()
-            },
-        };
-        predecessors.push(inaction);
-    }
-
-    for l in 1..=k {
-        let prev_config = build_config(
-            if powering_up {
-                Direction::Previous
-            } else {
-                Direction::Next
-            },
-            all_values,
-            config,
-            l,
-        );
-        match prev_config {
-            None => (),
-            Some(prev_config) => {
-                let action = Edge {
+    let mut predecessors: Vec<Edge> = (1..=k)
+        .into_par_iter()
+        .filter_map(|l| {
+            let prev_config = build_config(
+                if powering_up {
+                    Direction::Previous
+                } else {
+                    Direction::Next
+                },
+                all_values,
+                config,
+                l,
+            );
+            match prev_config {
+                None => None,
+                Some(prev_config) => Some(Edge {
                     from: Vertice {
                         config: prev_config.clone(),
                         powering_up,
@@ -283,10 +269,24 @@ fn find_immediate_predecessors(
                     } else {
                         0.
                     },
-                };
-                predecessors.push(action);
+                }),
             }
-        }
+        })
+        .collect();
+
+    if t > 1 || !powering_up {
+        let inaction = Edge {
+            from: Vertice {
+                config: config.clone(),
+                powering_up: !powering_up,
+            },
+            cost: if powering_up {
+                0.
+            } else {
+                p.hit_cost(t, config.config.clone()).raw()
+            },
+        };
+        predecessors.push(inaction);
     }
 
     predecessors
@@ -296,21 +296,44 @@ fn find_optimal_predecessor(
     predecessors: Vec<Edge>,
     paths: &mut Paths<Vertice>,
 ) -> Option<(Edge, Path)> {
-    let mut picked: Option<(Edge, Path)> = None;
-    for predecessor in predecessors {
-        let path = &paths[&predecessor.from];
-        let new_cost = path.cost + predecessor.cost;
+    predecessors
+        .into_par_iter()
+        .fold(
+            || None,
+            |picked: Option<(Edge, Path)>, predecessor| {
+                let path = &paths[&predecessor.from];
+                let new_cost = path.cost + predecessor.cost;
 
-        // take smallest possible action if costs are equal
-        let picked_cost = picked.clone().map_or_else(
-            || f64::INFINITY,
-            |(picked_predecessor, path)| path.cost + picked_predecessor.cost,
-        );
-        if new_cost < picked_cost {
-            picked = Some((predecessor, path.clone()));
-        }
-    }
-    picked
+                // take smallest possible action if costs are equal
+                let picked_cost = picked.clone().map_or_else(
+                    || f64::INFINITY,
+                    |(picked_predecessor, path)| {
+                        path.cost + picked_predecessor.cost
+                    },
+                );
+                if new_cost < picked_cost {
+                    Some((predecessor, path.clone()))
+                } else {
+                    picked
+                }
+            },
+        )
+        .reduce(
+            || None,
+            |a, b| match a {
+                Some(a) => Some(match b {
+                    Some(b) => {
+                        if a.0.cost + a.1.cost <= b.0.cost + b.1.cost {
+                            a
+                        } else {
+                            b
+                        }
+                    }
+                    None => a,
+                }),
+                None => b,
+            },
+        )
 }
 
 fn update_paths(

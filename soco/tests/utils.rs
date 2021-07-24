@@ -8,3 +8,11 @@ where
 {
     slice.iter().cloned().collect()
 }
+
+/// Selects upper bounds from decision space.
+pub fn upper_bounds<T>(bounds: &[(T, T)]) -> Vec<T>
+where
+    T: Copy,
+{
+    bounds.iter().map(|&(_, m)| m).collect()
+}

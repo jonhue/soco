@@ -21,7 +21,7 @@ impl ApplicablePrecision for f64 {
 }
 impl<T> ApplicablePrecision for Vec<T>
 where
-    T: ApplicablePrecision,
+    T: ApplicablePrecision + Send,
 {
     fn apply_precision(self) -> Vec<T> {
         self.into_iter().map(T::apply_precision).collect()

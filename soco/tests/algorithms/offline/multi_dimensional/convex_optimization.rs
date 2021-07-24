@@ -1,5 +1,5 @@
 mod co {
-    use crate::factories::inv_e;
+    use crate::{factories::inv_e, utils::upper_bounds};
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::algorithms::offline::{
@@ -30,9 +30,7 @@ mod co {
             .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap()
             .xs();
-        result
-            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
-            .unwrap();
+        result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
 
         let int_result = result.to_i();
         let cast_int_result: Schedule<f64> = int_result.to();
@@ -44,7 +42,7 @@ mod co {
             ])
         );
         assert_abs_diff_eq!(
-            p.objective_function(&cast_int_result).unwrap(),
+            p.objective_function(&cast_int_result).unwrap().raw(),
             3.5096,
             epsilon = 1e-4
         );
@@ -65,9 +63,7 @@ mod co {
             .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap()
             .xs();
-        result
-            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
-            .unwrap();
+        result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
     }
 
     #[test]
@@ -97,17 +93,16 @@ mod co {
             .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap()
             .xs();
-        result
-            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
-            .unwrap();
+        result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
     }
 
     #[test]
     fn _4() {
         let euclidean_ = euclidean();
+        let epsilon = 0.000001;
 
         let d = 4;
-        let t_end = 10;
+        let t_end = 5;
         let p = SmoothedConvexOptimization {
             d,
             t_end,
@@ -125,7 +120,7 @@ mod co {
         };
         p.verify().unwrap();
 
-        let l = 10.;
+        let l = 1.;
         let result = co
             .solve_with_default_options(
                 p.clone(),
@@ -133,9 +128,7 @@ mod co {
             )
             .unwrap()
             .xs();
-        result
-            .verify(p.t_end, &p.bounds.iter().map(|&(_, m)| m).collect())
-            .unwrap();
-        assert!(p.movement(&result, false).unwrap() <= l);
+        result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
+        assert!(p.movement(&result, false).unwrap().raw() <= l + epsilon);
     }
 }

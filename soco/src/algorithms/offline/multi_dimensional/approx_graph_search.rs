@@ -6,6 +6,7 @@ use crate::algorithms::offline::OfflineOptions;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 use pyo3::prelude::*;
+use rayon::slice::ParallelSliceMut;
 
 #[pyclass(name = "ApproxGraphSearchOptions")]
 #[derive(Clone)]
@@ -84,6 +85,6 @@ fn build_values(bounds: &Vec<i32>, gamma: f64) -> Vec<i32> {
         }
     }
 
-    vs.sort_unstable();
+    vs.par_sort_unstable();
     vs
 }

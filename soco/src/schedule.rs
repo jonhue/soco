@@ -1,13 +1,17 @@
 //! Definition of schedules.
 
-use crate::config::Config;
 use crate::utils::access;
 use crate::value::Value;
-use crate::vec_wrapper::VecWrapper;
-use num::NumCast;
+use crate::{config::Config, vec_wrapper::VecWrapper};
+use rayon::{
+    iter::{
+        FromParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
+    },
+    slice::Iter,
+    vec::IntoIter,
+};
 use serde_derive::{Deserialize, Serialize};
-use std::iter::FromIterator;
-use std::ops::Index;
+use std::{iter::FromIterator, ops::Index};
 
 /// Includes all configurations from time `1` to time `t_end`.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
@@ -86,26 +90,28 @@ where
             "length of raw encoding does not match expected length"
         );
 
-        let mut xs = Schedule::empty();
-        for t in 0..w as usize {
-            let i = d as usize * t;
-            let x = Config::new(raw_xs[i..i + d as usize].to_vec());
-            xs.push(x);
-        }
-        xs
+        Schedule::new(
+            (0..w as usize)
+                .into_iter()
+                .map(|t| {
+                    let i = d as usize * t;
+                    Config::new(raw_xs[i..i + d as usize].to_vec())
+                })
+                .collect(),
+        )
     }
 
     /// Builds a raw (flat) encoding of a schedule (used for convex optimization) by stretching a config across the time window `w`.
     pub fn build_raw(w: i32, x: &Config<T>) -> Vec<T> {
-        let l = Schedule::<T>::raw_encoding_len(x.d(), w) as usize;
-
-        let mut raw_xs = vec![NumCast::from(0).unwrap(); l];
-        for t in 0..w as usize {
-            let i = x.d() as usize * t;
-            for k in 0..x.d() as usize {
-                raw_xs[i + k] = x[k];
-            }
-        }
+        let raw_xs: Vec<T> = (0..w as usize)
+            .into_iter()
+            .flat_map(|_| x.iter().cloned())
+            .collect();
+        assert_eq!(
+            raw_xs.len() as i32,
+            Schedule::<T>::raw_encoding_len(x.d(), w),
+            "length of raw encoding does not match expected length"
+        );
         raw_xs
     }
 
@@ -156,5 +162,41 @@ where
             xs.push(x);
         }
         Schedule::new(xs)
+    }
+}
+
+impl<'a, T> FromParallelIterator<Config<T>> for Schedule<T>
+where
+    T: Value<'a>,
+{
+    fn from_par_iter<I>(iter: I) -> Self
+    where
+        I: IntoParallelIterator<Item = Config<T>>,
+    {
+        Schedule::new(Vec::<Config<T>>::from_par_iter(iter))
+    }
+}
+
+impl<'a, 'b, T> IntoParallelIterator for &'a Schedule<T>
+where
+    T: Value<'b>,
+{
+    type Item = &'a Config<T>;
+    type Iter = Iter<'a, Config<T>>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.par_iter()
+    }
+}
+
+impl<'a, T> IntoParallelIterator for Schedule<T>
+where
+    T: Value<'a>,
+{
+    type Item = Config<T>;
+    type Iter = IntoIter<Config<T>>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.into_par_iter()
     }
 }
