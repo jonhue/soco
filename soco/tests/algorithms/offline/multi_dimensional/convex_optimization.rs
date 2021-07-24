@@ -99,9 +99,10 @@ mod co {
     #[test]
     fn _4() {
         let euclidean_ = euclidean();
+        let epsilon = 0.000001;
 
         let d = 4;
-        let t_end = 10;
+        let t_end = 5;
         let p = SmoothedConvexOptimization {
             d,
             t_end,
@@ -128,6 +129,6 @@ mod co {
             .unwrap()
             .xs();
         result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
-        assert!(p.movement(&result, false).unwrap() <= l);
+        assert!(p.movement(&result, false).unwrap().raw() <= l + epsilon);
     }
 }
