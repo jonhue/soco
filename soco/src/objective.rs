@@ -114,7 +114,6 @@ where
     }
 
     fn _default_config(&self) -> Config<T> {
-        assert!(self.d <= 4);
         Config::repeat(NumCast::from(0).unwrap(), self.d)
     }
 }

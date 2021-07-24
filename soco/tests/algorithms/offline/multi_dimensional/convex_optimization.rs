@@ -128,7 +128,6 @@ mod co {
             .unwrap()
             .xs();
         result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
-        println!("{}", p.movement(&result, false).unwrap());
         assert!(p.movement(&result, false).unwrap() <= l);
     }
 }
