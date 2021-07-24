@@ -166,13 +166,13 @@ fn optimize<D>(
     solver.set_xtol_rel(TOLERANCE)?;
 
     for Constraint { g, data } in inequality_constraints {
-        let f = |xs: &[f64], _: Option<&mut [f64]>, data: &mut D| {
-            evaluate(xs, data, &|x, data| g(x, data))
-        };
-        // let xs = vec![];
-        // f(&xs, None, &mut ());
-        // panic!();
-        solver.add_inequality_constraint(f, data, TOLERANCE)?;
+        solver.add_inequality_constraint(
+            |xs: &[f64], _: Option<&mut [f64]>, data: &mut D| {
+                evaluate(xs, data, &|x, data| g(x, data))
+            },
+            data,
+            TOLERANCE,
+        )?;
     }
     for Constraint { g, data } in equality_constraints {
         solver.add_equality_constraint(
