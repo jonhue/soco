@@ -307,14 +307,9 @@ where
     let equality_constraints = (0..e as usize)
         .map(|i| {
             let l2 = lambda.clone();
-            println!("=> {:?}", l2);
             Constraint {
                 g: Arc::new(
                     move |zs_: &[f64], lambda: &mut LoadProfile| -> N64 {
-                        // let lambda = &l2;
-                        println!("{:?}", lambda);
-                        // println!("{:?};{:?}", lambda, l2);
-                        // assert!(lambda.clone() == l2);
                         let total_lambda = lambda.total();
                         if total_lambda > 0. {
                             let zs = LoadFractions::new(zs_, d, e);
