@@ -17,7 +17,9 @@ enum Direction {
 
 /// Convex constraint.
 pub struct Constraint<'a, D> {
+    /// Constraint.
     pub g: Arc<dyn Fn(&[f64], &mut D) -> N64 + 'a>,
+    /// Cached argument.
     pub data: D,
 }
 

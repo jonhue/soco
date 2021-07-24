@@ -119,7 +119,7 @@ mod co {
         };
         p.verify().unwrap();
 
-        let l = 10.;
+        let l = 1.;
         let result = co
             .solve_with_default_options(
                 p.clone(),

@@ -97,8 +97,8 @@ mod into_ssco {
         p_ssco.verify().unwrap();
 
         let xs = Schedule::new(vec![
-            Config::new(vec![0, 1]),
-            Config::new(vec![0, 1]),
+            Config::new(vec![2, 1]),
+            Config::new(vec![2, 1]),
         ]);
 
         assert!(p_ssco.objective_function(&xs).unwrap().raw().is_finite());
@@ -116,7 +116,7 @@ mod into_ssco {
             switching_cost: vec![1., 3.],
             hitting_cost: vec![inv_e_sblo(); d as usize],
             load: (0..t_end)
-                .map(|t| Pcg64::seed_from_u64(t as u64).gen_range(1..8))
+                .map(|t| Pcg64::seed_from_u64(t as u64).gen_range(0..8))
                 .collect(),
         };
         p.verify().unwrap();
@@ -124,13 +124,13 @@ mod into_ssco {
         p_ssco.verify().unwrap();
 
         let xs = Schedule::new(
-            (0..t_end)
+            (0..t_end as usize)
                 .map(|t| {
                     Config::new(
                         (0..d)
                             .map(|k| {
-                                Pcg64::seed_from_u64((t * k) as u64)
-                                    .gen_range(0..8)
+                                Pcg64::seed_from_u64((t as i32 * k) as u64)
+                                    .gen_range(p.load[t]..8)
                             })
                             .collect(),
                     )
@@ -168,8 +168,8 @@ mod into_sblo {
         p_ssco.verify().unwrap();
 
         let xs = Schedule::new(vec![
-            Config::new(vec![0, 1]),
-            Config::new(vec![0, 1]),
+            Config::new(vec![2, 1]),
+            Config::new(vec![2, 1]),
         ]);
 
         assert!(p.objective_function(&xs).unwrap().raw().is_finite());
@@ -190,7 +190,7 @@ mod into_sblo {
             switching_cost: vec![3., 1.],
             hitting_cost: vec![1., 2.],
             load: (0..t_end)
-                .map(|t| Pcg64::seed_from_u64(t as u64).gen_range(1..8))
+                .map(|t| Pcg64::seed_from_u64(t as u64).gen_range(0..8))
                 .collect(),
         };
         p.verify().unwrap();
@@ -198,13 +198,13 @@ mod into_sblo {
         p_ssco.verify().unwrap();
 
         let xs = Schedule::new(
-            (0..t_end)
+            (0..t_end as usize)
                 .map(|t| {
                     Config::new(
                         (0..d)
                             .map(|k| {
-                                Pcg64::seed_from_u64((t * k) as u64)
-                                    .gen_range(0..8)
+                                Pcg64::seed_from_u64((t as i32 * k) as u64)
+                                    .gen_range(p.load[t]..8)
                             })
                             .collect(),
                     )
