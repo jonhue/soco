@@ -34,16 +34,20 @@ fn start(
 /// Executes next iteration of the algorithm.
 #[pyfunction]
 fn next(
+    py: Python,
     addr: String,
     input: DataCenterOnlineInput,
 ) -> PyResult<StepResponse<f64, ()>> {
-    let ((x, cost), (int_x, int_cost), _) = online::next::<
-        f64,
-        FractionalSimplifiedSmoothedConvexOptimization,
-        (),
-        DataCenterOnlineInput,
-    >(addr.parse().unwrap(), input);
-    Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), None))
+    py.allow_threads(|| {
+        let ((x, cost), (int_x, int_cost), _) =
+            online::next::<
+                f64,
+                FractionalSimplifiedSmoothedConvexOptimization,
+                (),
+                DataCenterOnlineInput,
+            >(addr.parse().unwrap(), input);
+        Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), None))
+    })
 }
 
 /// Memoryless Algorithm
