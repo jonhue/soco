@@ -16,9 +16,9 @@ enum Direction {
 }
 
 /// Convex constraint.
-pub struct Constraint<'a, T> {
-    pub g: Arc<dyn Fn(&[f64], &mut T) -> N64 + 'a>,
-    pub data: T,
+pub struct Constraint<'a, D> {
+    pub g: Arc<dyn Fn(&[f64], &mut D) -> N64 + 'a>,
+    pub data: D,
 }
 
 /// Optimization result comprised of argmin and min.
@@ -50,11 +50,11 @@ pub fn find_minimizer(
 
 /// Determines the minimizer of a convex function `f` in `d` dimensions with
 /// `inequality_constraints` and `equality_constraints`.
-pub fn find_unbounded_minimizer<T>(
+pub fn find_unbounded_minimizer<D>(
     f: impl Fn(&[f64]) -> N64,
     d: i32,
-    inequality_constraints: Vec<Constraint<T>>,
-    equality_constraints: Vec<Constraint<T>>,
+    inequality_constraints: Vec<Constraint<D>>,
+    equality_constraints: Vec<Constraint<D>>,
 ) -> Result<OptimizationResult> {
     let (bounds, init) = build_empty_bounds(d);
     minimize(
@@ -68,11 +68,11 @@ pub fn find_unbounded_minimizer<T>(
 
 /// Determines the maximizer of a convex function `f` in `d` dimensions with
 /// `inequality_constraints` and `equality_constraints`.
-pub fn find_unbounded_maximizer<T>(
+pub fn find_unbounded_maximizer<D>(
     f: impl Fn(&[f64]) -> N64,
     d: i32,
-    inequality_constraints: Vec<Constraint<T>>,
-    equality_constraints: Vec<Constraint<T>>,
+    inequality_constraints: Vec<Constraint<D>>,
+    equality_constraints: Vec<Constraint<D>>,
 ) -> Result<OptimizationResult> {
     let (bounds, init) = build_empty_bounds(d);
     maximize(
@@ -84,12 +84,12 @@ pub fn find_unbounded_maximizer<T>(
     )
 }
 
-pub fn minimize<T>(
+pub fn minimize<D>(
     f: impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
-    inequality_constraints: Vec<Constraint<T>>,
-    equality_constraints: Vec<Constraint<T>>,
+    inequality_constraints: Vec<Constraint<D>>,
+    equality_constraints: Vec<Constraint<D>>,
 ) -> Result<OptimizationResult> {
     optimize(
         Direction::Minimize,
@@ -101,12 +101,12 @@ pub fn minimize<T>(
     )
 }
 
-pub fn maximize<T>(
+pub fn maximize<D>(
     f: impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
-    inequality_constraints: Vec<Constraint<T>>,
-    equality_constraints: Vec<Constraint<T>>,
+    inequality_constraints: Vec<Constraint<D>>,
+    equality_constraints: Vec<Constraint<D>>,
 ) -> Result<OptimizationResult> {
     optimize(
         Direction::Maximize,
@@ -121,13 +121,13 @@ pub fn maximize<T>(
 /// Determines the optimum of a convex function `f` w.r.t some direction `dir`
 /// with bounds `bounds`, `inequality_constraints`, and `equality_constraints`.
 /// Optimization begins at `init` (defaults to lower bounds).
-fn optimize<T>(
+fn optimize<D>(
     dir: Direction,
     f: impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
-    inequality_constraints: Vec<Constraint<T>>,
-    equality_constraints: Vec<Constraint<T>>,
+    inequality_constraints: Vec<Constraint<D>>,
+    equality_constraints: Vec<Constraint<D>>,
 ) -> Result<OptimizationResult> {
     let d = bounds.len();
     let (lower, upper): (Vec<_>, Vec<_>) = bounds.iter().cloned().unzip();
@@ -164,7 +164,7 @@ fn optimize<T>(
     solver.set_xtol_rel(TOLERANCE)?;
 
     for Constraint { g, data } in inequality_constraints {
-        let f = |xs: &[f64], _: Option<&mut [f64]>, data: &mut T| {
+        let f = |xs: &[f64], _: Option<&mut [f64]>, data: &mut D| {
             evaluate(xs, data, &|x, data| g(x, data))
         };
         // let xs = vec![];
@@ -174,7 +174,7 @@ fn optimize<T>(
     }
     for Constraint { g, data } in equality_constraints {
         solver.add_equality_constraint(
-            |xs: &[f64], _: Option<&mut [f64]>, data: &mut T| {
+            |xs: &[f64], _: Option<&mut [f64]>, data: &mut D| {
                 evaluate(xs, data, &|x, data| g(x, data))
             },
             data,

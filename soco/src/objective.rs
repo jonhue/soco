@@ -59,9 +59,7 @@ where
 
     /// Movement in the decision space.
     fn movement(&self, xs: &Schedule<T>, inverted: bool) -> Result<N64> {
-        println!("MOVEMENT");
         let default = self._default_config();
-        println!("{:?}", default);
         self._movement_with_default(xs, &default, inverted)
     }
 

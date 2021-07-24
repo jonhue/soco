@@ -33,18 +33,13 @@ pub fn co(
     // l-constrained movement
     let inequality_constraints = match l {
         Some(l) => {
-            println!("test");
             vec![Constraint {
                 g: Arc::new(
                     move |raw_xs: &[f64],
                           p: &mut FractionalSmoothedConvexOptimization|
                           -> N64 {
-                        let p = p.clone();
-                        println!("hello");
                         let xs = Schedule::from_raw(p.d, p.t_end, raw_xs);
-                        let r = p.movement(&xs, false).unwrap() - n64(l);
-                        println!("{}", r);
-                        r
+                        p.movement(&xs, false).unwrap() - n64(l)
                     },
                 ),
                 data: p.clone(),
