@@ -98,7 +98,7 @@ fn determine_sub_time_slots(
 ) -> Result<i32> {
     let max_fract = (0..p.d as usize)
         .map(|k| -> N64 {
-            let l = p.hitting_cost[k].call(t, 0., &p.bounds[k]);
+            let l = p.hitting_cost[k].call_certain(t, 0.);
             l / n64(p.switching_cost[k])
         })
         .max()
@@ -121,7 +121,6 @@ fn modify_problem<'a>(
     let hitting_cost = (0..p.d as usize)
         .map(|k| {
             let hitting_cost = p.hitting_cost[k].clone();
-            let bounds = p.bounds[k];
             CostFn::new(
                 u_init,
                 SingleCostFn::certain(move |u, x| {
@@ -129,7 +128,7 @@ fn modify_problem<'a>(
                         u_init <= u && u <= u_end,
                         "sub time slot is outside valid sub time slot window"
                     );
-                    hitting_cost.call(t, x, &bounds) / n as f64
+                    hitting_cost.call_certain(t, x) / n as f64
                 }),
             )
         })
@@ -219,7 +218,6 @@ fn alg_b(
         .map(|k| {
             let j = prev_x[k]
                 - deactivated_quantity(
-                    o.p.bounds[k],
                     &o.p.hitting_cost[k],
                     o.p.switching_cost[k],
                     &init_times,
@@ -244,7 +242,6 @@ fn alg_b(
 }
 
 fn deactivated_quantity(
-    bound: i32,
     hitting_cost: &CostFn<'_, f64>,
     switching_cost: f64,
     init_times: &Vec<Vec<i32>>,
@@ -255,12 +252,11 @@ fn deactivated_quantity(
         .into_par_iter()
         .map(|t| {
             let cum_l = cumulative_idle_hitting_cost(
-                bound,
                 hitting_cost,
                 t + 1,
                 t_now - 1,
             );
-            let l = hitting_cost.call(t_now, 0., &bound).raw();
+            let l = hitting_cost.call_certain(t_now, 0.).raw();
 
             if cum_l <= switching_cost && switching_cost < cum_l + l {
                 init_times[t as usize - 1][k]
@@ -272,14 +268,13 @@ fn deactivated_quantity(
 }
 
 fn cumulative_idle_hitting_cost(
-    bound: i32,
     hitting_cost: &CostFn<'_, f64>,
     from: i32,
     to: i32,
 ) -> f64 {
     (from..=to)
         .into_iter()
-        .map(|t| hitting_cost.call(t, 0., &bound).raw())
+        .map(|t| hitting_cost.call_certain(t, 0.).raw())
         .sum()
 }
 

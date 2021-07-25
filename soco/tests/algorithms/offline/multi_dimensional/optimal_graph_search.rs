@@ -1,5 +1,7 @@
+#[cfg(test)]
 mod optimal_graph_search {
     use crate::factories::{penalize_zero, random};
+    use crate::init;
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::algorithms::offline::graph_search::CachedPath;
@@ -17,6 +19,8 @@ mod optimal_graph_search {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
             t_end: 2,
@@ -54,6 +58,8 @@ mod optimal_graph_search {
 
     #[test]
     fn _2() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
             t_end: 100,
@@ -82,6 +88,8 @@ mod optimal_graph_search {
 
     #[test]
     fn _3() {
+        init();
+
         let d = 4;
         let t_end = 10;
         let p = SimplifiedSmoothedConvexOptimization {
@@ -120,6 +128,8 @@ mod optimal_graph_search {
 
     #[test]
     fn _4() {
+        init();
+
         let d = 4;
         let t_end = 5;
         let mut p = SimplifiedSmoothedConvexOptimization {

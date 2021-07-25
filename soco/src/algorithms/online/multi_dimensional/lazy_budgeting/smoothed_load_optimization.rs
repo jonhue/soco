@@ -10,12 +10,15 @@ use crate::problem::{DefaultGivenProblem, IntegralSmoothedLoadOptimization};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, sample_uniform};
+use log::debug;
+use pyo3::prelude::*;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 use std::cmp::max;
 
 /// Lane distribution at some time `t`.
-#[derive(Clone, Deserialize, Serialize)]
+#[pyclass]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory {
     /// Lanes of the determined schedule.
     pub lanes: Lanes,
@@ -80,8 +83,11 @@ pub fn lb(
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let bound = o.p.bounds.iter().sum();
+    debug!("starting with `m = {}`", bound);
+
     let (optimal_lanes, new_cache) =
         find_optimal_lanes(cache, o.p.clone(), bound)?;
+    debug!("obtained optimal lanes");
 
     let (lanes, horizons) = (0..bound as usize)
         .into_par_iter()
@@ -114,6 +120,7 @@ pub fn lb(
             }
         })
         .unzip();
+    debug!("updated lanes");
 
     let config = collect_config(o.p.d, &lanes);
     Ok(Step(
@@ -187,6 +194,10 @@ fn find_optimal_lanes(
         OptimalGraphSearchOptions { cache },
         Default::default(),
     )?;
+    debug!(
+        "obtained optimal schedule: {:?} (cost: `{}`)",
+        result.path.xs, result.path.cost
+    );
     let lanes = build_lanes(&result.path.xs.now(), d, bound);
     Ok((lanes, result.cache))
 }

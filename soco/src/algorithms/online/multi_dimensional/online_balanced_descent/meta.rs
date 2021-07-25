@@ -59,7 +59,7 @@ fn bregman_projection(
     let constraint = Constraint {
         data: (),
         g: Arc::new(|y, _| {
-            f.call_unbounded(t, Config::new(y.to_vec())) - n64(l)
+            f.call_certain(t, Config::new(y.to_vec())) - n64(l)
         }),
     };
 

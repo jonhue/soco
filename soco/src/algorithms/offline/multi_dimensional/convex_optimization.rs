@@ -37,7 +37,7 @@ pub fn co(
                 data: p.clone(),
                 g: Arc::new(move |raw_xs, p| {
                     let xs = Schedule::from_raw(p.d, p.t_end, raw_xs);
-                    p.movement(&xs, false).unwrap() - n64(l)
+                    p.total_movement(&xs, false).unwrap() - n64(l)
                 }),
             }]
         }

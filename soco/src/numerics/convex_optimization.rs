@@ -9,6 +9,8 @@ use nlopt::{Algorithm, Nlopt, Target};
 use noisy_float::prelude::*;
 use std::sync::Arc;
 
+static MAX_ITERATIONS: u32 = 1_000;
+
 /// Optimization direction.
 enum Direction {
     Minimize,
@@ -32,7 +34,7 @@ pub fn find_minimizer_of_hitting_cost(
     hitting_cost: &CostFn<'_, FractionalConfig>,
     bounds: &Vec<(f64, f64)>,
 ) -> Result<OptimizationResult> {
-    let f = |x: &[f64]| hitting_cost.call(t, Config::new(x.to_vec()), bounds);
+    let f = |x: &[f64]| hitting_cost.call_certain_within_bounds(t, Config::new(x.to_vec()), bounds);
     find_minimizer(f, bounds)
 }
 
@@ -165,6 +167,9 @@ fn optimize<D>(
     solver.set_upper_bounds(&upper)?;
     solver.set_xtol_rel(TOLERANCE)?;
 
+    // stop evaluation when solver appears to hit a dead end, this may happen when all function evaluations return infinity.
+    solver.set_maxeval(MAX_ITERATIONS)?;
+
     for Constraint { g, data } in inequality_constraints {
         solver.add_inequality_constraint(
             |xs: &[f64], _: Option<&mut [f64]>, data: &mut D| {
@@ -185,7 +190,10 @@ fn optimize<D>(
     }
 
     let opt = match solver.optimize(&mut x) {
-        Ok((_, opt)) => Ok(opt),
+        Ok((state, opt)) => Ok(match state {
+            nlopt::SuccessState::Success => opt,
+            _ => f64::INFINITY,
+        }),
         Err((state, opt)) => match state {
             nlopt::FailState::RoundoffLimited => {
                 warn!("Warning: NLOpt terminated with a roundoff error.");
@@ -202,7 +210,9 @@ fn choose_algorithm(
     equality_constraints: usize,
 ) -> Algorithm {
     // both Cobyla and Bobyqa are algorithms for derivative-free local optimization
-    if equality_constraints > 0 || inequality_constraints > 0 {
+    if equality_constraints > 0 {
+        Algorithm::Isres
+    }  else if inequality_constraints > 0 {
         Algorithm::Cobyla
     } else {
         // Bobyqa does not support (in-)equality constraints

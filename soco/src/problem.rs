@@ -7,6 +7,7 @@ use crate::model::data_center::loads::{
 };
 use crate::model::data_center::safe_balancing;
 use crate::norm::NormFn;
+use crate::objective::scalar_movement;
 use crate::value::Value;
 use crate::verifiers::VerifiableProblem;
 use noisy_float::prelude::*;
@@ -97,7 +98,11 @@ where
     T: Value<'a>,
 {
     pub fn hit_cost(&self, t: i32, x: Config<T>) -> N64 {
-        self.hitting_cost.call(t, x, &self.bounds)
+        self.hitting_cost.call_certain_within_bounds(t, x, &self.bounds)
+    }
+
+    pub fn movement(&self, prev_x: Config<T>, x: Config<T>) -> N64 {
+        (self.switching_cost)(x - prev_x)
     }
 }
 pub type FractionalSmoothedConvexOptimization<'a> =
@@ -125,7 +130,16 @@ where
     T: Value<'a>,
 {
     pub fn hit_cost(&self, t: i32, x: Config<T>) -> N64 {
-        self.hitting_cost.call(t, x, &self.bounds)
+        self.hitting_cost.call_certain_within_bounds(t, x, &self.bounds)
+    }
+
+    pub fn movement(
+        &self,
+        prev_x: Config<T>,
+        x: Config<T>,
+        inverted: bool,
+    ) -> N64 {
+        movement(self.d, &self.switching_cost, prev_x, x, inverted)
     }
 }
 pub type IntegralSimplifiedSmoothedConvexOptimization<'a> =
@@ -171,24 +185,38 @@ where
                   lambda: &LoadProfile,
                   zs: &LoadFractions| {
                 assert!(self.d == x_.d());
-                (0..self.d as usize)
+                let r = (0..self.d as usize)
                     .map(|k| -> N64 {
                         let total_load = zs.select_loads(lambda, k)[0];
                         let x = NumCast::from(x_[k]).unwrap();
+                        // if total_load > x {
+                        //     n64(f64::INFINITY)
+                        // } else {
                         safe_balancing(x, total_load, || {
-                            x * self.hitting_cost[k].call(
+                            x * self.hitting_cost[k].call_certain(
                                 t,
                                 (total_load / x).raw(),
-                                &self.bounds[k],
                             )
                         })
+                        // }
                     })
-                    .sum::<N64>()
+                    .sum::<N64>();
+                println!("FOR {:?};{:?};{:?} GOT {}", x_, lambda, zs, r);
+                r
             },
             loads,
             1,
         )
-        .call(t, x, &bounds)
+        .call_certain_within_bounds(t, x, &bounds)
+    }
+
+    pub fn movement(
+        &self,
+        prev_x: Config<T>,
+        x: Config<T>,
+        inverted: bool,
+    ) -> N64 {
+        movement(self.d, &self.switching_cost, prev_x, x, inverted)
     }
 }
 pub type IntegralSmoothedBalancedLoadOptimization<'a> =
@@ -212,4 +240,52 @@ pub struct SmoothedLoadOptimization<T> {
     pub load: Vec<T>,
 }
 impl_problem!(SmoothedLoadOptimization<T>);
+impl<'a, T> SmoothedLoadOptimization<T>
+where
+    T: Value<'a>,
+{
+    pub fn hit_cost(&self, t: i32, x: Config<T>) -> N64 {
+        if x.total() < self.load[t as usize - 1] {
+            n64(f64::INFINITY)
+        } else {
+            (0..self.d as usize)
+                .into_iter()
+                .map(|k| -> N64 {
+                    let j: N64 = NumCast::from(x[k]).unwrap();
+                    n64(self.hitting_cost[k]) * j
+                })
+                .sum()
+        }
+    }
+
+    pub fn movement(
+        &self,
+        prev_x: Config<T>,
+        x: Config<T>,
+        inverted: bool,
+    ) -> N64 {
+        movement(self.d, &self.switching_cost, prev_x, x, inverted)
+    }
+}
 pub type IntegralSmoothedLoadOptimization = SmoothedLoadOptimization<i32>;
+
+fn movement<'a, T>(
+    d: i32,
+    switching_cost: &Vec<f64>,
+    prev_x: Config<T>,
+    x: Config<T>,
+    inverted: bool,
+) -> N64
+where
+    T: Value<'a>,
+{
+    (0..d as usize)
+        .into_iter()
+        .map(|k| -> N64 {
+            let delta: N64 =
+                NumCast::from(scalar_movement(x[k], prev_x[k], inverted))
+                    .unwrap();
+            n64(switching_cost[k]) * delta
+        })
+        .sum()
+}

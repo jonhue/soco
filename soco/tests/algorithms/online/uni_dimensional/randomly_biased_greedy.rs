@@ -1,4 +1,6 @@
+#[cfg(test)]
 mod rbg {
+    use crate::init;
     use crate::{factories::inv_e, utils::upper_bounds};
     use soco::algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Options,
@@ -8,6 +10,8 @@ mod rbg {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -27,6 +31,8 @@ mod rbg {
 
     #[test]
     fn _2() {
+        init();
+
         let p = SmoothedConvexOptimization {
             d: 1,
             t_end: 1,

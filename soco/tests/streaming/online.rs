@@ -1,4 +1,4 @@
-use crate::utils::hash_map;
+use crate::{init, utils::hash_map};
 use soco::{
     algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Memory, Options,
@@ -30,6 +30,8 @@ use std::{
 
 #[test]
 fn integration() {
+    init();
+
     let addr = "127.0.0.1:5000";
 
     let t_end = 2;

@@ -1,5 +1,7 @@
+#[cfg(test)]
 mod bcp {
     use crate::factories::inv_e;
+    use crate::init;
     use soco::algorithms::offline::{
         uni_dimensional::capacity_provisioning::brcp,
         OfflineAlgorithmWithDefaultOptions,
@@ -13,6 +15,8 @@ mod bcp {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 2,

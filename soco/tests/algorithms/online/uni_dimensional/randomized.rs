@@ -1,10 +1,14 @@
+#[cfg(test)]
 mod randomized {
     use crate::factories::int_parabola;
+    use crate::init;
     use soco::algorithms::online::uni_dimensional::randomized::randomized;
     use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
 
     #[test]
     fn _1() {
+        init();
+
         let p: SimplifiedSmoothedConvexOptimization<'_, i32> =
             SimplifiedSmoothedConvexOptimization {
                 d: 1,
@@ -22,6 +26,8 @@ mod randomized {
 
     #[test]
     fn _2() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,

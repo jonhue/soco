@@ -1,4 +1,6 @@
+#[cfg(test)]
 mod co {
+    use crate::init;
     use crate::{factories::inv_e, utils::upper_bounds};
     use rand::prelude::*;
     use rand_pcg::Pcg64;
@@ -17,6 +19,8 @@ mod co {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SmoothedConvexOptimization {
             d: 2,
             t_end: 2,
@@ -50,6 +54,8 @@ mod co {
 
     #[test]
     fn _2() {
+        init();
+
         let p = SmoothedConvexOptimization {
             d: 2,
             t_end: 100,
@@ -68,6 +74,8 @@ mod co {
 
     #[test]
     fn _3() {
+        init();
+
         let euclidean_ = euclidean();
 
         let d = 4;
@@ -98,6 +106,8 @@ mod co {
 
     #[test]
     fn _4() {
+        init();
+
         let euclidean_ = euclidean();
         let epsilon = 0.000001;
 
@@ -129,6 +139,6 @@ mod co {
             .unwrap()
             .xs();
         result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
-        assert!(p.movement(&result, false).unwrap().raw() <= l + epsilon);
+        assert!(p.total_movement(&result, false).unwrap().raw() <= l + epsilon);
     }
 }

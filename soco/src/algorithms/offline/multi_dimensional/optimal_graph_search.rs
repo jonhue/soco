@@ -6,6 +6,7 @@ use crate::algorithms::offline::multi_dimensional::{
 use crate::algorithms::offline::OfflineOptions;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
+use log::debug;
 use pyo3::prelude::*;
 
 #[pyclass(name = "OptimalGraphSearchOptions")]
@@ -37,5 +38,6 @@ pub fn optimal_graph_search(
         values: (0..=*max_bound).collect(),
         bound_indices: p.bounds.iter().map(|&m| m as usize).collect(),
     };
+    debug!("starting with `{}` values", max_bound);
     graph_search(p, values, cache, offline_options)
 }

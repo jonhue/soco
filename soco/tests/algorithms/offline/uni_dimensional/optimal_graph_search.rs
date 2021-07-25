@@ -1,5 +1,7 @@
+#[cfg(test)]
 mod make_pow_of_2 {
     use crate::factories::constant;
+    use crate::init;
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::make_pow_of_2;
     use soco::config::Config;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
@@ -7,6 +9,8 @@ mod make_pow_of_2 {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1_000,
@@ -40,8 +44,12 @@ mod make_pow_of_2 {
     }
 }
 
+#[cfg(test)]
 mod optimal_graph_search {
-    use crate::factories::{penalize_zero, random};
+    use crate::{
+        factories::{penalize_zero, random},
+        init,
+    };
     use soco::algorithms::offline::{
         uni_dimensional::optimal_graph_search::{
             make_pow_of_2, optimal_graph_search, Options,
@@ -56,6 +64,8 @@ mod optimal_graph_search {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 2,
@@ -90,6 +100,8 @@ mod optimal_graph_search {
 
     #[test]
     fn _2() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 100,
@@ -119,6 +131,8 @@ mod optimal_graph_search {
 
     #[test]
     fn _3() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1_000,
@@ -160,6 +174,8 @@ mod optimal_graph_search {
 
     #[test]
     fn _4() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 2,

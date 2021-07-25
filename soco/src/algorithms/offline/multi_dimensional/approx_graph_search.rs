@@ -6,6 +6,7 @@ use crate::algorithms::offline::multi_dimensional::{
 use crate::algorithms::offline::OfflineOptions;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
+use log::debug;
 use pyo3::prelude::*;
 use rayon::slice::ParallelSliceMut;
 
@@ -48,6 +49,7 @@ pub fn approx_graph_search(
     offline_options: OfflineOptions,
 ) -> Result<CachedPath<Cache<Vertice>>> {
     let values = cache_bound_indices(build_values, &p.bounds, gamma);
+    debug!("starting with `{}` values", values.values.len());
     graph_search(p, values, cache, offline_options)
 }
 

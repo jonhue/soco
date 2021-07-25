@@ -1,3 +1,4 @@
+use log::debug;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::algorithms::offline::graph_search::{
@@ -48,9 +49,13 @@ pub fn graph_search(
 
     let (t_init, mut paths) = read_cache(cache, || (1, HashMap::new()));
 
+    debug!("from time slot `{}` to time slot `{}`", t_init, p.t_end);
+
     for t in t_init..=p.t_end {
         handle_layer(&p, alpha, inverted, t, true, &values, &mut paths, None)?;
+        debug!("handled first layer at time `{}`", t);
         handle_layer(&p, alpha, inverted, t, false, &values, &mut paths, None)?;
+        debug!("handled second layer at time `{}`", t);
     }
 
     Ok(CachedPath {
@@ -174,6 +179,7 @@ fn handle_config(
             config: config.clone(),
             powering_up,
         },
+        config.config == IntegralConfig::repeat(0, p.d),
     );
 }
 
@@ -294,6 +300,9 @@ fn find_immediate_predecessors(
                 p.hit_cost(t, config.config.clone()).raw()
             },
         };
+        if config.config.to_vec() == vec![0,0] {
+            println!("{};{}", powering_up, inaction.cost)
+        }
         predecessors.push(inaction);
     }
 
@@ -304,7 +313,7 @@ fn find_optimal_predecessor(
     predecessors: Vec<Edge>,
     paths: &mut Paths<Vertice>,
 ) -> Option<(Edge, Path)> {
-    predecessors
+    let r = predecessors
         .into_par_iter()
         .fold(
             || None,
@@ -341,19 +350,22 @@ fn find_optimal_predecessor(
                 }),
                 None => b,
             },
-        )
+        );
+    debug!("{:?}", r);
+    r
 }
 
 fn update_paths(
     paths: &mut Paths<Vertice>,
     predecessor: Option<(Edge, Path)>,
     to: &Vertice,
+    is_initial_config: bool,
 ) {
     let path = match predecessor {
-        None => Path {
+        None => if is_initial_config { Path {
             xs: IntegralSchedule::empty(),
             cost: 0.,
-        },
+        } } else { panic!("Problem is infeasible. Did not find a predecessor with a finite cost.") },
         Some((predecessor, path)) => {
             let xs = if predecessor.from.powering_up && !to.powering_up {
                 path.xs.extend(to.config.config.clone())

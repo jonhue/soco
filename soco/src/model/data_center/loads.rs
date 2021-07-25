@@ -2,6 +2,7 @@
 
 use crate::config::Config;
 use crate::cost::{CostFn, SingleCostFn};
+use crate::numerics::ApplicablePrecision;
 use crate::numerics::convex_optimization::{minimize, Constraint};
 use crate::utils::{access, unshift_time};
 use crate::value::Value;
@@ -203,7 +204,7 @@ impl LoadFractions {
 impl LoadFractions {
     fn new(zs_: &[f64], d: i32, e: i32) -> Self {
         LoadFractions {
-            zs: zs_.iter().map(|&z| n64(z)).collect(),
+            zs: zs_.iter().map(|&z| n64(z.apply_precision())).collect(),
             d,
             e,
         }
@@ -298,10 +299,10 @@ where
     };
 
     // assigns each dimension a fraction of each load type
-    // note: when starting with the feasible uniform distribution, solver nay get
+    // note: when starting with the feasible uniform distribution, solver may get
     // stuck when all surrounding objectives are inf (e.g. if one dimension is set
     // to 0 and cannot take any load)
-    let init = vec![0.; solver_d];
+    let init = vec![1. / solver_d as f64; solver_d];
 
     // ensure that the fractions across all dimensions of each load type sum to `1`
     let equality_constraints = (0..e as usize)
@@ -311,8 +312,10 @@ where
                 let total_lambda = lambda.total();
                 if total_lambda > 0. {
                     let zs = LoadFractions::new(zs_, d, e);
-                    (0..d as usize).map(|k| zs.get(k, i)).sum::<N64>()
-                        - lambda[i] / total_lambda
+                    let r = (0..d as usize).map(|k| zs.get(k, i)).sum::<N64>()
+                        - lambda[i] / total_lambda;
+                    println!("{:?};{:?};{};{}", lambda, zs, total_lambda, r);
+                    n64(100.)
                 } else {
                     n64(0.)
                 }

@@ -1,5 +1,9 @@
+#[cfg(test)]
 mod approx_graph_search {
-    use crate::factories::{penalize_zero, random};
+    use crate::{
+        factories::{penalize_zero, random},
+        init,
+    };
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::{
@@ -19,6 +23,8 @@ mod approx_graph_search {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
             t_end: 2,
@@ -55,6 +61,8 @@ mod approx_graph_search {
 
     #[test]
     fn _2() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
             t_end: 100,
@@ -82,6 +90,8 @@ mod approx_graph_search {
 
     #[test]
     fn _3() {
+        init();
+
         let d = 4;
         let t_end = 100;
         let p = SimplifiedSmoothedConvexOptimization {
@@ -120,6 +130,8 @@ mod approx_graph_search {
 
     #[test]
     fn _4() {
+        init();
+
         let mut p = SimplifiedSmoothedConvexOptimization {
             d: 2,
             t_end: 25,

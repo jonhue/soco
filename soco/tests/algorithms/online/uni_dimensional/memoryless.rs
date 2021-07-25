@@ -1,5 +1,7 @@
+#[cfg(test)]
 mod memoryless {
     use crate::factories::inv_e;
+    use crate::init;
     use soco::algorithms::online::uni_dimensional::memoryless::memoryless;
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
@@ -8,6 +10,8 @@ mod memoryless {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -26,6 +30,8 @@ mod memoryless {
 
     #[test]
     fn _2() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,

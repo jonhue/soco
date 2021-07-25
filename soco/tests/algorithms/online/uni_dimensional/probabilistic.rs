@@ -1,5 +1,7 @@
+#[cfg(test)]
 mod probabilistic {
     use crate::factories::parabola;
+    use crate::init;
     use soco::algorithms::online::uni_dimensional::probabilistic::{
         probabilistic, Options,
     };
@@ -10,6 +12,8 @@ mod probabilistic {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -30,6 +34,8 @@ mod probabilistic {
 
     #[test]
     fn _2() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,

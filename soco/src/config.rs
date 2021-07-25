@@ -56,6 +56,10 @@ where
     pub fn push(&mut self, j: T) {
         self.0.push(j)
     }
+
+    pub fn total(&self) -> T {
+        self.0.clone().into_iter().sum()
+    }
 }
 
 impl<'a, T> Index<usize> for Config<T>
