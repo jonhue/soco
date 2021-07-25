@@ -148,13 +148,8 @@ impl IntegralSimplifiedSmoothedConvexOptimization<'_> {
         x_start: i32,
         cache: Option<Cache>,
     ) -> Result<(i32, Cache)> {
-        assert!(t <= self.t_end);
+        assert!(1 <= t && t <= self.t_end);
         assert(self.d == 1, Failure::UnsupportedProblemDimension(self.d))?;
-
-        // if t <= 0 {
-        //     return Ok(0);
-        // }
-        assert!(t >= 1);
 
         let p = self.reset(t_start);
         let result = optimal_graph_search.solve(
