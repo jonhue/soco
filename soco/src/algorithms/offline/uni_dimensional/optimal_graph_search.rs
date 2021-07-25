@@ -13,11 +13,12 @@ use crate::utils::{assert, is_pow_of_2};
 use noisy_float::prelude::*;
 use num::ToPrimitive;
 use pyo3::prelude::*;
+use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Vertice in the graph denoting time `t` and the value `j` at time `t`.
-#[derive(Eq, Hash, PartialEq)]
-struct Vertice(i32, i32);
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct Vertice(i32, i32);
 
 #[pyclass(name = "OptimalGraphSearch1dOptions")]
 #[derive(Clone)]
@@ -31,6 +32,11 @@ impl Default for Options {
         Options { x_start: 0 }
     }
 }
+impl Options {
+    pub fn new(x_start: i32) -> Self {
+        Options { x_start }
+    }
+}
 #[pymethods]
 impl Options {
     #[new]
@@ -42,7 +48,7 @@ impl Options {
 /// Graph-Based Optimal Algorithm
 pub fn optimal_graph_search(
     mut p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
-    options: Options,
+    Options { x_start }: Options,
     OfflineOptions { inverted, alpha, l }: OfflineOptions,
 ) -> Result<Path> {
     assert(l.is_none(), Failure::UnsupportedLConstrainedMovement)?;
@@ -58,27 +64,21 @@ pub fn optimal_graph_search(
         0
     };
 
-    let mut result = find_schedule(
-        &p,
-        select_initial_rows(&p),
-        alpha,
-        inverted,
-        options.x_start,
-    );
-
+    let mut path =
+        find_schedule(&p, select_initial_rows(&p), alpha, inverted, x_start);
     if k_init > 0 {
         for k in k_init - 1..=0 {
-            result = find_schedule(
+            path = find_schedule(
                 &p,
-                select_next_rows(&p, &result.xs, k),
+                select_next_rows(&p, &path.xs, k),
                 alpha,
                 inverted,
-                options.x_start,
+                x_start,
             );
         }
     }
 
-    Ok(result)
+    Ok(path)
 }
 
 /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `optimal_graph_search`.

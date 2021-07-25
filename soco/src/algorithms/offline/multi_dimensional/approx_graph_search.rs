@@ -1,4 +1,5 @@
-use crate::algorithms::offline::graph_search::Path;
+use super::graph_search::Vertice;
+use crate::algorithms::offline::graph_search::{Cache, CachedPath};
 use crate::algorithms::offline::multi_dimensional::{
     graph_search::graph_search, Values,
 };
@@ -11,31 +12,43 @@ use rayon::slice::ParallelSliceMut;
 #[pyclass(name = "ApproxGraphSearchOptions")]
 #[derive(Clone)]
 pub struct Options {
+    pub cache: Option<Cache<Vertice>>,
     /// `gamma > 1`. Default is `1.1`.
     #[pyo3(get, set)]
     pub gamma: f64,
 }
 impl Default for Options {
     fn default() -> Self {
-        Options { gamma: 1.1 }
+        Options {
+            cache: None,
+            gamma: 1.1,
+        }
+    }
+}
+impl Options {
+    pub fn new(gamma: f64) -> Self {
+        Options {
+            gamma,
+            ..Options::default()
+        }
     }
 }
 #[pymethods]
 impl Options {
     #[new]
     fn constructor(gamma: f64) -> Self {
-        Options { gamma }
+        Options { cache: None, gamma }
     }
 }
 
 /// Graph-Based Polynomial-Time Approximation Scheme
 pub fn approx_graph_search(
     p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
-    Options { gamma }: Options,
+    Options { cache, gamma }: Options,
     offline_options: OfflineOptions,
-) -> Result<Path> {
+) -> Result<CachedPath<Cache<Vertice>>> {
     let values = cache_bound_indices(build_values, &p.bounds, gamma);
-    graph_search(p, values, offline_options)
+    graph_search(p, values, cache, offline_options)
 }
 
 /// Computes all values allowed by the approximation algorithm.

@@ -1,6 +1,8 @@
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::algorithms::offline::graph_search::{Path, Paths};
+use crate::algorithms::offline::graph_search::{
+    read_cache, Cache, CachedPath, Path, Paths,
+};
 use crate::algorithms::offline::multi_dimensional::Values;
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
@@ -9,10 +11,11 @@ use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::assert;
+use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 /// Tracks the value as well as the index in which the value appears in the respective dimension.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 struct InternalConfig {
     config: IntegralConfig,
     indices: Config<usize>,
@@ -21,8 +24,8 @@ struct InternalConfig {
 /// Vertice in the graph denoting time `t` and the value `x` at time `t`.
 /// The boolean flag indicates whether the vertice belongs to the powering up (`true`) or powering down (`false`) phase.
 /// The algorithm only keeps the most recent two layers in memory.
-#[derive(Clone, Debug, Eq, Hash, PartialEq)]
-struct Vertice {
+#[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
+pub struct Vertice {
     config: InternalConfig,
     powering_up: bool,
 }
@@ -38,21 +41,26 @@ struct Edge {
 pub fn graph_search(
     p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
     values: Values,
+    cache: Option<Cache<Vertice>>,
     OfflineOptions { inverted, alpha, l }: OfflineOptions,
-) -> Result<Path> {
+) -> Result<CachedPath<Cache<Vertice>>> {
     assert(l.is_none(), Failure::UnsupportedLConstrainedMovement)?;
 
-    let mut paths: Paths<Vertice> = HashMap::new();
-    for t in 1..=p.t_end {
+    let (t_init, mut paths) = read_cache(cache, || (1, HashMap::new()));
+
+    for t in t_init..=p.t_end {
         handle_layer(&p, alpha, inverted, t, true, &values, &mut paths, None)?;
         handle_layer(&p, alpha, inverted, t, false, &values, &mut paths, None)?;
     }
 
-    Ok(paths[&Vertice {
-        config: build_base_config(p.d, &p.bounds, &values, true),
-        powering_up: false,
-    }]
-        .clone())
+    Ok(CachedPath {
+        path: paths[&Vertice {
+            config: build_base_config(p.d, &p.bounds, &values, true),
+            powering_up: false,
+        }]
+            .clone(),
+        cache: Cache { t: p.t_end, paths },
+    })
 }
 
 struct HandleLayerState {

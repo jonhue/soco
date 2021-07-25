@@ -1,5 +1,9 @@
-use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
-use crate::algorithms::offline::{OfflineAlgorithm, OfflineResult};
+use crate::algorithms::offline::graph_search::Cache;
+use crate::algorithms::offline::multi_dimensional::optimal_graph_search::{
+    optimal_graph_search, Options as OptimalGraphSearchOptions,
+};
+use crate::algorithms::offline::multi_dimensional::Vertice;
+use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Online, Step};
 use crate::config::{Config, IntegralConfig};
 use crate::problem::{DefaultGivenProblem, IntegralSmoothedLoadOptimization};
@@ -19,6 +23,8 @@ pub struct Memory {
     pub horizons: Horizons,
     /// Factor for calculating next time horizons when using the randomized variant of the algorithm.
     pub gamma: f64,
+    /// Cache of offline algorithm.
+    cache: Option<Cache<Vertice>>,
 }
 impl DefaultGivenProblem<IntegralSmoothedLoadOptimization> for Memory {
     fn default(p: &IntegralSmoothedLoadOptimization) -> Self {
@@ -27,6 +33,7 @@ impl DefaultGivenProblem<IntegralSmoothedLoadOptimization> for Memory {
             lanes: vec![0; bound as usize],
             horizons: vec![0; bound as usize],
             gamma: sample_gamma(),
+            cache: None,
         }
     }
 }
@@ -66,13 +73,15 @@ pub fn lb(
         lanes: prev_lanes,
         horizons: prev_horizons,
         gamma,
+        cache,
     }: Memory,
     options: Options,
 ) -> Result<IntegralStep<Memory>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let bound = o.p.bounds.iter().sum();
-    let optimal_lanes = find_optimal_lanes(o.p.clone(), bound)?;
+    let (optimal_lanes, new_cache) =
+        find_optimal_lanes(cache, o.p.clone(), bound)?;
 
     let (lanes, horizons) = (0..bound as usize)
         .into_par_iter()
@@ -113,6 +122,7 @@ pub fn lb(
             lanes,
             horizons,
             gamma,
+            cache: Some(new_cache),
         }),
     ))
 }
@@ -165,12 +175,18 @@ fn active_lanes(x: &IntegralConfig, from: i32, to: i32) -> i32 {
 }
 
 fn find_optimal_lanes(
+    cache: Option<Cache<Vertice>>,
     p: IntegralSmoothedLoadOptimization,
     bound: i32,
-) -> Result<Lanes> {
+) -> Result<(Lanes, Cache<Vertice>)> {
     let d = p.d;
     let sblo_p = p.into_sblo();
     let ssco_p = sblo_p.into_ssco();
-    let result = optimal_graph_search.solve(ssco_p, (), Default::default())?;
-    Ok(build_lanes(&result.xs().now(), d, bound))
+    let result = optimal_graph_search.solve(
+        ssco_p,
+        OptimalGraphSearchOptions { cache },
+        Default::default(),
+    )?;
+    let lanes = build_lanes(&result.path.xs.now(), d, bound);
+    Ok((lanes, result.cache))
 }

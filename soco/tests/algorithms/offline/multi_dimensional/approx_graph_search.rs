@@ -4,6 +4,7 @@ mod approx_graph_search {
     use rand_pcg::Pcg64;
     use soco::{
         algorithms::offline::{
+            graph_search::CachedPath,
             multi_dimensional::approx_graph_search::{
                 approx_graph_search, Options,
             },
@@ -27,28 +28,28 @@ mod approx_graph_search {
         };
         p.verify().unwrap();
 
-        let result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::default())
+        let CachedPath { path, .. } = approx_graph_search
+            .solve(p.clone(), Options::new(2.), OfflineOptions::default())
             .unwrap();
-        result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::inverted())
+        path.xs.verify(p.t_end, &p.bounds).unwrap();
+        let CachedPath { path: inv_path, .. } = approx_graph_search
+            .solve(p.clone(), Options::new(2.), OfflineOptions::inverted())
             .unwrap();
-        inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
+        inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.xs, inv_result.xs);
-        assert_abs_diff_eq!(result.cost, inv_result.cost);
+        assert_eq!(path.xs, inv_path.xs);
+        assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_eq!(
-            result.xs,
+            path.xs,
             Schedule::new(vec![
                 Config::new(vec![0, 1]),
                 Config::new(vec![0, 1])
             ])
         );
-        assert_abs_diff_eq!(result.cost, 1.);
+        assert_abs_diff_eq!(path.cost, 1.);
         assert_abs_diff_eq!(
-            result.cost,
-            p.objective_function(&result.xs).unwrap().raw()
+            path.cost,
+            p.objective_function(&path.xs).unwrap().raw()
         );
     }
 
@@ -63,19 +64,19 @@ mod approx_graph_search {
         };
         p.verify().unwrap();
 
-        let result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::default())
+        let CachedPath { path, .. } = approx_graph_search
+            .solve(p.clone(), Options::new(2.), OfflineOptions::default())
             .unwrap();
-        result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::inverted())
+        path.xs.verify(p.t_end, &p.bounds).unwrap();
+        let CachedPath { path: inv_path, .. } = approx_graph_search
+            .solve(p.clone(), Options::new(2.), OfflineOptions::inverted())
             .unwrap();
-        inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
+        inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_abs_diff_eq!(result.cost, inv_result.cost);
+        assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_abs_diff_eq!(
-            result.cost,
-            p.objective_function(&result.xs).unwrap().raw()
+            path.cost,
+            p.objective_function(&path.xs).unwrap().raw()
         );
     }
 
@@ -100,20 +101,62 @@ mod approx_graph_search {
         };
         p.verify().unwrap();
 
-        let result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::default())
+        let CachedPath { path, .. } = approx_graph_search
+            .solve(p.clone(), Options::new(2.), OfflineOptions::default())
             .unwrap();
-        result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = approx_graph_search
-            .solve(p.clone(), Options { gamma: 2. }, OfflineOptions::inverted())
+        path.xs.verify(p.t_end, &p.bounds).unwrap();
+        let CachedPath { path: inv_path, .. } = approx_graph_search
+            .solve(p.clone(), Options::new(2.), OfflineOptions::inverted())
             .unwrap();
-        inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
+        inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_abs_diff_eq!(result.cost, inv_result.cost, epsilon = 1.);
+        assert_abs_diff_eq!(path.cost, inv_path.cost, epsilon = 1.);
         assert_abs_diff_eq!(
-            result.cost,
-            p.objective_function(&result.xs).unwrap().raw(),
+            path.cost,
+            p.objective_function(&path.xs).unwrap().raw(),
             epsilon = 1.
+        );
+    }
+
+    #[test]
+    fn _4() {
+        let mut p = SimplifiedSmoothedConvexOptimization {
+            d: 2,
+            t_end: 25,
+            bounds: vec![8, 8],
+            switching_cost: vec![1., 3.],
+            hitting_cost: random(),
+        };
+        p.verify().unwrap();
+
+        let CachedPath { path, cache } = approx_graph_search
+            .solve(p.clone(), Options::new(2.), OfflineOptions::default())
+            .unwrap();
+        path.xs.verify(p.t_end, &p.bounds).unwrap();
+
+        assert_abs_diff_eq!(
+            path.cost,
+            p.objective_function(&path.xs).unwrap().raw()
+        );
+
+        p.t_end = 100;
+        p.verify().unwrap();
+
+        let CachedPath { path, .. } = approx_graph_search
+            .solve(
+                p.clone(),
+                Options {
+                    cache: Some(cache),
+                    gamma: 2.,
+                },
+                OfflineOptions::default(),
+            )
+            .unwrap();
+        path.xs.verify(p.t_end, &p.bounds).unwrap();
+
+        assert_abs_diff_eq!(
+            path.cost,
+            p.objective_function(&path.xs).unwrap().raw()
         );
     }
 }

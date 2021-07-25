@@ -19,7 +19,7 @@ fn start(
     model: DataCenterModel,
     input: DataCenterOfflineInput,
     w: i32,
-) -> PyResult<Response<i32, Vec<Memory<i32>>>> {
+) -> PyResult<Response<i32, Memory<i32>>> {
     let ((xs, cost), (int_xs, int_cost), m) = online::start(
         addr.parse().unwrap(),
         model,
@@ -39,13 +39,13 @@ fn next(
     py: Python,
     addr: String,
     input: DataCenterOnlineInput,
-) -> PyResult<StepResponse<i32, Vec<Memory<i32>>>> {
+) -> PyResult<StepResponse<i32, Memory<i32>>> {
     py.allow_threads(|| {
         let ((x, cost), (int_x, int_cost), m) =
             online::next::<
                 i32,
                 IntegralSimplifiedSmoothedConvexOptimization,
-                Vec<Memory<i32>>,
+                Memory<i32>,
                 DataCenterOnlineInput,
             >(addr.parse().unwrap(), input);
         Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), m))
