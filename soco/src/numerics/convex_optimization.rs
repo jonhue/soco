@@ -211,7 +211,7 @@ fn choose_algorithm(
 ) -> Algorithm {
     // both Cobyla and Bobyqa are algorithms for derivative-free local optimization
     if equality_constraints > 0 {
-        Algorithm::Isres
+        unimplemented!()
     }  else if inequality_constraints > 0 {
         Algorithm::Cobyla
     } else {
