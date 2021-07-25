@@ -33,8 +33,8 @@ fn next(
     t: i32,
     x: f64,
 ) -> Result<f64> {
-    let (l, _) = p.find_alpha_unfair_lower_bound(alpha, t, 0, 0., Some(()))?;
-    let (u, _) = p.find_alpha_unfair_upper_bound(alpha, t, 0, 0., Some(()))?;
+    let lower = p.find_alpha_unfair_lower_bound(alpha, t, 0, 0.)?;
+    let upper = p.find_alpha_unfair_upper_bound(alpha, t, 0, 0.)?;
 
-    Ok(project(x, l, u))
+    Ok(project(x, lower, upper))
 }

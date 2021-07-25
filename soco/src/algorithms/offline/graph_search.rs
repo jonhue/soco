@@ -9,7 +9,7 @@ pub struct CachedPath<C> {
     pub path: Path,
     pub cache: C,
 }
-impl<T> OfflineResult<i32> for CachedPath<T> {
+impl<C> OfflineResult<i32> for CachedPath<C> {
     fn xs(self) -> IntegralSchedule {
         self.path.xs
     }
@@ -20,6 +20,11 @@ impl<T> OfflineResult<i32> for CachedPath<T> {
 pub struct Path {
     pub xs: IntegralSchedule,
     pub cost: f64,
+}
+impl OfflineResult<i32> for Path {
+    fn xs(self) -> IntegralSchedule {
+        self.xs
+    }
 }
 
 /// Data structure to cache results of the algorithm up to some time slot `t`.

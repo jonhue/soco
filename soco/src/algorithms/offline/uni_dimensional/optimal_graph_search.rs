@@ -1,6 +1,4 @@
-use crate::algorithms::offline::graph_search::{
-    read_cache, Cache as GeneralCache, CachedPath, Path, Paths,
-};
+use crate::algorithms::offline::graph_search::{Path, Paths};
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
 use crate::cost::{CostFn, SingleCostFn};
@@ -22,50 +20,37 @@ use std::collections::HashMap;
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Vertice(i32, i32);
 
-/// Cache for each iteration [0 : k_init].
-pub type Cache = Vec<GeneralCache<Vertice>>;
-
 #[pyclass(name = "OptimalGraphSearch1dOptions")]
 #[derive(Clone)]
 pub struct Options {
-    pub cache: Option<Cache>,
     /// Value at initial time `0`. Defaults to `0`.
     #[pyo3(get, set)]
     pub x_start: i32,
 }
 impl Default for Options {
     fn default() -> Self {
-        Options {
-            cache: None,
-            x_start: 0,
-        }
+        Options { x_start: 0 }
     }
 }
 impl Options {
     pub fn new(x_start: i32) -> Self {
-        Options {
-            x_start,
-            ..Options::default()
-        }
+        Options { x_start }
     }
 }
 #[pymethods]
 impl Options {
     #[new]
     fn constructor(x_start: i32) -> Self {
-        Options {
-            cache: None,
-            x_start,
-        }
+        Options { x_start }
     }
 }
 
 /// Graph-Based Optimal Algorithm
 pub fn optimal_graph_search(
     mut p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
-    Options { cache, x_start }: Options,
+    Options { x_start }: Options,
     OfflineOptions { inverted, alpha, l }: OfflineOptions,
-) -> Result<CachedPath<Cache>> {
+) -> Result<Path> {
     assert(l.is_none(), Failure::UnsupportedLConstrainedMovement)?;
     assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
 
@@ -79,41 +64,21 @@ pub fn optimal_graph_search(
         0
     };
 
-    if let Some(cache) = cache.as_ref() {
-        assert!(cache.len() as u32 == k_init + 1, "Cache is invalid.");
-    }
-    let mut new_cache = vec![];
-
-    let initial_result = find_schedule(
-        cache.as_ref().map(|cache| cache[k_init as usize].clone()),
-        &p,
-        select_initial_rows(&p),
-        alpha,
-        inverted,
-        x_start,
-    );
-    let mut path = initial_result.path;
-    new_cache.insert(0, initial_result.cache);
-
+    let mut path =
+        find_schedule(&p, select_initial_rows(&p), alpha, inverted, x_start);
     if k_init > 0 {
         for k in k_init - 1..=0 {
-            let result = find_schedule(
-                cache.as_ref().map(|cache| cache[k as usize].clone()),
+            path = find_schedule(
                 &p,
                 select_next_rows(&p, &path.xs, k),
                 alpha,
                 inverted,
                 x_start,
             );
-            path = result.path;
-            new_cache.insert(0, result.cache);
         }
     }
 
-    Ok(CachedPath {
-        path,
-        cache: new_cache,
-    })
+    Ok(path)
 }
 
 /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `optimal_graph_search`.
@@ -162,26 +127,22 @@ fn select_next_rows<'a>(
 }
 
 fn find_schedule(
-    cache: Option<GeneralCache<Vertice>>,
     p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
     select_rows: impl Fn(i32) -> Vec<i32>,
     alpha: f64,
     inverted: bool,
     x_start: i32,
-) -> CachedPath<GeneralCache<Vertice>> {
-    let (t_init, mut paths) = read_cache(cache, || {
-        let mut paths: Paths<Vertice> = HashMap::new();
-        let initial_vertice = Vertice(0, x_start);
-        let initial_path = Path {
-            xs: Schedule::empty(),
-            cost: 0.,
-        };
-        paths.insert(initial_vertice, initial_path);
-        (1, paths)
-    });
+) -> Path {
+    let mut paths: Paths<Vertice> = HashMap::new();
+    let initial_vertice = Vertice(0, x_start);
+    let initial_path = Path {
+        xs: Schedule::empty(),
+        cost: 0.,
+    };
+    paths.insert(initial_vertice, initial_path);
 
     let mut prev_rows = vec![x_start];
-    for t in t_init..=p.t_end {
+    for t in 1..=p.t_end {
         let rows = select_rows(t);
         for &j in &rows {
             find_shortest_subpath(
@@ -191,7 +152,7 @@ fn find_schedule(
         prev_rows = rows;
     }
 
-    let path = prev_rows.iter().fold(
+    prev_rows.iter().fold(
         Path {
             xs: Schedule::empty(),
             cost: f64::INFINITY,
@@ -211,12 +172,7 @@ fn find_schedule(
                 result
             }
         },
-    );
-
-    CachedPath {
-        path,
-        cache: GeneralCache { t: p.t_end, paths },
-    }
+    )
 }
 
 fn find_shortest_subpath(

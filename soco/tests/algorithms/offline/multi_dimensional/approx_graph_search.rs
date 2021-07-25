@@ -117,4 +117,46 @@ mod approx_graph_search {
             epsilon = 1.
         );
     }
+
+    #[test]
+    fn _4() {
+        let mut p = SimplifiedSmoothedConvexOptimization {
+            d: 2,
+            t_end: 25,
+            bounds: vec![8, 8],
+            switching_cost: vec![1., 3.],
+            hitting_cost: random(),
+        };
+        p.verify().unwrap();
+
+        let CachedPath { path, cache } = approx_graph_search
+            .solve(p.clone(), Options::new(2.), OfflineOptions::default())
+            .unwrap();
+        path.xs.verify(p.t_end, &p.bounds).unwrap();
+
+        assert_abs_diff_eq!(
+            path.cost,
+            p.objective_function(&path.xs).unwrap().raw()
+        );
+
+        p.t_end = 100;
+        p.verify().unwrap();
+
+        let CachedPath { path, .. } = approx_graph_search
+            .solve(
+                p.clone(),
+                Options {
+                    cache: Some(cache),
+                    gamma: 2.,
+                },
+                OfflineOptions::default(),
+            )
+            .unwrap();
+        path.xs.verify(p.t_end, &p.bounds).unwrap();
+
+        assert_abs_diff_eq!(
+            path.cost,
+            p.objective_function(&path.xs).unwrap().raw()
+        );
+    }
 }

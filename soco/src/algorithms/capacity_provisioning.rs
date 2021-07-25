@@ -1,7 +1,9 @@
 use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
     optimal_graph_search, Options as OptimalGraphSearchOptions,
 };
-use crate::algorithms::offline::{OfflineAlgorithm, OfflineOptions};
+use crate::algorithms::offline::{
+    OfflineAlgorithm, OfflineOptions, OfflineResult,
+};
 use crate::config::Config;
 use crate::convert::ResettableProblem;
 use crate::numerics::convex_optimization::find_minimizer;
@@ -14,17 +16,9 @@ use crate::result::{Failure, Result};
 use crate::utils::assert;
 use noisy_float::prelude::*;
 
-use super::offline::uni_dimensional::optimal_graph_search::Cache;
-
-pub trait Bounded<T, C> {
-    fn find_lower_bound(
-        &self,
-        t: i32,
-        t_start: i32,
-        x_start: T,
-        cache: Option<C>,
-    ) -> Result<(T, C)> {
-        self.find_alpha_unfair_lower_bound(1., t, t_start, x_start, cache)
+pub trait Bounded<T> {
+    fn find_lower_bound(&self, t: i32, t_start: i32, x_start: T) -> Result<T> {
+        self.find_alpha_unfair_lower_bound(1., t, t_start, x_start)
     }
 
     /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the lowest possible cost.
@@ -34,17 +28,10 @@ pub trait Bounded<T, C> {
         t: i32,
         t_start: i32,
         x_start: T,
-        cache: Option<C>,
-    ) -> Result<(T, C)>;
+    ) -> Result<T>;
 
-    fn find_upper_bound(
-        &self,
-        t: i32,
-        t_start: i32,
-        x_start: T,
-        cache: Option<C>,
-    ) -> Result<(T, C)> {
-        self.find_alpha_unfair_upper_bound(1., t, t_start, x_start, cache)
+    fn find_upper_bound(&self, t: i32, t_start: i32, x_start: T) -> Result<T> {
+        self.find_alpha_unfair_upper_bound(1., t, t_start, x_start)
     }
 
     /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the highest possible cost.
@@ -54,20 +41,18 @@ pub trait Bounded<T, C> {
         t: i32,
         t_start: i32,
         x_start: T,
-        cache: Option<C>,
-    ) -> Result<(T, C)>;
+    ) -> Result<T>;
 }
 
-impl Bounded<f64, ()> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
+impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
         t: i32,
         t_start: i32,
         x_start: f64,
-        _: Option<()>,
-    ) -> Result<(f64, ())> {
-        Ok((self.find_bound(alpha, false, t, t_start, x_start)?, ()))
+    ) -> Result<f64> {
+        self.find_bound(alpha, false, t, t_start, x_start)
     }
 
     fn find_alpha_unfair_upper_bound(
@@ -76,9 +61,8 @@ impl Bounded<f64, ()> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
         t: i32,
         t_start: i32,
         x_start: f64,
-        _: Option<()>,
-    ) -> Result<(f64, ())> {
-        Ok((self.find_bound(alpha, true, t, t_start, x_start)?, ()))
+    ) -> Result<f64> {
+        self.find_bound(alpha, true, t, t_start, x_start)
     }
 }
 
@@ -114,16 +98,15 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
     }
 }
 
-impl Bounded<i32, Cache> for IntegralSimplifiedSmoothedConvexOptimization<'_> {
+impl Bounded<i32> for IntegralSimplifiedSmoothedConvexOptimization<'_> {
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
         t: i32,
         t_start: i32,
         x_start: i32,
-        cache: Option<Cache>,
-    ) -> Result<(i32, Cache)> {
-        self.find_bound(alpha, false, t, t_start, x_start, cache)
+    ) -> Result<i32> {
+        self.find_bound(alpha, false, t, t_start, x_start)
     }
 
     fn find_alpha_unfair_upper_bound(
@@ -132,9 +115,8 @@ impl Bounded<i32, Cache> for IntegralSimplifiedSmoothedConvexOptimization<'_> {
         t: i32,
         t_start: i32,
         x_start: i32,
-        cache: Option<Cache>,
-    ) -> Result<(i32, Cache)> {
-        self.find_bound(alpha, true, t, t_start, x_start, cache)
+    ) -> Result<i32> {
+        self.find_bound(alpha, true, t, t_start, x_start)
     }
 }
 
@@ -146,19 +128,22 @@ impl IntegralSimplifiedSmoothedConvexOptimization<'_> {
         t: i32,
         t_start: i32,
         x_start: i32,
-        cache: Option<Cache>,
-    ) -> Result<(i32, Cache)> {
-        assert!(1 <= t && t <= self.t_end);
+    ) -> Result<i32> {
+        assert!(t <= self.t_end);
         assert(self.d == 1, Failure::UnsupportedProblemDimension(self.d))?;
+
+        if t <= 0 {
+            return Ok(0);
+        }
 
         let p = self.reset(t_start);
         let result = optimal_graph_search.solve(
             p,
-            OptimalGraphSearchOptions { cache, x_start },
+            OptimalGraphSearchOptions { x_start },
             OfflineOptions::new(inverted, alpha, None),
         )?;
-        let xs = result.path.xs;
+        let xs = result.xs();
 
-        Ok((xs[(t - t_start) as usize - 1][0], result.cache))
+        Ok(xs[(t - t_start) as usize - 1][0])
     }
 }

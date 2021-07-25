@@ -43,7 +43,6 @@ mod make_pow_of_2 {
 mod optimal_graph_search {
     use crate::factories::{penalize_zero, random};
     use soco::algorithms::offline::{
-        graph_search::CachedPath,
         uni_dimensional::optimal_graph_search::{
             make_pow_of_2, optimal_graph_search, Options,
         },
@@ -66,11 +65,11 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let CachedPath { path, .. } = optimal_graph_search
+        let path = optimal_graph_search
             .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap();
         path.xs.verify(p.t_end, &p.bounds).unwrap();
-        let CachedPath { path: inv_path, .. } = optimal_graph_search
+        let inv_path = optimal_graph_search
             .solve_with_default_options(p.clone(), OfflineOptions::inverted())
             .unwrap();
         inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
@@ -100,11 +99,11 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let CachedPath { path, .. } = optimal_graph_search
+        let path = optimal_graph_search
             .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap();
         path.xs.verify(p.t_end, &p.bounds).unwrap();
-        let CachedPath { path: inv_path, .. } = optimal_graph_search
+        let inv_path = optimal_graph_search
             .solve_with_default_options(p.clone(), OfflineOptions::inverted())
             .unwrap();
         inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
@@ -130,7 +129,7 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let transformed_p = make_pow_of_2(p).unwrap();
-        let CachedPath { path, .. } = optimal_graph_search
+        let path = optimal_graph_search
             .solve_with_default_options(
                 transformed_p.clone(),
                 OfflineOptions::default(),
@@ -139,7 +138,7 @@ mod optimal_graph_search {
         path.xs
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
-        let CachedPath { path: inv_path, .. } = optimal_graph_search
+        let inv_path = optimal_graph_search
             .solve_with_default_options(
                 transformed_p.clone(),
                 OfflineOptions::inverted(),
@@ -170,7 +169,7 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let CachedPath { path, .. } = optimal_graph_search
+        let path = optimal_graph_search
             .solve(p.clone(), Options::new(2), OfflineOptions::default())
             .unwrap();
         path.xs.verify(p.t_end, &p.bounds).unwrap();

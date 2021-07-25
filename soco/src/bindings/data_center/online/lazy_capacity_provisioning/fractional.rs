@@ -19,11 +19,11 @@ fn start(
     model: DataCenterModel,
     input: DataCenterOfflineInput,
     w: i32,
-) -> PyResult<Response<f64, Memory<f64, ()>>> {
+) -> PyResult<Response<f64, Memory<f64>>> {
     let ((xs, cost), (int_xs, int_cost), m) = online::start(
         addr.parse().unwrap(),
         model,
-        &lcp::<f64, FractionalSimplifiedSmoothedConvexOptimization, ()>,
+        &lcp::<f64, FractionalSimplifiedSmoothedConvexOptimization>,
         (),
         w,
         input,
@@ -39,13 +39,13 @@ fn next(
     py: Python,
     addr: String,
     input: DataCenterOnlineInput,
-) -> PyResult<StepResponse<f64, Memory<f64, ()>>> {
+) -> PyResult<StepResponse<f64, Memory<f64>>> {
     py.allow_threads(|| {
         let ((x, cost), (int_x, int_cost), m) =
             online::next::<
                 f64,
                 FractionalSimplifiedSmoothedConvexOptimization,
-                Memory<f64, ()>,
+                Memory<f64>,
                 DataCenterOnlineInput,
             >(addr.parse().unwrap(), input);
         Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), m))

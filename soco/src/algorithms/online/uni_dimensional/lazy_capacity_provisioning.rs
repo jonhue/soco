@@ -26,22 +26,16 @@ where
 }
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Memory<T, C> {
+pub struct Memory<T> {
     /// Lower and upper bounds from times `t` (in order).
     bounds: Vec<BoundsMemory<T>>,
-    lower_cache: Option<C>,
-    upper_cache: Option<C>,
 }
-impl<T, C> Default for Memory<T, C> {
+impl<T> Default for Memory<T> {
     fn default() -> Self {
-        Memory {
-            bounds: vec![],
-            lower_cache: None,
-            upper_cache: None,
-        }
+        Memory { bounds: vec![] }
     }
 }
-impl<T, C> IntoPy<PyObject> for Memory<T, C>
+impl<T> IntoPy<PyObject> for Memory<T>
 where
     T: IntoPy<PyObject>,
 {
@@ -51,20 +45,16 @@ where
 }
 
 /// Lazy Capacity Provisioning
-pub fn lcp<'a, T, P, C>(
+pub fn lcp<'a, T, P>(
     o: Online<P>,
     t: i32,
     xs: &Schedule<T>,
-    Memory {
-        mut bounds,
-        lower_cache,
-        upper_cache,
-    }: Memory<T, C>,
+    Memory { mut bounds }: Memory<T>,
     _: (),
-) -> Result<Step<T, Memory<T, C>>>
+) -> Result<Step<T, Memory<T>>>
 where
     T: Value<'a>,
-    P: Bounded<T, C> + Problem,
+    P: Bounded<T> + Problem,
 {
     assert(o.p.d() == 1, Failure::UnsupportedProblemDimension(o.p.d()))?;
     assert(
@@ -78,18 +68,12 @@ where
     let (t_start, x_start) = find_initial_time(&bounds);
 
     let i = xs.now_with_default(Config::single(NumCast::from(0).unwrap()))[0];
-    let (lower, new_lower_cache) =
-        o.p.find_lower_bound(o.p.t_end(), t_start, x_start, lower_cache)?;
-    let (upper, new_upper_cache) =
-        o.p.find_upper_bound(o.p.t_end(), t_start, x_start, upper_cache)?;
+    let lower = o.p.find_lower_bound(o.p.t_end(), t_start, x_start)?;
+    let upper = o.p.find_upper_bound(o.p.t_end(), t_start, x_start)?;
     let j = project(i, lower, upper);
 
     bounds.push(BoundsMemory { lower, upper });
-    let m = Memory {
-        bounds,
-        lower_cache: Some(new_lower_cache),
-        upper_cache: Some(new_upper_cache),
-    };
+    let m = Memory { bounds };
 
     Ok(Step(Config::single(j), Some(m)))
 }
