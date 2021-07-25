@@ -1,7 +1,9 @@
-use crate::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
-use crate::algorithms::offline::{
-    OfflineAlgorithm, OfflineOptions, OfflineResult,
+use crate::algorithms::offline::graph_search::Cache;
+use crate::algorithms::offline::multi_dimensional::optimal_graph_search::{
+    optimal_graph_search, Options as OptimalGraphSearchOptions,
 };
+use crate::algorithms::offline::multi_dimensional::Vertice;
+use crate::algorithms::offline::{OfflineAlgorithm, OfflineOptions};
 use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
 use crate::cost::{CostFn, SingleCostFn};
@@ -13,10 +15,11 @@ use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::assert;
 use noisy_float::prelude::*;
+use pyo3::prelude::*;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
-#[derive(Clone, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory {
     /// Maps each time `u` to the corresponding load; length
     load: Vec<i32>,
@@ -31,9 +34,6 @@ impl Default for Memory {
         }
     }
 }
-
-/// Maps dimension to the number of added instances for some sub time slot `u`.
-type AlgBMemory = Vec<Vec<i32>>;
 
 #[derive(Clone)]
 pub struct Options {
@@ -176,21 +176,45 @@ fn determine_config(
     mod_xs.get(min_u).unwrap().clone()
 }
 
+#[derive(Clone, Debug, Deserialize, Serialize)]
+struct AlgBMemory {
+    /// Maps dimension to the number of added instances for some sub time slot `u`.
+    init_times: Vec<Vec<i32>>,
+    /// Cache of offline algorithm.
+    cache: Option<Cache<Vertice>>,
+}
+impl Default for AlgBMemory {
+    fn default() -> Self {
+        AlgBMemory {
+            init_times: vec![],
+            cache: None,
+        }
+    }
+}
+impl IntoPy<PyObject> for AlgBMemory {
+    fn into_py(self, py: Python) -> PyObject {
+        self.init_times.into_py(py)
+    }
+}
+
 fn alg_b(
     o: Online<IntegralSmoothedBalancedLoadOptimization>,
     t: i32,
     xs: &IntegralSchedule,
-    mut ms: AlgBMemory,
+    AlgBMemory {
+        mut init_times,
+        cache,
+    }: AlgBMemory,
     _: (),
 ) -> Result<IntegralStep<AlgBMemory>> {
-    let opt_x = find_optimal_config(o.p.clone())?;
+    let (opt_x, new_cache) = find_optimal_config(cache, o.p.clone())?;
     let prev_x = if xs.is_empty() {
         Config::repeat(0, o.p.d)
     } else {
         xs.now()
     };
 
-    let (m, x) = (0..o.p.d as usize)
+    let (new_init_times, x) = (0..o.p.d as usize)
         .into_iter()
         .map(|k| {
             let j = prev_x[k]
@@ -198,7 +222,7 @@ fn alg_b(
                     o.p.bounds[k],
                     &o.p.hitting_cost[k],
                     o.p.switching_cost[k],
-                    &ms,
+                    &init_times,
                     t,
                     k,
                 );
@@ -210,15 +234,20 @@ fn alg_b(
         })
         .unzip();
 
-    ms.push(m);
-    Ok(Step(Config::new(x), Some(ms)))
+    init_times.push(new_init_times);
+    let m = AlgBMemory {
+        init_times,
+        cache: Some(new_cache),
+    };
+
+    Ok(Step(Config::new(x), Some(m)))
 }
 
 fn deactivated_quantity(
     bound: i32,
     hitting_cost: &CostFn<'_, f64>,
     switching_cost: f64,
-    ms: &AlgBMemory,
+    init_times: &Vec<Vec<i32>>,
     t_now: i32,
     k: usize,
 ) -> i32 {
@@ -234,7 +263,7 @@ fn deactivated_quantity(
             let l = hitting_cost.call(t_now, 0., &bound).raw();
 
             if cum_l <= switching_cost && switching_cost < cum_l + l {
-                ms[t as usize - 1][k]
+                init_times[t as usize - 1][k]
             } else {
                 0
             }
@@ -255,10 +284,14 @@ fn cumulative_idle_hitting_cost(
 }
 
 fn find_optimal_config(
+    cache: Option<Cache<Vertice>>,
     p: IntegralSmoothedBalancedLoadOptimization,
-) -> Result<IntegralConfig> {
+) -> Result<(IntegralConfig, Cache<Vertice>)> {
     let ssco_p = p.into_ssco();
-    let result =
-        optimal_graph_search.solve(ssco_p, (), OfflineOptions::default())?;
-    Ok(result.xs().now())
+    let result = optimal_graph_search.solve(
+        ssco_p,
+        OptimalGraphSearchOptions { cache },
+        OfflineOptions::default(),
+    )?;
+    Ok((result.path.xs.now(), result.cache))
 }

@@ -43,6 +43,7 @@ mod make_pow_of_2 {
 mod optimal_graph_search {
     use crate::factories::{penalize_zero, random};
     use soco::algorithms::offline::{
+        graph_search::CachedPath,
         uni_dimensional::optimal_graph_search::{
             make_pow_of_2, optimal_graph_search, Options,
         },
@@ -65,25 +66,25 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result = optimal_graph_search
+        let CachedPath { path, .. } = optimal_graph_search
             .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap();
-        result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = optimal_graph_search
+        path.xs.verify(p.t_end, &p.bounds).unwrap();
+        let CachedPath { path: inv_path, .. } = optimal_graph_search
             .solve_with_default_options(p.clone(), OfflineOptions::inverted())
             .unwrap();
-        inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
+        inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.xs, inv_result.xs);
-        assert_abs_diff_eq!(result.cost, inv_result.cost);
+        assert_eq!(path.xs, inv_path.xs);
+        assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_eq!(
-            result.xs,
+            path.xs,
             Schedule::new(vec![Config::single(1), Config::single(1)])
         );
-        assert_abs_diff_eq!(result.cost, 1.);
+        assert_abs_diff_eq!(path.cost, 1.);
         assert_abs_diff_eq!(
-            result.cost,
-            p.objective_function(&result.xs).unwrap().raw(),
+            path.cost,
+            p.objective_function(&path.xs).unwrap().raw(),
             epsilon = 1.
         );
     }
@@ -99,20 +100,20 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result = optimal_graph_search
+        let CachedPath { path, .. } = optimal_graph_search
             .solve_with_default_options(p.clone(), OfflineOptions::default())
             .unwrap();
-        result.xs.verify(p.t_end, &p.bounds).unwrap();
-        let inv_result = optimal_graph_search
+        path.xs.verify(p.t_end, &p.bounds).unwrap();
+        let CachedPath { path: inv_path, .. } = optimal_graph_search
             .solve_with_default_options(p.clone(), OfflineOptions::inverted())
             .unwrap();
-        inv_result.xs.verify(p.t_end, &p.bounds).unwrap();
+        inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(result.xs, inv_result.xs);
-        assert_abs_diff_eq!(result.cost, inv_result.cost);
+        assert_eq!(path.xs, inv_path.xs);
+        assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_abs_diff_eq!(
-            result.cost,
-            p.objective_function(&result.xs).unwrap().raw(),
+            path.cost,
+            p.objective_function(&path.xs).unwrap().raw(),
             epsilon = 1.
         );
     }
@@ -129,32 +130,31 @@ mod optimal_graph_search {
         p.verify().unwrap();
 
         let transformed_p = make_pow_of_2(p).unwrap();
-        let result = optimal_graph_search
+        let CachedPath { path, .. } = optimal_graph_search
             .solve_with_default_options(
                 transformed_p.clone(),
                 OfflineOptions::default(),
             )
             .unwrap();
-        result
-            .xs
+        path.xs
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
-        let inv_result = optimal_graph_search
+        let CachedPath { path: inv_path, .. } = optimal_graph_search
             .solve_with_default_options(
                 transformed_p.clone(),
                 OfflineOptions::inverted(),
             )
             .unwrap();
-        inv_result
+        inv_path
             .xs
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
 
-        assert_eq!(result.xs, inv_result.xs);
-        assert_abs_diff_eq!(result.cost, inv_result.cost);
+        assert_eq!(path.xs, inv_path.xs);
+        assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_abs_diff_eq!(
-            result.cost,
-            transformed_p.objective_function(&result.xs).unwrap().raw(),
+            path.cost,
+            transformed_p.objective_function(&path.xs).unwrap().raw(),
             epsilon = 1.
         );
     }
@@ -170,19 +170,19 @@ mod optimal_graph_search {
         };
         p.verify().unwrap();
 
-        let result = optimal_graph_search
-            .solve(p.clone(), Options { x_start: 2 }, OfflineOptions::default())
+        let CachedPath { path, .. } = optimal_graph_search
+            .solve(p.clone(), Options::new(2), OfflineOptions::default())
             .unwrap();
-        result.xs.verify(p.t_end, &p.bounds).unwrap();
+        path.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(
-            result.xs,
+            path.xs,
             Schedule::new(vec![Config::single(1), Config::single(1)])
         );
-        assert_abs_diff_eq!(result.cost, 0.);
+        assert_abs_diff_eq!(path.cost, 0.);
         assert_abs_diff_eq!(
-            result.cost,
-            p.objective_function_with_default(&result.xs, &Config::single(2))
+            path.cost,
+            p.objective_function_with_default(&path.xs, &Config::single(2))
                 .unwrap()
                 .raw(),
             epsilon = 1.

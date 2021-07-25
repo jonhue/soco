@@ -1,7 +1,9 @@
 use crate::utils::hash_map;
 use soco::{
     algorithms::offline::{
-        multi_dimensional::optimal_graph_search::optimal_graph_search,
+        multi_dimensional::optimal_graph_search::{
+            optimal_graph_search, Options,
+        },
         OfflineOptions,
     },
     model::data_center::{
@@ -74,7 +76,7 @@ fn solve() {
     let (xs, _) = offline::solve(
         &model,
         &optimal_graph_search,
-        (),
+        Options::default(),
         OfflineOptions::default(),
         input,
     )

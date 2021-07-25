@@ -5,7 +5,9 @@ use crate::{
                 approx_graph_search, Options as ApproxGraphSearchOptions,
             },
             convex_optimization::co,
-            optimal_graph_search::optimal_graph_search,
+            optimal_graph_search::{
+                optimal_graph_search, Options as OptimalGraphSearchOptions,
+            },
         },
         uni_dimensional::{
             capacity_provisioning::brcp,
@@ -62,12 +64,13 @@ fn optimal_graph_search_1d_py(
 fn optimal_graph_search_py(
     model: DataCenterModel,
     input: DataCenterOfflineInput,
+    options: OptimalGraphSearchOptions,
     offline_options: OfflineOptions,
 ) -> PyResult<Response<i32>> {
     let (xs, cost) = offline::solve(
         &model,
         &optimal_graph_search,
-        (),
+        options,
         offline_options,
         input,
     )
@@ -117,6 +120,7 @@ pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<OptimalGraphSearch1dOptions>()?;
 
     m.add_function(wrap_pyfunction!(optimal_graph_search_py, m)?)?;
+    m.add_class::<OptimalGraphSearchOptions>()?;
 
     m.add_function(wrap_pyfunction!(approx_graph_search_py, m)?)?;
     m.add_class::<ApproxGraphSearchOptions>()?;

@@ -1,6 +1,7 @@
 use crate::{
-    algorithms::online::uni_dimensional::lazy_capacity_provisioning::{
-        lcp, Memory,
+    algorithms::{
+        offline::uni_dimensional::optimal_graph_search::Cache,
+        online::uni_dimensional::lazy_capacity_provisioning::{lcp, Memory},
     },
     bindings::data_center::online::{Response, StepResponse},
     model::data_center::model::{
@@ -19,11 +20,11 @@ fn start(
     model: DataCenterModel,
     input: DataCenterOfflineInput,
     w: i32,
-) -> PyResult<Response<i32, Vec<Memory<i32>>>> {
+) -> PyResult<Response<i32, Memory<i32, Cache>>> {
     let ((xs, cost), (int_xs, int_cost), m) = online::start(
         addr.parse().unwrap(),
         model,
-        &lcp::<i32, IntegralSimplifiedSmoothedConvexOptimization>,
+        &lcp::<i32, IntegralSimplifiedSmoothedConvexOptimization, Cache>,
         (),
         w,
         input,
@@ -39,13 +40,13 @@ fn next(
     py: Python,
     addr: String,
     input: DataCenterOnlineInput,
-) -> PyResult<StepResponse<i32, Vec<Memory<i32>>>> {
+) -> PyResult<StepResponse<i32, Memory<i32, Cache>>> {
     py.allow_threads(|| {
         let ((x, cost), (int_x, int_cost), m) =
             online::next::<
                 i32,
                 IntegralSimplifiedSmoothedConvexOptimization,
-                Vec<Memory<i32>>,
+                Memory<i32, Cache>,
                 DataCenterOnlineInput,
             >(addr.parse().unwrap(), input);
         Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), m))

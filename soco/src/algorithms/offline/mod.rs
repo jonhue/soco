@@ -3,7 +3,7 @@
 pub mod multi_dimensional;
 pub mod uni_dimensional;
 
-mod graph_search;
+pub mod graph_search;
 
 use crate::algorithms::Options;
 use crate::problem::Problem;
