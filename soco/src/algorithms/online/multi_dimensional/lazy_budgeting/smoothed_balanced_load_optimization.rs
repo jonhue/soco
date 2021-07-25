@@ -251,11 +251,8 @@ fn deactivated_quantity(
     (1..=t_now - 1)
         .into_par_iter()
         .map(|t| {
-            let cum_l = cumulative_idle_hitting_cost(
-                hitting_cost,
-                t + 1,
-                t_now - 1,
-            );
+            let cum_l =
+                cumulative_idle_hitting_cost(hitting_cost, t + 1, t_now - 1);
             let l = hitting_cost.call_certain(t_now, 0.).raw();
 
             if cum_l <= switching_cost && switching_cost < cum_l + l {

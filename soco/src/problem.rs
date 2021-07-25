@@ -98,7 +98,8 @@ where
     T: Value<'a>,
 {
     pub fn hit_cost(&self, t: i32, x: Config<T>) -> N64 {
-        self.hitting_cost.call_certain_within_bounds(t, x, &self.bounds)
+        self.hitting_cost
+            .call_certain_within_bounds(t, x, &self.bounds)
     }
 
     pub fn movement(&self, prev_x: Config<T>, x: Config<T>) -> N64 {
@@ -130,7 +131,8 @@ where
     T: Value<'a>,
 {
     pub fn hit_cost(&self, t: i32, x: Config<T>) -> N64 {
-        self.hitting_cost.call_certain_within_bounds(t, x, &self.bounds)
+        self.hitting_cost
+            .call_certain_within_bounds(t, x, &self.bounds)
     }
 
     pub fn movement(
@@ -193,10 +195,8 @@ where
                         //     n64(f64::INFINITY)
                         // } else {
                         safe_balancing(x, total_load, || {
-                            x * self.hitting_cost[k].call_certain(
-                                t,
-                                (total_load / x).raw(),
-                            )
+                            x * self.hitting_cost[k]
+                                .call_certain(t, (total_load / x).raw())
                         })
                         // }
                     })

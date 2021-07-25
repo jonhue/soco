@@ -34,7 +34,13 @@ pub fn find_minimizer_of_hitting_cost(
     hitting_cost: &CostFn<'_, FractionalConfig>,
     bounds: &Vec<(f64, f64)>,
 ) -> Result<OptimizationResult> {
-    let f = |x: &[f64]| hitting_cost.call_certain_within_bounds(t, Config::new(x.to_vec()), bounds);
+    let f = |x: &[f64]| {
+        hitting_cost.call_certain_within_bounds(
+            t,
+            Config::new(x.to_vec()),
+            bounds,
+        )
+    };
     find_minimizer(f, bounds)
 }
 
@@ -212,7 +218,7 @@ fn choose_algorithm(
     // both Cobyla and Bobyqa are algorithms for derivative-free local optimization
     if equality_constraints > 0 {
         unimplemented!()
-    }  else if inequality_constraints > 0 {
+    } else if inequality_constraints > 0 {
         Algorithm::Cobyla
     } else {
         // Bobyqa does not support (in-)equality constraints

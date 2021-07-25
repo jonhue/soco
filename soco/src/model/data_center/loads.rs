@@ -2,8 +2,8 @@
 
 use crate::config::Config;
 use crate::cost::{CostFn, SingleCostFn};
-use crate::numerics::ApplicablePrecision;
 use crate::numerics::convex_optimization::{minimize, Constraint};
+use crate::numerics::ApplicablePrecision;
 use crate::utils::{access, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;

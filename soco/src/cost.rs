@@ -39,12 +39,7 @@ impl<'a, T> SingleCostFn<'a, T> {
     }
 
     /// Computes uncertain cost.
-    fn call_predictive(
-        &self,
-        t_start: i32,
-        t: i32,
-        x: T,
-    ) -> Vec<N64> {
+    fn call_predictive(&self, t_start: i32, t: i32, x: T) -> Vec<N64> {
         assert!(
             t >= t_start,
             "Time slot of hitting cost must be greater or equals to `t = {}` (got {}).",
@@ -127,7 +122,12 @@ where
     }
 
     /// Computes uncertain cost while ensuring that the given parameter is within the decision space.
-    pub fn call_predictive_within_bounds<B>(&self, t: i32, x: T, bounds: &B) -> Vec<N64>
+    pub fn call_predictive_within_bounds<B>(
+        &self,
+        t: i32,
+        x: T,
+        bounds: &B,
+    ) -> Vec<N64>
     where
         B: DecisionSpace<'a, T>,
     {

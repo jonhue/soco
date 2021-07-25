@@ -300,7 +300,7 @@ fn find_immediate_predecessors(
                 p.hit_cost(t, config.config.clone()).raw()
             },
         };
-        if config.config.to_vec() == vec![0,0] {
+        if config.config.to_vec() == vec![0, 0] {
             println!("{};{}", powering_up, inaction.cost)
         }
         predecessors.push(inaction);
@@ -362,10 +362,16 @@ fn update_paths(
     is_initial_config: bool,
 ) {
     let path = match predecessor {
-        None => if is_initial_config { Path {
-            xs: IntegralSchedule::empty(),
-            cost: 0.,
-        } } else { panic!("Problem is infeasible. Did not find a predecessor with a finite cost.") },
+        None => {
+            if is_initial_config {
+                Path {
+                    xs: IntegralSchedule::empty(),
+                    cost: 0.,
+                }
+            } else {
+                panic!("Problem is infeasible. Did not find a predecessor with a finite cost.")
+            }
+        }
         Some((predecessor, path)) => {
             let xs = if predecessor.from.powering_up && !to.powering_up {
                 path.xs.extend(to.config.config.clone())
