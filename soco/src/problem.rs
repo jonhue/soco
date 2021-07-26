@@ -10,7 +10,6 @@ use crate::norm::NormFn;
 use crate::objective::scalar_movement;
 use crate::value::Value;
 use crate::verifiers::VerifiableProblem;
-use log::debug;
 use noisy_float::prelude::*;
 use num::NumCast;
 
@@ -188,7 +187,6 @@ where
                   lambda: &LoadProfile,
                   zs: &LoadFractions| {
                 assert!(self.d == x_.d());
-                // debug!("computes cost given config {:?} and load profile {:?} for load fractions {:?}", x_, lambda, zs);
                 (0..self.d as usize)
                     .map(|k| -> N64 {
                         let total_load = zs.select_loads(lambda, k)[0];
@@ -227,10 +225,10 @@ pub struct SmoothedLoadOptimization<T> {
     pub t_end: i32,
     /// Vector of upper bounds of each dimension.
     pub bounds: Vec<T>,
-    /// Vector of positive real constants resembling the switching cost of each dimension (strictly descending).
+    /// Vector of positive real constants resembling the switching cost of each dimension (strictly ascending).
     /// Dimensions must be _efficient_, i.e. there must not be dimensions with a higher switching and higher hitting cost than onether dimension.
     pub switching_cost: Vec<f64>,
-    /// Time-independent cost of each dimension (strictly ascending).
+    /// Time-independent cost of each dimension (strictly descending).
     pub hitting_cost: Vec<f64>,
     /// Non-negative load at each time step.
     pub load: Vec<T>,

@@ -145,16 +145,16 @@ where
 
         for k in 1..self.d as usize {
             assert_validity(
-                self.hitting_cost[k] > self.hitting_cost[k - 1],
+                self.hitting_cost[k] < self.hitting_cost[k - 1],
                 format!(
-                    "hitting costs must be ascending, are not between dimension {} and dimension {}", k,
+                    "hitting costs must be descending, are not between dimension {} and dimension {}", k,
                     k + 1
                 ),
             )?;
             assert_validity(
-                self.switching_cost[k] < self.switching_cost[k - 1],
+                self.switching_cost[k] > self.switching_cost[k - 1],
                 format!(
-                    "switching costs must be descending, are not between dimension {} and dimension {}", k,
+                    "switching costs must be ascending, are not between dimension {} and dimension {}", k,
                     k + 1
                 ),
             )?;

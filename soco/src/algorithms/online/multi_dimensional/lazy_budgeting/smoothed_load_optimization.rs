@@ -126,7 +126,10 @@ pub fn lb(
         "updated horizons from {:?} to {:?}",
         prev_horizons, horizons
     );
-    assert!(IsSorted::is_sorted(&mut horizons.iter().rev()), "horizons must be in descending order");
+    assert!(
+        IsSorted::is_sorted(&mut horizons.iter().rev()),
+        "horizons must be in descending order"
+    );
 
     let config = collect_config(o.p.d, &lanes);
     Ok(Step(
