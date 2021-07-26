@@ -3,36 +3,47 @@ use crate::algorithms::offline::multi_dimensional::optimal_graph_search::{
     optimal_graph_search, Options as OptimalGraphSearchOptions,
 };
 use crate::algorithms::offline::multi_dimensional::Vertice;
-use crate::algorithms::offline::{OfflineAlgorithm, OfflineOptions};
+use crate::algorithms::offline::{OfflineAlgorithm};
 use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
 use crate::cost::{CostFn, SingleCostFn};
-use crate::problem::{
-    IntegralSmoothedBalancedLoadOptimization, Online,
-    SmoothedBalancedLoadOptimization,
-};
+use crate::problem::{DefaultGivenProblem, IntegralSmoothedBalancedLoadOptimization, Online, SmoothedBalancedLoadOptimization};
 use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::assert;
+use log::debug;
 use noisy_float::prelude::*;
 use pyo3::prelude::*;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
-#[pyclass]
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct Memory {
-    /// Maps each time `u` to the corresponding load; length
+#[derive(Clone, Derivative, Deserialize, Serialize)]
+#[derivative(Debug)]
+pub struct Memory<'a> {
+    /// Maps each time `u` to the corresponding load
     load: Vec<i32>,
+    /// Hitting costs for modified problem instance.
+    #[serde(skip, default = "default_hitting_cost")]
+    #[derivative(Debug = "ignore")]
+    hitting_cost: Vec<CostFn<'a, f64>>,
     /// Schedule and memory of internally used algorithm.
     mod_m: (IntegralSchedule, Option<AlgBMemory>),
 }
-impl Default for Memory {
-    fn default() -> Self {
+fn default_hitting_cost<'a>() -> Vec<CostFn<'a, f64>> {
+    vec![]
+}
+impl<'a> DefaultGivenProblem<IntegralSmoothedBalancedLoadOptimization<'a>> for Memory<'a> {
+    fn default(p: &IntegralSmoothedBalancedLoadOptimization) -> Self {
         Memory {
             load: vec![],
+            hitting_cost: (0..p.d as usize).into_iter().map(|_| CostFn::empty()).collect(),
             mod_m: (Schedule::empty(), None),
         }
+    }
+}
+impl IntoPy<PyObject> for Memory<'_> {
+    fn into_py(self, py: Python) -> PyObject {
+        self.mod_m.1.into_py(py)
     }
 }
 
@@ -48,28 +59,32 @@ impl Default for Options {
 }
 
 /// Lazy Budgeting for Smoothed Balanced-Load Optimization
-pub fn lb(
-    o: Online<IntegralSmoothedBalancedLoadOptimization>,
+pub fn lb<'a>(
+    o: Online<IntegralSmoothedBalancedLoadOptimization<'a>>,
     t: i32,
-    xs: &IntegralSchedule,
+    _: &IntegralSchedule,
     Memory {
         mut load,
+        mut hitting_cost,
         mod_m: (mut mod_xs, mod_prev_m),
-    }: Memory,
+    }: Memory<'a>,
     options: Options,
-) -> Result<IntegralStep<Memory>> {
+) -> Result<IntegralStep<Memory<'a>>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     // determine number of sub time slots
     let n = determine_sub_time_slots(&o.p, t, options.epsilon)?;
+    debug!("using {} sub time slots", n);
 
     // construct modified problem instance and update loads
     let u_init = load.len() as i32 + 1;
     let u_end = u_init + n;
+    debug!("constructing modified problem instance from sub time slot {} to sub time slot {}", u_init, u_end);
     let mut mod_o = Online {
         w: 0,
-        p: modify_problem(o.p, &mut load, t, n, u_init, u_end)?,
+        p: modify_problem(o.p, &mut load, &mut hitting_cost, t, n, u_init, u_end)?,
     };
+    debug!("constructed modified problem instance: {:?}", mod_o);
 
     // execute `n` time slots of algorithm B on modified problem instance
     let mod_prev_m = mod_o.offline_stream_from(
@@ -79,13 +94,17 @@ pub fn lb(
         &mut mod_xs,
         mod_prev_m,
     )?;
+    debug!("streamed modified problem and obtained schedule: {:?}", mod_xs);
 
-    // collect the resulting configuration
-    let config = determine_config(&mod_o.p, xs, u_init, u_end);
+    debug!("determining optimal config between sub time slots {} and {}", u_init, u_end);
+    let config = determine_config(&mod_o.p, &mod_xs, u_init, u_end);
+    debug!("found optimal config {:?}", config);
+
     Ok(Step(
         config,
         Some(Memory {
             load,
+            hitting_cost,
             mod_m: (mod_xs, mod_prev_m),
         }),
     ))
@@ -112,6 +131,7 @@ fn determine_sub_time_slots(
 fn modify_problem<'a>(
     p: IntegralSmoothedBalancedLoadOptimization<'a>,
     load: &mut Vec<i32>,
+    hitting_cost: &mut Vec<CostFn<'a, f64>>,
     t: i32,
     n: i32,
     u_init: i32,
@@ -119,23 +139,19 @@ fn modify_problem<'a>(
 ) -> Result<IntegralSmoothedBalancedLoadOptimization<'a>> {
     assert!(u_end - u_init == n, "number of sub time slots inconsistent");
 
-    let hitting_cost = (0..p.d as usize)
-        .map(|k| {
-            let hitting_cost = p.hitting_cost[k].clone();
-            CostFn::new(
-                u_init,
-                SingleCostFn::certain(move |u, x| {
-                    assert!(
-                        u_init <= u && u <= u_end,
-                        "sub time slot is outside valid sub time slot window"
-                    );
-                    hitting_cost.call_certain(t, x) / n as f64
-                }),
-            )
-        })
-        .collect();
+    (0..p.d as usize)
+        .for_each(|k| {
+            let raw_hitting_cost = p.hitting_cost[k].clone();
+            hitting_cost[k].add(u_init, SingleCostFn::certain(move |u, x| {
+                assert!(
+                    u_init <= u && u <= u_end,
+                    "sub time slot is outside valid sub time slot window"
+                );
+                raw_hitting_cost.call_certain(t, x) / n as f64
+            }));
+        });
 
-    load.extend(vec![p.load[t as usize - 1]; n as usize]);
+    load.extend(vec![p.load[t as usize - 1]; n as usize + 1]);
     assert!(
         load.len() as i32 == u_end,
         "loads inconsistent with number of sub time slots"
@@ -146,7 +162,7 @@ fn modify_problem<'a>(
         t_end: u_init,
         bounds: p.bounds,
         switching_cost: p.switching_cost,
-        hitting_cost,
+        hitting_cost: hitting_cost.clone(),
         load: load.clone(),
     })
 }
@@ -176,6 +192,7 @@ fn determine_config(
     mod_xs.get(min_u).unwrap().clone()
 }
 
+#[pyclass]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 struct AlgBMemory {
     /// Maps dimension to the number of added instances for some sub time slot `u`.
@@ -189,11 +206,6 @@ impl Default for AlgBMemory {
             init_times: vec![],
             cache: None,
         }
-    }
-}
-impl IntoPy<PyObject> for AlgBMemory {
-    fn into_py(self, py: Python) -> PyObject {
-        self.init_times.into_py(py)
     }
 }
 
@@ -284,7 +296,7 @@ fn find_optimal_config(
     let result = optimal_graph_search.solve(
         ssco_p,
         OptimalGraphSearchOptions { cache },
-        OfflineOptions::default(),
+        Default::default(),
     )?;
     Ok((result.path.xs.now(), result.cache))
 }

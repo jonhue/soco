@@ -31,7 +31,7 @@ pub struct Memory<'a> {
 }
 fn default_p<'a>() -> Distribution<'a> {
     Arc::new(|_| {
-        panic!("This is dummy distribution returned after deserializing the memory struct.");
+        panic!("This is a dummy distribution returned after deserializing the memory struct.");
     })
 }
 impl Default for Memory<'_> {

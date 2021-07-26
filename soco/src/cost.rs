@@ -66,6 +66,11 @@ impl<'a, T> CostFn<'a, T>
 where
     T: Clone,
 {
+    /// Creates empty cost function.
+    pub fn empty() -> Self {
+        CostFn(BTreeMap::new())
+    }
+
     /// Creates initial cost function from some time `t >= 1`.
     pub fn new(t: i32, f: SingleCostFn<'a, T>) -> Self {
         let mut fs = BTreeMap::new();

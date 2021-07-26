@@ -36,11 +36,11 @@ mod lb {
         assert_eq!(
             result.0,
             Schedule::new(vec![
-                Config::new(vec![1, 0]),
-                Config::new(vec![1, 1]),
-                Config::new(vec![1, 1]),
-                Config::new(vec![1, 1]),
-                Config::new(vec![1, 1]),
+                Config::new(vec![0, 1]),
+                Config::new(vec![0, 1]),
+                Config::new(vec![0, 0]),
+                Config::new(vec![0, 1]),
+                Config::new(vec![0, 1]),
             ])
         );
     }
