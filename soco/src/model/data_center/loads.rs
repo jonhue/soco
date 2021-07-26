@@ -199,25 +199,48 @@ impl PredictedLoadProfile {
     }
 
     /// Smallest sample size for some job type.
-    pub fn smallest_sample_size(&self) -> i32 {
+    fn smallest_sample_size(&self) -> i32 {
         self.0.iter().map(|zs| zs.len()).min().unwrap() as i32
     }
 
     /// Largest sample size for some job type.
-    pub fn largest_sample_size(&self) -> i32 {
+    fn largest_sample_size(&self) -> i32 {
         self.0.iter().map(|zs| zs.len()).max().unwrap() as i32
     }
 
-    /// Converts load profile to a vector.
+    /// Converts predicted load profile to a vector.
     pub fn to_vec(&self) -> Vec<Vec<N64>> {
         self.0.clone()
     }
 
-    /// Converts load profile to a vector.
+    /// Converts predicted load profile to a vector.
     pub fn to_raw(&self) -> Vec<Vec<f64>> {
         self.0
             .iter()
             .map(|zs| zs.iter().map(|z| z.raw()).collect())
+            .collect()
+    }
+
+    /// Samples load profiles.
+    pub fn sample_load_profiles(&self) -> Vec<LoadProfile> {
+        let mut rng = thread_rng();
+        let sample_size = min(
+            max(self.smallest_sample_size(), MAX_SAMPLE_SIZE),
+            self.largest_sample_size(),
+        );
+
+        // we only use a randomly chosen subset of all samples to remain efficient
+        let samples = self
+            .to_vec()
+            .into_iter()
+            .map(|zs| {
+                zs.into_iter()
+                    .choose_multiple(&mut rng, sample_size as usize)
+            })
+            .collect();
+        transpose(samples)
+            .into_iter()
+            .map(LoadProfile::new)
             .collect()
     }
 }
@@ -408,30 +431,11 @@ where
     T: Value<'a>,
 {
     SingleCostFn::predictive(move |t, x: Config<T>| {
-        let mut rng = thread_rng();
         let predicted_load_profile =
             access(&predicted_loads, unshift_time(t, t_start)).unwrap();
-        let sample_size = min(
-            max(
-                predicted_load_profile.smallest_sample_size(),
-                MAX_SAMPLE_SIZE,
-            ),
-            predicted_load_profile.largest_sample_size(),
-        );
-
-        // we only use a randomly chosen subset of all samples to remain efficient
-        let samples = predicted_load_profile
-            .to_vec()
-            .into_iter()
-            .map(|zs| {
-                zs.into_iter()
-                    .choose_multiple(&mut rng, sample_size as usize)
-            })
-            .collect();
-        let sampled_load_profiles =
-            transpose(samples).into_par_iter().map(LoadProfile::new);
-
-        sampled_load_profiles
+        predicted_load_profile
+            .sample_load_profiles()
+            .into_par_iter()
             .map(|lambda| apply_loads(d, e, &objective, &lambda, t, x.clone()))
             .collect()
     })
