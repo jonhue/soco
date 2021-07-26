@@ -323,7 +323,7 @@ fn find_optimal_predecessor(
                 .any(|predecessor| predecessor.cost.is_finite()),
         "Problem is infeasible. Did not find a predecessor with a finite cost."
     );
-    let r = predecessors
+    predecessors
         .into_par_iter()
         .fold(
             || None,
@@ -360,9 +360,7 @@ fn find_optimal_predecessor(
                 }),
                 None => b,
             },
-        );
-    debug!("{:?}", r);
-    r
+        )
 }
 
 fn update_paths(
