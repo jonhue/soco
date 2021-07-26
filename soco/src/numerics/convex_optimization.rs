@@ -117,6 +117,7 @@ where
     )
 }
 
+/// Applies provided stratedies one-by-one and takes the first one that produces a finite result.
 fn evaluate_strategies<D>(
     dir: Direction,
     f: &impl Fn(&[f64]) -> N64,
@@ -127,31 +128,18 @@ fn evaluate_strategies<D>(
 where
     D: Clone,
 {
-    let init_constraint = constraints.clone();
-    Ok(strategies
+    let result = strategies
         .into_iter()
-        .map(|init| {
-            optimize(dir, f, bounds, Some(init), constraints.clone()).unwrap()
-        })
-        .fold(
-            optimize(dir, f, bounds, None, init_constraint).unwrap(),
-            |(x, z_x), (y, z_y)| match dir {
-                Direction::Minimize => {
-                    if z_x <= z_y {
-                        (x, z_x)
-                    } else {
-                        (y, z_y)
-                    }
-                }
-                Direction::Maximize => {
-                    if z_x >= z_y {
-                        (x, z_x)
-                    } else {
-                        (y, z_y)
-                    }
-                }
-            },
-        ))
+        .find_map(|init| {
+            let (x, opt) = optimize(dir, f, bounds, Some(init), constraints.clone()).unwrap();
+            if opt.is_finite() {
+                Some((x, opt))
+            } else { None }
+        });
+    match result {
+        Some(result) => Ok(result),
+        None => optimize(dir, f, bounds, None, constraints),
+    }
 }
 
 /// Determines the optimum of a convex function `f` w.r.t some direction `dir`

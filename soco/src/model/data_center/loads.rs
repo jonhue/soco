@@ -317,6 +317,8 @@ where
     // note: when starting with the feasible uniform distribution, solver may get
     // stuck when all surrounding objectives are inf (e.g. if one dimension is set
     // to 0 and cannot take any load)
+    // warning: for full generality this needs to be refactored to account for all possible
+    // configurations that have some variables set to `0`.
     let strategies = vec![
         vec![1. / (solver_d as f64 + e as f64); solver_d],
         vec![1. / solver_d as f64; solver_d],
