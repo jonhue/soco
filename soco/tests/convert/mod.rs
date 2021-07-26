@@ -175,8 +175,8 @@ mod into_sblo {
             d: 2,
             t_end: 2,
             bounds: vec![2, 1],
-            switching_cost: vec![1.5, 1.],
-            hitting_cost: vec![1., 2.],
+            switching_cost: vec![1., 1.5],
+            hitting_cost: vec![2., 1.],
             load: vec![1, 1],
         };
         p.verify().unwrap();
@@ -207,8 +207,8 @@ mod into_sblo {
             d: 2,
             t_end: 2,
             bounds: vec![2, 1],
-            switching_cost: vec![2., 1.],
-            hitting_cost: vec![1., 2.],
+            switching_cost: vec![1., 2.],
+            hitting_cost: vec![2., 1.],
             load: vec![1, 2],
         };
         p.verify().unwrap();
@@ -234,8 +234,8 @@ mod into_sblo {
             d,
             t_end,
             bounds: vec![8, 8],
-            switching_cost: vec![3., 1.],
-            hitting_cost: vec![1., 2.],
+            switching_cost: vec![1., 3.],
+            hitting_cost: vec![2., 1.],
             load: (0..t_end)
                 .map(|t| Pcg64::seed_from_u64(t as u64).gen_range(0..8))
                 .collect(),
