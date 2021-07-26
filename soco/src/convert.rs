@@ -208,7 +208,7 @@ where
                     1,
                     SingleCostFn::certain(move |_, l| {
                         if l <= 1. {
-                            n64(c) * n64(l)
+                            n64(c)
                         } else {
                             n64(f64::INFINITY)
                         }

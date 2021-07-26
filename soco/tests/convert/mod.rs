@@ -190,6 +190,10 @@ mod into_sblo {
 
         assert!(p.objective_function(&xs).unwrap().raw().is_finite());
         assert_abs_diff_eq!(
+            p.total_movement(&xs, false).unwrap().raw(),
+            p_ssco.total_movement(&xs, false).unwrap().raw(),
+        );
+        assert_abs_diff_eq!(
             p.objective_function(&xs).unwrap().raw(),
             p_ssco.objective_function(&xs).unwrap().raw(),
         );
@@ -256,6 +260,10 @@ mod into_sblo {
         );
 
         assert!(p.objective_function(&xs).unwrap().raw().is_finite());
+        assert_abs_diff_eq!(
+            p.total_movement(&xs, false).unwrap().raw(),
+            p_ssco.total_movement(&xs, false).unwrap().raw(),
+        );
         assert_abs_diff_eq!(
             p.objective_function(&xs).unwrap().raw(),
             p_ssco.objective_function(&xs).unwrap().raw(),

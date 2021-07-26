@@ -109,7 +109,7 @@ mod co {
         init();
 
         let euclidean_ = euclidean();
-        let epsilon = 0.000001;
+        let epsilon = 0.00001;
 
         let d = 4;
         let t_end = 5;
