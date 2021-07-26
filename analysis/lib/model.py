@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, List, Literal, Tuple, Union
 from soco.data_center.model import (
     LinearEnergyConsumptionModel,
