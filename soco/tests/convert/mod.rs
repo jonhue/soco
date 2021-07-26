@@ -1,5 +1,7 @@
+#[cfg(test)]
 mod into_sco {
     use crate::factories::{penalize_zero, random};
+    use crate::init;
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::config::Config;
@@ -10,6 +12,8 @@ mod into_sco {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 2,
             t_end: 2,
@@ -35,6 +39,8 @@ mod into_sco {
 
     #[test]
     fn _2() {
+        init();
+
         let d = 2;
         let t_end = 100;
         let p = SimplifiedSmoothedConvexOptimization {
@@ -71,8 +77,10 @@ mod into_sco {
     }
 }
 
+#[cfg(test)]
 mod into_ssco {
     use crate::factories::inv_e_sblo;
+    use crate::init;
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::config::Config;
@@ -83,6 +91,8 @@ mod into_ssco {
 
     #[test]
     fn _1() {
+        init();
+
         let d = 2;
         let p = SmoothedBalancedLoadOptimization {
             d,
@@ -107,6 +117,8 @@ mod into_ssco {
 
     #[test]
     fn _2() {
+        init();
+
         let d = 2;
         let t_end = 100;
         let p = SmoothedBalancedLoadOptimization {
@@ -143,6 +155,7 @@ mod into_ssco {
     }
 }
 
+#[cfg(test)]
 mod into_sblo {
     use rand::prelude::*;
     use rand_pcg::Pcg64;
@@ -152,11 +165,14 @@ mod into_sblo {
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 
+    use crate::init;
+
     #[test]
     fn _1() {
-        let d = 2;
+        init();
+
         let p = SmoothedLoadOptimization {
-            d,
+            d: 2,
             t_end: 2,
             bounds: vec![2, 1],
             switching_cost: vec![1.5, 1.],
@@ -174,6 +190,10 @@ mod into_sblo {
 
         assert!(p.objective_function(&xs).unwrap().raw().is_finite());
         assert_abs_diff_eq!(
+            p.total_movement(&xs, false).unwrap().raw(),
+            p_ssco.total_movement(&xs, false).unwrap().raw(),
+        );
+        assert_abs_diff_eq!(
             p.objective_function(&xs).unwrap().raw(),
             p_ssco.objective_function(&xs).unwrap().raw(),
         );
@@ -181,6 +201,33 @@ mod into_sblo {
 
     #[test]
     fn _2() {
+        init();
+
+        let p = SmoothedLoadOptimization {
+            d: 2,
+            t_end: 2,
+            bounds: vec![2, 1],
+            switching_cost: vec![2., 1.],
+            hitting_cost: vec![1., 2.],
+            load: vec![1, 2],
+        };
+        p.verify().unwrap();
+        let p_ssco = p.clone().into_sblo().into_ssco();
+        p_ssco.verify().unwrap();
+
+        let xs = Schedule::new(vec![
+            Config::new(vec![0, 1]),
+            Config::new(vec![0, 1]),
+        ]);
+
+        assert!(p.objective_function(&xs).unwrap().raw().is_infinite());
+        assert!(p_ssco.objective_function(&xs).unwrap().raw().is_infinite());
+    }
+
+    #[test]
+    fn _3() {
+        init();
+
         let d = 2;
         let t_end = 100;
         let p = SmoothedLoadOptimization {
@@ -213,6 +260,10 @@ mod into_sblo {
         );
 
         assert!(p.objective_function(&xs).unwrap().raw().is_finite());
+        assert_abs_diff_eq!(
+            p.total_movement(&xs, false).unwrap().raw(),
+            p_ssco.total_movement(&xs, false).unwrap().raw(),
+        );
         assert_abs_diff_eq!(
             p.objective_function(&xs).unwrap().raw(),
             p_ssco.objective_function(&xs).unwrap().raw(),

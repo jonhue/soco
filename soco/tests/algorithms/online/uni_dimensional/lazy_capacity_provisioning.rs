@@ -1,5 +1,7 @@
+#[cfg(test)]
 mod fractional_lcp {
     use crate::factories::inv_e;
+    use crate::init;
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
@@ -8,6 +10,8 @@ mod fractional_lcp {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -26,6 +30,8 @@ mod fractional_lcp {
 
     #[test]
     fn _2() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -47,8 +53,10 @@ mod fractional_lcp {
     }
 }
 
+#[cfg(test)]
 mod integral_lcp {
     use crate::factories::penalize_zero;
+    use crate::init;
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
     use soco::config::Config;
     use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
@@ -56,6 +64,8 @@ mod integral_lcp {
 
     #[test]
     fn _1() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -74,6 +84,8 @@ mod integral_lcp {
 
     #[test]
     fn _2() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -92,6 +104,8 @@ mod integral_lcp {
 
     #[test]
     fn _3() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,
@@ -114,6 +128,8 @@ mod integral_lcp {
 
     #[test]
     fn _4() {
+        init();
+
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
             t_end: 1,

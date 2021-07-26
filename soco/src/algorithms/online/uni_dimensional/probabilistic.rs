@@ -31,7 +31,7 @@ pub struct Memory<'a> {
 }
 fn default_p<'a>() -> Distribution<'a> {
     Arc::new(|_| {
-        panic!("This is dummy distribution returned after deserializing the memory struct.");
+        panic!("This is a dummy distribution returned after deserializing the memory struct.");
     })
 }
 impl Default for Memory<'_> {
@@ -110,7 +110,7 @@ pub fn probabilistic<'a>(
                     |x: f64| {
                         // needs to be unbounded for numerical approximations
                         o.p.hitting_cost
-                            .call_unbounded(t, Config::single(x))
+                            .call_certain(t, Config::single(x))
                             .raw()
                     },
                     x,
@@ -145,7 +145,7 @@ fn find_right_bound(
         Ok(find_root((x_m, o.p.bounds[0]), |x| {
             // needs to be unbounded for numerical approximations
             let f =
-                |x| o.p.hitting_cost.call_unbounded(t, Config::single(x)).raw();
+                |x| o.p.hitting_cost.call_certain(t, Config::single(x)).raw();
             derivative(f, x).raw()
                 - 2. * o.p.switching_cost[0]
                     * piecewise_integral(breakpoints, x, f64::INFINITY, |x| {
@@ -172,7 +172,7 @@ fn find_left_bound(
         Ok(find_root((0., x_m), |x| {
             // needs to be unbounded for numerical approximations
             let f =
-                |x| o.p.hitting_cost.call_unbounded(t, Config::single(x)).raw();
+                |x| o.p.hitting_cost.call_certain(t, Config::single(x)).raw();
             2. * o.p.switching_cost[0]
                 * piecewise_integral(breakpoints, f64::NEG_INFINITY, x, |x| {
                     prev_p(x)

@@ -26,19 +26,20 @@ impl<'a, T> SingleCostFn<'a, T> {
         Self(Arc::new(f))
     }
 
-    /// Computes the hitting cost with an unbounded decision space.
     /// Returns mean if cost function returns a prediction.
-    fn call_unbounded(&self, t_start: i32, t: i32, x: T) -> N64 {
-        mean(self.call_unbounded_predictive(t_start, t, x))
+    fn call_mean(&self, t_start: i32, t: i32, x: T) -> N64 {
+        mean(self.call_predictive(t_start, t, x))
     }
 
-    /// Computes the hitting cost with an unbounded decision space.
-    fn call_unbounded_predictive(
-        &self,
-        t_start: i32,
-        t: i32,
-        x: T,
-    ) -> Vec<N64> {
+    /// Computes certain cost.
+    fn call_certain(&self, t_start: i32, t: i32, x: T) -> N64 {
+        let results = self.call_predictive(t_start, t, x);
+        assert!(results.len() == 1);
+        results[0]
+    }
+
+    /// Computes uncertain cost.
+    fn call_predictive(&self, t_start: i32, t: i32, x: T) -> Vec<N64> {
         assert!(
             t >= t_start,
             "Time slot of hitting cost must be greater or equals to `t = {}` (got {}).",
@@ -65,6 +66,11 @@ impl<'a, T> CostFn<'a, T>
 where
     T: Clone,
 {
+    /// Creates empty cost function.
+    pub fn empty() -> Self {
+        CostFn(BTreeMap::new())
+    }
+
     /// Creates initial cost function from some time `t >= 1`.
     pub fn new(t: i32, f: SingleCostFn<'a, T>) -> Self {
         let mut fs = BTreeMap::new();
@@ -78,39 +84,60 @@ where
         self.0.insert(t, f);
     }
 
-    /// Computes the hitting cost with an unbounded decision space.
     /// Returns mean if cost function returns a prediction.
-    pub fn call_unbounded(&self, t: i32, x: T) -> N64 {
+    pub fn call_mean(&self, t: i32, x: T) -> N64 {
         let (&t_start, f) = self.get(t);
-        f.call_unbounded(t_start, t, x)
+        f.call_mean(t_start, t, x)
     }
 
-    /// Computes the hitting cost.
-    /// Returns mean if cost function returns a prediction.
-    pub fn call<B>(&self, t: i32, x: T, bounds: &B) -> N64
+    /// Computes certain cost.
+    pub fn call_certain(&self, t: i32, x: T) -> N64 {
+        let (&t_start, f) = self.get(t);
+        f.call_certain(t_start, t, x)
+    }
+
+    /// Computes uncertain cost.
+    pub fn call_predictive(&self, t: i32, x: T) -> Vec<N64> {
+        let (&t_start, f) = self.get(t);
+        f.call_predictive(t_start, t, x)
+    }
+
+    /// Returns mean if cost function returns a prediction while ensuring that the given parameter is within the decision space.
+    pub fn call_mean_within_bounds<B>(&self, t: i32, x: T, bounds: &B) -> N64
     where
         B: DecisionSpace<'a, T>,
     {
         if bounds.within(&x) {
-            self.call_unbounded(t, x)
+            self.call_mean(t, x)
         } else {
             n64(f64::INFINITY)
         }
     }
 
-    /// Computes the hitting cost with an unbounded decision space.
-    pub fn call_unbounded_predictive(&self, t: i32, x: T) -> Vec<N64> {
-        let (&t_start, f) = self.get(t);
-        f.call_unbounded_predictive(t_start, t, x)
-    }
-
-    /// Computes the hitting cost.
-    pub fn call_predictive<B>(&self, t: i32, x: T, bounds: &B) -> Vec<N64>
+    /// Computes certain cost while ensuring that the given parameter is within the decision space.
+    pub fn call_certain_within_bounds<B>(&self, t: i32, x: T, bounds: &B) -> N64
     where
         B: DecisionSpace<'a, T>,
     {
         if bounds.within(&x) {
-            self.call_unbounded_predictive(t, x)
+            self.call_certain(t, x)
+        } else {
+            n64(f64::INFINITY)
+        }
+    }
+
+    /// Computes uncertain cost while ensuring that the given parameter is within the decision space.
+    pub fn call_predictive_within_bounds<B>(
+        &self,
+        t: i32,
+        x: T,
+        bounds: &B,
+    ) -> Vec<N64>
+    where
+        B: DecisionSpace<'a, T>,
+    {
+        if bounds.within(&x) {
+            self.call_predictive(t, x)
         } else {
             vec![n64(f64::INFINITY)]
         }

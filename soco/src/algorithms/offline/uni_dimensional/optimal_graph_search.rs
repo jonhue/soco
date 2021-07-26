@@ -2,7 +2,6 @@ use crate::algorithms::offline::graph_search::{Path, Paths};
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
 use crate::cost::{CostFn, SingleCostFn};
-use crate::objective::scalar_movement;
 use crate::problem::{
     IntegralSimplifiedSmoothedConvexOptimization,
     SimplifiedSmoothedConvexOptimization,
@@ -11,7 +10,6 @@ use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::{assert, is_pow_of_2};
 use noisy_float::prelude::*;
-use num::ToPrimitive;
 use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -160,8 +158,8 @@ fn find_schedule(
         |result, &i| {
             let path = &paths[&Vertice(p.t_end, i)];
             let cost = alpha
-                * p.switching_cost[0]
-                * scalar_movement(0, i, inverted) as f64;
+                * p.movement(Config::single(i), Config::single(0), inverted)
+                    .raw();
             let picked_cost = path.cost + cost;
             if picked_cost < result.cost {
                 Path {
@@ -207,8 +205,10 @@ fn build_cost(
     inverted: bool,
 ) -> f64 {
     let hitting_cost = p.hit_cost(t, Config::single(j)).raw();
-    let delta = ToPrimitive::to_f64(&scalar_movement(j, i, inverted)).unwrap();
-    let switching_cost = alpha * p.switching_cost[0] * delta;
+    let movement = p
+        .movement(Config::single(i), Config::single(j), inverted)
+        .raw();
+    let switching_cost = alpha * movement;
     hitting_cost + switching_cost
 }
 

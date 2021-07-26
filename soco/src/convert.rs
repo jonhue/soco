@@ -60,7 +60,7 @@ impl<'a> DiscretizableCostFn<'a> for CostFn<'a, FractionalConfig> {
         CostFn::new(
             1,
             SingleCostFn::certain(move |t, x: IntegralConfig| {
-                self.call_unbounded(t, x.to())
+                self.call_certain(t, x.to())
             }),
         )
     }
@@ -80,13 +80,13 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, IntegralConfig> {
 
                 let j = n64(x[0]);
                 if j.fract() == 0. {
-                    self.call_unbounded(t, Config::single(j.to_i32().unwrap()))
+                    self.call_certain(t, Config::single(j.to_i32().unwrap()))
                 } else {
-                    let l = self.call_unbounded(
+                    let l = self.call_certain(
                         t,
                         Config::single(j.floor().to_i32().unwrap()),
                     );
-                    let u = self.call_unbounded(
+                    let u = self.call_certain(
                         t,
                         Config::single(j.ceil().to_i32().unwrap()),
                     );
@@ -203,7 +203,18 @@ where
         let hitting_cost = self
             .hitting_cost
             .iter()
-            .map(|&c| CostFn::new(1, SingleCostFn::certain(move |_, _| n64(c))))
+            .map(|&c| {
+                CostFn::new(
+                    1,
+                    SingleCostFn::certain(move |_, l| {
+                        if l <= 1. {
+                            n64(c)
+                        } else {
+                            n64(f64::INFINITY)
+                        }
+                    }),
+                )
+            })
             .collect();
         SmoothedBalancedLoadOptimization {
             d: self.d,
@@ -317,7 +328,7 @@ where
         CostFn::new(
             1,
             SingleCostFn::certain(move |t, j| {
-                self.call_unbounded(shift_time(t, t_start + 1), j)
+                self.call_certain(shift_time(t, t_start + 1), j)
             }),
         )
     }

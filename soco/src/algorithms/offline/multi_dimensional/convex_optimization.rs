@@ -31,21 +31,20 @@ pub fn co(
     };
 
     // l-constrained movement
-    let inequality_constraints = match l {
+    let constraints = match l {
         Some(l) => {
             vec![Constraint {
                 data: p.clone(),
                 g: Arc::new(move |raw_xs, p| {
                     let xs = Schedule::from_raw(p.d, p.t_end, raw_xs);
-                    p.movement(&xs, false).unwrap() - n64(l)
+                    p.total_movement(&xs, false).unwrap() - n64(l)
                 }),
             }]
         }
         None => vec![],
     };
 
-    let (raw_xs, _) =
-        minimize(objective, &bounds, None, inequality_constraints, vec![])?;
+    let (raw_xs, _) = minimize(objective, &bounds, vec![], constraints)?;
     let xs = Schedule::from_raw(p.d, p.t_end, &raw_xs);
     Ok(PureOfflineResult { xs })
 }

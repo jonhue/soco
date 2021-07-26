@@ -58,13 +58,10 @@ fn bregman_projection(
     // `l`-sublevel set of `f`
     let constraint = Constraint {
         data: (),
-        g: Arc::new(|y, _| {
-            f.call_unbounded(t, Config::new(y.to_vec())) - n64(l)
-        }),
+        g: Arc::new(|y, _| f.call_certain(t, Config::new(y.to_vec())) - n64(l)),
     };
 
-    let (y, _) =
-        find_unbounded_minimizer(objective, x.d(), vec![constraint], vec![])?;
+    let (y, _) = find_unbounded_minimizer(objective, x.d(), vec![constraint])?;
     Ok(Config::new(y))
 }
 

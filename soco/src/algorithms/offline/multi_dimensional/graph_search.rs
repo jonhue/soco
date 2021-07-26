@@ -1,3 +1,4 @@
+use log::debug;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::algorithms::offline::graph_search::{
@@ -48,9 +49,13 @@ pub fn graph_search(
 
     let (t_init, mut paths) = read_cache(cache, || (1, HashMap::new()));
 
+    debug!("from time slot `{}` to time slot `{}`", t_init, p.t_end);
+
     for t in t_init..=p.t_end {
         handle_layer(&p, alpha, inverted, t, true, &values, &mut paths, None)?;
+        debug!("handled first layer at time `{}`", t);
         handle_layer(&p, alpha, inverted, t, false, &values, &mut paths, None)?;
+        debug!("handled second layer at time `{}`", t);
     }
 
     Ok(CachedPath {
@@ -297,6 +302,13 @@ fn find_immediate_predecessors(
         predecessors.push(inaction);
     }
 
+    if !(t == 1 && powering_up && config.config == Config::repeat(0, p.d)) {
+        assert!(
+            !predecessors.is_empty(),
+            "Only the initial vertice should not have a predecessor."
+        );
+    }
+
     predecessors
 }
 
@@ -304,6 +316,13 @@ fn find_optimal_predecessor(
     predecessors: Vec<Edge>,
     paths: &mut Paths<Vertice>,
 ) -> Option<(Edge, Path)> {
+    assert!(
+        predecessors.is_empty()
+            || predecessors
+                .iter()
+                .any(|predecessor| predecessor.cost.is_finite()),
+        "Problem is infeasible. Did not find a predecessor with a finite cost."
+    );
     predecessors
         .into_par_iter()
         .fold(

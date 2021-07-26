@@ -1,4 +1,4 @@
-use crate::utils::hash_map;
+use crate::{init, utils::hash_map};
 use soco::{
     algorithms::offline::{
         multi_dimensional::optimal_graph_search::{
@@ -29,9 +29,11 @@ use std::sync::Arc;
 
 #[test]
 fn solve() {
+    init();
+
     let t_end = 100;
     let delta = 1.;
-    let m = 10;
+    let m = 100;
     let model = DataCenterModel::new(
         delta,
         0.,

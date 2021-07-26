@@ -10,12 +10,15 @@ use crate::problem::{DefaultGivenProblem, IntegralSmoothedLoadOptimization};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, sample_uniform};
+use log::debug;
+use pyo3::prelude::*;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 use std::cmp::max;
 
 /// Lane distribution at some time `t`.
-#[derive(Clone, Deserialize, Serialize)]
+#[pyclass]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory {
     /// Lanes of the determined schedule.
     pub lanes: Lanes,
@@ -75,13 +78,16 @@ pub fn lb(
         gamma,
         cache,
     }: Memory,
-    options: Options,
+    Options { randomized }: Options,
 ) -> Result<IntegralStep<Memory>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let bound = o.p.bounds.iter().sum();
+    debug!("starting with `m = {}`", bound);
+
     let (optimal_lanes, new_cache) =
         find_optimal_lanes(cache, o.p.clone(), bound)?;
+    debug!("obtained optimal lanes: {:?}", optimal_lanes);
 
     let (lanes, horizons) = (0..bound as usize)
         .into_par_iter()
@@ -94,7 +100,7 @@ pub fn lb(
                         &o.p.switching_cost,
                         optimal_lanes[j],
                         gamma,
-                        options.randomized,
+                        randomized,
                     ),
                 )
             } else {
@@ -105,15 +111,20 @@ pub fn lb(
                         t + next_time_horizon(
                             &o.p.hitting_cost,
                             &o.p.switching_cost,
-                            prev_lanes[j],
+                            optimal_lanes[j],
                             gamma,
-                            options.randomized,
+                            randomized,
                         ),
                     ),
                 )
             }
         })
         .unzip();
+    debug!("updated lanes from {:?} to {:?}", prev_lanes, lanes);
+    debug!(
+        "updated horizons from {:?} to {:?}",
+        prev_horizons, horizons
+    );
 
     let config = collect_config(o.p.d, &lanes);
     Ok(Step(
@@ -156,9 +167,11 @@ fn collect_config(d: i32, lanes: &Lanes) -> IntegralConfig {
 fn build_lanes(x: &IntegralConfig, d: i32, bound: i32) -> Lanes {
     let mut lanes = vec![0; bound as usize];
     for (k, lane) in lanes.iter_mut().enumerate() {
-        if k as i32 <= active_lanes(x, 1, d) {
+        #[allow(clippy::int_plus_one)]
+        if k as i32 + 1 <= active_lanes(x, 1, d) {
             for j in 1..=d {
-                if active_lanes(x, j, d) >= k as i32 {
+                #[allow(clippy::int_plus_one)]
+                if active_lanes(x, j, d) >= k as i32 + 1 {
                     *lane = j;
                 } else {
                     continue;
@@ -187,6 +200,10 @@ fn find_optimal_lanes(
         OptimalGraphSearchOptions { cache },
         Default::default(),
     )?;
+    debug!(
+        "obtained optimal schedule: {:?} (cost: `{}`)",
+        result.path.xs, result.path.cost
+    );
     let lanes = build_lanes(&result.path.xs.now(), d, bound);
     Ok((lanes, result.cache))
 }

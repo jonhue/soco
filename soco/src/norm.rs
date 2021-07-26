@@ -99,13 +99,9 @@ pub fn dual<'a>(norm: &'a NormFn<'a, f64>) -> NormFn<'a, f64> {
             data: (),
         };
 
-        let (z, _) = find_unbounded_maximizer(
-            objective,
-            x.d(),
-            vec![constraint],
-            vec![],
-        )
-        .unwrap();
+        let (z, _) =
+            find_unbounded_maximizer(objective, x.d(), vec![constraint])
+                .unwrap();
         n64(Config::new(z) * x)
     })
 }
