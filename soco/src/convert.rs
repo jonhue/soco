@@ -203,7 +203,18 @@ where
         let hitting_cost = self
             .hitting_cost
             .iter()
-            .map(|&c| CostFn::new(1, SingleCostFn::certain(move |_, _| n64(c))))
+            .map(|&c| {
+                CostFn::new(
+                    1,
+                    SingleCostFn::certain(move |_, l| {
+                        if l <= 1. {
+                            n64(c) * n64(l)
+                        } else {
+                            n64(f64::INFINITY)
+                        }
+                    }),
+                )
+            })
             .collect();
         SmoothedBalancedLoadOptimization {
             d: self.d,

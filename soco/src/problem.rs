@@ -187,22 +187,16 @@ where
                   lambda: &LoadProfile,
                   zs: &LoadFractions| {
                 assert!(self.d == x_.d());
-                let r = (0..self.d as usize)
+                (0..self.d as usize)
                     .map(|k| -> N64 {
                         let total_load = zs.select_loads(lambda, k)[0];
                         let x = NumCast::from(x_[k]).unwrap();
-                        // if total_load > x {
-                        //     n64(f64::INFINITY)
-                        // } else {
                         safe_balancing(x, total_load, || {
                             x * self.hitting_cost[k]
                                 .call_certain(t, (total_load / x).raw())
                         })
-                        // }
                     })
-                    .sum::<N64>();
-                println!("FOR {:?};{:?};{:?} GOT {}", x_, lambda, zs, r);
-                r
+                    .sum::<N64>()
             },
             loads,
             1,

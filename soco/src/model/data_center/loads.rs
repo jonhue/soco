@@ -317,8 +317,11 @@ where
     // note: when starting with the feasible uniform distribution, solver may get
     // stuck when all surrounding objectives are inf (e.g. if one dimension is set
     // to 0 and cannot take any load)
-    let strategies =
-        vec![vec![1. / solver_d as f64; solver_d], vec![0.; solver_d]];
+    let strategies = vec![
+        vec![1. / (solver_d as f64 + e as f64); solver_d],
+        vec![1. / solver_d as f64; solver_d],
+        vec![0.; solver_d],
+    ];
 
     // ensure that the fractions across all solver dimensions of each load type do not exceed `1`
     let constraints = (0..e as usize)

@@ -210,8 +210,12 @@ fn optimize<D>(
 
     let opt = match solver.optimize(&mut x) {
         Ok((state, opt)) => Ok(match state {
-            nlopt::SuccessState::Success => opt,
-            _ => f64::INFINITY,
+            nlopt::SuccessState::MaxEvalReached
+            | nlopt::SuccessState::MaxTimeReached => {
+                warn!("Convex optimization timed out. Assuming solution to be infinity.");
+                f64::INFINITY
+            }
+            _ => opt,
         }),
         Err((state, opt)) => match state {
             nlopt::FailState::RoundoffLimited => {

@@ -179,7 +179,6 @@ fn handle_config(
             config: config.clone(),
             powering_up,
         },
-        config.config == IntegralConfig::repeat(0, p.d),
     );
 }
 
@@ -300,10 +299,14 @@ fn find_immediate_predecessors(
                 p.hit_cost(t, config.config.clone()).raw()
             },
         };
-        if config.config.to_vec() == vec![0, 0] {
-            println!("{};{}", powering_up, inaction.cost)
-        }
         predecessors.push(inaction);
+    }
+
+    if !(t == 1 && powering_up && config.config == Config::repeat(0, p.d)) {
+        assert!(
+            !predecessors.is_empty(),
+            "Only the initial vertice should not have a predecessor."
+        );
     }
 
     predecessors
@@ -313,6 +316,13 @@ fn find_optimal_predecessor(
     predecessors: Vec<Edge>,
     paths: &mut Paths<Vertice>,
 ) -> Option<(Edge, Path)> {
+    assert!(
+        predecessors.is_empty()
+            || predecessors
+                .iter()
+                .any(|predecessor| predecessor.cost.is_finite()),
+        "Problem is infeasible. Did not find a predecessor with a finite cost."
+    );
     let r = predecessors
         .into_par_iter()
         .fold(
@@ -359,19 +369,12 @@ fn update_paths(
     paths: &mut Paths<Vertice>,
     predecessor: Option<(Edge, Path)>,
     to: &Vertice,
-    is_initial_config: bool,
 ) {
     let path = match predecessor {
-        None => {
-            if is_initial_config {
-                Path {
-                    xs: IntegralSchedule::empty(),
-                    cost: 0.,
-                }
-            } else {
-                panic!("Problem is infeasible. Did not find a predecessor with a finite cost.")
-            }
-        }
+        None => Path {
+            xs: IntegralSchedule::empty(),
+            cost: 0.,
+        },
         Some((predecessor, path)) => {
             let xs = if predecessor.from.powering_up && !to.powering_up {
                 path.xs.extend(to.config.config.clone())
