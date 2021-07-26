@@ -18,20 +18,26 @@ pub enum RevenueLossModel {
 #[pyclass]
 #[derive(Clone)]
 pub struct MinimalDetectableDelayRevenueLossModel {
-    /// Minimal detectable delay of a job type.
+    /// Revenue loss factor. `gamma >= 0`.
+    #[pyo3(get, set)]
+    gamma: f64,
+    /// Minimal detectable delay of a job type. `delta >= 0`.
     #[pyo3(get, set)]
     delta: f64,
 }
 impl Default for MinimalDetectableDelayRevenueLossModel {
     fn default() -> Self {
-        MinimalDetectableDelayRevenueLossModel { delta: 0. }
+        MinimalDetectableDelayRevenueLossModel {
+            gamma: 1.,
+            delta: 0.,
+        }
     }
 }
 #[pymethods]
 impl MinimalDetectableDelayRevenueLossModel {
     #[new]
-    fn constructor(delta: f64) -> Self {
-        MinimalDetectableDelayRevenueLossModel { delta }
+    fn constructor(gamma: f64, delta: f64) -> Self {
+        MinimalDetectableDelayRevenueLossModel { gamma, delta }
     }
 }
 
@@ -42,7 +48,7 @@ impl RevenueLossModel {
         match self {
             RevenueLossModel::MinimalDetectableDelay(models) => {
                 let model = &models[&job_type.key];
-                pos(delay - model.delta)
+                n64(model.gamma) * pos(delay - n64(model.delta))
             }
         }
     }
