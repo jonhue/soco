@@ -4,7 +4,7 @@ use soco::{
         rbg, Memory, Options,
     },
     model::data_center::{
-        loads::LoadProfile,
+        loads::{LoadProfile, PredictedLoadProfile},
         model::{
             DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
             JobType, Location, ServerType, Source, DEFAULT_KEY,
@@ -100,7 +100,7 @@ fn integration() {
     receiver.recv().unwrap();
     for t in 0..1 {
         let input = DataCenterOnlineInput {
-            loads: vec![vec![LoadProfile::raw(vec![10.])]],
+            loads: vec![PredictedLoadProfile::raw(vec![vec![10.]])],
         };
         let ((x, _), (int_x, _), _) = online::next::<
             f64,

@@ -157,11 +157,7 @@ where
     where
         I: IntoIterator<Item = Config<T>>,
     {
-        let mut xs = vec![];
-        for x in iter {
-            xs.push(x);
-        }
-        Schedule::new(xs)
+        Schedule::new(Vec::<Config<T>>::from_iter(iter))
     }
 }
 

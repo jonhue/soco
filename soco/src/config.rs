@@ -113,11 +113,7 @@ where
     where
         I: IntoIterator<Item = T>,
     {
-        let mut x = Config::empty();
-        for j in iter {
-            x.push(j);
-        }
-        x
+        Config::new(Vec::<T>::from_iter(iter))
     }
 }
 

@@ -4,12 +4,14 @@ use crate::config::Config;
 use crate::cost::{CostFn, SingleCostFn};
 use crate::numerics::convex_optimization::{minimize, Constraint};
 use crate::numerics::ApplicablePrecision;
-use crate::utils::{access, unshift_time};
+use crate::utils::{access, transpose, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
 use num::NumCast;
 use pyo3::prelude::*;
+use rand::prelude::IteratorRandom;
+use rand::thread_rng;
 use rayon::iter::{
     FromParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
     ParallelIterator,
@@ -17,12 +19,14 @@ use rayon::iter::{
 use rayon::slice::Iter;
 use rayon::vec::IntoIter;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
-use std::cmp::Ordering;
+use std::cmp::{max, min, Ordering};
 use std::iter::FromIterator;
 use std::ops::Div;
 use std::ops::Index;
 use std::ops::Mul;
 use std::sync::Arc;
+
+static MAX_SAMPLE_SIZE: i32 = 100;
 
 /// For some time `t`, encapsulates the load of `e` types.
 #[derive(Clone, Debug, PartialEq)]
@@ -61,7 +65,7 @@ impl LoadProfile {
 
     /// Converts load profile to a vector.
     pub fn to_raw(&self) -> Vec<f64> {
-        self.0.iter().map(|l| l.raw()).collect()
+        self.0.iter().map(|z| z.raw()).collect()
     }
 }
 
@@ -118,11 +122,7 @@ impl FromIterator<N64> for LoadProfile {
     where
         I: IntoIterator<Item = N64>,
     {
-        let mut l = vec![];
-        for j in iter {
-            l.push(j);
-        }
-        LoadProfile::new(l)
+        LoadProfile::new(Vec::<N64>::from_iter(iter))
     }
 }
 
@@ -171,6 +171,138 @@ impl Div<N64> for LoadProfile {
     /// Divides loads by scalar.
     fn div(self, other: N64) -> Self::Output {
         self.iter().map(|&l| l / other).collect()
+    }
+}
+
+/// For some time `t`, encapsulates the load of `e` types as multiple samples per type.
+#[derive(Clone, Debug)]
+pub struct PredictedLoadProfile(Vec<Vec<N64>>);
+
+impl PredictedLoadProfile {
+    /// Creates a new predicted load profile from a raw vector of vectors.
+    pub fn raw(l: Vec<Vec<f64>>) -> PredictedLoadProfile {
+        PredictedLoadProfile(
+            l.iter()
+                .map(|zs| zs.iter().map(|&z| n64(z)).collect())
+                .collect(),
+        )
+    }
+
+    /// Creates a new predicted load profile from a vector of vectors.
+    pub fn new(l: Vec<Vec<N64>>) -> PredictedLoadProfile {
+        PredictedLoadProfile(l)
+    }
+
+    /// Number of load types.
+    pub fn e(&self) -> i32 {
+        self.0.len() as i32
+    }
+
+    /// Smallest sample size for some job type.
+    pub fn smallest_sample_size(&self) -> i32 {
+        self.0.iter().map(|zs| zs.len()).min().unwrap() as i32
+    }
+
+    /// Largest sample size for some job type.
+    pub fn largest_sample_size(&self) -> i32 {
+        self.0.iter().map(|zs| zs.len()).max().unwrap() as i32
+    }
+
+    /// Converts load profile to a vector.
+    pub fn to_vec(&self) -> Vec<Vec<N64>> {
+        self.0.clone()
+    }
+
+    /// Converts load profile to a vector.
+    pub fn to_raw(&self) -> Vec<Vec<f64>> {
+        self.0
+            .iter()
+            .map(|zs| zs.iter().map(|z| z.raw()).collect())
+            .collect()
+    }
+}
+
+impl<'a> FromPyObject<'a> for PredictedLoadProfile {
+    fn extract(ob: &'a PyAny) -> PyResult<Self> {
+        Ok(PredictedLoadProfile::raw(ob.extract()?))
+    }
+}
+
+impl IntoPy<PyObject> for PredictedLoadProfile {
+    fn into_py(self, py: Python) -> PyObject {
+        self.to_raw().into_py(py)
+    }
+}
+
+impl Serialize for PredictedLoadProfile {
+    #[inline]
+    fn serialize<S: Serializer>(&self, s: S) -> Result<S::Ok, S::Error> {
+        self.to_raw().serialize(s)
+    }
+}
+
+impl<'a> Deserialize<'a> for PredictedLoadProfile {
+    #[inline]
+    fn deserialize<D: Deserializer<'a>>(d: D) -> Result<Self, D::Error> {
+        Vec::<Vec<f64>>::deserialize(d).map(PredictedLoadProfile::raw)
+    }
+}
+
+impl Index<usize> for PredictedLoadProfile {
+    type Output = Vec<N64>;
+
+    fn index(&self, i: usize) -> &Self::Output {
+        assert!(
+            i < self.0.len(),
+            "argument must denote one of {} types, is {}",
+            self.0.len(),
+            i + 1
+        );
+        &self.0[i]
+    }
+}
+
+impl VecWrapper for PredictedLoadProfile {
+    type Item = Vec<N64>;
+
+    fn to_vec(&self) -> &Vec<Self::Item> {
+        &self.0
+    }
+}
+
+impl FromIterator<Vec<N64>> for PredictedLoadProfile {
+    fn from_iter<I>(iter: I) -> Self
+    where
+        I: IntoIterator<Item = Vec<N64>>,
+    {
+        PredictedLoadProfile::new(Vec::<Vec<N64>>::from_iter(iter))
+    }
+}
+
+impl FromParallelIterator<Vec<N64>> for PredictedLoadProfile {
+    fn from_par_iter<I>(iter: I) -> Self
+    where
+        I: IntoParallelIterator<Item = Vec<N64>>,
+    {
+        PredictedLoadProfile::new(Vec::<Vec<N64>>::from_par_iter(iter))
+    }
+}
+
+impl<'a> IntoParallelIterator for &'a PredictedLoadProfile {
+    type Item = &'a Vec<N64>;
+    type Iter = Iter<'a, Vec<N64>>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.par_iter()
+    }
+}
+
+impl IntoParallelIterator for PredictedLoadProfile {
+    type Item = Vec<N64>;
+    type Iter = IntoIter<Vec<N64>>;
+
+    fn into_par_iter(self) -> Self::Iter {
+        self.0.into_par_iter()
     }
 }
 
@@ -260,7 +392,7 @@ where
 /// * `d` - number of dimensions
 /// * `e` - number of job types
 /// * `objective` - cost function to minimize w.r.t. load assignments
-/// * `loads` - a load profile for each predicted sample (one load profile for certainty) over the supported time horizon
+/// * `predicted_loads` - vector of predicted loads for all time slots that should be supported by the returned cost function
 /// * `t_start` - time offset, i.e. time of first load samples
 pub fn apply_predicted_loads<'a, T>(
     d: i32,
@@ -269,17 +401,38 @@ pub fn apply_predicted_loads<'a, T>(
         + Send
         + Sync
         + 'a,
-    loads: Vec<Vec<LoadProfile>>,
+    predicted_loads: Vec<PredictedLoadProfile>,
     t_start: i32,
 ) -> SingleCostFn<'a, Config<T>>
 where
     T: Value<'a>,
 {
     SingleCostFn::predictive(move |t, x: Config<T>| {
-        access(&loads, unshift_time(t, t_start))
-            .unwrap()
-            .par_iter()
-            .map(|lambda| apply_loads(d, e, &objective, lambda, t, x.clone()))
+        let mut rng = thread_rng();
+        let predicted_load_profile =
+            access(&predicted_loads, unshift_time(t, t_start)).unwrap();
+        let sample_size = min(
+            max(
+                predicted_load_profile.smallest_sample_size(),
+                MAX_SAMPLE_SIZE,
+            ),
+            predicted_load_profile.largest_sample_size(),
+        );
+
+        // we only use a randomly chosen subset of all samples to remain efficient
+        let samples = predicted_load_profile
+            .to_vec()
+            .into_iter()
+            .map(|zs| {
+                zs.into_iter()
+                    .choose_multiple(&mut rng, sample_size as usize)
+            })
+            .collect();
+        let sampled_load_profiles =
+            transpose(samples).into_par_iter().map(LoadProfile::new);
+
+        sampled_load_profiles
+            .map(|lambda| apply_loads(d, e, &objective, &lambda, t, x.clone()))
             .collect()
     })
 }

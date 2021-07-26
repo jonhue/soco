@@ -27,6 +27,8 @@ use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use super::loads::PredictedLoadProfile;
+
 pub static DEFAULT_KEY: &str = "";
 
 /// Server type.
@@ -454,11 +456,11 @@ impl DataCenterModel {
     /// Optimally applies loads from a single to the model of a data center to obtain a cost function.
     /// Referred to as `f` in the paper.
     ///
-    /// * `loads` - a load profile for each predicted sample (one load profile for certainty) over the supported time horizon
+    /// * `predicted_loads` - vector of predicted loads for all time slots that should be supported by the returned cost function
     /// * `t_start` - time offset, i.e. time of first load samples
     fn apply_predicted_loads<'a, T>(
         &self,
-        loads: Vec<Vec<LoadProfile>>,
+        predicted_loads: Vec<PredictedLoadProfile>,
         t_start: i32,
     ) -> SingleCostFn<'a, Config<T>>
     where
@@ -469,7 +471,7 @@ impl DataCenterModel {
             self.d_(),
             self.e_(),
             move |t, x, lambda, zs| model.objective(t, x, lambda, zs),
-            loads,
+            predicted_loads,
             t_start,
         )
     }
@@ -528,7 +530,7 @@ impl OfflineInput for DataCenterOfflineInput {}
 #[pyo3(transparent)]
 pub struct DataCenterOnlineInput {
     /// A load profile for each predicted sample (one load profile for certainty) over the supported time horizon.
-    pub loads: Vec<Vec<LoadProfile>>,
+    pub loads: Vec<PredictedLoadProfile>,
 }
 impl OnlineInput for DataCenterOnlineInput {}
 
@@ -684,14 +686,15 @@ where
         let t = o.p.t_end();
         assert!(t == o.p.load.len() as i32 + 1, "Loads and time slot are inconsistent. Time slot is {} but loads are present for {} time slots.", t, o.p.load.len() as i32 + 1);
         let span = loads.len() as i32;
-        assert!(span == 1);
+        assert!(span == 1, "Does not support prediction windows.");
         info!("Updating online instance to time slot {}.", t);
-        let load_profiles = &loads[0];
+        let predicted_load_profile = &loads[0];
         assert!(
-            load_profiles.len() == 1,
-            "Load profiles for SBLO need to be homogeneous and certain."
+            predicted_load_profile.e() == 1 && predicted_load_profile[0].len() == 1,
+            "Predicted load profiles for SBLO need to be homogeneous and certain."
         );
-        o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
+        o.p.load
+            .push(NumCast::from(predicted_load_profile[0][0]).unwrap());
         verify_update(o, span);
     }
 }
@@ -763,11 +766,15 @@ where
         let t = o.p.t_end();
         assert!(t == o.p.load.len() as i32 + 1, "Loads and time slot are inconsistent. Time slot is {} but loads are present for {} time slots.", t, o.p.load.len() as i32 + 1);
         let span = loads.len() as i32;
-        assert!(span == 1);
+        assert!(span == 1, "Does not support prediction windows.");
         info!("Updating online instance to time slot {}.", t);
-        let load_profiles = &loads[0];
-        assert!(load_profiles.len() == 1);
-        o.p.load.push(NumCast::from(load_profiles[0][0]).unwrap());
+        let predicted_load_profile = &loads[0];
+        assert!(
+            predicted_load_profile.e() == 1 && predicted_load_profile[0].len() == 1,
+            "Predicted load profiles for SBLO need to be homogeneous and certain."
+        );
+        o.p.load
+            .push(NumCast::from(predicted_load_profile[0][0]).unwrap());
         verify_update(o, span);
     }
 }
