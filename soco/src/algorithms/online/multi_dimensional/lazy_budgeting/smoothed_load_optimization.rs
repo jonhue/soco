@@ -163,8 +163,10 @@ fn collect_config(d: i32, lanes: &Lanes) -> IntegralConfig {
 fn build_lanes(x: &IntegralConfig, d: i32, bound: i32) -> Lanes {
     let mut lanes = vec![0; bound as usize];
     for (k, lane) in lanes.iter_mut().enumerate() {
+        #[allow(clippy::int_plus_one)]
         if k as i32 + 1 <= active_lanes(x, 1, d) {
             for j in 1..=d {
+                #[allow(clippy::int_plus_one)]
                 if active_lanes(x, j, d) >= k as i32 + 1 {
                     *lane = j;
                 } else {
