@@ -2,10 +2,10 @@
 mod bcp {
     use crate::factories::inv_e;
     use crate::init;
+    use soco::algorithms::offline::uni_dimensional::capacity_provisioning::brcp;
     use soco::algorithms::offline::{
-        uni_dimensional::capacity_provisioning::brcp,
+        OfflineAlgorithm, OfflineOptions, OfflineResult,
     };
-    use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions, OfflineResult};
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
