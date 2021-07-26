@@ -87,7 +87,7 @@ pub fn lb(
 
     let (optimal_lanes, new_cache) =
         find_optimal_lanes(cache, o.p.clone(), bound)?;
-    debug!("obtained optimal lanes");
+    debug!("obtained optimal lanes: {:?}", optimal_lanes);
 
     let (lanes, horizons) = (0..bound as usize)
         .into_par_iter()
@@ -163,9 +163,9 @@ fn collect_config(d: i32, lanes: &Lanes) -> IntegralConfig {
 fn build_lanes(x: &IntegralConfig, d: i32, bound: i32) -> Lanes {
     let mut lanes = vec![0; bound as usize];
     for (k, lane) in lanes.iter_mut().enumerate() {
-        if k as i32 <= active_lanes(x, 1, d) {
+        if k as i32 + 1 <= active_lanes(x, 1, d) {
             for j in 1..=d {
-                if active_lanes(x, j, d) >= k as i32 {
+                if active_lanes(x, j, d) >= k as i32 + 1 {
                     *lane = j;
                 } else {
                     continue;

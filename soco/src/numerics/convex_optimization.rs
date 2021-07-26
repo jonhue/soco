@@ -128,14 +128,15 @@ fn evaluate_strategies<D>(
 where
     D: Clone,
 {
-    let result = strategies
-        .into_iter()
-        .find_map(|init| {
-            let (x, opt) = optimize(dir, f, bounds, Some(init), constraints.clone()).unwrap();
-            if opt.is_finite() {
-                Some((x, opt))
-            } else { None }
-        });
+    let result = strategies.into_iter().find_map(|init| {
+        let (x, opt) =
+            optimize(dir, f, bounds, Some(init), constraints.clone()).unwrap();
+        if opt.is_finite() {
+            Some((x, opt))
+        } else {
+            None
+        }
+    });
     match result {
         Some(result) => Ok(result),
         None => optimize(dir, f, bounds, None, constraints),
