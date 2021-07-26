@@ -42,6 +42,6 @@ fn next(
         }),
     };
 
-    let (xs, _) = minimize(objective, &bounds, None, vec![constraint], vec![])?;
+    let (xs, _) = minimize(objective, &bounds, vec![], vec![constraint])?;
     Ok(xs[0])
 }

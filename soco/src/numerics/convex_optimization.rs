@@ -12,12 +12,15 @@ use std::sync::Arc;
 static MAX_ITERATIONS: u32 = 1_000;
 
 /// Optimization direction.
+#[derive(Clone, Copy)]
 enum Direction {
     Minimize,
     Maximize,
 }
 
-/// Convex constraint.
+/// Convex inequality constraint. The used algorithms do not support equality
+/// constraints very well, and thus they are not supported by this interface.
+#[derive(Clone)]
 pub struct Constraint<'a, D> {
     /// Cached argument.
     pub data: D,
@@ -49,95 +52,119 @@ pub fn find_minimizer(
     f: impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
 ) -> Result<OptimizationResult> {
-    minimize(
-        f,
-        bounds,
-        None,
-        Vec::<Constraint<()>>::new(),
-        Vec::<Constraint<()>>::new(),
-    )
+    minimize(f, bounds, vec![], Vec::<Constraint<()>>::new())
 }
 
 /// Determines the minimizer of a convex function `f` in `d` dimensions with
-/// `inequality_constraints` and `equality_constraints`.
+/// `constraints` and `equality_constraints`.
 pub fn find_unbounded_minimizer<D>(
     f: impl Fn(&[f64]) -> N64,
     d: i32,
-    inequality_constraints: Vec<Constraint<D>>,
-    equality_constraints: Vec<Constraint<D>>,
-) -> Result<OptimizationResult> {
+    constraints: Vec<Constraint<D>>,
+) -> Result<OptimizationResult>
+where
+    D: Clone,
+{
     let (bounds, init) = build_empty_bounds(d);
-    minimize(
-        f,
-        &bounds,
-        Some(init),
-        inequality_constraints,
-        equality_constraints,
-    )
+    minimize(f, &bounds, vec![init], constraints)
 }
 
 /// Determines the maximizer of a convex function `f` in `d` dimensions with
-/// `inequality_constraints` and `equality_constraints`.
+/// `constraints` and `equality_constraints`.
 pub fn find_unbounded_maximizer<D>(
     f: impl Fn(&[f64]) -> N64,
     d: i32,
-    inequality_constraints: Vec<Constraint<D>>,
-    equality_constraints: Vec<Constraint<D>>,
-) -> Result<OptimizationResult> {
+    constraints: Vec<Constraint<D>>,
+) -> Result<OptimizationResult>
+where
+    D: Clone,
+{
     let (bounds, init) = build_empty_bounds(d);
-    maximize(
-        f,
-        &bounds,
-        Some(init),
-        inequality_constraints,
-        equality_constraints,
-    )
+    maximize(f, &bounds, vec![init], constraints)
 }
 
 pub fn minimize<D>(
     f: impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
-    init: Option<Vec<f64>>,
-    inequality_constraints: Vec<Constraint<D>>,
-    equality_constraints: Vec<Constraint<D>>,
-) -> Result<OptimizationResult> {
-    optimize(
+    strategies: Vec<Vec<f64>>,
+    constraints: Vec<Constraint<D>>,
+) -> Result<OptimizationResult>
+where
+    D: Clone,
+{
+    evaluate_strategies(
         Direction::Minimize,
-        f,
+        &f,
         bounds,
-        init,
-        inequality_constraints,
-        equality_constraints,
+        strategies,
+        constraints,
     )
 }
 
 pub fn maximize<D>(
     f: impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
-    init: Option<Vec<f64>>,
-    inequality_constraints: Vec<Constraint<D>>,
-    equality_constraints: Vec<Constraint<D>>,
-) -> Result<OptimizationResult> {
-    optimize(
+    strategies: Vec<Vec<f64>>,
+    constraints: Vec<Constraint<D>>,
+) -> Result<OptimizationResult>
+where
+    D: Clone,
+{
+    evaluate_strategies(
         Direction::Maximize,
-        f,
+        &f,
         bounds,
-        init,
-        inequality_constraints,
-        equality_constraints,
+        strategies,
+        constraints,
     )
 }
 
+fn evaluate_strategies<D>(
+    dir: Direction,
+    f: &impl Fn(&[f64]) -> N64,
+    bounds: &Vec<(f64, f64)>,
+    strategies: Vec<Vec<f64>>,
+    constraints: Vec<Constraint<D>>,
+) -> Result<OptimizationResult>
+where
+    D: Clone,
+{
+    let init_constraint = constraints.clone();
+    Ok(strategies
+        .into_iter()
+        .map(|init| {
+            optimize(dir, f, bounds, Some(init), constraints.clone()).unwrap()
+        })
+        .fold(
+            optimize(dir, f, bounds, None, init_constraint).unwrap(),
+            |(x, z_x), (y, z_y)| match dir {
+                Direction::Minimize => {
+                    if z_x <= z_y {
+                        (x, z_x)
+                    } else {
+                        (y, z_y)
+                    }
+                }
+                Direction::Maximize => {
+                    if z_x >= z_y {
+                        (x, z_x)
+                    } else {
+                        (y, z_y)
+                    }
+                }
+            },
+        ))
+}
+
 /// Determines the optimum of a convex function `f` w.r.t some direction `dir`
-/// with bounds `bounds`, `inequality_constraints`, and `equality_constraints`.
+/// with bounds `bounds`, `constraints`, and `equality_constraints`.
 /// Optimization begins at `init` (defaults to lower bounds).
 fn optimize<D>(
     dir: Direction,
-    f: impl Fn(&[f64]) -> N64,
+    f: &impl Fn(&[f64]) -> N64,
     bounds: &Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
-    inequality_constraints: Vec<Constraint<D>>,
-    equality_constraints: Vec<Constraint<D>>,
+    constraints: Vec<Constraint<D>>,
 ) -> Result<OptimizationResult> {
     let d = bounds.len();
     let (lower, upper): (Vec<_>, Vec<_>) = bounds.iter().cloned().unzip();
@@ -160,10 +187,7 @@ fn optimize<D>(
     };
 
     let mut solver = Nlopt::new(
-        choose_algorithm(
-            inequality_constraints.len(),
-            equality_constraints.len(),
-        ),
+        choose_algorithm(constraints.len()),
         d,
         objective,
         Target::from(dir),
@@ -176,17 +200,8 @@ fn optimize<D>(
     // stop evaluation when solver appears to hit a dead end, this may happen when all function evaluations return infinity.
     solver.set_maxeval(MAX_ITERATIONS)?;
 
-    for Constraint { g, data } in inequality_constraints {
+    for Constraint { g, data } in constraints {
         solver.add_inequality_constraint(
-            |xs: &[f64], _: Option<&mut [f64]>, data: &mut D| {
-                evaluate(xs, data, &|x, data| g(x, data))
-            },
-            data,
-            TOLERANCE,
-        )?;
-    }
-    for Constraint { g, data } in equality_constraints {
-        solver.add_equality_constraint(
             |xs: &[f64], _: Option<&mut [f64]>, data: &mut D| {
                 evaluate(xs, data, &|x, data| g(x, data))
             },
@@ -211,14 +226,9 @@ fn optimize<D>(
     Ok((x.apply_precision(), n64(opt)))
 }
 
-fn choose_algorithm(
-    inequality_constraints: usize,
-    equality_constraints: usize,
-) -> Algorithm {
+fn choose_algorithm(constraints: usize) -> Algorithm {
     // both Cobyla and Bobyqa are algorithms for derivative-free local optimization
-    if equality_constraints > 0 {
-        unimplemented!()
-    } else if inequality_constraints > 0 {
+    if constraints > 0 {
         Algorithm::Cobyla
     } else {
         // Bobyqa does not support (in-)equality constraints

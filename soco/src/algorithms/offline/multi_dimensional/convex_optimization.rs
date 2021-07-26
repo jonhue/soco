@@ -31,7 +31,7 @@ pub fn co(
     };
 
     // l-constrained movement
-    let inequality_constraints = match l {
+    let constraints = match l {
         Some(l) => {
             vec![Constraint {
                 data: p.clone(),
@@ -44,8 +44,7 @@ pub fn co(
         None => vec![],
     };
 
-    let (raw_xs, _) =
-        minimize(objective, &bounds, None, inequality_constraints, vec![])?;
+    let (raw_xs, _) = minimize(objective, &bounds, vec![], constraints)?;
     let xs = Schedule::from_raw(p.d, p.t_end, &raw_xs);
     Ok(PureOfflineResult { xs })
 }
