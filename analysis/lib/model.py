@@ -229,21 +229,23 @@ def build_model(
             },
         )
     if trace == MICROSOFT_FIDDLE:
-        gpu2 = ServerType("gpu2", 1)
-        gpu8 = ServerType("gpu8", 1)
+        GPU2 = "gpu2"
+        GPU8 = "gpu8"
+        gpu2 = ServerType(GPU2, 1)
+        gpu8 = ServerType(GPU8, 1)
         job_type = JobType(
             DEFAULT_KEY,
-            lambda server_type: delta / 2 if server_type == "gpu8" else delta / (2 * 4),
+            lambda server_type: delta / 2 if server_type == GPU8 else delta / (2 * 4),
         )
         return linear_energy_cost(
             delta,
             [gpu2, gpu8],
-            {"gpu2": 321, "gpu8": 231},
+            {GPU2: 321, GPU8: 231},
             [job_type],
             energy_cost,
             {
-                "gpu2": (energy_model["phi_min"], energy_model["phi_max"]),
-                "gpu8": (
+                GPU2: (energy_model["phi_min"], energy_model["phi_max"]),
+                GPU8: (
                     3.75 * energy_model["phi_min"],
                     3.75 * energy_model["phi_max"],
                 ),
@@ -256,15 +258,19 @@ def build_model(
             },
         )
     if trace == ALIBABA:
+        VERY_LONG = "very_long"
+        LONG = "long"
+        MEDIUM = "medium"
+        SHORT = "short"
         server_type = ServerType(DEFAULT_KEY, 1)
         very_long_runtime = delta / 2
-        very_long = JobType("very_long", lambda _server_type: very_long_runtime)
+        very_long = JobType(VERY_LONG, lambda _server_type: very_long_runtime)
         long_runtime = very_long_runtime / 2.5
-        long = JobType("long", lambda _server_type: long_runtime)
+        long = JobType(LONG, lambda _server_type: long_runtime)
         medium_runtime = long_runtime / 2.5
-        medium = JobType("medium", lambda _server_type: medium_runtime)
+        medium = JobType(MEDIUM, lambda _server_type: medium_runtime)
         short_runtime = medium_runtime / 2.5
-        short = JobType("short", lambda _server_type: short_runtime)
+        short = JobType(SHORT, lambda _server_type: short_runtime)
         return linear_energy_cost(
             delta,
             [server_type],
@@ -273,10 +279,10 @@ def build_model(
             energy_cost,
             {DEFAULT_KEY: (energy_model["phi_min"], energy_model["phi_max"])},
             {
-                "short": (revenue_loss, 2.5 * short_runtime),
-                "medium": (revenue_loss, 2.5 * medium_runtime),
-                "long": (revenue_loss, 2.5 * long_runtime),
-                "very_long": (revenue_loss, 2.5 * very_long_runtime),
+                SHORT: (revenue_loss, 2.5 * short_runtime),
+                MEDIUM: (revenue_loss, 2.5 * medium_runtime),
+                LONG: (revenue_loss, 2.5 * long_runtime),
+                VERY_LONG: (revenue_loss, 2.5 * very_long_runtime),
             },
             {
                 DEFAULT_KEY: SwitchingCost.from_normalized(
