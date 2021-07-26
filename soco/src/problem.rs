@@ -10,6 +10,7 @@ use crate::norm::NormFn;
 use crate::objective::scalar_movement;
 use crate::value::Value;
 use crate::verifiers::VerifiableProblem;
+use log::debug;
 use noisy_float::prelude::*;
 use num::NumCast;
 
@@ -187,6 +188,7 @@ where
                   lambda: &LoadProfile,
                   zs: &LoadFractions| {
                 assert!(self.d == x_.d());
+                debug!("computes cost given config {:?} and load profile {:?} for load fractions {:?}", x_, lambda, zs);
                 (0..self.d as usize)
                     .map(|k| -> N64 {
                         let total_load = zs.select_loads(lambda, k)[0];
