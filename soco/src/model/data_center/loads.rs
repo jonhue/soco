@@ -305,7 +305,8 @@ where
     assert!(e == lambda.e());
 
     // we store for each dimension `k in [d]` the fractions of loads `i in [e]` that are handled
-    let solver_d = (d * e) as usize - 1;
+    // the final dimensions are completely determined by all preceding dimensions
+    let solver_d = (d * e) as usize - e as usize;
     let bounds = vec![(0., 1.); solver_d];
     let objective = |zs_: &[f64]| {
         let zs = LoadFractions::new(zs_, d, e);
@@ -319,7 +320,7 @@ where
     let strategies =
         vec![vec![1. / solver_d as f64; solver_d], vec![0.; solver_d]];
 
-    // ensure that the fractions across all dimensions of each load type sum to `1`
+    // ensure that the fractions across all solver dimensions of each load type do not exceed `1`
     let constraints = (0..e as usize)
         .map(|i| Constraint {
             data: lambda.clone(),
