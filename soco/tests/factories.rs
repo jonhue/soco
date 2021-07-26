@@ -19,6 +19,11 @@ pub fn constant() -> CostFn<'static, IntegralConfig> {
     wrap(|_, _| 1.)
 }
 
+/// Returns `1`.
+pub fn constant_simple() -> CostFn<'static, f64> {
+    wrap(|_, _| 1.)
+}
+
 /// Returns `t` if all dimensions are `0`, `0` otherwise.
 pub fn penalize_zero() -> CostFn<'static, IntegralConfig> {
     wrap(|t: i32, j: IntegralConfig| {

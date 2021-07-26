@@ -78,7 +78,7 @@ pub fn lb(
         gamma,
         cache,
     }: Memory,
-    options: Options,
+    Options { randomized }: Options,
 ) -> Result<IntegralStep<Memory>> {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
@@ -100,7 +100,7 @@ pub fn lb(
                         &o.p.switching_cost,
                         optimal_lanes[j],
                         gamma,
-                        options.randomized,
+                        randomized,
                     ),
                 )
             } else {
@@ -111,16 +111,17 @@ pub fn lb(
                         t + next_time_horizon(
                             &o.p.hitting_cost,
                             &o.p.switching_cost,
-                            prev_lanes[j],
+                            optimal_lanes[j],
                             gamma,
-                            options.randomized,
+                            randomized,
                         ),
                     ),
                 )
             }
         })
         .unzip();
-    debug!("updated lanes");
+    debug!("updated lanes from {:?} to {:?}", prev_lanes, lanes);
+    debug!("updated horizons from {:?} to {:?}", prev_horizons, horizons);
 
     let config = collect_config(o.p.d, &lanes);
     Ok(Step(

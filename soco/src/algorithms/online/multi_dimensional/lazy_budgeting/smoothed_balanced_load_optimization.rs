@@ -19,6 +19,7 @@ use pyo3::prelude::*;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 
+#[pyclass]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory {
     /// Maps each time `u` to the corresponding load; length
