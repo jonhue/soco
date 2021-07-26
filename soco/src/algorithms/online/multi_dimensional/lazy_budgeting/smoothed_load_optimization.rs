@@ -121,7 +121,10 @@ pub fn lb(
         })
         .unzip();
     debug!("updated lanes from {:?} to {:?}", prev_lanes, lanes);
-    debug!("updated horizons from {:?} to {:?}", prev_horizons, horizons);
+    debug!(
+        "updated horizons from {:?} to {:?}",
+        prev_horizons, horizons
+    );
 
     let config = collect_config(o.p.d, &lanes);
     Ok(Step(

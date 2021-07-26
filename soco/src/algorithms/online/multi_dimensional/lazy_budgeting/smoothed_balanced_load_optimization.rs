@@ -3,11 +3,14 @@ use crate::algorithms::offline::multi_dimensional::optimal_graph_search::{
     optimal_graph_search, Options as OptimalGraphSearchOptions,
 };
 use crate::algorithms::offline::multi_dimensional::Vertice;
-use crate::algorithms::offline::{OfflineAlgorithm};
+use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
 use crate::cost::{CostFn, SingleCostFn};
-use crate::problem::{DefaultGivenProblem, IntegralSmoothedBalancedLoadOptimization, Online, SmoothedBalancedLoadOptimization};
+use crate::problem::{
+    DefaultGivenProblem, IntegralSmoothedBalancedLoadOptimization, Online,
+    SmoothedBalancedLoadOptimization,
+};
 use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
 use crate::utils::assert;
@@ -32,11 +35,16 @@ pub struct Memory<'a> {
 fn default_hitting_cost<'a>() -> Vec<CostFn<'a, f64>> {
     vec![]
 }
-impl<'a> DefaultGivenProblem<IntegralSmoothedBalancedLoadOptimization<'a>> for Memory<'a> {
+impl<'a> DefaultGivenProblem<IntegralSmoothedBalancedLoadOptimization<'a>>
+    for Memory<'a>
+{
     fn default(p: &IntegralSmoothedBalancedLoadOptimization) -> Self {
         Memory {
             load: vec![],
-            hitting_cost: (0..p.d as usize).into_iter().map(|_| CostFn::empty()).collect(),
+            hitting_cost: (0..p.d as usize)
+                .into_iter()
+                .map(|_| CostFn::empty())
+                .collect(),
             mod_m: (Schedule::empty(), None),
         }
     }
@@ -78,11 +86,19 @@ pub fn lb<'a>(
 
     // construct modified problem instance and update loads
     let u_init = load.len() as i32 + 1;
-    let u_end = u_init + n;
+    let u_end = u_init + n - 1;
     debug!("constructing modified problem instance from sub time slot {} to sub time slot {}", u_init, u_end);
     let mut mod_o = Online {
         w: 0,
-        p: modify_problem(o.p, &mut load, &mut hitting_cost, t, n, u_init, u_end)?,
+        p: modify_problem(
+            o.p,
+            &mut load,
+            &mut hitting_cost,
+            t,
+            n,
+            u_init,
+            u_end,
+        )?,
     };
     debug!("constructed modified problem instance: {:?}", mod_o);
 
@@ -94,9 +110,15 @@ pub fn lb<'a>(
         &mut mod_xs,
         mod_prev_m,
     )?;
-    debug!("streamed modified problem and obtained schedule: {:?}", mod_xs);
+    debug!(
+        "streamed modified problem and obtained schedule: {:?}",
+        mod_xs
+    );
 
-    debug!("determining optimal config between sub time slots {} and {}", u_init, u_end);
+    debug!(
+        "determining optimal config between sub time slots {} and {}",
+        u_init, u_end
+    );
     let config = determine_config(&mod_o.p, &mod_xs, u_init, u_end);
     debug!("found optimal config {:?}", config);
 
@@ -137,21 +159,26 @@ fn modify_problem<'a>(
     u_init: i32,
     u_end: i32,
 ) -> Result<IntegralSmoothedBalancedLoadOptimization<'a>> {
-    assert!(u_end - u_init == n, "number of sub time slots inconsistent");
+    assert!(
+        u_end - u_init + 1 == n,
+        "number of sub time slots inconsistent"
+    );
 
-    (0..p.d as usize)
-        .for_each(|k| {
-            let raw_hitting_cost = p.hitting_cost[k].clone();
-            hitting_cost[k].add(u_init, SingleCostFn::certain(move |u, x| {
+    (0..p.d as usize).for_each(|k| {
+        let raw_hitting_cost = p.hitting_cost[k].clone();
+        hitting_cost[k].add(
+            u_init,
+            SingleCostFn::certain(move |u, x| {
                 assert!(
                     u_init <= u && u <= u_end,
                     "sub time slot is outside valid sub time slot window"
                 );
                 raw_hitting_cost.call_certain(t, x) / n as f64
-            }));
-        });
+            }),
+        );
+    });
 
-    load.extend(vec![p.load[t as usize - 1]; n as usize + 1]);
+    load.extend(vec![p.load[t as usize - 1]; n as usize]);
     assert!(
         load.len() as i32 == u_end,
         "loads inconsistent with number of sub time slots"

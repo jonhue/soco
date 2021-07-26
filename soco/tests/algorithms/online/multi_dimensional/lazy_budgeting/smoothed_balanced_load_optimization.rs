@@ -26,9 +26,7 @@ mod lb {
         o.verify().unwrap();
 
         let t_end = 5;
-        let result = o
-            .offline_stream(&lb, t_end, Options::default())
-            .unwrap();
+        let result = o.offline_stream(&lb, t_end, Options::default()).unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         let p_ssco = o.p.into_ssco();
