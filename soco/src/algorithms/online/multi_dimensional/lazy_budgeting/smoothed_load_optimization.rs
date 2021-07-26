@@ -10,6 +10,7 @@ use crate::problem::{DefaultGivenProblem, IntegralSmoothedLoadOptimization};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, sample_uniform};
+use is_sorted::IsSorted;
 use log::debug;
 use pyo3::prelude::*;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
@@ -89,7 +90,7 @@ pub fn lb(
         find_optimal_lanes(cache, o.p.clone(), bound)?;
     debug!("obtained optimal lanes: {:?}", optimal_lanes);
 
-    let (lanes, horizons) = (0..bound as usize)
+    let (lanes, horizons): (Vec<_>, Vec<_>) = (0..bound as usize)
         .into_par_iter()
         .map(|j| {
             if prev_lanes[j] < optimal_lanes[j] || t >= prev_horizons[j] {
@@ -125,6 +126,7 @@ pub fn lb(
         "updated horizons from {:?} to {:?}",
         prev_horizons, horizons
     );
+    assert!(IsSorted::is_sorted(&mut horizons.iter().rev()), "horizons must be in descending order");
 
     let config = collect_config(o.p.d, &lanes);
     Ok(Step(

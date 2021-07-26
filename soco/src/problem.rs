@@ -188,7 +188,7 @@ where
                   lambda: &LoadProfile,
                   zs: &LoadFractions| {
                 assert!(self.d == x_.d());
-                debug!("computes cost given config {:?} and load profile {:?} for load fractions {:?}", x_, lambda, zs);
+                // debug!("computes cost given config {:?} and load profile {:?} for load fractions {:?}", x_, lambda, zs);
                 (0..self.d as usize)
                     .map(|k| -> N64 {
                         let total_load = zs.select_loads(lambda, k)[0];

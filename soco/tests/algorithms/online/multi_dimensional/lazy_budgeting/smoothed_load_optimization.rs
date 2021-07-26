@@ -24,7 +24,7 @@ mod lb {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let t_end = 4;
+        let t_end = 5;
         let result = o
             .offline_stream(&lb, t_end, Options { randomized: false })
             .unwrap();
