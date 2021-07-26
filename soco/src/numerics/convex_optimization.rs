@@ -55,8 +55,7 @@ pub fn find_minimizer(
     minimize(f, bounds, vec![], Vec::<Constraint<()>>::new())
 }
 
-/// Determines the minimizer of a convex function `f` in `d` dimensions with
-/// `constraints` and `equality_constraints`.
+/// Determines the minimizer of a convex function `f` in `d` dimensions with `constraints`.
 pub fn find_unbounded_minimizer<D>(
     f: impl Fn(&[f64]) -> N64,
     d: i32,
@@ -69,8 +68,7 @@ where
     minimize(f, &bounds, vec![init], constraints)
 }
 
-/// Determines the maximizer of a convex function `f` in `d` dimensions with
-/// `constraints` and `equality_constraints`.
+/// Determines the maximizer of a convex function `f` in `d` dimensions with `constraints`.
 pub fn find_unbounded_maximizer<D>(
     f: impl Fn(&[f64]) -> N64,
     d: i32,
@@ -157,7 +155,7 @@ where
 }
 
 /// Determines the optimum of a convex function `f` w.r.t some direction `dir`
-/// with bounds `bounds`, `constraints`, and `equality_constraints`.
+/// with bounds `bounds`, and `constraints`.
 /// Optimization begins at `init` (defaults to lower bounds).
 fn optimize<D>(
     dir: Direction,
