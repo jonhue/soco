@@ -94,27 +94,7 @@ where
 
         self(o, t, xs, prev_m, options)
     }
-}
-impl<'a, T, P, M, O, F> OnlineAlgorithm<'a, T, P, M, O> for F
-where
-    T: Value<'a>,
-    P: Problem + 'a,
-    M: Memory<'a, P>,
-    O: Options<P>,
-    F: Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>>
-        + Send
-        + Sync,
-{
-}
 
-pub trait OnlineAlgorithmWithDefaultOptions<'a, T, P, M, O>:
-    OnlineAlgorithm<'a, T, P, M, O>
-where
-    T: Value<'a>,
-    P: Problem + 'a,
-    M: Memory<'a, P>,
-    O: Options<P>,
-{
     fn next_with_default_options(
         &self,
         o: Online<P>,
@@ -122,10 +102,10 @@ where
         prev_m_: Option<M>,
     ) -> Result<Step<T, M>> {
         let options = O::default(&o.p);
-        OnlineAlgorithm::next(self, o, xs, prev_m_, options)
+        self.next(o, xs, prev_m_, options)
     }
 }
-impl<'a, T, P, M, O, F> OnlineAlgorithmWithDefaultOptions<'a, T, P, M, O> for F
+impl<'a, T, P, M, O, F> OnlineAlgorithm<'a, T, P, M, O> for F
 where
     T: Value<'a>,
     P: Problem + 'a,

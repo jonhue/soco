@@ -4,9 +4,8 @@ mod bcp {
     use crate::init;
     use soco::algorithms::offline::{
         uni_dimensional::capacity_provisioning::brcp,
-        OfflineAlgorithmWithDefaultOptions,
     };
-    use soco::algorithms::offline::{OfflineOptions, OfflineResult};
+    use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions, OfflineResult};
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::SimplifiedSmoothedConvexOptimization;

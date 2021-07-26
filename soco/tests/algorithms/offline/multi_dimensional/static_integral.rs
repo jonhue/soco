@@ -5,9 +5,8 @@ mod static_integral {
     use num::Float;
     use soco::algorithms::offline::{
         multi_dimensional::static_integral::static_integral,
-        OfflineAlgorithmWithDefaultOptions,
     };
-    use soco::algorithms::offline::{OfflineOptions, OfflineResult};
+    use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions, OfflineResult};
     use soco::config::IntegralConfig;
     use soco::objective::Objective;
     use soco::problem::SimplifiedSmoothedConvexOptimization;

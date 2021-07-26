@@ -6,9 +6,8 @@ mod co {
     use rand_pcg::Pcg64;
     use soco::algorithms::offline::{
         multi_dimensional::convex_optimization::co,
-        OfflineAlgorithmWithDefaultOptions,
     };
-    use soco::algorithms::offline::{OfflineOptions, OfflineResult};
+    use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions, OfflineResult};
     use soco::config::Config;
     use soco::convert::{CastableSchedule, DiscretizableSchedule};
     use soco::norm::{euclidean, manhattan_scaled, norm_squared};

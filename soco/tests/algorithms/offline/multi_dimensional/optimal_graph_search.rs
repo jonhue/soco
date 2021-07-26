@@ -8,7 +8,6 @@ mod optimal_graph_search {
     use soco::algorithms::offline::multi_dimensional::optimal_graph_search::Options;
     use soco::algorithms::offline::{
         multi_dimensional::optimal_graph_search::optimal_graph_search,
-        OfflineAlgorithmWithDefaultOptions,
     };
     use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions};
     use soco::config::Config;

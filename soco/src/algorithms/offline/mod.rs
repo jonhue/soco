@@ -36,33 +36,17 @@ where
     ) -> Result<R> {
         self(p, options, offline_options)
     }
-}
-impl<T, R, P, O, F> OfflineAlgorithm<T, R, P, O> for F
-where
-    R: OfflineResult<T>,
-    P: Problem,
-    O: Options<P>,
-    F: Fn(P, O, OfflineOptions) -> Result<R>,
-{
-}
 
-pub trait OfflineAlgorithmWithDefaultOptions<T, R, P, O>:
-    OfflineAlgorithm<T, R, P, O>
-where
-    R: OfflineResult<T>,
-    P: Problem,
-    O: Options<P>,
-{
     fn solve_with_default_options(
         &self,
         p: P,
         offline_options: OfflineOptions,
     ) -> Result<R> {
         let options = O::default(&p);
-        OfflineAlgorithm::solve(self, p, options, offline_options)
+        self.solve(p, options, offline_options)
     }
 }
-impl<T, R, P, O, F> OfflineAlgorithmWithDefaultOptions<T, R, P, O> for F
+impl<T, R, P, O, F> OfflineAlgorithm<T, R, P, O> for F
 where
     R: OfflineResult<T>,
     P: Problem,

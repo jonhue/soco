@@ -54,7 +54,7 @@ mod optimal_graph_search {
         uni_dimensional::optimal_graph_search::{
             make_pow_of_2, optimal_graph_search, Options,
         },
-        OfflineAlgorithm, OfflineAlgorithmWithDefaultOptions, OfflineOptions,
+        OfflineAlgorithm, OfflineOptions,
     };
     use soco::config::Config;
     use soco::objective::Objective;
