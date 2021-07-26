@@ -8,6 +8,7 @@ use crate::utils::{access, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
+use num::NumCast;
 use pyo3::prelude::*;
 use rayon::iter::{
     FromParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
@@ -314,16 +315,28 @@ where
     };
 
     // assigns each dimension a fraction of each load type
-    // note: when starting with the feasible uniform distribution, solver may get
-    // stuck when all surrounding objectives are inf (e.g. if one dimension is set
-    // to 0 and cannot take any load)
-    // warning: for full generality this needs to be refactored to account for all possible
-    // configurations that have some variables set to `0`.
-    let strategies = vec![
-        vec![1. / (solver_d as f64 + e as f64); solver_d],
-        vec![1. / solver_d as f64; solver_d],
-        vec![0.; solver_d],
-    ];
+    // note: the chosen assignment ensures that any server type with `0` active servers
+    // is also assigned an initial load fraction of `0`
+    let number_of_non_zero_entries =
+        x.iter().filter(|&&j| j > NumCast::from(0).unwrap()).count();
+    let strategy = if number_of_non_zero_entries == 0 {
+        vec![1. / (solver_d as f64 + e as f64); solver_d]
+    } else {
+        let value = 1. / (number_of_non_zero_entries as f64 * e as f64);
+        let vec_x = x.to_vec();
+        let (_, butlast_x) = vec_x.split_last().unwrap();
+        butlast_x
+            .iter()
+            .map(|&j| {
+                if j == NumCast::from(0).unwrap() {
+                    vec![0.; e as usize]
+                } else {
+                    vec![value; e as usize]
+                }
+            })
+            .flatten()
+            .collect()
+    };
 
     // ensure that the fractions across all solver dimensions of each load type do not exceed `1`
     let constraints = (0..e as usize)
@@ -338,6 +351,6 @@ where
 
     // minimize cost across all possible server to load matchings
     let (_, opt) =
-        minimize(objective, &bounds, strategies, constraints).unwrap();
+        minimize(objective, &bounds, vec![strategy], constraints).unwrap();
     opt
 }
