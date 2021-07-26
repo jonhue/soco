@@ -25,6 +25,7 @@ features = ["extension-module"]
 approx = "0.5.0"
 bacon-sci = { git = "https://github.com/aftix/bacon", branch = "master" }
 bincode = "1.3.3"
+cached = "0.23.0"
 derivative = "2.2.0"
 finitediff = "0.1.4"
 is_sorted = "0.1.1"

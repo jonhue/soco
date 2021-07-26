@@ -4,10 +4,10 @@ mod co {
     use crate::{factories::inv_e, utils::upper_bounds};
     use rand::prelude::*;
     use rand_pcg::Pcg64;
+    use soco::algorithms::offline::multi_dimensional::convex_optimization::co;
     use soco::algorithms::offline::{
-        multi_dimensional::convex_optimization::co,
+        OfflineAlgorithm, OfflineOptions, OfflineResult,
     };
-    use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions, OfflineResult};
     use soco::config::Config;
     use soco::convert::{CastableSchedule, DiscretizableSchedule};
     use soco::norm::{euclidean, manhattan_scaled, norm_squared};

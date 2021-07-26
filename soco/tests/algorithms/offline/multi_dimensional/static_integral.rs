@@ -3,10 +3,10 @@ mod static_integral {
     use crate::factories::penalize_zero;
     use crate::init;
     use num::Float;
+    use soco::algorithms::offline::multi_dimensional::static_integral::static_integral;
     use soco::algorithms::offline::{
-        multi_dimensional::static_integral::static_integral,
+        OfflineAlgorithm, OfflineOptions, OfflineResult,
     };
-    use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions, OfflineResult};
     use soco::config::IntegralConfig;
     use soco::objective::Objective;
     use soco::problem::SimplifiedSmoothedConvexOptimization;

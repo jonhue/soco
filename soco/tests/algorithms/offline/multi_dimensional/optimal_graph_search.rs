@@ -5,10 +5,8 @@ mod optimal_graph_search {
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::algorithms::offline::graph_search::CachedPath;
+    use soco::algorithms::offline::multi_dimensional::optimal_graph_search::optimal_graph_search;
     use soco::algorithms::offline::multi_dimensional::optimal_graph_search::Options;
-    use soco::algorithms::offline::{
-        multi_dimensional::optimal_graph_search::optimal_graph_search,
-    };
     use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions};
     use soco::config::Config;
     use soco::objective::Objective;

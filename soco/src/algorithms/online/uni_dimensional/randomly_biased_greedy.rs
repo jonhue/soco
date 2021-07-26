@@ -5,6 +5,7 @@ use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, sample_uniform};
+use cached::{Cached, SizedCache};
 use noisy_float::prelude::*;
 use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
@@ -54,6 +55,8 @@ pub fn rbg(
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
 
+    WORK.lock().unwrap().cache_clear();
+
     let x = next(o, t, m.r, options.theta)?;
     Ok(Step(Config::single(x), None))
 }
@@ -74,23 +77,22 @@ fn next(
     Ok(x[0])
 }
 
-fn w(
-    o: &Online<FractionalSmoothedConvexOptimization<'_>>,
-    t: i32,
-    theta: f64,
-    x: FractionalConfig,
-) -> Result<N64> {
-    if t == 0 {
-        Ok(n64(theta) * (o.p.switching_cost)(x))
-    } else {
-        let f = |raw_y: &[f64]| -> N64 {
-            let y = Config::new(raw_y.to_vec());
-            w(o, t - 1, theta, y.clone()).unwrap()
-                + o.p.hit_cost(t, y.clone())
-                + n64(theta) * (o.p.switching_cost)(x.clone() - y)
-        };
+cached_key_result! {
+    WORK: SizedCache<String, N64> = SizedCache::with_size(1_000);
+    Key = { format!("{}-{:?}", t, x) };
+    fn w(o: &Online<FractionalSmoothedConvexOptimization<'_>>, t: i32, theta: f64, x: FractionalConfig) -> Result<N64> = {
+        if t == 0 {
+            Ok(n64(theta) * (o.p.switching_cost)(x))
+        } else {
+            let f = |raw_y: &[f64]| -> N64 {
+                let y = Config::new(raw_y.to_vec());
+                w(o, t - 1, theta, y.clone()).unwrap()
+                    + o.p.hit_cost(t, y.clone())
+                    + n64(theta) * (o.p.switching_cost)(x.clone() - y)
+            };
 
-        let (_, opt) = find_minimizer(f, &o.p.bounds)?;
-        Ok(opt)
+            let (_, opt) = find_minimizer(f, &o.p.bounds)?;
+            Ok(opt)
+        }
     }
 }
