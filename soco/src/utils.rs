@@ -98,3 +98,20 @@ where
     let n = NumCast::from(xs.len()).unwrap();
     xs.into_iter().sum::<T>() / n
 }
+
+/// Transposing a vector of vectors.
+///
+/// From: https://stackoverflow.com/questions/64498617/how-to-transpose-a-vector-of-vectors-in-rust
+pub fn transpose<T>(xs: Vec<Vec<T>>) -> Vec<Vec<T>> {
+    assert!(!xs.is_empty());
+    let len = xs[0].len();
+    let mut iters: Vec<_> = xs.into_iter().map(|x| x.into_iter()).collect();
+    (0..len)
+        .map(|_| {
+            iters
+                .iter_mut()
+                .map(|x| x.next().unwrap())
+                .collect::<Vec<T>>()
+        })
+        .collect()
+}
