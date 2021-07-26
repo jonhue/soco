@@ -42,7 +42,6 @@ fn integration() {
         let delta = 1.;
         let model = DataCenterModel::new(
             delta,
-            0.,
             vec![Location {
                 key: DEFAULT_KEY.to_string(),
                 m: hash_map(&[(DEFAULT_KEY.to_string(), m)]),

@@ -51,6 +51,23 @@ impl SwitchingCost {
     pub fn normalized_switching_cost(&self) -> N64 {
         self.switching_cost() / (self.energy_cost * self.phi_min)
     }
+
+    /// Builds switching cost such that the normalized switching cost matches `normalized_switching_cost`.
+    pub fn from_normalized(
+        normalized_switching_cost: f64,
+        energy_cost: f64,
+        phi_min: f64,
+    ) -> Self {
+        Self {
+            energy_cost,
+            phi_min,
+            phi_max: 0.,
+            epsilon: 0.,
+            delta: 0.,
+            tau: 0.,
+            rho: normalized_switching_cost * energy_cost * phi_min,
+        }
+    }
 }
 #[pymethods]
 impl SwitchingCost {
@@ -83,6 +100,20 @@ impl SwitchingCost {
     #[pyo3(name = "normalized_switching_cost")]
     fn normalized_switching_cost_py(&self) -> PyResult<f64> {
         Ok(self.normalized_switching_cost().raw())
+    }
+
+    #[staticmethod]
+    #[pyo3(name = "from_normalized")]
+    fn from_normalized_py(
+        normalized_switching_cost: f64,
+        energy_cost: f64,
+        phi_min: f64,
+    ) -> PyResult<Self> {
+        Ok(Self::from_normalized(
+            normalized_switching_cost,
+            energy_cost,
+            phi_min,
+        ))
     }
 }
 

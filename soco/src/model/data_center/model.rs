@@ -77,7 +77,7 @@ pub struct JobType {
     /// Name.
     #[pyo3(get, set)]
     pub key: String,
-    /// Processing time `\eta_{k,i}` of a job on some server type `k` (assuming full utilization).
+    /// Processing time `\eta_{k,i}` in units time of a job on some server type `k` (assuming full utilization).
     /// Must be less or equals to the length of a time slot `delta` for some server type.
     processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + Send + Sync>,
 }
@@ -190,9 +190,6 @@ pub struct DataCenterModel {
     /// Length of a time slot.
     #[pyo3(get, set)]
     delta: f64,
-    /// Weight of revenue loss (as opposed to energy cost). `gamma >= 0`.
-    #[pyo3(get, set)]
-    gamma: f64,
     /// Locations.
     #[pyo3(get, set)]
     locations: Vec<Location>,
@@ -226,7 +223,6 @@ impl DataCenterModel {
     #[new]
     pub fn new(
         delta: f64,
-        gamma: f64,
         locations: Vec<Location>,
         server_types: Vec<ServerType>,
         sources: Vec<Source>,
@@ -238,7 +234,6 @@ impl DataCenterModel {
     ) -> Self {
         Self {
             delta,
-            gamma,
             locations,
             server_types,
             sources,
@@ -348,7 +343,7 @@ impl DataCenterModel {
         if delay.is_infinite() {
             n64(f64::INFINITY)
         } else {
-            n64(self.gamma) * self.revenue_loss_model.loss(t, job_type, delay)
+            self.revenue_loss_model.loss(t, job_type, delay)
         }
     }
 
