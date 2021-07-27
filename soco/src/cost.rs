@@ -71,7 +71,7 @@ where
             cost: result.cost + value.cost,
             output: ModelOutput::reduce(vec![result.output, value.output]),
         })
-        .unwrap_or_else(Cost::default)
+        .unwrap_or_default()
     }
 }
 impl<C, D> Serialize for Cost<C, D>

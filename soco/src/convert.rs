@@ -2,7 +2,7 @@
 
 use crate::config::{Config, FractionalConfig, IntegralConfig};
 use crate::cost::{Cost, CostFn, FailableCost, SingleCostFn};
-use crate::model::data_center::model::{
+use crate::model::data_center::{
     DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
 };
 use crate::model::{ModelOutput, ModelOutputFailure, ModelOutputSuccess};

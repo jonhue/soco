@@ -6,10 +6,11 @@ use crate::{
         DataCenterFractionalSimplifiedSmoothedConvexOptimization, Response,
         StepResponse,
     },
-    model::data_center::model::{
-        DataCenterModel, DataCenterModelOutputFailure,
-        DataCenterModelOutputSuccess, DataCenterOfflineInput,
-        DataCenterOnlineInput,
+    model::data_center::{
+        model::{
+            DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+        },
+        DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
     },
     streaming::online::{self, OfflineResponse},
 };

@@ -7,7 +7,7 @@ use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
 use crate::cost::{Cost, CostFn, FailableCostFn, SingleCostFn};
-use crate::model::data_center::model::{
+use crate::model::data_center::{
     DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
 };
 use crate::problem::{

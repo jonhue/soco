@@ -4,10 +4,11 @@ use super::{
 };
 use crate::{
     algorithms::online::uni_dimensional::randomized::{randomized, Memory},
-    model::data_center::model::{
-        DataCenterModel, DataCenterModelOutputFailure,
-        DataCenterModelOutputSuccess, DataCenterOfflineInput,
-        DataCenterOnlineInput,
+    model::data_center::{
+        model::{
+            DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+        },
+        DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
     },
     streaming::online::{self, OfflineResponse},
 };

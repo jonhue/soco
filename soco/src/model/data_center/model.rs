@@ -1,8 +1,12 @@
 //! Model of a data center.
 
 use super::loads::PredictedLoadProfile;
+use super::{
+    DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
+    DataCenterObjective, IntermediateObjective, IntermediateResult,
+};
 use crate::config::Config;
-use crate::cost::{CostFn, FailableCost, SingleCostFn};
+use crate::cost::{CostFn, FailableCost, FailableCostFn, SingleCostFn};
 use crate::model::data_center::loads::{
     apply_loads_over_time, apply_predicted_loads, LoadFractions, LoadProfile,
 };
@@ -12,10 +16,7 @@ use crate::model::data_center::models::energy_cost::EnergyCostModel;
 use crate::model::data_center::models::revenue_loss::RevenueLossModel;
 use crate::model::data_center::models::switching_cost::SwitchingCostModel;
 use crate::model::data_center::safe_balancing;
-use crate::model::{
-    verify_update, Model, ModelOutput, ModelOutputFailure, ModelOutputSuccess,
-    OfflineInput, OnlineInput,
-};
+use crate::model::{verify_update, Model, OfflineInput, OnlineInput};
 use crate::problem::{
     BaseProblem, Online, SimplifiedSmoothedConvexOptimization,
     SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
@@ -29,9 +30,7 @@ use num::NumCast;
 use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::iter::Sum;
 use std::sync::Arc;
-use thiserror::Error;
 
 pub static DEFAULT_KEY: &str = "";
 
@@ -187,28 +186,6 @@ impl Location {
     }
 }
 
-pub struct DataCenterObjective {
-    pub energy_cost: N64,
-    pub revenue_loss: N64,
-}
-impl Default for DataCenterObjective {
-    fn default() -> Self {
-        Self {
-            energy_cost: n64(0.),
-            revenue_loss: n64(0.),
-        }
-    }
-}
-impl Sum for DataCenterObjective {
-    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
-        iter.reduce(|result, value| DataCenterObjective {
-            energy_cost: result.energy_cost + value.energy_cost,
-            revenue_loss: result.revenue_loss + value.revenue_loss,
-        })
-        .unwrap_or_else(DataCenterObjective::default)
-    }
-}
-
 /// Model of a network of data centers.
 #[pyclass]
 #[derive(Clone)]
@@ -280,8 +257,8 @@ impl DataCenterModel {
         &self,
         server_type: &ServerType,
         loads: &LoadProfile,
-    ) -> N64 {
-        loads
+    ) -> IntermediateResult {
+        Ok(loads
             .iter()
             .enumerate()
             .map(|(i_, &load)| {
@@ -290,7 +267,7 @@ impl DataCenterModel {
                     self.job_types[i].processing_time_on(server_type);
                 processing_time * load
             })
-            .sum()
+            .sum())
     }
 
     /// Energy cost. Non-negative convex operating cost of data center `j`
@@ -303,12 +280,12 @@ impl DataCenterModel {
         x: &Config<T>,
         lambda: &LoadProfile,
         zs: &LoadFractions,
-    ) -> N64
+    ) -> IntermediateResult
     where
         T: Value<'a>,
     {
-        let p = self.energy_consumption(j, x, lambda, zs);
-        self.energy_cost_model.cost(t, &self.locations[j], p)
+        let p = self.energy_consumption(j, x, lambda, zs)?;
+        Ok(self.energy_cost_model.cost(t, &self.locations[j], p))
     }
 
     /// Energy consumption of data center `j` with configuration `x_`, load profile
@@ -320,7 +297,7 @@ impl DataCenterModel {
         x_: &Config<T>,
         lambda: &LoadProfile,
         zs: &LoadFractions,
-    ) -> N64
+    ) -> IntermediateResult
     where
         T: Value<'a>,
     {
@@ -328,18 +305,20 @@ impl DataCenterModel {
             .map(|k| {
                 let k_ = encode(self.server_types.len(), j, k);
                 let server_type = &self.server_types[k];
-                let total_load = self
-                    .total_sub_jobs(server_type, &zs.select_loads(lambda, k_));
+                let total_load = self.total_sub_jobs(
+                    server_type,
+                    &zs.select_loads(lambda, k_),
+                )?;
                 let x = NumCast::from(x_[k_]).unwrap();
                 safe_balancing(x, total_load, || {
                     let s = total_load / (x * self.delta);
-                    server_type.limit_utilization(s, || {
+                    Ok(server_type.limit_utilization(s, || {
                         x * self.energy_consumption_model.consumption(
                             self.delta,
                             server_type,
                             s,
                         )
-                    })
+                    }))
                 })
             })
             .sum()
@@ -361,15 +340,15 @@ impl DataCenterModel {
         job_type: &JobType,
         number_of_jobs: N64,
         mean_job_duration: N64,
-    ) -> N64 {
+    ) -> IntermediateResult {
         let delay =
             average_delay(self.delta, number_of_jobs, mean_job_duration)
                 + source.routing_delay_to(t, location)
                 + job_type.processing_time_on(server_type);
         if delay.is_infinite() {
-            n64(f64::INFINITY)
+            Err(DataCenterModelOutputFailure::InfiniteDelay)
         } else {
-            self.revenue_loss_model.loss(t, job_type, delay)
+            Ok(self.revenue_loss_model.loss(t, job_type, delay))
         }
     }
 
@@ -382,12 +361,12 @@ impl DataCenterModel {
         server_type: &ServerType,
         x_: T,
         loads: LoadProfile,
-    ) -> N64
+    ) -> IntermediateResult
     where
         T: Value<'a>,
     {
         let x = NumCast::from(x_).unwrap();
-        let total_load = self.total_sub_jobs(server_type, &loads);
+        let total_load = self.total_sub_jobs(server_type, &loads)?;
 
         // calculates the mean duration of jobs on a server of some type under the load profile `loads`
         let number_of_jobs = loads.iter().sum();
@@ -399,23 +378,22 @@ impl DataCenterModel {
 
         safe_balancing(x, number_of_jobs, || {
             (0..self.sources.len())
-                .map(|s| -> N64 {
+                .map(|s| {
                     (0..self.job_types.len())
                         .map(|i| {
-                            loads[encode(self.job_types.len(), s, i)]
-                                * self.revenue_loss(
-                                    t,
-                                    location,
-                                    server_type,
-                                    &self.sources[s],
-                                    &self.job_types[i],
-                                    number_of_jobs / x,
-                                    mean_job_duration,
-                                )
+                            Ok(self.revenue_loss(
+                                t,
+                                location,
+                                server_type,
+                                &self.sources[s],
+                                &self.job_types[i],
+                                number_of_jobs / x,
+                                mean_job_duration,
+                            )? * loads[encode(self.job_types.len(), s, i)])
                         })
-                        .sum()
+                        .sum::<IntermediateResult>()
                 })
-                .sum()
+                .sum::<IntermediateResult>()
         })
     }
 
@@ -427,26 +405,28 @@ impl DataCenterModel {
         x: &Config<T>,
         lambda: &LoadProfile,
         zs: &LoadFractions,
-    ) -> DataCenterObjective
+    ) -> IntermediateObjective
     where
         T: Value<'a>,
     {
         (0..self.locations.len())
-            .map(|j| DataCenterObjective {
-                energy_cost: self.energy_cost(t, j, x, lambda, zs),
-                revenue_loss: (0..self.server_types.len())
-                    .map(|k| -> N64 {
-                        let k_ = encode(self.server_types.len(), j, k);
-                        let loads = zs.select_loads(lambda, k_);
-                        self.overall_revenue_loss(
-                            t,
-                            &self.locations[j],
-                            &self.server_types[k],
-                            x[k_],
-                            loads,
-                        )
-                    })
-                    .sum::<N64>(),
+            .map(|j| {
+                Ok(DataCenterObjective::new(
+                    self.energy_cost(t, j, x, lambda, zs)?,
+                    (0..self.server_types.len())
+                        .map(|k| {
+                            let k_ = encode(self.server_types.len(), j, k);
+                            let loads = zs.select_loads(lambda, k_);
+                            self.overall_revenue_loss(
+                                t,
+                                &self.locations[j],
+                                &self.server_types[k],
+                                x[k_],
+                                loads,
+                            )
+                        })
+                        .sum::<IntermediateResult>()?,
+                ))
             })
             .sum()
     }
@@ -564,63 +544,6 @@ pub struct DataCenterOnlineInput {
     pub loads: Vec<PredictedLoadProfile>,
 }
 impl OnlineInput for DataCenterOnlineInput {}
-
-#[pyclass]
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct DataCenterModelOutputSuccess {
-    /// Energy cost of model.
-    pub energy_cost: f64,
-    /// Revenue loss of model.
-    pub revenue_loss: f64,
-    /// All possible assignments of fractions of loads to server types.
-    pub assignments: Vec<Vec<f64>>,
-}
-impl ModelOutputSuccess for DataCenterModelOutputSuccess {
-    fn merge_with(mut self, output: Self) -> Self {
-        self.assignments.extend(output.assignments.into_iter());
-        Self {
-            energy_cost: (self.energy_cost + output.energy_cost) / 2.,
-            revenue_loss: (self.revenue_loss + output.revenue_loss) / 2.,
-            assignments: self.assignments,
-        }
-    }
-}
-impl DataCenterModelOutputSuccess {
-    pub fn new(
-        energy_cost: f64,
-        revenue_loss: f64,
-        assignment: Vec<f64>,
-    ) -> Self {
-        Self {
-            energy_cost,
-            revenue_loss,
-            assignments: vec![assignment],
-        }
-    }
-}
-
-#[derive(Clone, Debug, Error, Deserialize, Serialize)]
-pub enum DataCenterModelOutputFailure {
-    #[error("The configuration is unable to support the given load profile.")]
-    DemandExceedingSupply,
-    #[error("The configuration is outside the decision space.")]
-    OutsideDecisionSpace,
-    #[error("A server cannot handle more than one job during a time slot.")]
-    SLOMaxUtilizationExceeded,
-}
-impl IntoPy<PyObject> for DataCenterModelOutputFailure {
-    fn into_py(self, py: Python) -> PyObject {
-        self.to_string().into_py(py)
-    }
-}
-impl ModelOutputFailure for DataCenterModelOutputFailure {
-    fn outside_decision_space() -> DataCenterModelOutputFailure {
-        DataCenterModelOutputFailure::OutsideDecisionSpace
-    }
-}
-
-pub type DataCenterModelOutput =
-    ModelOutput<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>;
 
 impl<'a, T>
     Model<
@@ -772,7 +695,9 @@ where
         let switching_cost = self
             .switching_cost_model
             .switching_costs(&self.server_types);
-        let hitting_cost = self
+        let hitting_cost: Vec<
+            FailableCostFn<'a, f64, DataCenterModelOutputFailure>,
+        > = self
             .server_types
             .clone()
             .into_iter()

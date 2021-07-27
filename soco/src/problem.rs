@@ -5,11 +5,11 @@ use crate::cost::{Cost, CostFn, FailableCost, FailableCostFn, RawCost};
 use crate::model::data_center::loads::{
     apply_loads_over_time, LoadFractions, LoadProfile,
 };
-use crate::model::data_center::model::{
-    DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
-    DataCenterObjective,
-};
 use crate::model::data_center::safe_balancing;
+use crate::model::data_center::{
+    DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
+    DataCenterObjective, IntermediateObjective,
+};
 use crate::model::{ModelOutput, ModelOutputFailure, ModelOutputSuccess};
 use crate::norm::NormFn;
 use crate::result::Result;
@@ -334,20 +334,20 @@ where
                   lambda: &LoadProfile,
                   zs: &LoadFractions| {
                 assert!(self.d == x_.d());
-                DataCenterObjective {
-                    energy_cost: (0..self.d as usize)
-                        .map(|k| -> N64 {
-                            let total_load = zs.select_loads(lambda, k)[0];
-                            let x = NumCast::from(x_[k]).unwrap();
+                (0..self.d as usize)
+                    .map(|k| {
+                        let total_load = zs.select_loads(lambda, k)[0];
+                        let x = NumCast::from(x_[k]).unwrap();
+                        Ok(DataCenterObjective::new(
                             safe_balancing(x, total_load, || {
-                                x * self.hitting_cost[k]
+                                Ok(x * self.hitting_cost[k]
                                     .call_certain(t, (total_load / x).raw())
-                                    .cost
-                            })
-                        })
-                        .sum::<N64>(),
-                    revenue_loss: n64(0.),
-                }
+                                    .cost)
+                            })?,
+                            n64(0.),
+                        ))
+                    })
+                    .sum::<IntermediateObjective>()
             },
             loads,
             1,

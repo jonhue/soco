@@ -6,10 +6,11 @@ use crate::{
     algorithms::online::uni_dimensional::probabilistic::{
         probabilistic, Memory, Options,
     },
-    model::data_center::model::{
-        DataCenterModel, DataCenterModelOutputFailure,
-        DataCenterModelOutputSuccess, DataCenterOfflineInput,
-        DataCenterOnlineInput,
+    model::data_center::{
+        model::{
+            DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+        },
+        DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
     },
     streaming::online::{self, OfflineResponse},
 };

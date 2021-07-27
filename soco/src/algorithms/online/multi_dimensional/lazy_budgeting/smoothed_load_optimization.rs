@@ -6,7 +6,7 @@ use crate::algorithms::offline::multi_dimensional::Vertice;
 use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Online, Step};
 use crate::config::{Config, IntegralConfig};
-use crate::model::data_center::model::DataCenterModelOutputFailure;
+use crate::model::data_center::DataCenterModelOutputFailure;
 use crate::problem::{DefaultGivenProblem, IntegralSmoothedLoadOptimization};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;

@@ -5,10 +5,11 @@ use crate::{
     algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Memory, Options,
     },
-    model::data_center::model::{
-        DataCenterModel, DataCenterModelOutputFailure,
-        DataCenterModelOutputSuccess, DataCenterOfflineInput,
-        DataCenterOnlineInput,
+    model::data_center::{
+        model::{
+            DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+        },
+        DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
     },
     streaming::online::{self, OfflineResponse},
 };

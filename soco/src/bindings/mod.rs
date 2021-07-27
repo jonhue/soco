@@ -3,7 +3,7 @@ use utils::make_package;
 
 use crate::{
     cost::Cost,
-    model::data_center::model::{
+    model::data_center::{
         DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
     },
 };

@@ -5,7 +5,7 @@ use soco::{
     config::{FractionalConfig, IntegralConfig},
     cost::{FailableCost, FailableCostFn, RawCostFn, SingleCostFn},
     model::{
-        data_center::model::DataCenterModelOutputFailure, ModelOutputFailure,
+        data_center::DataCenterModelOutputFailure, ModelOutputFailure,
     },
     vec_wrapper::VecWrapper,
 };

@@ -6,10 +6,8 @@ use soco::{
     model::data_center::{
         loads::{LoadProfile, PredictedLoadProfile},
         model::{
-            DataCenterModel, DataCenterModelOutputFailure,
-            DataCenterModelOutputSuccess, DataCenterOfflineInput,
-            DataCenterOnlineInput, JobType, Location, ServerType, Source,
-            DEFAULT_KEY,
+            DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+            JobType, Location, ServerType, Source, DEFAULT_KEY,
         },
         models::{
             energy_consumption::{
@@ -21,6 +19,7 @@ use soco::{
             },
             switching_cost::{SwitchingCost, SwitchingCostModel},
         },
+        DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
     },
     problem::FractionalSmoothedConvexOptimization,
     streaming::online::{self, OfflineResponse},

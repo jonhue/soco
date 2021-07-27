@@ -1,11 +1,12 @@
 //! Definition of load profiles.
 
-use super::model::{
+use super::{
     DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
-    DataCenterObjective,
+    IntermediateObjective,
 };
 use crate::config::Config;
 use crate::cost::{Cost, CostFn, SingleCostFn};
+use crate::model::data_center::DataCenterObjective;
 use crate::model::ModelOutput;
 use crate::numerics::convex_optimization::{minimize, Constraint};
 use crate::numerics::ApplicablePrecision;
@@ -396,7 +397,12 @@ impl LoadFractions {
 pub fn apply_loads_over_time<'a, 'b, T>(
     d: i32,
     e: i32,
-    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> DataCenterObjective
+    objective: impl Fn(
+            i32,
+            &Config<T>,
+            &LoadProfile,
+            &LoadFractions,
+        ) -> IntermediateObjective
         + Send
         + Sync
         + 'b,
@@ -430,7 +436,12 @@ where
 pub fn apply_predicted_loads<'a, 'b, T>(
     d: i32,
     e: i32,
-    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> DataCenterObjective
+    objective: impl Fn(
+            i32,
+            &Config<T>,
+            &LoadProfile,
+            &LoadFractions,
+        ) -> IntermediateObjective
         + Send
         + Sync
         + 'b,
@@ -472,7 +483,7 @@ pub fn apply_loads<'a, T>(
         &Config<T>,
         &LoadProfile,
         &LoadFractions,
-    ) -> DataCenterObjective,
+    ) -> IntermediateObjective,
     lambda: &LoadProfile,
     t: i32,
     x: Config<T>,
@@ -491,7 +502,8 @@ where
         let DataCenterObjective {
             energy_cost,
             revenue_loss,
-        } = objective(t, &x, lambda, &zs);
+        } = objective(t, &x, lambda, &zs)
+            .unwrap_or_else(DataCenterObjective::failure);
         energy_cost + revenue_loss
     };
 
@@ -536,16 +548,19 @@ where
             .unwrap();
 
     let zs = LoadFractions::new(&zs_, d, e);
-    let DataCenterObjective {
-        energy_cost,
-        revenue_loss,
-    } = objective(t, &x, lambda, &zs);
-    Cost::new(
-        cost,
-        ModelOutput::Success(DataCenterModelOutputSuccess::new(
-            energy_cost.raw(),
-            revenue_loss.raw(),
-            zs_,
-        )),
-    )
+    let output = objective(t, &x, lambda, &zs)
+        .map(
+            |DataCenterObjective {
+                 energy_cost,
+                 revenue_loss,
+             }| {
+                ModelOutput::Success(DataCenterModelOutputSuccess::new(
+                    energy_cost.raw(),
+                    revenue_loss.raw(),
+                    zs_,
+                ))
+            },
+        )
+        .unwrap_or_else(|failure| ModelOutput::Failure(failure));
+    Cost::new(cost, output)
 }
