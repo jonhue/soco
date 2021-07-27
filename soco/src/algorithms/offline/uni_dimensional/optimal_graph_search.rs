@@ -1,9 +1,10 @@
 use crate::algorithms::offline::graph_search::{Path, Paths};
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
-use crate::cost::{CostFn, SingleCostFn};
+use crate::cost::{Cost, CostFn, SingleCostFn};
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::problem::{
-    IntegralSimplifiedSmoothedConvexOptimization,
+    IntegralSimplifiedSmoothedConvexOptimization, Problem,
     SimplifiedSmoothedConvexOptimization,
 };
 use crate::result::{Failure, Result};
@@ -44,11 +45,15 @@ impl Options {
 }
 
 /// Graph-Based Optimal Algorithm
-pub fn optimal_graph_search(
-    mut p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
+pub fn optimal_graph_search<'a, C, D>(
+    mut p: IntegralSimplifiedSmoothedConvexOptimization<'a, C, D>,
     Options { x_start }: Options,
     OfflineOptions { inverted, alpha, l }: OfflineOptions,
-) -> Result<Path> {
+) -> Result<Path>
+where
+    C: ModelOutputSuccess + 'a,
+    D: ModelOutputFailure + 'a,
+{
     assert(l.is_none(), Failure::UnsupportedLConstrainedMovement)?;
     assert(p.d == 1, Failure::UnsupportedProblemDimension(p.d))?;
 
@@ -80,9 +85,13 @@ pub fn optimal_graph_search(
 }
 
 /// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `optimal_graph_search`.
-pub fn make_pow_of_2(
-    p: IntegralSimplifiedSmoothedConvexOptimization,
-) -> Result<IntegralSimplifiedSmoothedConvexOptimization> {
+pub fn make_pow_of_2<'a, C, D>(
+    p: IntegralSimplifiedSmoothedConvexOptimization<'a, C, D>,
+) -> Result<IntegralSimplifiedSmoothedConvexOptimization<C, D>>
+where
+    C: ModelOutputSuccess + 'a,
+    D: ModelOutputFailure + 'a,
+{
     let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);
 
     Ok(SimplifiedSmoothedConvexOptimization {
@@ -96,23 +105,26 @@ pub fn make_pow_of_2(
                 if x[0] <= p.bounds[0] {
                     p.hit_cost(t, x)
                 } else {
-                    n64(x[0] as f64)
-                        * (p.hit_cost(t, Config::new(p.bounds.clone()))
-                            + f64::EPSILON)
+                    let hitting_cost =
+                        p.hit_cost(t, Config::new(p.bounds.clone()));
+                    Cost::new(
+                        n64(x[0] as f64) * (hitting_cost.cost + f64::EPSILON),
+                        hitting_cost.output,
+                    )
                 }
             }),
         ),
     })
 }
 
-fn select_initial_rows<'a>(
-    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
+fn select_initial_rows<'a, C, D>(
+    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a, C, D>,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
     move |_| (0..=4).map(|e| e * p.bounds[0] / 4).collect()
 }
 
-fn select_next_rows<'a>(
-    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a>,
+fn select_next_rows<'a, C, D>(
+    p: &'a IntegralSimplifiedSmoothedConvexOptimization<'a, C, D>,
     xs: &'a IntegralSchedule,
     k: u32,
 ) -> impl Fn(i32) -> Vec<i32> + 'a {
@@ -124,13 +136,17 @@ fn select_next_rows<'a>(
     }
 }
 
-fn find_schedule(
-    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
+fn find_schedule<C, D>(
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>,
     select_rows: impl Fn(i32) -> Vec<i32>,
     alpha: f64,
     inverted: bool,
     x_start: i32,
-) -> Path {
+) -> Path
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let mut paths: Paths<Vertice> = HashMap::new();
     let initial_vertice = Vertice(0, x_start);
     let initial_path = Path {
@@ -173,15 +189,18 @@ fn find_schedule(
     )
 }
 
-fn find_shortest_subpath(
-    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
+fn find_shortest_subpath<C, D>(
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>,
     paths: &mut Paths<Vertice>,
     t: i32,
     from: &Vec<i32>,
     to: i32,
     alpha: f64,
     inverted: bool,
-) {
+) where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let mut picked_source = 0;
     let mut picked_cost = f64::INFINITY;
     for &source in from {
@@ -196,15 +215,19 @@ fn find_shortest_subpath(
     update_paths(paths, t, picked_source, to, picked_cost);
 }
 
-fn build_cost(
-    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
+fn build_cost<C, D>(
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>,
     t: i32,
     i: i32,
     j: i32,
     alpha: f64,
     inverted: bool,
-) -> f64 {
-    let hitting_cost = p.hit_cost(t, Config::single(j)).raw();
+) -> f64
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
+    let hitting_cost = p.hit_cost(t, Config::single(j)).cost.raw();
     let movement = p
         .movement(Config::single(i), Config::single(j), inverted)
         .raw();

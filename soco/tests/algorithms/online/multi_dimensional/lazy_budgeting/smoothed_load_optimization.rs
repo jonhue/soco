@@ -3,8 +3,7 @@ mod lb {
     use num::Float;
     use soco::algorithms::online::multi_dimensional::lazy_budgeting::smoothed_load_optimization::{lb, Options};
     use soco::config::Config;
-    use soco::objective::Objective;
-    use soco::problem::{Online, SmoothedLoadOptimization};
+    use soco::problem::{Online, Problem, SmoothedLoadOptimization};
     use soco::schedule::Schedule;
 
     use crate::init;
@@ -30,7 +29,7 @@ mod lb {
             .unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
-        assert!(o.p.objective_function(&result.0).unwrap().is_finite());
+        assert!(o.p.objective_function(&result.0).unwrap().cost.is_finite());
         assert_eq!(
             result.0,
             Schedule::new(vec![
@@ -64,7 +63,7 @@ mod lb {
             .unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
-        assert!(o.p.objective_function(&result.0).unwrap().is_finite());
+        assert!(o.p.objective_function(&result.0).unwrap().cost.is_finite());
         assert_eq!(
             result.0,
             Schedule::new(vec![

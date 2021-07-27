@@ -17,7 +17,7 @@ pub trait VerifiableProblem {
     fn verify(&self) -> Result<()>;
 }
 
-impl<'a, T> VerifiableProblem for SmoothedConvexOptimization<'a, T>
+impl<'a, T, C, D> VerifiableProblem for SmoothedConvexOptimization<'a, T, C, D>
 where
     T: Value<'a>,
 {
@@ -39,7 +39,8 @@ where
     }
 }
 
-impl<'a, T> VerifiableProblem for SimplifiedSmoothedConvexOptimization<'a, T>
+impl<'a, T, C, D> VerifiableProblem
+    for SimplifiedSmoothedConvexOptimization<'a, T, C, D>
 where
     T: Value<'a>,
 {
@@ -234,9 +235,9 @@ where
     }
 }
 
-impl<'a, T> Online<T>
+impl<'a, P> Online<P>
 where
-    T: VerifiableProblem,
+    P: VerifiableProblem,
 {
     pub fn verify(&self) -> Result<()> {
         assert_validity(

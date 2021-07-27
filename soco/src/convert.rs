@@ -1,11 +1,15 @@
 //! Functions to convert between problem instances.
 
 use crate::config::{Config, FractionalConfig, IntegralConfig};
-use crate::cost::{CostFn, SingleCostFn};
+use crate::cost::{Cost, CostFn, FailableCost, SingleCostFn};
+use crate::model::data_center::{
+    DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
+};
+use crate::model::{ModelOutput, ModelOutputFailure, ModelOutputSuccess};
 use crate::norm::manhattan_scaled;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
-    IntegralSimplifiedSmoothedConvexOptimization, Online,
+    IntegralSimplifiedSmoothedConvexOptimization, Online, Problem,
     SimplifiedSmoothedConvexOptimization, SmoothedBalancedLoadOptimization,
     SmoothedConvexOptimization, SmoothedLoadOptimization,
 };
@@ -50,29 +54,47 @@ where
     }
 }
 
-pub trait DiscretizableCostFn<'a> {
+pub trait DiscretizableCostFn<'a, C, D>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     /// Discretize a certain fractional cost function.
-    fn to_i(&'a self) -> CostFn<'a, IntegralConfig>;
+    fn into_i(self) -> CostFn<'a, IntegralConfig, C, D>;
 }
 
-impl<'a> DiscretizableCostFn<'a> for CostFn<'a, FractionalConfig> {
-    fn to_i(&'a self) -> CostFn<'a, IntegralConfig> {
+impl<'a, C, D> DiscretizableCostFn<'a, C, D>
+    for CostFn<'a, FractionalConfig, C, D>
+where
+    C: ModelOutputSuccess + 'a,
+    D: ModelOutputFailure + 'a,
+{
+    fn into_i(self) -> CostFn<'a, IntegralConfig, C, D> {
         CostFn::new(
             1,
             SingleCostFn::certain(move |t, x: IntegralConfig| {
-                self.call_certain(t, x.to())
+                let f = self.clone();
+                f.call_certain(t, x.to())
             }),
         )
     }
 }
 
-pub trait RelaxableCostFn<'a> {
+pub trait RelaxableCostFn<'a, C, D>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     /// Relax a certain integral cost function to the fractional setting.
-    fn to_f(&'a self) -> CostFn<'a, FractionalConfig>;
+    fn into_f(self) -> CostFn<'a, FractionalConfig, C, D>;
 }
 
-impl<'a> RelaxableCostFn<'a> for CostFn<'a, IntegralConfig> {
-    fn to_f(&'a self) -> CostFn<'a, FractionalConfig> {
+impl<'a, C, D> RelaxableCostFn<'a, C, D> for CostFn<'a, IntegralConfig, C, D>
+where
+    C: ModelOutputSuccess + 'a,
+    D: ModelOutputFailure + 'a,
+{
+    fn into_f(self) -> CostFn<'a, FractionalConfig, C, D> {
         CostFn::new(
             1,
             SingleCostFn::certain(move |t, x: FractionalConfig| {
@@ -82,74 +104,88 @@ impl<'a> RelaxableCostFn<'a> for CostFn<'a, IntegralConfig> {
                 if j.fract() == 0. {
                     self.call_certain(t, Config::single(j.to_i32().unwrap()))
                 } else {
-                    let l = self.call_certain(
+                    let lower = self.call_certain(
                         t,
                         Config::single(j.floor().to_i32().unwrap()),
                     );
-                    let u = self.call_certain(
+                    let upper = self.call_certain(
                         t,
                         Config::single(j.ceil().to_i32().unwrap()),
                     );
-                    (j.ceil() - j) * l + (j - j.floor()) * u
+                    Cost::new(
+                        (j.ceil() - j) * lower.cost
+                            + (j - j.floor()) * upper.cost,
+                        ModelOutput::reduce(vec![lower.output, upper.output]),
+                    )
                 }
             }),
         )
     }
 }
 
-pub trait DiscretizableProblem<'a> {
+pub trait DiscretizableProblem {
     type Output;
 
     /// Discretize a fractional problem instance.
-    fn to_i(&'a self) -> Self::Output;
+    fn into_i(self) -> Self::Output;
 }
 
-impl<'a> DiscretizableProblem<'a>
-    for FractionalSimplifiedSmoothedConvexOptimization<'a>
+impl<'a, C, D> DiscretizableProblem
+    for FractionalSimplifiedSmoothedConvexOptimization<'a, C, D>
+where
+    C: ModelOutputSuccess + 'a,
+    D: ModelOutputFailure + 'a,
 {
-    type Output = IntegralSimplifiedSmoothedConvexOptimization<'a>;
+    type Output = IntegralSimplifiedSmoothedConvexOptimization<'a, C, D>;
 
-    fn to_i(&'a self) -> IntegralSimplifiedSmoothedConvexOptimization<'a> {
+    fn into_i(self) -> IntegralSimplifiedSmoothedConvexOptimization<'a, C, D> {
         SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.floor(),
             switching_cost: self.switching_cost.clone(),
-            hitting_cost: self.hitting_cost.to_i(),
+            hitting_cost: self.hitting_cost.into_i(),
         }
     }
 }
 
-pub trait RelaxableProblem<'a> {
+pub trait RelaxableProblem {
     type Output;
 
     /// Relax an integral problem instance to the fractional setting.
-    fn to_f(&'a self) -> Self::Output;
+    fn into_f(self) -> Self::Output;
 }
 
-impl<'a> RelaxableProblem<'a>
-    for IntegralSimplifiedSmoothedConvexOptimization<'a>
+impl<'a, C, D> RelaxableProblem
+    for IntegralSimplifiedSmoothedConvexOptimization<'a, C, D>
+where
+    C: ModelOutputSuccess + 'a,
+    D: ModelOutputFailure + 'a,
 {
-    type Output = FractionalSimplifiedSmoothedConvexOptimization<'a>;
+    type Output = FractionalSimplifiedSmoothedConvexOptimization<'a, C, D>;
 
-    fn to_f(&'a self) -> FractionalSimplifiedSmoothedConvexOptimization<'a> {
+    fn into_f(
+        self,
+    ) -> FractionalSimplifiedSmoothedConvexOptimization<'a, C, D> {
         SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
             bounds: self.bounds.to(),
             switching_cost: self.switching_cost.clone(),
-            hitting_cost: self.hitting_cost.to_f(),
+            hitting_cost: self.hitting_cost.into_f(),
         }
     }
 }
 
-impl<'a, T> SimplifiedSmoothedConvexOptimization<'a, T>
+impl<'a, T, C, D> SimplifiedSmoothedConvexOptimization<'a, T, C, D>
 where
     T: Value<'a>,
+    C: ModelOutputSuccess + 'a,
+    D: ModelOutputFailure + 'a,
 {
     /// Convert to an instance of Smoothed Convex Optimization.
     /// This assumes that time slots are added after this conversion.
-    pub fn into_sco(self) -> SmoothedConvexOptimization<'a, T> {
+    pub fn into_sco(self) -> SmoothedConvexOptimization<'a, T, C, D> {
         let bounds = self
             .bounds
             .iter()
@@ -165,9 +201,13 @@ where
                 1,
                 SingleCostFn::certain(move |t: i32, x: Config<T>| {
                     if t == self.t_end {
-                        self.clone().hit_cost(t, x.clone()) + switching_cost(x)
+                        let hitting_cost = self.hit_cost(t, x.clone());
+                        Cost::new(
+                            hitting_cost.cost + switching_cost(x),
+                            hitting_cost.output,
+                        )
                     } else {
-                        self.clone().hit_cost(t, x)
+                        self.hit_cost(t, x)
                     }
                 }),
             ),
@@ -180,7 +220,14 @@ where
     T: Value<'a>,
 {
     /// Convert to an instance of Simplified Smoothed Convex Optimization.
-    pub fn into_ssco(self) -> SimplifiedSmoothedConvexOptimization<'a, T> {
+    pub fn into_ssco(
+        self,
+    ) -> SimplifiedSmoothedConvexOptimization<
+        'a,
+        T,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    > {
         SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end,
@@ -208,9 +255,9 @@ where
                     1,
                     SingleCostFn::certain(move |_, l| {
                         if l <= 1. {
-                            n64(c)
+                            FailableCost::raw(n64(c))
                         } else {
-                            n64(f64::INFINITY)
+                            Cost::new(n64(f64::INFINITY), ModelOutput::Failure(DataCenterModelOutputFailure::SLOMaxUtilizationExceeded))
                         }
                     }),
                 )
@@ -227,28 +274,28 @@ where
     }
 }
 
-impl<'a, T> Online<T>
+impl<'a, P> Online<P>
 where
-    T: DiscretizableProblem<'a>,
+    P: DiscretizableProblem,
 {
     /// Discretize online problem.
-    pub fn to_i(&'a self) -> Online<T::Output> {
+    pub fn into_i(self) -> Online<P::Output> {
         Online {
             w: self.w,
-            p: self.p.to_i(),
+            p: self.p.into_i(),
         }
     }
 }
 
-impl<'a, T> Online<T>
+impl<'a, P> Online<P>
 where
-    T: RelaxableProblem<'a>,
+    P: RelaxableProblem,
 {
     /// Relax online problem.
-    pub fn to_f(&'a self) -> Online<T::Output> {
+    pub fn into_f(self) -> Online<P::Output> {
         Online {
             w: self.w,
-            p: self.p.to_f(),
+            p: self.p.into_f(),
         }
     }
 }
@@ -315,16 +362,18 @@ where
     }
 }
 
-pub trait ResettableCostFn<'a, T> {
+pub trait ResettableCostFn<'a, T, C, D> {
     /// Shift a certain cost function to some new initial time `t_start` (a time _before_ first time slot).
-    fn reset(&'a self, t_start: i32) -> CostFn<'a, T>;
+    fn reset(&'a self, t_start: i32) -> CostFn<'a, T, C, D>;
 }
 
-impl<'a, T> ResettableCostFn<'a, T> for CostFn<'a, T>
+impl<'a, T, C, D> ResettableCostFn<'a, T, C, D> for CostFn<'a, T, C, D>
 where
     T: Clone,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
-    fn reset(&'a self, t_start: i32) -> CostFn<'a, T> {
+    fn reset(&'a self, t_start: i32) -> CostFn<'a, T, C, D> {
         CostFn::new(
             1,
             SingleCostFn::certain(move |t, j| {
@@ -339,15 +388,17 @@ pub trait ResettableProblem<'a, T> {
     fn reset(&'a self, t_start: i32) -> Self;
 }
 
-impl<'a, T> ResettableProblem<'a, T>
-    for SimplifiedSmoothedConvexOptimization<'a, T>
+impl<'a, T, C, D> ResettableProblem<'a, T>
+    for SimplifiedSmoothedConvexOptimization<'a, T, C, D>
 where
     T: Value<'a>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     fn reset(
         &'a self,
         t_start: i32,
-    ) -> SimplifiedSmoothedConvexOptimization<'a, T> {
+    ) -> SimplifiedSmoothedConvexOptimization<'a, T, C, D> {
         SimplifiedSmoothedConvexOptimization {
             d: self.d,
             t_end: self.t_end - t_start,

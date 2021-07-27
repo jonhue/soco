@@ -3,8 +3,11 @@ use crate::{
         offline::{OfflineAlgorithm, OfflineOptions, OfflineResult},
         Options,
     },
-    model::{Model, OfflineInput, OnlineInput},
-    objective::Objective,
+    cost::Cost,
+    model::{
+        Model, ModelOutputFailure, ModelOutputSuccess, OfflineInput,
+        OnlineInput,
+    },
     problem::Problem,
     result::Result,
     schedule::Schedule,
@@ -13,20 +16,22 @@ use crate::{
 use log::info;
 
 /// Generates problem instance from model and solves it using an offline algorithm.
-pub fn solve<'a, T, R, P, O, A, B>(
-    model: &'a impl Model<P, A, B>,
-    alg: &impl OfflineAlgorithm<T, R, P, O>,
+pub fn solve<'a, T, R, P, O, A, B, C, D>(
+    model: &'a impl Model<T, P, A, B, C, D>,
+    alg: &impl OfflineAlgorithm<T, R, P, O, C, D>,
     options: O,
     offline_options: OfflineOptions,
     input: A,
-) -> Result<(Schedule<T>, f64)>
+) -> Result<(Schedule<T>, Cost<C, D>)>
 where
     T: Value<'a>,
     R: OfflineResult<T>,
-    P: Objective<'a, T> + Problem + 'a,
-    O: Options<P> + 'a,
+    P: Problem<T, C, D> + 'a,
+    O: Options<T, P, C, D> + 'a,
     A: OfflineInput,
     B: OnlineInput,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     let p = model.to(input);
     p.verify()?;
@@ -37,5 +42,5 @@ where
 
     let xs = result.xs();
     let cost = p.objective_function(&xs)?;
-    Ok((xs, cost.raw()))
+    Ok((xs, cost))
 }

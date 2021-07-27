@@ -5,8 +5,11 @@ use crate::{
     },
     config::Config,
     convert::{CastableSchedule, DiscretizableSchedule},
-    model::{Model, OfflineInput, OnlineInput},
-    objective::Objective,
+    cost::Cost,
+    model::{
+        Model, ModelOutputFailure, ModelOutputSuccess, OfflineInput,
+        OnlineInput,
+    },
     problem::{Online, Problem},
     result::Result,
     schedule::Schedule,
@@ -20,29 +23,41 @@ use std::{
     thread,
 };
 
+#[derive(Clone)]
+pub struct OfflineResponse<T, C, D, M> {
+    pub xs: (Schedule<T>, Cost<C, D>),
+    pub int_xs: (Schedule<i32>, Cost<C, D>),
+    pub m: Option<M>,
+}
+
 /// Generates problem instance from model and streams online algorithm using the provided input.
 /// Then, starts backend.
 /// Returns initial schedule, initial integral schedule, and latest memory of the algorithm.
-#[allow(clippy::type_complexity)]
-pub fn start<T, P, M, O, A, B>(
+pub fn start<T, P, M, O, A, B, C, D>(
     addr: SocketAddr,
-    model: impl Model<P, A, B> + 'static,
-    alg: &'static impl OnlineAlgorithm<'static, T, P, M, O>,
+    model: impl Model<T, P, A, B, C, D> + 'static,
+    alg: &'static impl OnlineAlgorithm<'static, T, P, M, O, C, D>,
     options: O,
     w: i32,
     input: A,
     sender: Option<Sender<&'static str>>,
-) -> Result<((Schedule<T>, f64), (Schedule<i32>, f64), Option<M>)>
+) -> Result<OfflineResponse<T, C, D, M>>
 where
     T: Value<'static>,
-    P: Objective<'static, T> + Problem + 'static,
-    M: Memory<'static, P>,
-    O: Options<P> + 'static,
+    P: Problem<T, C, D> + 'static,
+    M: Memory<'static, T, P, C, D>,
+    O: Options<T, P, C, D> + 'static,
     A: OfflineInput,
     B: OnlineInput,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     let (mut o, result) = prepare(&model, alg, options.clone(), w, input)?;
-    let ((mut xs, _), _, prev_m) = result.clone();
+    let OfflineResponse {
+        xs: (mut xs, _),
+        m: prev_m,
+        ..
+    } = result.clone();
 
     thread::spawn(move || {
         run(addr, model, &mut o, alg, &mut xs, prev_m, options, sender);
@@ -56,23 +71,22 @@ where
 ///
 /// The returned values can be used to start the backend and stream the algorithm live.
 #[allow(clippy::type_complexity)]
-fn prepare<'a, T, P, M, O, A, B>(
-    model: &impl Model<P, A, B>,
-    alg: &impl OnlineAlgorithm<'a, T, P, M, O>,
+fn prepare<'a, T, P, M, O, A, B, C, D>(
+    model: &impl Model<T, P, A, B, C, D>,
+    alg: &impl OnlineAlgorithm<'a, T, P, M, O, C, D>,
     options: O,
     w: i32,
     input: A,
-) -> Result<(
-    Online<P>,
-    ((Schedule<T>, f64), (Schedule<i32>, f64), Option<M>),
-)>
+) -> Result<(Online<P>, OfflineResponse<T, C, D, M>)>
 where
     T: Value<'a>,
-    P: Objective<'a, T> + Problem + 'a,
-    M: Memory<'a, P>,
-    O: Options<P> + 'a,
+    P: Problem<T, C, D> + 'a,
+    M: Memory<'a, T, P, C, D>,
+    O: Options<T, P, C, D> + 'a,
     A: OfflineInput,
     B: OnlineInput,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     let mut p = model.to(input);
     let t_end = p.t_end() - w;
@@ -89,30 +103,39 @@ where
     } else {
         (Schedule::empty(), None)
     };
-    let cost = o.p.objective_function(&xs)?.raw();
+    let cost = o.p.objective_function(&xs)?;
     let int_xs = xs.to_i();
-    let int_cost = o.p.objective_function(&int_xs.to())?.raw();
-    Ok((o, ((xs, cost), (int_xs, int_cost), m)))
+    let int_cost = o.p.objective_function(&int_xs.to())?;
+    Ok((
+        o,
+        OfflineResponse {
+            xs: (xs, cost),
+            int_xs: (int_xs, int_cost),
+            m,
+        },
+    ))
 }
 
 /// Starts backend server.
 #[allow(clippy::too_many_arguments)]
-fn run<'a, T, P, M, O, A, B>(
+fn run<'a, T, P, M, O, A, B, C, D>(
     addr: SocketAddr,
-    model: impl Model<P, A, B>,
+    model: impl Model<T, P, A, B, C, D>,
     o: &mut Online<P>,
-    alg: &impl OnlineAlgorithm<'a, T, P, M, O>,
+    alg: &impl OnlineAlgorithm<'a, T, P, M, O, C, D>,
     xs: &mut Schedule<T>,
     mut prev_m: Option<M>,
     options: O,
     sender: Option<Sender<&str>>,
 ) where
     T: Value<'a>,
-    P: Objective<'a, T> + Problem + 'a,
-    M: Memory<'a, P>,
-    O: Options<P>,
+    P: Problem<T, C, D> + 'a,
+    M: Memory<'a, T, P, C, D>,
+    O: Options<T, P, C, D>,
     A: OfflineInput,
     B: OnlineInput,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     let listener = TcpListener::bind(addr).unwrap();
     info!("[server] Running on {:?}.", addr);
@@ -131,10 +154,9 @@ fn run<'a, T, P, M, O, A, B>(
                 info!("[server] Updated problem instance.");
 
                 let (x, m) = o.next(alg, options.clone(), xs, prev_m).unwrap();
-                let cost = o.p.objective_function(&xs).unwrap().raw();
+                let cost = o.p.objective_function(&xs).unwrap();
                 let int_xs = xs.to_i();
-                let int_cost =
-                    o.p.objective_function(&int_xs.to()).unwrap().raw();
+                let int_cost = o.p.objective_function(&int_xs.to()).unwrap();
                 let result = ((x, cost), (int_xs.now(), int_cost), m.clone());
                 let response = bincode::serialize(&result).unwrap();
 
@@ -155,15 +177,21 @@ fn run<'a, T, P, M, O, A, B>(
 /// Executes next iteration of online algorithm.
 /// Returns obtained result, integral result, and memory.
 #[allow(clippy::type_complexity)]
-pub fn next<'a, T, P, M, B>(
+pub fn next<'a, T, P, M, B, C, D>(
     addr: SocketAddr,
     input: B,
-) -> ((Config<T>, f64), (Config<i32>, f64), Option<M>)
+) -> (
+    (Config<T>, Cost<C, D>),
+    (Config<i32>, Cost<C, D>),
+    Option<M>,
+)
 where
     T: Value<'a>,
-    P: Problem + 'a,
-    M: Memory<'a, P>,
+    P: Problem<T, C, D> + 'a,
+    M: Memory<'a, T, P, C, D>,
     B: OnlineInput,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     let mut stream = TcpStream::connect(addr).unwrap();
     info!("[client] Connected to {:?}.", addr);

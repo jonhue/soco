@@ -9,8 +9,7 @@ mod optimal_graph_search {
     use soco::algorithms::offline::multi_dimensional::optimal_graph_search::Options;
     use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions};
     use soco::config::Config;
-    use soco::objective::Objective;
-    use soco::problem::SimplifiedSmoothedConvexOptimization;
+    use soco::problem::{Problem, SimplifiedSmoothedConvexOptimization};
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 
@@ -48,7 +47,7 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(path.cost, 1.);
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw(),
+            p.objective_function(&path.xs).unwrap().cost.raw(),
             epsilon = 1.
         );
     }
@@ -78,7 +77,7 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw(),
+            p.objective_function(&path.xs).unwrap().cost.raw(),
             epsilon = 1.
         );
     }
@@ -118,7 +117,7 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(path.cost, inv_path.cost, epsilon = 1.);
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw(),
+            p.objective_function(&path.xs).unwrap().cost.raw(),
             epsilon = 1.
         );
     }
@@ -153,7 +152,7 @@ mod optimal_graph_search {
 
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw(),
+            p.objective_function(&path.xs).unwrap().cost.raw(),
             epsilon = 1.
         );
 
@@ -171,7 +170,7 @@ mod optimal_graph_search {
 
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw(),
+            p.objective_function(&path.xs).unwrap().cost.raw(),
             epsilon = 1.
         );
     }

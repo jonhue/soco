@@ -6,6 +6,7 @@ pub mod uni_dimensional;
 pub mod graph_search;
 
 use crate::algorithms::Options;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::problem::Problem;
 use crate::result::Result;
 use crate::schedule::Schedule;
@@ -21,12 +22,14 @@ use pyo3::prelude::*;
 /// * `p` - Problem instance.
 /// * `options` - Algorithm options.
 /// * `offline_options` - General configuration of the offlien setting.
-pub trait OfflineAlgorithm<T, R, P, O>:
+pub trait OfflineAlgorithm<T, R, P, O, C, D>:
     Fn(P, O, OfflineOptions) -> Result<R>
 where
     R: OfflineResult<T>,
-    P: Problem,
-    O: Options<P>,
+    P: Problem<T, C, D>,
+    O: Options<T, P, C, D>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     fn solve(
         &self,
@@ -46,11 +49,13 @@ where
         self.solve(p, options, offline_options)
     }
 }
-impl<T, R, P, O, F> OfflineAlgorithm<T, R, P, O> for F
+impl<T, R, P, O, C, D, F> OfflineAlgorithm<T, R, P, O, C, D> for F
 where
     R: OfflineResult<T>,
-    P: Problem,
-    O: Options<P>,
+    P: Problem<T, C, D>,
+    O: Options<T, P, C, D>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
     F: Fn(P, O, OfflineOptions) -> Result<R>,
 {
 }

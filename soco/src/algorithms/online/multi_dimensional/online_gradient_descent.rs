@@ -1,8 +1,9 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::norm::euclidean;
 use crate::numerics::convex_optimization::find_minimizer;
-use crate::problem::{FractionalSmoothedConvexOptimization, Online};
+use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
@@ -15,12 +16,16 @@ pub struct Options<'a> {
 }
 
 /// Online Gradient Descent
-pub fn ogd(
-    o: &Online<FractionalSmoothedConvexOptimization>,
+pub fn ogd<C, D>(
+    o: &Online<FractionalSmoothedConvexOptimization<C, D>>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
     options: &Options,
-) -> Result<FractionalStep<()>> {
+) -> Result<FractionalStep<()>>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let t = xs.t_end();
@@ -29,7 +34,8 @@ pub fn ogd(
         default_x
     } else {
         let prev_x = xs.now();
-        let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).raw();
+        let f =
+            |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).cost.raw();
         let step =
             (options.eta)(t) * Config::new(prev_x.to_vec().central_diff(&f));
         project(&o.p.bounds, prev_x - step)?

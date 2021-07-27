@@ -2,6 +2,7 @@
 
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use crate::result::{Failure, Result};
 use log::warn;
@@ -32,17 +33,19 @@ pub struct Constraint<'a, D> {
 type OptimizationResult = (Vec<f64>, N64);
 
 /// Determines the minimizer of `hitting_cost` at time `t` with bounds `bounds`.
-pub fn find_minimizer_of_hitting_cost(
+pub fn find_minimizer_of_hitting_cost<C, D>(
     t: i32,
-    hitting_cost: &CostFn<'_, FractionalConfig>,
+    hitting_cost: &CostFn<'_, FractionalConfig, C, D>,
     bounds: &Vec<(f64, f64)>,
-) -> Result<OptimizationResult> {
+) -> Result<OptimizationResult>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let f = |x: &[f64]| {
-        hitting_cost.call_certain_within_bounds(
-            t,
-            Config::new(x.to_vec()),
-            bounds,
-        )
+        hitting_cost
+            .call_certain_within_bounds(t, Config::new(x.to_vec()), bounds)
+            .cost
     };
     find_minimizer(f, bounds)
 }

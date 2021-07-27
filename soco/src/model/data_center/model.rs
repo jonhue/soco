@@ -1,7 +1,12 @@
 //! Model of a data center.
 
+use super::loads::PredictedLoadProfile;
+use super::{
+    DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
+    DataCenterObjective, IntermediateObjective, IntermediateResult,
+};
 use crate::config::Config;
-use crate::cost::{CostFn, SingleCostFn};
+use crate::cost::{CostFn, FailableCost, FailableCostFn, SingleCostFn};
 use crate::model::data_center::loads::{
     apply_loads_over_time, apply_predicted_loads, LoadFractions, LoadProfile,
 };
@@ -13,7 +18,7 @@ use crate::model::data_center::models::switching_cost::SwitchingCostModel;
 use crate::model::data_center::safe_balancing;
 use crate::model::{verify_update, Model, OfflineInput, OnlineInput};
 use crate::problem::{
-    Online, Problem, SimplifiedSmoothedConvexOptimization,
+    BaseProblem, Online, SimplifiedSmoothedConvexOptimization,
     SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
     SmoothedLoadOptimization,
 };
@@ -26,8 +31,6 @@ use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
-
-use super::loads::PredictedLoadProfile;
 
 pub static DEFAULT_KEY: &str = "";
 
@@ -254,8 +257,8 @@ impl DataCenterModel {
         &self,
         server_type: &ServerType,
         loads: &LoadProfile,
-    ) -> N64 {
-        loads
+    ) -> IntermediateResult {
+        Ok(loads
             .iter()
             .enumerate()
             .map(|(i_, &load)| {
@@ -264,7 +267,7 @@ impl DataCenterModel {
                     self.job_types[i].processing_time_on(server_type);
                 processing_time * load
             })
-            .sum()
+            .sum())
     }
 
     /// Energy cost. Non-negative convex operating cost of data center `j`
@@ -277,12 +280,12 @@ impl DataCenterModel {
         x: &Config<T>,
         lambda: &LoadProfile,
         zs: &LoadFractions,
-    ) -> N64
+    ) -> IntermediateResult
     where
         T: Value<'a>,
     {
-        let p = self.energy_consumption(j, x, lambda, zs);
-        self.energy_cost_model.cost(t, &self.locations[j], p)
+        let p = self.energy_consumption(j, x, lambda, zs)?;
+        Ok(self.energy_cost_model.cost(t, &self.locations[j], p))
     }
 
     /// Energy consumption of data center `j` with configuration `x_`, load profile
@@ -294,7 +297,7 @@ impl DataCenterModel {
         x_: &Config<T>,
         lambda: &LoadProfile,
         zs: &LoadFractions,
-    ) -> N64
+    ) -> IntermediateResult
     where
         T: Value<'a>,
     {
@@ -302,18 +305,20 @@ impl DataCenterModel {
             .map(|k| {
                 let k_ = encode(self.server_types.len(), j, k);
                 let server_type = &self.server_types[k];
-                let total_load = self
-                    .total_sub_jobs(server_type, &zs.select_loads(lambda, k_));
+                let total_load = self.total_sub_jobs(
+                    server_type,
+                    &zs.select_loads(lambda, k_),
+                )?;
                 let x = NumCast::from(x_[k_]).unwrap();
                 safe_balancing(x, total_load, || {
                     let s = total_load / (x * self.delta);
-                    server_type.limit_utilization(s, || {
+                    Ok(server_type.limit_utilization(s, || {
                         x * self.energy_consumption_model.consumption(
                             self.delta,
                             server_type,
                             s,
                         )
-                    })
+                    }))
                 })
             })
             .sum()
@@ -335,15 +340,15 @@ impl DataCenterModel {
         job_type: &JobType,
         number_of_jobs: N64,
         mean_job_duration: N64,
-    ) -> N64 {
+    ) -> IntermediateResult {
         let delay =
             average_delay(self.delta, number_of_jobs, mean_job_duration)
                 + source.routing_delay_to(t, location)
                 + job_type.processing_time_on(server_type);
         if delay.is_infinite() {
-            n64(f64::INFINITY)
+            Err(DataCenterModelOutputFailure::InfiniteDelay)
         } else {
-            self.revenue_loss_model.loss(t, job_type, delay)
+            Ok(self.revenue_loss_model.loss(t, job_type, delay))
         }
     }
 
@@ -356,12 +361,12 @@ impl DataCenterModel {
         server_type: &ServerType,
         x_: T,
         loads: LoadProfile,
-    ) -> N64
+    ) -> IntermediateResult
     where
         T: Value<'a>,
     {
         let x = NumCast::from(x_).unwrap();
-        let total_load = self.total_sub_jobs(server_type, &loads);
+        let total_load = self.total_sub_jobs(server_type, &loads)?;
 
         // calculates the mean duration of jobs on a server of some type under the load profile `loads`
         let number_of_jobs = loads.iter().sum();
@@ -373,23 +378,22 @@ impl DataCenterModel {
 
         safe_balancing(x, number_of_jobs, || {
             (0..self.sources.len())
-                .map(|s| -> N64 {
+                .map(|s| {
                     (0..self.job_types.len())
                         .map(|i| {
-                            loads[encode(self.job_types.len(), s, i)]
-                                * self.revenue_loss(
-                                    t,
-                                    location,
-                                    server_type,
-                                    &self.sources[s],
-                                    &self.job_types[i],
-                                    number_of_jobs / x,
-                                    mean_job_duration,
-                                )
+                            Ok(self.revenue_loss(
+                                t,
+                                location,
+                                server_type,
+                                &self.sources[s],
+                                &self.job_types[i],
+                                number_of_jobs / x,
+                                mean_job_duration,
+                            )? * loads[encode(self.job_types.len(), s, i)])
                         })
-                        .sum()
+                        .sum::<IntermediateResult>()
                 })
-                .sum()
+                .sum::<IntermediateResult>()
         })
     }
 
@@ -401,15 +405,16 @@ impl DataCenterModel {
         x: &Config<T>,
         lambda: &LoadProfile,
         zs: &LoadFractions,
-    ) -> N64
+    ) -> IntermediateObjective
     where
         T: Value<'a>,
     {
         (0..self.locations.len())
-            .map(|j| -> N64 {
-                self.energy_cost(t, j, x, lambda, zs)
-                    + (0..self.server_types.len())
-                        .map(|k| -> N64 {
+            .map(|j| {
+                Ok(DataCenterObjective::new(
+                    self.energy_cost(t, j, x, lambda, zs)?,
+                    (0..self.server_types.len())
+                        .map(|k| {
                             let k_ = encode(self.server_types.len(), j, k);
                             let loads = zs.select_loads(lambda, k_);
                             self.overall_revenue_loss(
@@ -420,9 +425,10 @@ impl DataCenterModel {
                                 loads,
                             )
                         })
-                        .sum::<N64>()
+                        .sum::<IntermediateResult>()?,
+                ))
             })
-            .sum::<N64>()
+            .sum()
     }
 
     /// Optimally applies (certain) loads to the model of a data center to obtain a cost function.
@@ -434,7 +440,12 @@ impl DataCenterModel {
         &self,
         loads: Vec<LoadProfile>,
         t_start: i32,
-    ) -> CostFn<'a, Config<T>>
+    ) -> CostFn<
+        'a,
+        Config<T>,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    >
     where
         T: Value<'a>,
     {
@@ -457,7 +468,12 @@ impl DataCenterModel {
         &self,
         predicted_loads: Vec<PredictedLoadProfile>,
         t_start: i32,
-    ) -> SingleCostFn<'a, Config<T>>
+    ) -> SingleCostFn<
+        'a,
+        Config<T>,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    >
     where
         T: Value<'a>,
     {
@@ -531,9 +547,17 @@ impl OnlineInput for DataCenterOnlineInput {}
 
 impl<'a, T>
     Model<
-        SmoothedConvexOptimization<'a, T>,
+        T,
+        SmoothedConvexOptimization<
+            'a,
+            T,
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
+        >,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
     > for DataCenterModel
 where
     T: Value<'a>,
@@ -541,15 +565,31 @@ where
     fn to(
         &self,
         input: DataCenterOfflineInput,
-    ) -> SmoothedConvexOptimization<'a, T> {
-        let ssco_p: SimplifiedSmoothedConvexOptimization<'a, T> =
-            self.to(input);
+    ) -> SmoothedConvexOptimization<
+        'a,
+        T,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    > {
+        let ssco_p: SimplifiedSmoothedConvexOptimization<
+            'a,
+            T,
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
+        > = self.to(input);
         ssco_p.into_sco()
     }
 
     fn update(
         &self,
-        o: &mut Online<SmoothedConvexOptimization<'a, T>>,
+        o: &mut Online<
+            SmoothedConvexOptimization<
+                'a,
+                T,
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
+            >,
+        >,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
         o.p.inc_t_end();
@@ -564,9 +604,17 @@ where
 
 impl<'a, T>
     Model<
-        SimplifiedSmoothedConvexOptimization<'a, T>,
+        T,
+        SimplifiedSmoothedConvexOptimization<
+            'a,
+            T,
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
+        >,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
     > for DataCenterModel
 where
     T: Value<'a>,
@@ -574,7 +622,12 @@ where
     fn to(
         &self,
         DataCenterOfflineInput { loads }: DataCenterOfflineInput,
-    ) -> SimplifiedSmoothedConvexOptimization<'a, T> {
+    ) -> SimplifiedSmoothedConvexOptimization<
+        'a,
+        T,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    > {
         let d = self.d_();
         let t_end = loads.len() as i32;
         let bounds = self.generate_bounds();
@@ -593,7 +646,14 @@ where
 
     fn update(
         &self,
-        o: &mut Online<SimplifiedSmoothedConvexOptimization<'a, T>>,
+        o: &mut Online<
+            SimplifiedSmoothedConvexOptimization<
+                'a,
+                T,
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
+            >,
+        >,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
         o.p.inc_t_end();
@@ -608,9 +668,12 @@ where
 
 impl<'a, T>
     Model<
+        T,
         SmoothedBalancedLoadOptimization<'a, T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
     > for DataCenterModel
 where
     T: Value<'a>,
@@ -632,7 +695,9 @@ where
         let switching_cost = self
             .switching_cost_model
             .switching_costs(&self.server_types);
-        let hitting_cost = self
+        let hitting_cost: Vec<
+            FailableCostFn<'a, f64, DataCenterModelOutputFailure>,
+        > = self
             .server_types
             .clone()
             .into_iter()
@@ -653,7 +718,9 @@ where
                                 s,
                             )
                         });
-                        energy_cost_model.cost(t, &location, p)
+                        FailableCost::raw(
+                            energy_cost_model.cost(t, &location, p),
+                        )
                     }),
                 )
             })
@@ -696,9 +763,12 @@ where
 
 impl<'a, T>
     Model<
+        T,
         SmoothedLoadOptimization<T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
+        (),
+        DataCenterModelOutputFailure,
     > for DataCenterModel
 where
     T: Value<'a>,

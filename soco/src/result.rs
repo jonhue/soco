@@ -2,7 +2,7 @@
 
 use thiserror::Error;
 
-#[derive(Error, Debug)]
+#[derive(Debug, Error)]
 pub enum Failure {
     #[error("Bisecting failed with message: {0}")]
     Bisection(String),
@@ -28,8 +28,6 @@ pub enum Failure {
         previous_time_slots: i32,
         memory_entries: i32,
     },
-    #[error("This algorithm expects a problem instance which is the relaxed problem of an integral problem. In particular, the bounds shouldn't be fractional.")]
-    MustBeRelaxedProblem,
     #[error("This algorithm does not support inverted movement costs. Set `inverted = false`.")]
     UnsupportedInvertedCost,
     #[error("This algorithm does not support `L`-constrained movement. Set `l = None`.")]
