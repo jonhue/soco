@@ -8,7 +8,6 @@ use crate::{
         Model, ModelOutputFailure, ModelOutputSuccess, OfflineInput,
         OnlineInput,
     },
-    objective::Objective,
     problem::Problem,
     result::Result,
     schedule::Schedule,
@@ -27,7 +26,7 @@ pub fn solve<'a, T, R, P, O, A, B, C, D>(
 where
     T: Value<'a>,
     R: OfflineResult<T>,
-    P: Objective<'a, T, C, D> + Problem<T, C, D> + 'a,
+    P: Problem<T, C, D> + 'a,
     O: Options<T, P, C, D> + 'a,
     A: OfflineInput,
     B: OnlineInput,

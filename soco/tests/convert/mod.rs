@@ -5,8 +5,7 @@ mod into_sco {
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::config::Config;
-    use soco::objective::Objective;
-    use soco::problem::SimplifiedSmoothedConvexOptimization;
+    use soco::problem::{Problem, SimplifiedSmoothedConvexOptimization};
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 
@@ -84,8 +83,7 @@ mod into_ssco {
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::config::Config;
-    use soco::objective::Objective;
-    use soco::problem::SmoothedBalancedLoadOptimization;
+    use soco::problem::{Problem, SmoothedBalancedLoadOptimization};
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 
@@ -170,8 +168,7 @@ mod into_sblo {
     use rand::prelude::*;
     use rand_pcg::Pcg64;
     use soco::config::Config;
-    use soco::objective::Objective;
-    use soco::problem::SmoothedLoadOptimization;
+    use soco::problem::{Problem, SmoothedLoadOptimization};
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 

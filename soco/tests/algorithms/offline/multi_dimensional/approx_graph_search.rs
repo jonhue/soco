@@ -15,8 +15,7 @@ mod approx_graph_search {
             OfflineAlgorithm, OfflineOptions,
         },
         config::Config,
-        objective::Objective,
-        problem::SimplifiedSmoothedConvexOptimization,
+        problem::{Problem, SimplifiedSmoothedConvexOptimization},
         schedule::Schedule,
         verifiers::VerifiableProblem,
     };

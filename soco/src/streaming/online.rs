@@ -10,7 +10,6 @@ use crate::{
         Model, ModelOutputFailure, ModelOutputSuccess, OfflineInput,
         OnlineInput,
     },
-    objective::Objective,
     problem::{Online, Problem},
     result::Result,
     schedule::Schedule,
@@ -45,7 +44,7 @@ pub fn start<T, P, M, O, A, B, C, D>(
 ) -> Result<OfflineResponse<T, C, D, M>>
 where
     T: Value<'static>,
-    P: Objective<'static, T, C, D> + Problem<T, C, D> + 'static,
+    P: Problem<T, C, D> + 'static,
     M: Memory<'static, T, P, C, D>,
     O: Options<T, P, C, D> + 'static,
     A: OfflineInput,
@@ -81,7 +80,7 @@ fn prepare<'a, T, P, M, O, A, B, C, D>(
 ) -> Result<(Online<P>, OfflineResponse<T, C, D, M>)>
 where
     T: Value<'a>,
-    P: Objective<'a, T, C, D> + Problem<T, C, D> + 'a,
+    P: Problem<T, C, D> + 'a,
     M: Memory<'a, T, P, C, D>,
     O: Options<T, P, C, D> + 'a,
     A: OfflineInput,
@@ -130,7 +129,7 @@ fn run<'a, T, P, M, O, A, B, C, D>(
     sender: Option<Sender<&str>>,
 ) where
     T: Value<'a>,
-    P: Objective<'a, T, C, D> + Problem<T, C, D> + 'a,
+    P: Problem<T, C, D> + 'a,
     M: Memory<'a, T, P, C, D>,
     O: Options<T, P, C, D>,
     A: OfflineInput,

@@ -4,8 +4,7 @@ mod lb {
     use num::Float;
     use soco::algorithms::online::multi_dimensional::lazy_budgeting::smoothed_balanced_load_optimization::{lb, Options};
     use soco::config::Config;
-    use soco::objective::Objective;
-    use soco::problem::{Online, SmoothedBalancedLoadOptimization};
+    use soco::problem::{Online, Problem, SmoothedBalancedLoadOptimization};
     use soco::schedule::Schedule;
 
     use crate::init;

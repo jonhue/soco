@@ -8,8 +8,9 @@ use crate::algorithms::offline::multi_dimensional::Values;
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::objective::scalar_movement;
-use crate::problem::{IntegralSimplifiedSmoothedConvexOptimization, Problem};
+use crate::problem::{
+    scalar_movement, IntegralSimplifiedSmoothedConvexOptimization, Problem,
+};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::assert;

@@ -11,8 +11,7 @@ mod co {
     use soco::config::Config;
     use soco::convert::{CastableSchedule, DiscretizableSchedule};
     use soco::norm::{euclidean, manhattan_scaled, norm_squared};
-    use soco::objective::Objective;
-    use soco::problem::SmoothedConvexOptimization;
+    use soco::problem::{Problem, SmoothedConvexOptimization};
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 

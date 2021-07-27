@@ -161,7 +161,7 @@ impl<'a, P> Online<P> {
     ) -> Result<Option<M>>
     where
         T: Value<'a>,
-        P: Problem<T, C, D> + 'a,
+        P: Problem<T, C, D>,
         M: Memory<'a, T, P, C, D>,
         O: Options<T, P, C, D>,
         C: ModelOutputSuccess,

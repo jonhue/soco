@@ -3,8 +3,9 @@ use crate::config::{Config, FractionalConfig};
 use crate::convert::ResettableProblem;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::convex_optimization::find_minimizer;
-use crate::objective::Objective;
-use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
+use crate::problem::{
+    FractionalSimplifiedSmoothedConvexOptimization, Online, Problem,
+};
 use crate::result::Result;
 use crate::schedule::{FractionalSchedule, Schedule};
 use noisy_float::prelude::*;

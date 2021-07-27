@@ -9,8 +9,7 @@ mod optimal_graph_search {
     use soco::algorithms::offline::multi_dimensional::optimal_graph_search::Options;
     use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions};
     use soco::config::Config;
-    use soco::objective::Objective;
-    use soco::problem::SimplifiedSmoothedConvexOptimization;
+    use soco::problem::{Problem, SimplifiedSmoothedConvexOptimization};
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 

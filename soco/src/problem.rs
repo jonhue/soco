@@ -1,7 +1,7 @@
 //! Problem definition.
 
 use crate::config::Config;
-use crate::cost::{Cost, CostFn, FailableCost, FailableCostFn};
+use crate::cost::{Cost, CostFn, FailableCost, FailableCostFn, RawCost};
 use crate::model::data_center::loads::{
     apply_loads_over_time, LoadFractions, LoadProfile,
 };
@@ -12,11 +12,15 @@ use crate::model::data_center::model::{
 use crate::model::data_center::safe_balancing;
 use crate::model::{ModelOutput, ModelOutputFailure, ModelOutputSuccess};
 use crate::norm::NormFn;
-use crate::objective::scalar_movement;
+use crate::result::Result;
+use crate::schedule::Schedule;
+use crate::utils::pos;
 use crate::value::Value;
+use crate::vec_wrapper::VecWrapper;
 use crate::verifiers::VerifiableProblem;
 use noisy_float::prelude::*;
 use num::NumCast;
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 /// Trait implemented by all finite-time-horizon problems.
 pub trait BaseProblem:
@@ -70,7 +74,7 @@ macro_rules! impl_base_problem {
     };
 }
 
-pub trait Problem<T, C, D>: BaseProblem
+pub trait Problem<T, C, D>: BaseProblem + Sync
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
@@ -78,6 +82,102 @@ where
     fn hit_cost(&self, t: i32, x: Config<T>) -> Cost<C, D>;
 
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64;
+
+    /// Objective Function. Calculates the cost of a schedule.
+    fn objective_function<'a>(&self, xs: &Schedule<T>) -> Result<Cost<C, D>>
+    where
+        T: Value<'a>,
+    {
+        let default = self._default_config();
+        self._objective_function_with_default(xs, &default, 1., false)
+    }
+
+    /// Inverted Objective Function. Calculates the cost of a schedule. Pays the
+    /// switching cost for powering down rather than powering up.
+    fn inverted_objective_function<'a>(
+        &self,
+        xs: &Schedule<T>,
+    ) -> Result<Cost<C, D>>
+    where
+        T: Value<'a>,
+    {
+        let default = self._default_config();
+        self._objective_function_with_default(xs, &default, 1., true)
+    }
+
+    /// `\alpha`-unfair Objective Function. Calculates the cost of a schedule.
+    fn alpha_unfair_objective_function<'a>(
+        &self,
+        xs: &Schedule<T>,
+        alpha: f64,
+    ) -> Result<Cost<C, D>>
+    where
+        T: Value<'a>,
+    {
+        let default = self._default_config();
+        self._objective_function_with_default(xs, &default, alpha, false)
+    }
+
+    fn objective_function_with_default<'a>(
+        &self,
+        xs: &Schedule<T>,
+        default: &Config<T>,
+    ) -> Result<Cost<C, D>>
+    where
+        T: Value<'a>,
+    {
+        self._objective_function_with_default(xs, default, 1., false)
+    }
+
+    fn _objective_function_with_default<'a>(
+        &self,
+        xs: &Schedule<T>,
+        default: &Config<T>,
+        alpha: f64,
+        inverted: bool,
+    ) -> Result<Cost<C, D>>
+    where
+        T: Value<'a>,
+    {
+        Ok(sum_over_schedule(
+            self.t_end(),
+            xs,
+            default,
+            |t, prev_x, x| {
+                let hitting_cost = self.hit_cost(t as i32, x.clone());
+                Cost::new(
+                    hitting_cost.cost
+                        + n64(alpha) * self.movement(prev_x, x, inverted),
+                    hitting_cost.output,
+                )
+            },
+        ))
+    }
+
+    /// Movement in the decision space.
+    fn total_movement<'a>(
+        &self,
+        xs: &Schedule<T>,
+        inverted: bool,
+    ) -> Result<N64>
+    where
+        T: Value<'a>,
+    {
+        let default = self._default_config();
+        Ok(
+            sum_over_schedule(self.t_end(), xs, &default, |_, prev_x, x| {
+                RawCost::raw(self.movement(prev_x, x, inverted))
+            })
+            .cost,
+        )
+    }
+
+    fn _default_config<'a>(&self) -> Config<T>
+    where
+        T: Value<'a>,
+    {
+        Config::repeat(NumCast::from(0).unwrap(), self.d())
+    }
 }
 
 /// Gives type a default value which may depend on a problem instance.
@@ -91,10 +191,10 @@ where
 }
 impl<T, P, C, D, U> DefaultGivenProblem<T, P, C, D> for U
 where
-    U: Default,
     P: Problem<T, C, D>,
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
+    U: Default,
 {
     fn default(_: &P) -> Self {
         U::default()
@@ -181,7 +281,7 @@ where
     }
 
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64 {
-        movement(self.d, &self.switching_cost, prev_x, x, inverted)
+        scaled_movement(&self.switching_cost, &x, &prev_x, inverted)
     }
 }
 pub type IntegralSimplifiedSmoothedConvexOptimization<'a, C, D> =
@@ -256,7 +356,7 @@ where
     }
 
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64 {
-        movement(self.d, &self.switching_cost, prev_x, x, inverted)
+        scaled_movement(&self.switching_cost, &x, &prev_x, inverted)
     }
 }
 pub type IntegralSmoothedBalancedLoadOptimization<'a> =
@@ -311,28 +411,66 @@ where
     }
 
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64 {
-        movement(self.d, &self.switching_cost, prev_x, x, inverted)
+        scaled_movement(&self.switching_cost, &x, &prev_x, inverted)
     }
 }
 pub type IntegralSmoothedLoadOptimization = SmoothedLoadOptimization<i32>;
 
-fn movement<'a, T>(
-    d: i32,
+fn sum_over_schedule<'a, T, C, D>(
+    t_end: i32,
+    xs: &Schedule<T>,
+    default: &Config<T>,
+    f: impl Fn(i32, Config<T>, Config<T>) -> Cost<C, D> + Send + Sync,
+) -> Cost<C, D>
+where
+    T: Value<'a>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
+    (1..=t_end)
+        .into_par_iter()
+        .map(|t| {
+            let prev_x = xs.get(t - 1).unwrap_or(default).clone();
+            let x = xs.get(t).unwrap().clone();
+            f(t, prev_x, x)
+        })
+        .sum()
+}
+
+pub fn scalar_movement<'a, T>(j: T, prev_j: T, inverted: bool) -> T
+where
+    T: Value<'a>,
+{
+    pos(if inverted { prev_j - j } else { j - prev_j })
+}
+
+pub fn movement<'a, T>(
+    x: &Config<T>,
+    prev_x: &Config<T>,
+    inverted: bool,
+) -> Config<T>
+where
+    T: Value<'a>,
+{
+    (0..x.d() as usize)
+        .into_iter()
+        .map(|k| scalar_movement(x[k], prev_x[k], inverted))
+        .collect()
+}
+
+pub fn scaled_movement<'a, T>(
     switching_cost: &Vec<f64>,
-    prev_x: Config<T>,
-    x: Config<T>,
+    x: &Config<T>,
+    prev_x: &Config<T>,
     inverted: bool,
 ) -> N64
 where
     T: Value<'a>,
 {
-    (0..d as usize)
-        .into_iter()
-        .map(|k| -> N64 {
-            let delta: N64 =
-                NumCast::from(scalar_movement(x[k], prev_x[k], inverted))
-                    .unwrap();
-            n64(switching_cost[k]) * delta
-        })
+    movement(x, prev_x, inverted)
+        .iter()
+        .map(|&delta| -> N64 { NumCast::from(delta).unwrap() })
+        .enumerate()
+        .map(|(k, delta)| -> N64 { n64(switching_cost[k]) * delta })
         .sum()
 }

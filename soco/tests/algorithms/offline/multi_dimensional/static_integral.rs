@@ -8,7 +8,6 @@ mod static_integral {
         OfflineAlgorithm, OfflineOptions, OfflineResult,
     };
     use soco::config::IntegralConfig;
-    use soco::objective::Objective;
     use soco::problem::{Problem, SimplifiedSmoothedConvexOptimization};
     use soco::verifiers::VerifiableProblem;
 

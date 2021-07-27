@@ -8,10 +8,9 @@ use crate::config::Config;
 use crate::convert::ResettableProblem;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::convex_optimization::find_minimizer;
-use crate::objective::Objective;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
-    IntegralSimplifiedSmoothedConvexOptimization,
+    IntegralSimplifiedSmoothedConvexOptimization, Problem,
 };
 use crate::result::{Failure, Result};
 use crate::utils::assert;

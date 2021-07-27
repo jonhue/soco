@@ -50,17 +50,19 @@ mod optimal_graph_search {
         factories::{penalize_zero, random},
         init,
     };
-    use soco::algorithms::offline::{
-        uni_dimensional::optimal_graph_search::{
-            make_pow_of_2, optimal_graph_search, Options,
-        },
-        OfflineAlgorithm, OfflineOptions,
-    };
     use soco::config::Config;
-    use soco::objective::Objective;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
+    use soco::{
+        algorithms::offline::{
+            uni_dimensional::optimal_graph_search::{
+                make_pow_of_2, optimal_graph_search, Options,
+            },
+            OfflineAlgorithm, OfflineOptions,
+        },
+        problem::Problem,
+    };
 
     #[test]
     fn _1() {

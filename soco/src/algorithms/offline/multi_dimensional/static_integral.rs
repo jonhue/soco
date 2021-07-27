@@ -1,8 +1,7 @@
 use crate::algorithms::offline::{OfflineOptions, PureOfflineResult};
 use crate::config::IntegralConfig;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::objective::Objective;
-use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
+use crate::problem::{IntegralSimplifiedSmoothedConvexOptimization, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::assert;
