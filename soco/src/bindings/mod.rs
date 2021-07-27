@@ -1,8 +1,18 @@
 use pyo3::prelude::*;
 use utils::make_package;
 
+use crate::{
+    cost::Cost,
+    model::data_center::model::{
+        DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
+    },
+};
+
 mod data_center;
 mod utils;
+
+type DataCenterCost =
+    Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>;
 
 #[pymodule]
 pub fn soco(py: Python, m: &PyModule) -> PyResult<()> {
