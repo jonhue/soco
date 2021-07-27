@@ -4,9 +4,7 @@ use rand_pcg::Pcg64;
 use soco::{
     config::{FractionalConfig, IntegralConfig},
     cost::{FailableCost, FailableCostFn, RawCostFn, SingleCostFn},
-    model::{
-        data_center::DataCenterModelOutputFailure, ModelOutputFailure,
-    },
+    model::{data_center::DataCenterModelOutputFailure, ModelOutputFailure},
     vec_wrapper::VecWrapper,
 };
 
