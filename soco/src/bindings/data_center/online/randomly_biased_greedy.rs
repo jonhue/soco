@@ -1,4 +1,6 @@
-use super::{Response, StepResponse};
+use super::{
+    DataCenterFractionalSmoothedConvexOptimization, Response, StepResponse,
+};
 use crate::{
     algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Memory, Options,
@@ -8,7 +10,6 @@ use crate::{
         DataCenterModelOutputSuccess, DataCenterOfflineInput,
         DataCenterOnlineInput,
     },
-    problem::FractionalSimplifiedSmoothedConvexOptimization,
     streaming::online::{self, OfflineResponse},
 };
 use pyo3::prelude::*;
@@ -51,10 +52,7 @@ fn next(
         let ((x, cost), (int_x, int_cost), m) =
             online::next::<
                 f64,
-                FractionalSimplifiedSmoothedConvexOptimization<
-                    DataCenterModelOutputSuccess,
-                    DataCenterModelOutputFailure,
-                >,
+                DataCenterFractionalSmoothedConvexOptimization,
                 Memory,
                 DataCenterOnlineInput,
                 DataCenterModelOutputSuccess,

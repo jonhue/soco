@@ -4,6 +4,11 @@ use crate::{
     model::data_center::model::{
         DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
     },
+    problem::{
+        FractionalSimplifiedSmoothedConvexOptimization,
+        FractionalSmoothedConvexOptimization,
+        IntegralSimplifiedSmoothedConvexOptimization,
+    },
     streaming::online,
 };
 use pyo3::prelude::*;
@@ -38,6 +43,25 @@ type StepResponse<T, M> = (
     ),
     Option<M>,
 );
+
+type DataCenterFractionalSmoothedConvexOptimization<'a> =
+    FractionalSmoothedConvexOptimization<
+        'a,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    >;
+type DataCenterFractionalSimplifiedSmoothedConvexOptimization<'a> =
+    FractionalSimplifiedSmoothedConvexOptimization<
+        'a,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    >;
+type DataCenterIntegralSimplifiedSmoothedConvexOptimization<'a> =
+    IntegralSimplifiedSmoothedConvexOptimization<
+        'a,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    >;
 
 /// Stops backend server.
 #[pyfunction]

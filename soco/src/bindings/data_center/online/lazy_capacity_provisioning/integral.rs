@@ -2,13 +2,15 @@ use crate::{
     algorithms::online::uni_dimensional::lazy_capacity_provisioning::{
         lcp, Memory,
     },
-    bindings::data_center::online::{Response, StepResponse},
+    bindings::data_center::online::{
+        DataCenterIntegralSimplifiedSmoothedConvexOptimization, Response,
+        StepResponse,
+    },
     model::data_center::model::{
         DataCenterModel, DataCenterModelOutputFailure,
         DataCenterModelOutputSuccess, DataCenterOfflineInput,
         DataCenterOnlineInput,
     },
-    problem::IntegralSimplifiedSmoothedConvexOptimization,
     streaming::online::{self, OfflineResponse},
 };
 use pyo3::prelude::*;
@@ -31,10 +33,7 @@ fn start(
         model,
         &lcp::<
             i32,
-            IntegralSimplifiedSmoothedConvexOptimization<
-                DataCenterModelOutputSuccess,
-                DataCenterModelOutputFailure,
-            >,
+            DataCenterIntegralSimplifiedSmoothedConvexOptimization,
             DataCenterModelOutputSuccess,
             DataCenterModelOutputFailure,
         >,
@@ -58,10 +57,7 @@ fn next(
         let ((x, cost), (int_x, int_cost), m) =
             online::next::<
                 i32,
-                IntegralSimplifiedSmoothedConvexOptimization<
-                    DataCenterModelOutputSuccess,
-                    DataCenterModelOutputFailure,
-                >,
+                DataCenterIntegralSimplifiedSmoothedConvexOptimization,
                 Memory<i32>,
                 DataCenterOnlineInput,
                 DataCenterModelOutputSuccess,

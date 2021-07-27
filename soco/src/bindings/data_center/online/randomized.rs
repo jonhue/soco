@@ -1,4 +1,7 @@
-use super::{Response, StepResponse};
+use super::{
+    DataCenterIntegralSimplifiedSmoothedConvexOptimization, Response,
+    StepResponse,
+};
 use crate::{
     algorithms::online::uni_dimensional::randomized::{randomized, Memory},
     model::data_center::model::{
@@ -6,7 +9,6 @@ use crate::{
         DataCenterModelOutputSuccess, DataCenterOfflineInput,
         DataCenterOnlineInput,
     },
-    problem::IntegralSimplifiedSmoothedConvexOptimization,
     streaming::online::{self, OfflineResponse},
 };
 use pyo3::prelude::*;
@@ -48,10 +50,7 @@ fn next(
         let ((x, cost), (int_x, int_cost), m) =
             online::next::<
                 i32,
-                IntegralSimplifiedSmoothedConvexOptimization<
-                    DataCenterModelOutputSuccess,
-                    DataCenterModelOutputFailure,
-                >,
+                DataCenterIntegralSimplifiedSmoothedConvexOptimization,
                 Memory,
                 DataCenterOnlineInput,
                 DataCenterModelOutputSuccess,
