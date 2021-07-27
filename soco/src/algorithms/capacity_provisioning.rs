@@ -6,6 +6,7 @@ use crate::algorithms::offline::{
 };
 use crate::config::Config;
 use crate::convert::ResettableProblem;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::convex_optimization::find_minimizer;
 use crate::objective::Objective;
 use crate::problem::{
@@ -44,7 +45,12 @@ pub trait Bounded<T> {
     ) -> Result<T>;
 }
 
-impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
+impl<C, D> Bounded<f64>
+    for FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
@@ -66,7 +72,11 @@ impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
     }
 }
 
-impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
+impl<C, D> FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     fn find_bound(
         &self,
         alpha: f64,
@@ -91,6 +101,7 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
                 inverted,
             )
             .unwrap()
+            .cost
         };
         let bounds = vec![(0., p.bounds[0]); p.t_end as usize];
         let (xs, _) = find_minimizer(objective, &bounds)?;
@@ -98,7 +109,12 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
     }
 }
 
-impl Bounded<i32> for IntegralSimplifiedSmoothedConvexOptimization<'_> {
+impl<C, D> Bounded<i32>
+    for IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
@@ -120,7 +136,11 @@ impl Bounded<i32> for IntegralSimplifiedSmoothedConvexOptimization<'_> {
     }
 }
 
-impl IntegralSimplifiedSmoothedConvexOptimization<'_> {
+impl<C, D> IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     fn find_bound(
         &self,
         alpha: f64,

@@ -7,8 +7,9 @@ use crate::algorithms::offline::graph_search::{
 use crate::algorithms::offline::multi_dimensional::Values;
 use crate::algorithms::offline::OfflineOptions;
 use crate::config::{Config, IntegralConfig};
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::objective::scalar_movement;
-use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
+use crate::problem::{IntegralSimplifiedSmoothedConvexOptimization, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::assert;
@@ -39,12 +40,16 @@ struct Edge {
 }
 
 /// Graph-Based Integral Algorithm
-pub fn graph_search(
-    p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
+pub fn graph_search<C, D>(
+    p: IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>,
     values: Values,
     cache: Option<Cache<Vertice>>,
     OfflineOptions { inverted, alpha, l }: OfflineOptions,
-) -> Result<CachedPath<Cache<Vertice>>> {
+) -> Result<CachedPath<Cache<Vertice>>>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     assert(l.is_none(), Failure::UnsupportedLConstrainedMovement)?;
 
     let (t_init, mut paths) = read_cache(cache, || (1, HashMap::new()));
@@ -74,8 +79,8 @@ struct HandleLayerState {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn handle_layer(
-    p: &IntegralSimplifiedSmoothedConvexOptimization,
+fn handle_layer<C, D>(
+    p: &IntegralSimplifiedSmoothedConvexOptimization<C, D>,
     alpha: f64,
     inverted: bool,
     t: i32,
@@ -83,7 +88,11 @@ fn handle_layer(
     values: &Values,
     paths: &mut Paths<Vertice>,
     state_: Option<HandleLayerState>,
-) -> Result<()> {
+) -> Result<()>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let base_k = 1;
     let mut state = state_.unwrap_or_else(|| HandleLayerState {
         k: base_k,
@@ -146,8 +155,8 @@ fn handle_layer(
 
 /// updates paths up to vertex representing some config; then returns next config
 #[allow(clippy::too_many_arguments)]
-fn handle_config(
-    p: &IntegralSimplifiedSmoothedConvexOptimization,
+fn handle_config<C, D>(
+    p: &IntegralSimplifiedSmoothedConvexOptimization<C, D>,
     alpha: f64,
     inverted: bool,
     t: i32,
@@ -155,7 +164,10 @@ fn handle_config(
     (powering_up, config): (bool, &InternalConfig),
     values: &Values,
     paths: &mut Paths<Vertice>,
-) {
+) where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     // find all immediate predecessors
     let predecessors = find_immediate_predecessors(
         p,
@@ -239,8 +251,8 @@ fn build_config(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn find_immediate_predecessors(
-    p: &IntegralSimplifiedSmoothedConvexOptimization,
+fn find_immediate_predecessors<C, D>(
+    p: &IntegralSimplifiedSmoothedConvexOptimization<C, D>,
     alpha: f64,
     inverted: bool,
     t: i32,
@@ -248,7 +260,11 @@ fn find_immediate_predecessors(
     k: i32,
     config: &InternalConfig,
     all_values: &Values,
-) -> Vec<Edge> {
+) -> Vec<Edge>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let mut predecessors: Vec<Edge> = (1..=k)
         .into_par_iter()
         .filter_map(|l| {
@@ -296,7 +312,7 @@ fn find_immediate_predecessors(
             cost: if powering_up {
                 0.
             } else {
-                p.hit_cost(t, config.config.clone()).raw()
+                p.hit_cost(t, config.config.clone()).cost.raw()
             },
         };
         predecessors.push(inaction);

@@ -1,32 +1,35 @@
 //! Objective function.
 
-use crate::config::{Config, IntegralConfig};
-use crate::convert::{CastableConfig, CastableSchedule};
-use crate::problem::{
-    Problem, SimplifiedSmoothedConvexOptimization, SmoothedConvexOptimization,
-    SmoothedLoadOptimization,
-};
-use crate::result::{Failure, Result};
-use crate::schedule::{IntegralSchedule, Schedule};
-use crate::utils::{assert, pos};
+use crate::config::Config;
+use crate::cost::{Cost, RawCost};
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
+use crate::problem::Problem;
+use crate::result::Result;
+use crate::schedule::Schedule;
+use crate::utils::pos;
 use crate::value::Value;
 use noisy_float::prelude::*;
 use num::NumCast;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-pub trait Objective<'a, T>
+pub trait Objective<'a, T, C, D>: Problem<T, C, D> + Sync
 where
     T: Value<'a>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     /// Objective Function. Calculates the cost of a schedule.
-    fn objective_function(&self, xs: &Schedule<T>) -> Result<N64> {
+    fn objective_function(&self, xs: &Schedule<T>) -> Result<Cost<C, D>> {
         let default = self._default_config();
         self._objective_function_with_default(xs, &default, 1., false)
     }
 
     /// Inverted Objective Function. Calculates the cost of a schedule. Pays the
     /// switching cost for powering down rather than powering up.
-    fn inverted_objective_function(&self, xs: &Schedule<T>) -> Result<N64> {
+    fn inverted_objective_function(
+        &self,
+        xs: &Schedule<T>,
+    ) -> Result<Cost<C, D>> {
         let default = self._default_config();
         self._objective_function_with_default(xs, &default, 1., true)
     }
@@ -36,7 +39,7 @@ where
         &self,
         xs: &Schedule<T>,
         alpha: f64,
-    ) -> Result<N64> {
+    ) -> Result<Cost<C, D>> {
         let default = self._default_config();
         self._objective_function_with_default(xs, &default, alpha, false)
     }
@@ -45,7 +48,7 @@ where
         &self,
         xs: &Schedule<T>,
         default: &Config<T>,
-    ) -> Result<N64> {
+    ) -> Result<Cost<C, D>> {
         self._objective_function_with_default(xs, default, 1., false)
     }
 
@@ -55,194 +58,56 @@ where
         default: &Config<T>,
         alpha: f64,
         inverted: bool,
-    ) -> Result<N64>;
+    ) -> Result<Cost<C, D>> {
+        Ok(sum_over_schedule(
+            self.t_end(),
+            xs,
+            default,
+            |t, prev_x, x| {
+                let hitting_cost = self.hit_cost(t as i32, x.clone());
+                Cost::new(
+                    hitting_cost.cost
+                        + n64(alpha) * self.movement(prev_x, x, inverted),
+                    hitting_cost.output,
+                )
+            },
+        ))
+    }
 
     /// Movement in the decision space.
     fn total_movement(&self, xs: &Schedule<T>, inverted: bool) -> Result<N64> {
         let default = self._default_config();
-        self._total_movement_with_default(xs, &default, inverted)
-    }
-
-    fn _total_movement_with_default(
-        &self,
-        xs: &Schedule<T>,
-        default: &Config<T>,
-        inverted: bool,
-    ) -> Result<N64>;
-
-    fn _default_config(&self) -> Config<T>;
-}
-
-impl<'a, T> Objective<'a, T> for SmoothedConvexOptimization<'a, T>
-where
-    T: Value<'a>,
-{
-    fn _objective_function_with_default(
-        &self,
-        xs: &Schedule<T>,
-        default: &Config<T>,
-        alpha: f64,
-        inverted: bool,
-    ) -> Result<N64> {
-        assert(!inverted, Failure::UnsupportedInvertedCost)?;
-
-        Ok(sum_over_schedule(
-            self.t_end,
-            xs,
-            default,
-            |t, prev_x, x| {
-                self.hit_cost(t as i32, x.clone())
-                    + n64(alpha) * self.movement(prev_x, x)
-            },
-        ))
-    }
-
-    fn _total_movement_with_default(
-        &self,
-        xs: &Schedule<T>,
-        default: &Config<T>,
-        inverted: bool,
-    ) -> Result<N64> {
-        assert(!inverted, Failure::UnsupportedInvertedCost)?;
-
-        Ok(sum_over_schedule(
-            self.t_end,
-            xs,
-            default,
-            |_, prev_x, x| self.movement(prev_x, x),
-        ))
-    }
-
-    fn _default_config(&self) -> Config<T> {
-        Config::repeat(NumCast::from(0).unwrap(), self.d)
-    }
-}
-
-impl<'a, T> Objective<'a, T> for SimplifiedSmoothedConvexOptimization<'a, T>
-where
-    T: Value<'a>,
-{
-    fn _objective_function_with_default(
-        &self,
-        xs: &Schedule<T>,
-        default: &Config<T>,
-        alpha: f64,
-        inverted: bool,
-    ) -> Result<N64> {
-        Ok(sum_over_schedule(
-            self.t_end,
-            xs,
-            default,
-            |t, prev_x, x| {
-                self.hit_cost(t as i32, x.clone())
-                    + n64(alpha) * self.movement(prev_x, x, inverted)
-            },
-        ))
-    }
-
-    fn _total_movement_with_default(
-        &self,
-        xs: &Schedule<T>,
-        default: &Config<T>,
-        inverted: bool,
-    ) -> Result<N64> {
-        Ok(sum_over_schedule(
-            self.t_end,
-            xs,
-            default,
-            |_, prev_x, x| self.movement(prev_x, x, inverted),
-        ))
-    }
-
-    fn _default_config(&self) -> Config<T> {
-        Config::repeat(NumCast::from(0).unwrap(), self.d)
-    }
-}
-
-/// Implements integral objective for a relaxed problem instance which also implements a fractional objective.
-/// Used by the uni-dimensional randomized algorithm.
-impl<'a, P> Objective<'a, i32> for P
-where
-    P: Problem + Objective<'a, f64>,
-{
-    fn _objective_function_with_default(
-        &self,
-        xs: &IntegralSchedule,
-        default: &IntegralConfig,
-        alpha: f64,
-        inverted: bool,
-    ) -> Result<N64> {
-        self._objective_function_with_default(
-            &xs.to(),
-            &default.to(),
-            alpha,
-            inverted,
+        Ok(
+            sum_over_schedule(self.t_end(), xs, &default, |_, prev_x, x| {
+                RawCost::raw(self.movement(prev_x, x, inverted))
+            })
+            .cost,
         )
     }
 
-    fn _total_movement_with_default(
-        &self,
-        xs: &IntegralSchedule,
-        default: &IntegralConfig,
-        inverted: bool,
-    ) -> Result<N64> {
-        self._total_movement_with_default(&xs.to(), &default.to(), inverted)
-    }
-
-    fn _default_config(&self) -> IntegralConfig {
-        Config::repeat(0, self.d())
-    }
-}
-
-impl<'a, T> Objective<'a, T> for SmoothedLoadOptimization<T>
-where
-    T: Value<'a>,
-{
-    fn _objective_function_with_default(
-        &self,
-        xs: &Schedule<T>,
-        default: &Config<T>,
-        alpha: f64,
-        inverted: bool,
-    ) -> Result<N64> {
-        Ok(sum_over_schedule(
-            self.t_end,
-            xs,
-            default,
-            |t, prev_x, x| {
-                self.hit_cost(t as i32, x.clone())
-                    + n64(alpha) * self.movement(prev_x, x, inverted)
-            },
-        ))
-    }
-
-    fn _total_movement_with_default(
-        &self,
-        xs: &Schedule<T>,
-        default: &Config<T>,
-        inverted: bool,
-    ) -> Result<N64> {
-        Ok(sum_over_schedule(
-            self.t_end,
-            xs,
-            default,
-            |_, prev_x, x| self.movement(prev_x, x, inverted),
-        ))
-    }
-
     fn _default_config(&self) -> Config<T> {
-        Config::repeat(NumCast::from(0).unwrap(), self.d)
+        Config::repeat(NumCast::from(0).unwrap(), self.d())
     }
 }
+impl<'a, T, C, D, P> Objective<'a, T, C, D> for P
+where
+    P: Problem<T, C, D> + Sync,
+    T: Value<'a>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
+}
 
-fn sum_over_schedule<'a, T>(
+fn sum_over_schedule<'a, T, C, D>(
     t_end: i32,
     xs: &Schedule<T>,
     default: &Config<T>,
-    f: impl Fn(i32, Config<T>, Config<T>) -> N64 + Send + Sync,
-) -> N64
+    f: impl Fn(i32, Config<T>, Config<T>) -> Cost<C, D> + Send + Sync,
+) -> Cost<C, D>
 where
     T: Value<'a>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     (1..=t_end)
         .into_par_iter()

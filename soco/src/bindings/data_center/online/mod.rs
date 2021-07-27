@@ -1,4 +1,11 @@
-use crate::{bindings::utils::make_package, streaming::online};
+use crate::{
+    bindings::utils::make_package,
+    cost::Cost,
+    model::data_center::model::{
+        DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
+    },
+    streaming::online,
+};
 use pyo3::prelude::*;
 
 mod lazy_capacity_provisioning;
@@ -8,9 +15,29 @@ mod randomized;
 mod randomly_biased_greedy;
 
 /// Obtained result, integral result, and last memory.
-type Response<T, M> = ((Vec<Vec<T>>, f64), (Vec<Vec<i32>>, f64), Option<M>);
+type Response<T, M> = (
+    (
+        Vec<Vec<T>>,
+        Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>,
+    ),
+    (
+        Vec<Vec<i32>>,
+        Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>,
+    ),
+    Option<M>,
+);
 /// Obtained result, integral result, and last memory.
-type StepResponse<T, M> = ((Vec<T>, f64), (Vec<i32>, f64), Option<M>);
+type StepResponse<T, M> = (
+    (
+        Vec<T>,
+        Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>,
+    ),
+    (
+        Vec<i32>,
+        Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>,
+    ),
+    Option<M>,
+);
 
 /// Stops backend server.
 #[pyfunction]

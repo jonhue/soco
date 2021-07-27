@@ -1,7 +1,8 @@
 //! Model of a data center.
 
+use super::loads::PredictedLoadProfile;
 use crate::config::Config;
-use crate::cost::{CostFn, SingleCostFn};
+use crate::cost::{CostFn, FailableCost, SingleCostFn};
 use crate::model::data_center::loads::{
     apply_loads_over_time, apply_predicted_loads, LoadFractions, LoadProfile,
 };
@@ -11,9 +12,12 @@ use crate::model::data_center::models::energy_cost::EnergyCostModel;
 use crate::model::data_center::models::revenue_loss::RevenueLossModel;
 use crate::model::data_center::models::switching_cost::SwitchingCostModel;
 use crate::model::data_center::safe_balancing;
-use crate::model::{verify_update, Model, OfflineInput, OnlineInput};
+use crate::model::{
+    verify_update, Model, ModelOutput, ModelOutputFailure, ModelOutputSuccess,
+    OfflineInput, OnlineInput,
+};
 use crate::problem::{
-    Online, Problem, SimplifiedSmoothedConvexOptimization,
+    BaseProblem, Online, SimplifiedSmoothedConvexOptimization,
     SmoothedBalancedLoadOptimization, SmoothedConvexOptimization,
     SmoothedLoadOptimization,
 };
@@ -25,9 +29,9 @@ use num::NumCast;
 use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::iter::Sum;
 use std::sync::Arc;
-
-use super::loads::PredictedLoadProfile;
+use thiserror::Error;
 
 pub static DEFAULT_KEY: &str = "";
 
@@ -180,6 +184,28 @@ impl Location {
     #[new]
     fn constructor(key: String, m: HashMap<String, i32>) -> Self {
         Location { key, m }
+    }
+}
+
+pub struct DataCenterObjective {
+    pub energy_cost: N64,
+    pub revenue_loss: N64,
+}
+impl Default for DataCenterObjective {
+    fn default() -> Self {
+        Self {
+            energy_cost: n64(0.),
+            revenue_loss: n64(0.),
+        }
+    }
+}
+impl Sum for DataCenterObjective {
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.reduce(|result, value| DataCenterObjective {
+            energy_cost: result.energy_cost + value.energy_cost,
+            revenue_loss: result.revenue_loss + value.revenue_loss,
+        })
+        .unwrap_or_else(DataCenterObjective::default)
     }
 }
 
@@ -401,28 +427,28 @@ impl DataCenterModel {
         x: &Config<T>,
         lambda: &LoadProfile,
         zs: &LoadFractions,
-    ) -> N64
+    ) -> DataCenterObjective
     where
         T: Value<'a>,
     {
         (0..self.locations.len())
-            .map(|j| -> N64 {
-                self.energy_cost(t, j, x, lambda, zs)
-                    + (0..self.server_types.len())
-                        .map(|k| -> N64 {
-                            let k_ = encode(self.server_types.len(), j, k);
-                            let loads = zs.select_loads(lambda, k_);
-                            self.overall_revenue_loss(
-                                t,
-                                &self.locations[j],
-                                &self.server_types[k],
-                                x[k_],
-                                loads,
-                            )
-                        })
-                        .sum::<N64>()
+            .map(|j| DataCenterObjective {
+                energy_cost: self.energy_cost(t, j, x, lambda, zs),
+                revenue_loss: (0..self.server_types.len())
+                    .map(|k| -> N64 {
+                        let k_ = encode(self.server_types.len(), j, k);
+                        let loads = zs.select_loads(lambda, k_);
+                        self.overall_revenue_loss(
+                            t,
+                            &self.locations[j],
+                            &self.server_types[k],
+                            x[k_],
+                            loads,
+                        )
+                    })
+                    .sum::<N64>(),
             })
-            .sum::<N64>()
+            .sum()
     }
 
     /// Optimally applies (certain) loads to the model of a data center to obtain a cost function.
@@ -434,7 +460,12 @@ impl DataCenterModel {
         &self,
         loads: Vec<LoadProfile>,
         t_start: i32,
-    ) -> CostFn<'a, Config<T>>
+    ) -> CostFn<
+        'a,
+        Config<T>,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    >
     where
         T: Value<'a>,
     {
@@ -457,7 +488,12 @@ impl DataCenterModel {
         &self,
         predicted_loads: Vec<PredictedLoadProfile>,
         t_start: i32,
-    ) -> SingleCostFn<'a, Config<T>>
+    ) -> SingleCostFn<
+        'a,
+        Config<T>,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    >
     where
         T: Value<'a>,
     {
@@ -529,11 +565,76 @@ pub struct DataCenterOnlineInput {
 }
 impl OnlineInput for DataCenterOnlineInput {}
 
+#[pyclass]
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct DataCenterModelOutputSuccess {
+    /// Energy cost of model.
+    pub energy_cost: f64,
+    /// Revenue loss of model.
+    pub revenue_loss: f64,
+    /// All possible assignments of fractions of loads to server types.
+    pub assignments: Vec<Vec<f64>>,
+}
+impl ModelOutputSuccess for DataCenterModelOutputSuccess {
+    fn merge_with(mut self, output: Self) -> Self {
+        self.assignments.extend(output.assignments.into_iter());
+        Self {
+            energy_cost: (self.energy_cost + output.energy_cost) / 2.,
+            revenue_loss: (self.revenue_loss + output.revenue_loss) / 2.,
+            assignments: self.assignments,
+        }
+    }
+}
+impl DataCenterModelOutputSuccess {
+    pub fn new(
+        energy_cost: f64,
+        revenue_loss: f64,
+        assignment: Vec<f64>,
+    ) -> Self {
+        Self {
+            energy_cost,
+            revenue_loss,
+            assignments: vec![assignment],
+        }
+    }
+}
+
+#[derive(Clone, Debug, Error, Deserialize, Serialize)]
+pub enum DataCenterModelOutputFailure {
+    #[error("The configuration is unable to support the given load profile.")]
+    DemandExceedingSupply,
+    #[error("The configuration is outside the decision space.")]
+    OutsideDecisionSpace,
+    #[error("A server cannot handle more than one job during a time slot.")]
+    SLOMaxUtilizationExceeded,
+}
+impl IntoPy<PyObject> for DataCenterModelOutputFailure {
+    fn into_py(self, py: Python) -> PyObject {
+        self.to_string().into_py(py)
+    }
+}
+impl ModelOutputFailure for DataCenterModelOutputFailure {
+    fn outside_decision_space() -> DataCenterModelOutputFailure {
+        DataCenterModelOutputFailure::OutsideDecisionSpace
+    }
+}
+
+pub type DataCenterModelOutput =
+    ModelOutput<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>;
+
 impl<'a, T>
     Model<
-        SmoothedConvexOptimization<'a, T>,
+        T,
+        SmoothedConvexOptimization<
+            'a,
+            T,
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
+        >,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
     > for DataCenterModel
 where
     T: Value<'a>,
@@ -541,15 +642,31 @@ where
     fn to(
         &self,
         input: DataCenterOfflineInput,
-    ) -> SmoothedConvexOptimization<'a, T> {
-        let ssco_p: SimplifiedSmoothedConvexOptimization<'a, T> =
-            self.to(input);
+    ) -> SmoothedConvexOptimization<
+        'a,
+        T,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    > {
+        let ssco_p: SimplifiedSmoothedConvexOptimization<
+            'a,
+            T,
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
+        > = self.to(input);
         ssco_p.into_sco()
     }
 
     fn update(
         &self,
-        o: &mut Online<SmoothedConvexOptimization<'a, T>>,
+        o: &mut Online<
+            SmoothedConvexOptimization<
+                'a,
+                T,
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
+            >,
+        >,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
         o.p.inc_t_end();
@@ -564,9 +681,17 @@ where
 
 impl<'a, T>
     Model<
-        SimplifiedSmoothedConvexOptimization<'a, T>,
+        T,
+        SimplifiedSmoothedConvexOptimization<
+            'a,
+            T,
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
+        >,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
     > for DataCenterModel
 where
     T: Value<'a>,
@@ -574,7 +699,12 @@ where
     fn to(
         &self,
         DataCenterOfflineInput { loads }: DataCenterOfflineInput,
-    ) -> SimplifiedSmoothedConvexOptimization<'a, T> {
+    ) -> SimplifiedSmoothedConvexOptimization<
+        'a,
+        T,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    > {
         let d = self.d_();
         let t_end = loads.len() as i32;
         let bounds = self.generate_bounds();
@@ -593,7 +723,14 @@ where
 
     fn update(
         &self,
-        o: &mut Online<SimplifiedSmoothedConvexOptimization<'a, T>>,
+        o: &mut Online<
+            SimplifiedSmoothedConvexOptimization<
+                'a,
+                T,
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
+            >,
+        >,
         DataCenterOnlineInput { loads }: DataCenterOnlineInput,
     ) {
         o.p.inc_t_end();
@@ -608,9 +745,12 @@ where
 
 impl<'a, T>
     Model<
+        T,
         SmoothedBalancedLoadOptimization<'a, T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
     > for DataCenterModel
 where
     T: Value<'a>,
@@ -653,7 +793,9 @@ where
                                 s,
                             )
                         });
-                        energy_cost_model.cost(t, &location, p)
+                        FailableCost::raw(
+                            energy_cost_model.cost(t, &location, p),
+                        )
                     }),
                 )
             })
@@ -696,9 +838,12 @@ where
 
 impl<'a, T>
     Model<
+        T,
         SmoothedLoadOptimization<T>,
         DataCenterOfflineInput,
         DataCenterOnlineInput,
+        (),
+        DataCenterModelOutputFailure,
     > for DataCenterModel
 where
     T: Value<'a>,

@@ -2,10 +2,12 @@ use super::{Response, StepResponse};
 use crate::{
     algorithms::online::uni_dimensional::memoryless::memoryless,
     model::data_center::model::{
-        DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+        DataCenterModel, DataCenterModelOutputFailure,
+        DataCenterModelOutputSuccess, DataCenterOfflineInput,
+        DataCenterOnlineInput,
     },
     problem::FractionalSimplifiedSmoothedConvexOptimization,
-    streaming::online,
+    streaming::online::{self, OfflineResponse},
 };
 use pyo3::prelude::*;
 
@@ -18,7 +20,11 @@ fn start(
     input: DataCenterOfflineInput,
     w: i32,
 ) -> PyResult<Response<f64, ()>> {
-    let ((xs, cost), (int_xs, int_cost), _) = online::start(
+    let OfflineResponse {
+        xs: (xs, cost),
+        int_xs: (int_xs, int_cost),
+        ..
+    } = online::start(
         addr.parse().unwrap(),
         model,
         &memoryless,
@@ -42,9 +48,14 @@ fn next(
         let ((x, cost), (int_x, int_cost), _) =
             online::next::<
                 f64,
-                FractionalSimplifiedSmoothedConvexOptimization,
+                FractionalSimplifiedSmoothedConvexOptimization<
+                    DataCenterModelOutputSuccess,
+                    DataCenterModelOutputFailure,
+                >,
                 (),
                 DataCenterOnlineInput,
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
             >(addr.parse().unwrap(), input);
         Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), None))
     })

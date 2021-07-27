@@ -30,7 +30,7 @@ mod lb {
             .unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
-        assert!(o.p.objective_function(&result.0).unwrap().is_finite());
+        assert!(o.p.objective_function(&result.0).unwrap().cost.is_finite());
         assert_eq!(
             result.0,
             Schedule::new(vec![
@@ -64,7 +64,7 @@ mod lb {
             .unwrap();
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
-        assert!(o.p.objective_function(&result.0).unwrap().is_finite());
+        assert!(o.p.objective_function(&result.0).unwrap().cost.is_finite());
         assert_eq!(
             result.0,
             Schedule::new(vec![

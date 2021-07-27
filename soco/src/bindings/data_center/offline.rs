@@ -19,12 +19,19 @@ use crate::{
         },
         OfflineOptions,
     },
-    model::data_center::model::{DataCenterModel, DataCenterOfflineInput},
+    cost::Cost,
+    model::data_center::model::{
+        DataCenterModel, DataCenterModelOutputFailure,
+        DataCenterModelOutputSuccess, DataCenterOfflineInput,
+    },
     streaming::offline,
 };
 use pyo3::prelude::*;
 
-type Response<T> = (Vec<Vec<T>>, f64);
+type Response<T> = (
+    Vec<Vec<T>>,
+    Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>,
+);
 
 /// Backward-Recurrent Capacity Provisioning
 #[pyfunction]

@@ -1,17 +1,20 @@
-use crate::algorithms::online::multi_dimensional::online_balanced_descent::{
-    meta::{obd, Options as MetaOptions},
-    MAX_L_FACTOR,
-};
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
 use crate::norm::dual;
 use crate::norm::NormFn;
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::roots::find_root;
-use crate::problem::{FractionalSmoothedConvexOptimization, Online};
+use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
+use crate::{
+    algorithms::online::multi_dimensional::online_balanced_descent::{
+        meta::{obd, Options as MetaOptions},
+        MAX_L_FACTOR,
+    },
+    model::{ModelOutputFailure, ModelOutputSuccess},
+};
 use finitediff::FiniteDiff;
 
 pub struct Options<'a> {
@@ -22,12 +25,16 @@ pub struct Options<'a> {
 }
 
 /// Dual Online Balanced Descent
-pub fn dobd(
-    o: &Online<FractionalSmoothedConvexOptimization>,
+pub fn dobd<C, D>(
+    o: &Online<FractionalSmoothedConvexOptimization<C, D>>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
     options: &Options,
-) -> Result<FractionalStep<()>> {
+) -> Result<FractionalStep<()>>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let t = xs.t_end() + 1;
@@ -40,7 +47,7 @@ pub fn dobd(
     let v = Config::new(
         find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
     );
-    let minimal_hitting_cost = o.p.hit_cost(t, v).raw();
+    let minimal_hitting_cost = o.p.hit_cost(t, v).cost.raw();
 
     let a = minimal_hitting_cost;
     let b = MAX_L_FACTOR * minimal_hitting_cost;
@@ -60,15 +67,19 @@ pub fn dobd(
     )
 }
 
-fn balance_function(
-    o: &Online<FractionalSmoothedConvexOptimization>,
+fn balance_function<C, D>(
+    o: &Online<FractionalSmoothedConvexOptimization<C, D>>,
     xs: &mut FractionalSchedule,
     prev_x: &FractionalConfig,
     t: i32,
     l: f64,
     eta: f64,
     mirror_map: &NormFn<'_, f64>,
-) -> f64 {
+) -> f64
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let Step(x, _) = obd(
         o,
         xs,
@@ -79,7 +90,7 @@ fn balance_function(
         },
     )
     .unwrap();
-    let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).raw();
+    let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).cost.raw();
     let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone())).raw();
     let distance = dual(&o.p.switching_cost)(
         Config::new(x.to_vec().central_diff(&m))

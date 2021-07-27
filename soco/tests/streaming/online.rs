@@ -6,8 +6,10 @@ use soco::{
     model::data_center::{
         loads::{LoadProfile, PredictedLoadProfile},
         model::{
-            DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
-            JobType, Location, ServerType, Source, DEFAULT_KEY,
+            DataCenterModel, DataCenterModelOutputFailure,
+            DataCenterModelOutputSuccess, DataCenterOfflineInput,
+            DataCenterOnlineInput, JobType, Location, ServerType, Source,
+            DEFAULT_KEY,
         },
         models::{
             energy_consumption::{
@@ -21,7 +23,7 @@ use soco::{
         },
     },
     problem::FractionalSmoothedConvexOptimization,
-    streaming::online,
+    streaming::online::{self, OfflineResponse},
 };
 use std::{
     sync::{mpsc::channel, Arc},
@@ -82,7 +84,11 @@ fn integration() {
 
         let options = Options::default();
 
-        let ((xs, _), (int_xs, _), _) = online::start(
+        let OfflineResponse {
+            xs: (xs, _),
+            int_xs: (int_xs, _),
+            ..
+        } = online::start(
             addr.parse().unwrap(),
             model,
             &rbg,
@@ -103,9 +109,14 @@ fn integration() {
         };
         let ((x, _), (int_x, _), _) = online::next::<
             f64,
-            FractionalSmoothedConvexOptimization,
+            FractionalSmoothedConvexOptimization<
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
+            >,
             Memory,
             DataCenterOnlineInput,
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
         >(addr.parse().unwrap(), input);
         x.verify(t_end + t, &vec![m as f64]).unwrap();
         int_x.verify(t_end + t, &vec![m]).unwrap();

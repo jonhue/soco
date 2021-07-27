@@ -1,7 +1,10 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::Config;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::convex_optimization::{minimize, Constraint};
-use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
+use crate::problem::{
+    FractionalSimplifiedSmoothedConvexOptimization, Online, Problem,
+};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
@@ -9,13 +12,17 @@ use noisy_float::prelude::*;
 use std::sync::Arc;
 
 /// Memoryless Algorithm. Special case of Primal Online Balanced Descent.
-pub fn memoryless(
-    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
+pub fn memoryless<C, D>(
+    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>>,
     t: i32,
     xs: &FractionalSchedule,
     _: (),
     _: (),
-) -> Result<FractionalStep<()>> {
+) -> Result<FractionalStep<()>>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
 
@@ -26,19 +33,23 @@ pub fn memoryless(
 }
 
 /// Determines next `x` with a convex optimization.
-fn next(
-    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
+fn next<C, D>(
+    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>>,
     t: i32,
     prev_x: f64,
-) -> Result<f64> {
+) -> Result<f64>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let bounds = vec![(0., o.p.bounds[0])];
     let objective =
-        |xs: &[f64]| -> N64 { o.p.hit_cost(t, Config::new(xs.to_vec())) };
+        |xs: &[f64]| -> N64 { o.p.hit_cost(t, Config::new(xs.to_vec())).cost };
     let constraint = Constraint {
         data: (),
         g: Arc::new(|xs, _| {
             n64(o.p.switching_cost[0]) * n64((xs[0] - prev_x).abs())
-                - o.p.hit_cost(t, Config::single(xs[0])) / n64(2.)
+                - o.p.hit_cost(t, Config::single(xs[0])).cost / n64(2.)
         }),
     };
 

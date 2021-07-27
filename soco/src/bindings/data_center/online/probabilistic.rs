@@ -4,10 +4,12 @@ use crate::{
         probabilistic, Memory, Options,
     },
     model::data_center::model::{
-        DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+        DataCenterModel, DataCenterModelOutputFailure,
+        DataCenterModelOutputSuccess, DataCenterOfflineInput,
+        DataCenterOnlineInput,
     },
     problem::FractionalSimplifiedSmoothedConvexOptimization,
-    streaming::online,
+    streaming::online::{self, OfflineResponse},
 };
 use pyo3::prelude::*;
 
@@ -21,7 +23,11 @@ fn start(
     w: i32,
     options: Options,
 ) -> PyResult<Response<f64, Memory<'static>>> {
-    let ((xs, cost), (int_xs, int_cost), m) = online::start(
+    let OfflineResponse {
+        xs: (xs, cost),
+        int_xs: (int_xs, int_cost),
+        m,
+    } = online::start(
         addr.parse().unwrap(),
         model,
         &probabilistic,
@@ -45,9 +51,14 @@ fn next(
         let ((x, cost), (int_x, int_cost), m) =
             online::next::<
                 f64,
-                FractionalSimplifiedSmoothedConvexOptimization,
+                FractionalSimplifiedSmoothedConvexOptimization<
+                    DataCenterModelOutputSuccess,
+                    DataCenterModelOutputFailure,
+                >,
                 Memory,
                 DataCenterOnlineInput,
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
             >(addr.parse().unwrap(), input);
         Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), m))
     })

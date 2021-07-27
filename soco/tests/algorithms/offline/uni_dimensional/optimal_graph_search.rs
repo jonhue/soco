@@ -4,7 +4,7 @@ mod make_pow_of_2 {
     use crate::init;
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::make_pow_of_2;
     use soco::config::Config;
-    use soco::problem::SimplifiedSmoothedConvexOptimization;
+    use soco::problem::{Problem, SimplifiedSmoothedConvexOptimization};
     use soco::verifiers::VerifiableProblem;
 
     #[test]
@@ -32,7 +32,7 @@ mod make_pow_of_2 {
         for t in 1..=transformed_p.t_end {
             for j in 0..=transformed_p.bounds[0] {
                 assert_abs_diff_eq!(
-                    transformed_p.hit_cost(t, Config::single(j)).raw(),
+                    transformed_p.hit_cost(t, Config::single(j)).cost.raw(),
                     if j <= p.bounds[0] {
                         1.
                     } else {
@@ -93,7 +93,7 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(path.cost, 1.);
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw(),
+            p.objective_function(&path.xs).unwrap().cost.raw(),
             epsilon = 1.
         );
     }
@@ -124,7 +124,7 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw(),
+            p.objective_function(&path.xs).unwrap().cost.raw(),
             epsilon = 1.
         );
     }
@@ -167,7 +167,11 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_abs_diff_eq!(
             path.cost,
-            transformed_p.objective_function(&path.xs).unwrap().raw(),
+            transformed_p
+                .objective_function(&path.xs)
+                .unwrap()
+                .cost
+                .raw(),
             epsilon = 1.
         );
     }
@@ -199,6 +203,7 @@ mod optimal_graph_search {
             path.cost,
             p.objective_function_with_default(&path.xs, &Config::single(2))
                 .unwrap()
+                .cost
                 .raw(),
             epsilon = 1.
         );

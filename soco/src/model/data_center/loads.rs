@@ -1,7 +1,12 @@
 //! Definition of load profiles.
 
+use super::model::{
+    DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
+    DataCenterObjective,
+};
 use crate::config::Config;
-use crate::cost::{CostFn, SingleCostFn};
+use crate::cost::{Cost, CostFn, SingleCostFn};
+use crate::model::ModelOutput;
 use crate::numerics::convex_optimization::{minimize, Constraint};
 use crate::numerics::ApplicablePrecision;
 use crate::utils::{access, transpose, unshift_time};
@@ -385,19 +390,24 @@ impl LoadFractions {
 ///
 /// * `d` - number of dimensions
 /// * `e` - number of job types
-/// * `objective` - cost function to minimize w.r.t. load assignments
+/// * `objective` - cost function to minimize w.r.t. load assignments, returning energy cost and revenue loss
 /// * `loads` - vector of (certain) loads for all time slots that should be supported by the returned cost function
 /// * `t_start` - time offset, i.e. time of first load profile
-pub fn apply_loads_over_time<'a, T>(
+pub fn apply_loads_over_time<'a, 'b, T>(
     d: i32,
     e: i32,
-    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> N64
+    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> DataCenterObjective
         + Send
         + Sync
-        + 'a,
+        + 'b,
     loads: Vec<LoadProfile>,
     t_start: i32,
-) -> CostFn<'a, Config<T>>
+) -> CostFn<
+    'b,
+    Config<T>,
+    DataCenterModelOutputSuccess,
+    DataCenterModelOutputFailure,
+>
 where
     T: Value<'a>,
 {
@@ -417,16 +427,21 @@ where
 /// * `objective` - cost function to minimize w.r.t. load assignments
 /// * `predicted_loads` - vector of predicted loads for all time slots that should be supported by the returned cost function
 /// * `t_start` - time offset, i.e. time of first load samples
-pub fn apply_predicted_loads<'a, T>(
+pub fn apply_predicted_loads<'a, 'b, T>(
     d: i32,
     e: i32,
-    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> N64
+    objective: impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> DataCenterObjective
         + Send
         + Sync
-        + 'a,
+        + 'b,
     predicted_loads: Vec<PredictedLoadProfile>,
     t_start: i32,
-) -> SingleCostFn<'a, Config<T>>
+) -> SingleCostFn<
+    'b,
+    Config<T>,
+    DataCenterModelOutputSuccess,
+    DataCenterModelOutputFailure,
+>
 where
     T: Value<'a>,
 {
@@ -452,11 +467,16 @@ where
 pub fn apply_loads<'a, T>(
     d: i32,
     e: i32,
-    objective: &impl Fn(i32, &Config<T>, &LoadProfile, &LoadFractions) -> N64,
+    objective: &impl Fn(
+        i32,
+        &Config<T>,
+        &LoadProfile,
+        &LoadFractions,
+    ) -> DataCenterObjective,
     lambda: &LoadProfile,
     t: i32,
     x: Config<T>,
-) -> N64
+) -> Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>
 where
     T: Value<'a>,
 {
@@ -466,9 +486,13 @@ where
     // the final dimensions are completely determined by all preceding dimensions
     let solver_d = (d * e) as usize - e as usize;
     let bounds = vec![(0., 1.); solver_d];
-    let objective = |zs_: &[f64]| {
+    let solver_objective = |zs_: &[f64]| {
         let zs = LoadFractions::new(zs_, d, e);
-        objective(t, &x, lambda, &zs)
+        let DataCenterObjective {
+            energy_cost,
+            revenue_loss,
+        } = objective(t, &x, lambda, &zs);
+        energy_cost + revenue_loss
     };
 
     // assigns each dimension a fraction of each load type
@@ -507,7 +531,21 @@ where
         .collect();
 
     // minimize cost across all possible server to load matchings
-    let (_, opt) =
-        minimize(objective, &bounds, vec![strategy], constraints).unwrap();
-    opt
+    let (zs_, cost) =
+        minimize(solver_objective, &bounds, vec![strategy], constraints)
+            .unwrap();
+
+    let zs = LoadFractions::new(&zs_, d, e);
+    let DataCenterObjective {
+        energy_cost,
+        revenue_loss,
+    } = objective(t, &x, lambda, &zs);
+    Cost::new(
+        cost,
+        ModelOutput::Success(DataCenterModelOutputSuccess::new(
+            energy_cost.raw(),
+            revenue_loss.raw(),
+            zs_,
+        )),
+    )
 }

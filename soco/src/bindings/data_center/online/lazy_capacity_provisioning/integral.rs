@@ -4,10 +4,12 @@ use crate::{
     },
     bindings::data_center::online::{Response, StepResponse},
     model::data_center::model::{
-        DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+        DataCenterModel, DataCenterModelOutputFailure,
+        DataCenterModelOutputSuccess, DataCenterOfflineInput,
+        DataCenterOnlineInput,
     },
     problem::IntegralSimplifiedSmoothedConvexOptimization,
-    streaming::online,
+    streaming::online::{self, OfflineResponse},
 };
 use pyo3::prelude::*;
 
@@ -20,10 +22,22 @@ fn start(
     input: DataCenterOfflineInput,
     w: i32,
 ) -> PyResult<Response<i32, Memory<i32>>> {
-    let ((xs, cost), (int_xs, int_cost), m) = online::start(
+    let OfflineResponse {
+        xs: (xs, cost),
+        int_xs: (int_xs, int_cost),
+        m,
+    } = online::start(
         addr.parse().unwrap(),
         model,
-        &lcp::<i32, IntegralSimplifiedSmoothedConvexOptimization>,
+        &lcp::<
+            i32,
+            IntegralSimplifiedSmoothedConvexOptimization<
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
+            >,
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
+        >,
         (),
         w,
         input,
@@ -44,9 +58,14 @@ fn next(
         let ((x, cost), (int_x, int_cost), m) =
             online::next::<
                 i32,
-                IntegralSimplifiedSmoothedConvexOptimization,
+                IntegralSimplifiedSmoothedConvexOptimization<
+                    DataCenterModelOutputSuccess,
+                    DataCenterModelOutputFailure,
+                >,
                 Memory<i32>,
                 DataCenterOnlineInput,
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
             >(addr.parse().unwrap(), input);
         Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), m))
     })

@@ -45,7 +45,7 @@ mod co {
             ])
         );
         assert_abs_diff_eq!(
-            p.objective_function(&cast_int_result).unwrap().raw(),
+            p.objective_function(&cast_int_result).unwrap().cost.raw(),
             3.5096,
             epsilon = 1e-4
         );

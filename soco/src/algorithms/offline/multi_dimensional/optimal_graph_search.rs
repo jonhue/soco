@@ -4,6 +4,7 @@ use crate::algorithms::offline::multi_dimensional::{
     graph_search::graph_search, Values,
 };
 use crate::algorithms::offline::OfflineOptions;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::Result;
 use log::debug;
@@ -28,11 +29,15 @@ impl Options {
 }
 
 /// Graph-Based Optimal Algorithm
-pub fn optimal_graph_search(
-    p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
+pub fn optimal_graph_search<C, D>(
+    p: IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>,
     Options { cache }: Options,
     offline_options: OfflineOptions,
-) -> Result<CachedPath<Cache<Vertice>>> {
+) -> Result<CachedPath<Cache<Vertice>>>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let max_bound = p.bounds.iter().max().unwrap();
     let values = Values {
         values: (0..=*max_bound).collect(),

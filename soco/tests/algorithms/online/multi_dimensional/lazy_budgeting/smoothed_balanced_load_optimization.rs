@@ -30,7 +30,11 @@ mod lb {
         result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         let p_ssco = o.p.into_ssco();
-        assert!(p_ssco.objective_function(&result.0).unwrap().is_finite());
+        assert!(p_ssco
+            .objective_function(&result.0)
+            .unwrap()
+            .cost
+            .is_finite());
         assert_eq!(
             result.0,
             Schedule::new(vec![

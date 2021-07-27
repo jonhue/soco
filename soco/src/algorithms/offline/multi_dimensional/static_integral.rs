@@ -1,5 +1,6 @@
 use crate::algorithms::offline::{OfflineOptions, PureOfflineResult};
 use crate::config::IntegralConfig;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::objective::Objective;
 use crate::problem::IntegralSimplifiedSmoothedConvexOptimization;
 use crate::result::{Failure, Result};
@@ -9,11 +10,15 @@ use crate::utils::assert;
 /// Algorithm computing the static integral optimum.
 ///
 /// Warning: do not use in practice, this algorithm is naive and has an exponential runtime.
-pub fn static_integral(
-    p: IntegralSimplifiedSmoothedConvexOptimization<'_>,
+pub fn static_integral<C, D>(
+    p: IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>,
     _: (),
     OfflineOptions { inverted, alpha, l }: OfflineOptions,
-) -> Result<PureOfflineResult<i32>> {
+) -> Result<PureOfflineResult<i32>>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     assert(!inverted, Failure::UnsupportedInvertedCost)?;
     assert(l.is_none(), Failure::UnsupportedLConstrainedMovement)?;
 
@@ -23,12 +28,16 @@ pub fn static_integral(
     Ok(PureOfflineResult { xs })
 }
 
-fn check_configs(
-    p: &IntegralSimplifiedSmoothedConvexOptimization<'_>,
+fn check_configs<C, D>(
+    p: &IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>,
     alpha: f64,
     k: usize,
     mut base_config: IntegralConfig,
-) -> Result<(IntegralConfig, f64)> {
+) -> Result<(IntegralConfig, f64)>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     if k < p.d as usize {
         let mut picked_config = base_config.clone();
         let mut picked_cost = f64::INFINITY;
@@ -49,6 +58,7 @@ fn check_configs(
                 base_config;
                 p.t_end as usize
             ]))?
+            .cost
             .raw(),
         ))
     }

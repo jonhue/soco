@@ -9,7 +9,7 @@ mod static_integral {
     };
     use soco::config::IntegralConfig;
     use soco::objective::Objective;
-    use soco::problem::SimplifiedSmoothedConvexOptimization;
+    use soco::problem::{Problem, SimplifiedSmoothedConvexOptimization};
     use soco::verifiers::VerifiableProblem;
 
     #[test]
@@ -31,7 +31,7 @@ mod static_integral {
             .xs();
         result.verify(p.t_end, &p.bounds).unwrap();
 
-        assert!(p.objective_function(&result).unwrap().is_finite());
+        assert!(p.objective_function(&result).unwrap().cost.is_finite());
         assert!(
             p.total_movement(&result, false).unwrap()
                 == p.movement(

@@ -1,7 +1,9 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
+use crate::norm::NormFn;
 use crate::numerics::convex_optimization::find_minimizer;
-use crate::problem::{FractionalSmoothedConvexOptimization, Online};
+use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::{assert, sample_uniform};
@@ -45,13 +47,17 @@ impl Options {
 }
 
 /// Randomly Biased Greedy
-pub fn rbg(
-    o: Online<FractionalSmoothedConvexOptimization<'_>>,
+pub fn rbg<C, D>(
+    o: Online<FractionalSmoothedConvexOptimization<'_, C, D>>,
     t: i32,
     _: &FractionalSchedule,
     m: Memory,
     options: Options,
-) -> Result<FractionalStep<Memory>> {
+) -> Result<FractionalStep<Memory>>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
 
@@ -61,15 +67,27 @@ pub fn rbg(
     Ok(Step(Config::single(x), None))
 }
 
-fn next(
-    o: Online<FractionalSmoothedConvexOptimization<'_>>,
+fn next<C, D>(
+    o: Online<FractionalSmoothedConvexOptimization<'_, C, D>>,
     t: i32,
     r: f64,
     theta: f64,
-) -> Result<f64> {
+) -> Result<f64>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let objective = |raw_x: &[f64]| -> N64 {
         let x = Config::new(raw_x.to_vec());
-        w(&o, t - 1, theta, x.clone()).unwrap()
+        w(
+            &o.p.bounds,
+            &|t, x| o.p.raw_hit_cost(t, x),
+            &o.p.switching_cost,
+            t - 1,
+            theta,
+            x.clone(),
+        )
+        .unwrap()
             + n64(r) * n64(theta) * (o.p.switching_cost)(x)
     };
 
@@ -80,18 +98,18 @@ fn next(
 cached_key_result! {
     WORK: SizedCache<String, N64> = SizedCache::with_size(1_000);
     Key = { format!("{}-{:?}", t, x) };
-    fn w(o: &Online<FractionalSmoothedConvexOptimization<'_>>, t: i32, theta: f64, x: FractionalConfig) -> Result<N64> = {
+    fn w(bounds: &Vec<(f64, f64)>, hitting_cost: &impl Fn(i32, FractionalConfig) -> N64, switching_cost: &NormFn<'_, f64>, t: i32, theta: f64, x: FractionalConfig) -> Result<N64> = {
         if t == 0 {
-            Ok(n64(theta) * (o.p.switching_cost)(x))
+            Ok(n64(theta) * switching_cost(x))
         } else {
             let f = |raw_y: &[f64]| -> N64 {
                 let y = Config::new(raw_y.to_vec());
-                w(o, t - 1, theta, y.clone()).unwrap()
-                    + o.p.hit_cost(t, y.clone())
-                    + n64(theta) * (o.p.switching_cost)(x.clone() - y)
+                w(bounds, hitting_cost, switching_cost, t - 1, theta, y.clone()).unwrap()
+                    + hitting_cost(t, y.clone())
+                    + n64(theta) * switching_cost(x.clone() - y)
             };
 
-            let (_, opt) = find_minimizer(f, &o.p.bounds)?;
+            let (_, opt) = find_minimizer(f, bounds)?;
             Ok(opt)
         }
     }
