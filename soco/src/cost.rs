@@ -144,7 +144,7 @@ where
     fn call_certain(&self, t_start: i32, t: i32, x: T) -> Cost<C, D> {
         let results = self.call_predictive(t_start, t, x);
         assert!(results.len() == 1);
-        results[0].clone()
+        results.into_iter().next().unwrap()
     }
 
     /// Computes uncertain cost.
