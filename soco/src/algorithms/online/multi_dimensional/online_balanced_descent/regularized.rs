@@ -1,8 +1,9 @@
 use crate::algorithms::online::{FractionalStep, Step};
-use crate::config::{Config, FractionalConfig};
-use crate::cost::{CostFn, RawCost, RawCostFn, SingleCostFn};
+use crate::config::Config;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
+use crate::numerics::convex_optimization::{
+    find_minimizer, find_minimizer_of_hitting_cost,
+};
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
@@ -43,26 +44,22 @@ where
     let v = Config::new(
         find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
     );
-    let regularization_function: RawCostFn<'_, FractionalConfig> = CostFn::new(
-        t,
-        SingleCostFn::certain(|t, x: FractionalConfig| {
-            RawCost::raw(
-                o.p.hit_cost(t, x.clone()).cost
-                    + lambda_1
-                        * (o.p.switching_cost)(x.clone() - prev_x.clone())
-                            .raw()
-                    + lambda_2 * (o.p.switching_cost)(x - v.clone()).raw(),
-            )
-        }),
-    );
-    let x = Config::new(
-        find_minimizer_of_hitting_cost(
-            t,
-            &regularization_function,
-            &o.p.bounds,
-        )?
-        .0,
-    );
+    let regularization_function = |x_: &[f64]| {
+        let x = Config::new(x_.to_vec());
+        o.p.hit_cost(t, x.clone()).cost
+            + lambda_1 * (o.p.switching_cost)(x.clone() - prev_x.clone()).raw()
+            + lambda_2 * (o.p.switching_cost)(x - v.clone()).raw()
+    };
+    // CostFn::new(
+    //     t,
+    //     SingleCostFn::certain(|t, x: FractionalConfig| {
+    //         RawCost::raw(
+
+    //         )
+    //     }),
+    // );
+    let x =
+        Config::new(find_minimizer(&regularization_function, &o.p.bounds)?.0);
     Ok(Step(x, None))
 }
 
