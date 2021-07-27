@@ -50,14 +50,6 @@ where
             + lambda_1 * (o.p.switching_cost)(x.clone() - prev_x.clone()).raw()
             + lambda_2 * (o.p.switching_cost)(x - v.clone()).raw()
     };
-    // CostFn::new(
-    //     t,
-    //     SingleCostFn::certain(|t, x: FractionalConfig| {
-    //         RawCost::raw(
-
-    //         )
-    //     }),
-    // );
     let x =
         Config::new(find_minimizer(&regularization_function, &o.p.bounds)?.0);
     Ok(Step(x, None))
