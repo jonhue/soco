@@ -1,5 +1,5 @@
 use crate::{
-    bindings::utils::make_package,
+    bindings::{utils::make_package, DataCenterCost},
     cost::Cost,
     model::data_center::model::{
         DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
@@ -21,26 +21,14 @@ mod randomly_biased_greedy;
 
 /// Obtained result, integral result, and last memory.
 type Response<T, M> = (
-    (
-        Vec<Vec<T>>,
-        Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>,
-    ),
-    (
-        Vec<Vec<i32>>,
-        Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>,
-    ),
+    (Vec<Vec<T>>, DataCenterCost),
+    (Vec<Vec<i32>>, DataCenterCost),
     Option<M>,
 );
 /// Obtained result, integral result, and last memory.
 type StepResponse<T, M> = (
-    (
-        Vec<T>,
-        Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>,
-    ),
-    (
-        Vec<i32>,
-        Cost<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>,
-    ),
+    (Vec<T>, DataCenterCost),
+    (Vec<i32>, DataCenterCost),
     Option<M>,
 );
 
