@@ -561,6 +561,6 @@ where
                 ))
             },
         )
-        .unwrap_or_else(|failure| ModelOutput::Failure(failure));
+        .unwrap_or_else(ModelOutput::Failure);
     Cost::new(cost, output)
 }
