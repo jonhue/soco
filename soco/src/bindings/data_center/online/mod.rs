@@ -1,6 +1,5 @@
 use crate::{
     bindings::{utils::make_package, DataCenterCost},
-    cost::Cost,
     model::data_center::model::{
         DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
     },
