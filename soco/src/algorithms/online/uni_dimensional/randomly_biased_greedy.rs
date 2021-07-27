@@ -81,7 +81,7 @@ where
         let x = Config::new(raw_x.to_vec());
         w(
             &o.p.bounds,
-            &|t, x| o.p.raw_hit_cost(t, x),
+            &|t, x| o.p.hit_cost(t, x).cost,
             &o.p.switching_cost,
             t - 1,
             theta,

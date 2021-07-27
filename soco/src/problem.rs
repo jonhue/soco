@@ -77,10 +77,6 @@ where
 {
     fn hit_cost(&self, t: i32, x: Config<T>) -> Cost<C, D>;
 
-    fn raw_hit_cost(&self, t: i32, x: Config<T>) -> N64 {
-        self.hit_cost(t, x).cost
-    }
-
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64;
 }
 
