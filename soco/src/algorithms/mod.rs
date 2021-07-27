@@ -19,7 +19,7 @@ where
     D: ModelOutputFailure,
 {
 }
-impl<'a, T, P, C, D, O> Options<T, P, C, D> for O
+impl<T, P, C, D, O> Options<T, P, C, D> for O
 where
     O: Clone + DefaultGivenProblem<T, P, C, D> + Send,
     P: Problem<T, C, D>,
