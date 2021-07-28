@@ -13,7 +13,6 @@ use crate::numerics::ApplicablePrecision;
 use crate::utils::{access, transpose, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
-use log::debug;
 use noisy_float::prelude::*;
 use num::NumCast;
 use pyo3::prelude::*;
@@ -458,7 +457,6 @@ where
     T: Value<'a>,
 {
     SingleCostFn::predictive(move |t, x: Config<T>| {
-        debug!("{};{};{}", t, t_start, unshift_time(t, t_start));
         let predicted_load_profile =
             access(&predicted_loads, unshift_time(t, t_start)).unwrap();
         predicted_load_profile
