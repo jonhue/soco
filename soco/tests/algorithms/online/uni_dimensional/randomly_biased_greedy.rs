@@ -5,11 +5,8 @@ mod rbg {
     use soco::algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Options,
     };
-    use soco::config::Config;
-    use soco::convert::DiscretizableSchedule;
     use soco::norm::manhattan;
     use soco::problem::{Online, Problem, SmoothedConvexOptimization};
-    use soco::schedule::Schedule;
 
     #[test]
     fn _1() {
@@ -30,8 +27,6 @@ mod rbg {
             .0
             .verify(o.p.t_end, &upper_bounds(&o.p.bounds))
             .unwrap();
-
-        assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(1)]));
     }
 
     #[test]
