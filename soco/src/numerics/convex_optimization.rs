@@ -90,13 +90,6 @@ pub fn minimize<C, D>(
     init: Option<Vec<f64>>,
     constraints: Vec<WrappedObjective<D>>,
 ) -> Result<OptimizationResult> {
-    // evaluate_strategies(
-    //     Direction::Minimize,
-    //     f,
-    //     bounds,
-    //     strategies,
-    //     constraints,
-    // )
     optimize(Direction::Minimize, objective, bounds, init, constraints)
 }
 
@@ -106,39 +99,8 @@ pub fn maximize<C, D>(
     init: Option<Vec<f64>>,
     constraints: Vec<WrappedObjective<D>>,
 ) -> Result<OptimizationResult> {
-    // evaluate_strategies(
-    //     Direction::Maximize,
-    //     f,
-    //     bounds,
-    //     strategies,
-    //     constraints,
-    // )
     optimize(Direction::Maximize, objective, bounds, init, constraints)
 }
-
-// /// Applies provided stratedies one-by-one and takes the first one that produces a finite result.
-// fn evaluate_strategies<D>(
-//     dir: Direction,
-//     f: Objective<D>,
-//     bounds: &Vec<(f64, f64)>,
-//     strategies: Vec<Vec<f64>>,
-//     constraints: Vec<Objective<D>>,
-// ) -> Result<OptimizationResult>
-// {
-//     let result = strategies.into_iter().find_map(|init| {
-//         let (x, opt) =
-//             optimize(dir, f, bounds, Some(init), constraints).unwrap();
-//         if opt.is_finite() {
-//             Some((x, opt))
-//         } else {
-//             None
-//         }
-//     });
-//     match result {
-//         Some(result) => Ok(result),
-//         None => optimize(dir, f, bounds, None, constraints),
-//     }
-// }
 
 /// Determines the optimum of a convex function `f` w.r.t some direction `dir`
 /// with bounds `bounds`, and `constraints`.
