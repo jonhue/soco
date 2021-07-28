@@ -116,7 +116,8 @@ fn integration() {
             DataCenterOnlineInput,
             DataCenterModelOutputSuccess,
             DataCenterModelOutputFailure,
-        >(addr.parse().unwrap(), input).unwrap();
+        >(addr.parse().unwrap(), input)
+        .unwrap();
         x.verify(t_end + t, &vec![m as f64]).unwrap();
         int_x.verify(t_end + t, &vec![m]).unwrap();
     }
