@@ -23,12 +23,14 @@ type Response<T, M> = (
     (Vec<Vec<T>>, DataCenterCost),
     (Vec<Vec<i32>>, DataCenterCost),
     Option<M>,
+    u128,
 );
 /// Obtained result, integral result, and last memory.
 type StepResponse<T, M> = (
     (Vec<T>, DataCenterCost),
     (Vec<i32>, DataCenterCost),
     Option<M>,
+    u128,
 );
 
 type DataCenterFractionalSmoothedConvexOptimization<'a> =

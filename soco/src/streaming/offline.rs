@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use crate::{
     algorithms::{
         offline::{OfflineAlgorithm, OfflineOptions, OfflineResult},
@@ -22,7 +24,7 @@ pub fn solve<'a, T, R, P, O, A, B, C, D>(
     options: O,
     offline_options: OfflineOptions,
     input: A,
-) -> Result<(Schedule<T>, Cost<C, D>)>
+) -> Result<(Schedule<T>, Cost<C, D>, u128)>
 where
     T: Value<'a>,
     R: OfflineResult<T>,
@@ -38,9 +40,12 @@ where
     info!("Generated a problem instance: {:?}", p);
 
     info!("Simulating until time slot {}.", p.t_end());
+    let start = Instant::now();
     let result = alg.solve(p.clone(), options, offline_options)?;
+    let runtime = start.elapsed().as_millis();
 
     let xs = result.xs();
     let cost = p.objective_function(&xs)?;
-    Ok((xs, cost))
+    info!("Completed with {:?} and {:?}", cost, xs);
+    Ok((xs, cost, runtime))
 }

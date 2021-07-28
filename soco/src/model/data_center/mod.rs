@@ -16,15 +16,31 @@ pub mod models;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct DataCenterModelOutputSuccess {
     /// Energy cost of model.
+    #[pyo3(get)]
     pub energy_cost: f64,
     /// Revenue loss of model.
+    #[pyo3(get)]
     pub revenue_loss: f64,
-    /// All possible assignments of fractions of loads to server types.
-    pub assignments: Vec<Vec<f64>>,
+    /// All possible assignments of fractions of loads to server types for each time slot.
+    #[pyo3(get)]
+    pub assignments: Vec<Vec<Vec<f64>>>,
 }
 impl ModelOutputSuccess for DataCenterModelOutputSuccess {
-    fn merge_with(mut self, output: Self) -> Self {
+    fn horizontal_merge(mut self, output: Self) -> Self {
         self.assignments.extend(output.assignments.into_iter());
+        Self {
+            energy_cost: self.energy_cost + output.energy_cost,
+            revenue_loss: self.revenue_loss + output.revenue_loss,
+            assignments: self.assignments,
+        }
+    }
+
+    /// Computes the mean energy cost and revenue loss.
+    fn vertical_merge(mut self, output: Self) -> Self {
+        assert!(self.assignments.len() == 1);
+        assert!(output.assignments.len() == 1);
+        self.assignments[0]
+            .extend(output.assignments.into_iter().next().unwrap().into_iter());
         Self {
             energy_cost: (self.energy_cost + output.energy_cost) / 2.,
             revenue_loss: (self.revenue_loss + output.revenue_loss) / 2.,
@@ -41,7 +57,7 @@ impl DataCenterModelOutputSuccess {
         Self {
             energy_cost,
             revenue_loss,
-            assignments: vec![assignment],
+            assignments: vec![vec![assignment]],
         }
     }
 }
@@ -73,6 +89,7 @@ impl ModelOutputFailure for DataCenterModelOutputFailure {
 pub type DataCenterModelOutput =
     ModelOutput<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>;
 
+#[derive(Debug)]
 pub struct DataCenterObjective {
     energy_cost: N64,
     revenue_loss: N64,

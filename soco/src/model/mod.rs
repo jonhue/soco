@@ -21,10 +21,15 @@ pub trait OnlineInput:
 pub trait ModelOutputSuccess:
     Clone + std::fmt::Debug + DeserializeOwned + IntoPy<PyObject> + Send + Serialize
 {
-    fn merge_with(self, output: Self) -> Self;
+    /// Merge two outputs across time steps.
+    fn horizontal_merge(self, output: Self) -> Self;
+
+    /// Merge two outputs within the same time step.
+    fn vertical_merge(self, output: Self) -> Self;
 }
 impl ModelOutputSuccess for () {
-    fn merge_with(self, _: ()) {}
+    fn horizontal_merge(self, _: ()) {}
+    fn vertical_merge(self, _: ()) {}
 }
 pub trait ModelOutputFailure:
     Clone + std::fmt::Debug + DeserializeOwned + IntoPy<PyObject> + Send + Serialize
@@ -59,7 +64,7 @@ where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    pub fn reduce(outputs: Vec<Self>) -> Self {
+    pub fn horizontal_reduce(outputs: Vec<Self>) -> Self {
         assert!(!outputs.is_empty());
         outputs
             .into_iter()
@@ -70,7 +75,27 @@ where
                         ModelOutput::Failure(output)
                     }
                     ModelOutput::Success(output) => {
-                        ModelOutput::Success(result.merge_with(output))
+                        ModelOutput::Success(result.horizontal_merge(output))
+                    }
+                    ModelOutput::None => ModelOutput::Success(result),
+                },
+                ModelOutput::None => output,
+            })
+            .unwrap()
+    }
+
+    pub fn vertical_reduce(outputs: Vec<Self>) -> Self {
+        assert!(!outputs.is_empty());
+        outputs
+            .into_iter()
+            .reduce(|result, output| match result {
+                ModelOutput::Failure(result) => ModelOutput::Failure(result),
+                ModelOutput::Success(result) => match output {
+                    ModelOutput::Failure(output) => {
+                        ModelOutput::Failure(output)
+                    }
+                    ModelOutput::Success(output) => {
+                        ModelOutput::Success(result.vertical_merge(output))
                     }
                     ModelOutput::None => ModelOutput::Success(result),
                 },

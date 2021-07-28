@@ -19,7 +19,10 @@ where
     D: ModelOutputFailure,
 {
     assert(!inverted, Failure::UnsupportedInvertedCost)?;
-    assert(l.is_none(), Failure::UnsupportedLConstrainedMovement)?;
+    assert(
+        l.is_none() || l == Some(0.),
+        Failure::UnsupportedLConstrainedMovement,
+    )?;
 
     let (config, _) =
         check_configs(&p, alpha, 0, IntegralConfig::repeat(0, p.d))?;

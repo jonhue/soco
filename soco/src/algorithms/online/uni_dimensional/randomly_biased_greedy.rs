@@ -49,7 +49,7 @@ impl Options {
 /// Randomly Biased Greedy
 pub fn rbg<C, D>(
     o: Online<FractionalSmoothedConvexOptimization<'_, C, D>>,
-    t: i32,
+    mut t: i32,
     _: &FractionalSchedule,
     m: Memory,
     options: Options,
@@ -62,6 +62,9 @@ where
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
 
     WORK.lock().unwrap().cache_clear();
+
+    // apply lookahead
+    t += 1;
 
     let x = next(o, t, m.r, options.theta)?;
     Ok(Step(Config::single(x), None))

@@ -41,7 +41,7 @@ where
             .unzip();
         Self {
             cost: mean(raw_costs),
-            output: ModelOutput::reduce(outputs),
+            output: ModelOutput::vertical_reduce(outputs),
         }
     }
 
@@ -69,7 +69,10 @@ where
     fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
         iter.reduce(|result, value| Cost {
             cost: result.cost + value.cost,
-            output: ModelOutput::reduce(vec![result.output, value.output]),
+            output: ModelOutput::horizontal_reduce(vec![
+                result.output,
+                value.output,
+            ]),
         })
         .unwrap_or_default()
     }

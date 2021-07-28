@@ -106,7 +106,7 @@ fn integration() {
         let input = DataCenterOnlineInput {
             loads: vec![PredictedLoadProfile::raw(vec![vec![10.]])],
         };
-        let ((x, _), (int_x, _), _) = online::next::<
+        let ((x, _), (int_x, _), _, _) = online::next::<
             f64,
             FractionalSmoothedConvexOptimization<
                 DataCenterModelOutputSuccess,

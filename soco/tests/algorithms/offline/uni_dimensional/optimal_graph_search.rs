@@ -50,12 +50,13 @@ mod optimal_graph_search {
         factories::{penalize_zero, random},
         init,
     };
-    use soco::config::Config;
     use soco::problem::SimplifiedSmoothedConvexOptimization;
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
+    use soco::{algorithms::offline::graph_search::CachedPath, config::Config};
     use soco::{
         algorithms::offline::{
+            multi_dimensional::optimal_graph_search::optimal_graph_search as md_optimal_graph_search,
             uni_dimensional::optimal_graph_search::{
                 make_pow_of_2, optimal_graph_search, Options,
             },
@@ -137,12 +138,17 @@ mod optimal_graph_search {
 
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end: 1_000,
+            t_end: 10,
             bounds: vec![9],
             switching_cost: vec![1.],
             hitting_cost: random(),
         };
         p.verify().unwrap();
+
+        let CachedPath { path: md_path, .. } = md_optimal_graph_search
+            .solve_with_default_options(p.clone(), OfflineOptions::default())
+            .unwrap();
+        md_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
         let transformed_p = make_pow_of_2(p).unwrap();
         let path = optimal_graph_search
@@ -165,6 +171,8 @@ mod optimal_graph_search {
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
 
+        println!("{:?};{:?}", path.xs, md_path.xs);
+        assert_eq!(path.cost, md_path.cost);
         assert_eq!(path.xs, inv_path.xs);
         assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_abs_diff_eq!(
