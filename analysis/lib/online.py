@@ -58,10 +58,20 @@ def evaluate_fractional_lazy_capacity_provisioning(
     online_inp: List[List[List[List[int]]]],
     w: int = 0,
 ) -> Tuple[float, float]:
-    fractional, integral, m, initial_runtime = lazy_capacity_provisioning.fractional.start(
-        ADDR, model, offline_inp, w
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = lazy_capacity_provisioning.fractional.start(ADDR, model, offline_inp, w)
+    return evaluate(
+        lazy_capacity_provisioning.fractional,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
     )
-    return evaluate(lazy_capacity_provisioning.fractional, online_inp, fractional, integral, m, initial_runtime)
 
 
 def evaluate_integral_lazy_capacity_provisioning(
@@ -70,10 +80,20 @@ def evaluate_integral_lazy_capacity_provisioning(
     online_inp: List[List[List[List[int]]]],
     w: int = 0,
 ) -> Tuple[float, float]:
-    fractional, integral, m, initial_runtime = lazy_capacity_provisioning.integral.start(
-        ADDR, model, offline_inp, w
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = lazy_capacity_provisioning.integral.start(ADDR, model, offline_inp, w)
+    return evaluate(
+        lazy_capacity_provisioning.integral,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
     )
-    return evaluate(lazy_capacity_provisioning.integral, online_inp, fractional, integral, m, initial_runtime)
 
 
 def evaluate_memoryless(
@@ -107,7 +127,9 @@ def evaluate_randomized_probabilistic(
     fractional, integral, m, initial_runtime = randomized.probabilistic.start(
         ADDR, model, offline_inp, 0
     )
-    return evaluate(randomized.probabilistic, online_inp, fractional, integral, m, initial_runtime)
+    return evaluate(
+        randomized.probabilistic, online_inp, fractional, integral, m, initial_runtime
+    )
 
 
 def evaluate_randomized_randomly_biased_greedy(
@@ -118,7 +140,14 @@ def evaluate_randomized_randomly_biased_greedy(
     fractional, integral, m, initial_runtime = randomized.randomly_biased_greedy.start(
         ADDR, model, offline_inp, 0
     )
-    return evaluate(randomized.randomly_biased_greedy, online_inp, fractional, integral, m, initial_runtime)
+    return evaluate(
+        randomized.randomly_biased_greedy,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    )
 
 
 def evaluate_randomly_biased_greedy(
@@ -131,4 +160,6 @@ def evaluate_randomly_biased_greedy(
     fractional, integral, m, initial_runtime = randomly_biased_greedy.start(
         ADDR, model, offline_inp, 0, options
     )
-    return evaluate(randomly_biased_greedy, online_inp, fractional, integral, m, initial_runtime)
+    return evaluate(
+        randomly_biased_greedy, online_inp, fractional, integral, m, initial_runtime
+    )

@@ -31,7 +31,7 @@ mod rbg {
             .verify(o.p.t_end, &upper_bounds(&o.p.bounds))
             .unwrap();
 
-        assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(0)]));
+        assert_eq!(result.0.to_i(), Schedule::new(vec![Config::single(1)]));
     }
 
     #[test]
