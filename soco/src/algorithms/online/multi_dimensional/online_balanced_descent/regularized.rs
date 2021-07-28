@@ -1,8 +1,8 @@
 use crate::algorithms::online::{FractionalStep, Step};
-use crate::config::Config;
+use crate::config::{Config, FractionalConfig};
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::convex_optimization::{
-    find_minimizer, find_minimizer_of_hitting_cost,
+    find_minimizer, find_minimizer_of_hitting_cost, WrappedObjective,
 };
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
@@ -16,6 +16,15 @@ pub struct Options {
     pub alpha: f64,
     /// Smoothness parameter of potential function of Bregman convergence.
     pub beta: f64,
+}
+
+struct RegularizationFunctionObjectiveData<'a, C, D> {
+    o: Online<FractionalSmoothedConvexOptimization<'a, C, D>>,
+    t: i32,
+    lambda_1: f64,
+    lambda_2: f64,
+    prev_x: FractionalConfig,
+    v: FractionalConfig,
 }
 
 /// Regularized Online Balanced Descent
@@ -49,14 +58,27 @@ where
         )?
         .0,
     );
-    let regularization_function = |x_: &[f64]| {
-        let x = Config::new(x_.to_vec());
-        o.p.hit_cost(t, x.clone()).cost
-            + lambda_1 * (o.p.switching_cost)(x.clone() - prev_x.clone()).raw()
-            + lambda_2 * (o.p.switching_cost)(x - v.clone()).raw()
-    };
-    let x =
-        Config::new(find_minimizer(regularization_function, o.p.bounds)?.0);
+    let bounds = o.p.bounds.clone();
+    let regularization_function = WrappedObjective::new(
+        RegularizationFunctionObjectiveData {
+            o,
+            t,
+            lambda_1,
+            lambda_2,
+            prev_x,
+            v,
+        },
+        |x_, data| {
+            let x = Config::new(x_.to_vec());
+            data.o.p.hit_cost(data.t, x.clone()).cost
+                + data.lambda_1
+                    * (data.o.p.switching_cost)(x.clone() - data.prev_x.clone())
+                        .raw()
+                + data.lambda_2
+                    * (data.o.p.switching_cost)(x - data.v.clone()).raw()
+        },
+    );
+    let x = Config::new(find_minimizer(regularization_function, bounds)?.0);
     Ok(Step(x, None))
 }
 

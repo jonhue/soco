@@ -85,26 +85,30 @@ where
     D: ModelOutputFailure,
 {
     let bounds = o.p.bounds.clone();
-    let objective = |raw_x: &[f64]| -> N64 {
-        let x = Config::new(raw_x.to_vec());
-        w(
-            &o.p.bounds,
-            &|t, x| o.p.hit_cost(t, x).cost,
-            &o.p.switching_cost,
-            t - 1,
-            theta,
-            x.clone(),
-        )
-        .unwrap()
-            + n64(r) * n64(theta) * (o.p.switching_cost)(x)
-    };
+    let objective = WrappedObjective::new(
+        NextObjectiveData { o, t, r, theta },
+        |raw_x, data| {
+            let x = Config::new(raw_x.to_vec());
+            w(
+                &data.o.p.bounds,
+                &|t, x| data.o.p.hit_cost(t, x).cost,
+                &data.o.p.switching_cost,
+                data.t - 1,
+                data.theta,
+                x.clone(),
+            )
+            .unwrap()
+                + n64(data.r) * n64(data.theta) * (data.o.p.switching_cost)(x)
+        },
+    );
 
     let (x, _) = find_minimizer(objective, bounds)?;
     Ok(x[0])
 }
 
-struct WorkObjectiveData<'a, C, D> {
-    o: Online<FractionalSmoothedConvexOptimization<'a, C, D>>,
+struct WorkObjectiveData<'a> {
+    bounds: Vec<(f64, f64)>,
+    switching_cost: NormFn<'a, f64>,
     t: i32,
     theta: f64,
     x: FractionalConfig,
@@ -117,14 +121,14 @@ cached_key_result! {
         if t == 0 {
             Ok(n64(theta) * switching_cost(x))
         } else {
-            let f = |raw_y: &[f64]| -> N64 {
+            let objective = WrappedObjective::new(WorkObjectiveData { bounds: bounds.clone(), switching_cost: switching_cost.clone(), t, theta, x }, |raw_y, data| {
                 let y = Config::new(raw_y.to_vec());
-                w(bounds, hitting_cost, switching_cost, t - 1, theta, y.clone()).unwrap()
-                    + hitting_cost(t, y.clone())
-                    + n64(theta) * switching_cost(x.clone() - y)
-            };
+                w(&data.bounds, hitting_cost, &data.switching_cost, data.t - 1, data.theta, y.clone()).unwrap()
+                    + hitting_cost(data.t, y.clone())
+                    + n64(data.theta) * switching_cost(data.x.clone() - y)
+            });
 
-            let (_, opt) = find_minimizer(f, bounds)?;
+            let (_, opt) = find_minimizer(objective, bounds.clone())?;
             Ok(opt)
         }
     }

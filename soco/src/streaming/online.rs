@@ -33,7 +33,11 @@ pub struct OfflineResponse<T, C, D, M> {
 }
 
 type OnlineResponse<T, C, D, M> = std::result::Result<
-    ((Config<T>, Cost<C, D>), (Config<i32>, Cost<C, D>), Option<M>),
+    (
+        (Config<T>, Cost<C, D>),
+        (Config<i32>, Cost<C, D>),
+        Option<M>,
+    ),
     String,
 >;
 
@@ -186,7 +190,8 @@ fn run<'a, T, P, M, O, A, B, C, D>(
 
                     let cost = o.p.objective_function(&xs).unwrap();
                     let int_xs = xs.to_i();
-                    let int_cost = o.p.objective_function(&int_xs.to()).unwrap();
+                    let int_cost =
+                        o.p.objective_function(&int_xs.to()).unwrap();
 
                     let result: OnlineResponse<T, C, D, M> =
                         Ok(((x, cost), (int_xs.now(), int_cost), m.clone()));
@@ -206,7 +211,7 @@ fn run<'a, T, P, M, O, A, B, C, D>(
                     Err(panic_) => {
                         let panic = panic_.downcast::<&str>().unwrap();
                         warn!("[server] ERROR (unrecoverable): {:?}", panic);
-                        let result: OnlineResponse<T, M> =
+                        let result: OnlineResponse<T, C, D, M> =
                             Err(panic.to_string());
                         let response = bincode::serialize(&result).unwrap();
                         stream.write_all(&response).unwrap();

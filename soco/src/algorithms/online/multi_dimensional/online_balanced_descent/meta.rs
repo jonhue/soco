@@ -51,8 +51,8 @@ struct ObjectiveData<'a> {
     x: FractionalConfig,
 }
 
-struct ConstraintData<'a> {
-    f: CostFn<'a, FractionalConfig>,
+struct ConstraintData<'a, C, D> {
+    f: CostFn<'a, FractionalConfig, C, D>,
     t: i32,
     l: f64,
 }
@@ -83,7 +83,8 @@ where
     // `l`-sublevel set of `f`
     let constraint =
         WrappedObjective::new(ConstraintData { f, t, l }, |y, data| {
-            data.f.call_certain(data.t, Config::new(y.to_vec())).cost - n64(data.l)
+            data.f.call_certain(data.t, Config::new(y.to_vec())).cost
+                - n64(data.l)
         });
 
     let (y, _) = find_unbounded_minimizer(objective, d, vec![constraint])?;

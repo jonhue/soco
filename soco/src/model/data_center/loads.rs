@@ -527,7 +527,8 @@ where
             let DataCenterObjective {
                 energy_cost,
                 revenue_loss,
-            } = objective(data.t, &data.x, &data.lambda, &zs).unwrap_or_else(DataCenterObjective::failure);
+            } = objective(data.t, &data.x, &data.lambda, &zs)
+                .unwrap_or_else(DataCenterObjective::failure);
             energy_cost + revenue_loss
         },
     );

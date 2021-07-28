@@ -34,9 +34,9 @@ where
 }
 
 #[derive(Clone)]
-struct ObjectiveData<'a> {
+struct ObjectiveData<'a, C, D> {
     t: i32,
-    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
+    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a, C, D>>,
 }
 
 /// Determines next `x` with a convex optimization.

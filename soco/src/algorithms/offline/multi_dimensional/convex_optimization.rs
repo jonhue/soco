@@ -8,13 +8,13 @@ use crate::schedule::Schedule;
 use crate::utils::assert;
 use noisy_float::prelude::*;
 
-struct ObjectiveData<'a> {
-    p: FractionalSmoothedConvexOptimization<'a>,
+struct ObjectiveData<'a, C, D> {
+    p: FractionalSmoothedConvexOptimization<'a, C, D>,
     alpha: f64,
 }
 
-struct ConstraintData<'a> {
-    p: FractionalSmoothedConvexOptimization<'a>,
+struct ConstraintData<'a, C, D> {
+    p: FractionalSmoothedConvexOptimization<'a, C, D>,
     l: f64,
 }
 
@@ -50,7 +50,8 @@ where
             let xs = Schedule::from_raw(data.p.d, data.p.t_end, raw_xs);
             data.p
                 .alpha_unfair_objective_function(&xs, data.alpha)
-                .unwrap().cost
+                .unwrap()
+                .cost
         },
     );
 

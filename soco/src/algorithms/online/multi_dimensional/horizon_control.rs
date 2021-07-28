@@ -54,9 +54,9 @@ struct ObjectiveData<'a, C, D> {
 
 fn next<C, D>(
     k: i32,
-    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<C, D>>,
+    o: Online<FractionalSimplifiedSmoothedConvexOptimization<C, D>>,
     t: i32,
-    prev_xs: &FractionalSchedule,
+    prev_xs: FractionalSchedule,
 ) -> Result<FractionalConfig>
 where
     C: ModelOutputSuccess,
@@ -79,7 +79,9 @@ where
             };
             let p = data.o.p.reset(data.t - data.k);
 
-            p.objective_function_with_default(&xs, &prev_x).unwrap().cost
+            p.objective_function_with_default(&xs, &prev_x)
+                .unwrap()
+                .cost
         },
     );
 
