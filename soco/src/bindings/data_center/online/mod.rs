@@ -1,4 +1,15 @@
-use crate::{bindings::utils::make_package, streaming::online};
+use crate::{
+    bindings::{utils::make_package, DataCenterCost},
+    model::data_center::{
+        DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
+    },
+    problem::{
+        FractionalSimplifiedSmoothedConvexOptimization,
+        FractionalSmoothedConvexOptimization,
+        IntegralSimplifiedSmoothedConvexOptimization,
+    },
+    streaming::online,
+};
 use pyo3::prelude::*;
 
 mod lazy_capacity_provisioning;
@@ -8,9 +19,36 @@ mod randomized;
 mod randomly_biased_greedy;
 
 /// Obtained result, integral result, and last memory.
-type Response<T, M> = ((Vec<Vec<T>>, f64), (Vec<Vec<i32>>, f64), Option<M>);
+type Response<T, M> = (
+    (Vec<Vec<T>>, DataCenterCost),
+    (Vec<Vec<i32>>, DataCenterCost),
+    Option<M>,
+);
 /// Obtained result, integral result, and last memory.
-type StepResponse<T, M> = ((Vec<T>, f64), (Vec<i32>, f64), Option<M>);
+type StepResponse<T, M> = (
+    (Vec<T>, DataCenterCost),
+    (Vec<i32>, DataCenterCost),
+    Option<M>,
+);
+
+type DataCenterFractionalSmoothedConvexOptimization<'a> =
+    FractionalSmoothedConvexOptimization<
+        'a,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    >;
+type DataCenterFractionalSimplifiedSmoothedConvexOptimization<'a> =
+    FractionalSimplifiedSmoothedConvexOptimization<
+        'a,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    >;
+type DataCenterIntegralSimplifiedSmoothedConvexOptimization<'a> =
+    IntegralSimplifiedSmoothedConvexOptimization<
+        'a,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    >;
 
 /// Stops backend server.
 #[pyfunction]

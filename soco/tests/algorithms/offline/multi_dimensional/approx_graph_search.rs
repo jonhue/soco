@@ -15,8 +15,7 @@ mod approx_graph_search {
             OfflineAlgorithm, OfflineOptions,
         },
         config::Config,
-        objective::Objective,
-        problem::SimplifiedSmoothedConvexOptimization,
+        problem::{Problem, SimplifiedSmoothedConvexOptimization},
         schedule::Schedule,
         verifiers::VerifiableProblem,
     };
@@ -55,7 +54,7 @@ mod approx_graph_search {
         assert_abs_diff_eq!(path.cost, 1.);
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw()
+            p.objective_function(&path.xs).unwrap().cost.raw()
         );
     }
 
@@ -84,7 +83,7 @@ mod approx_graph_search {
         assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw()
+            p.objective_function(&path.xs).unwrap().cost.raw()
         );
     }
 
@@ -123,7 +122,7 @@ mod approx_graph_search {
         assert_abs_diff_eq!(path.cost, inv_path.cost, epsilon = 1.);
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw(),
+            p.objective_function(&path.xs).unwrap().cost.raw(),
             epsilon = 1.
         );
     }
@@ -148,7 +147,7 @@ mod approx_graph_search {
 
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw()
+            p.objective_function(&path.xs).unwrap().cost.raw()
         );
 
         p.t_end = 100;
@@ -168,7 +167,7 @@ mod approx_graph_search {
 
         assert_abs_diff_eq!(
             path.cost,
-            p.objective_function(&path.xs).unwrap().raw()
+            p.objective_function(&path.xs).unwrap().cost.raw()
         );
     }
 }

@@ -6,10 +6,13 @@ use crate::algorithms::offline::multi_dimensional::Vertice;
 use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
-use crate::cost::{CostFn, SingleCostFn};
+use crate::cost::{Cost, CostFn, FailableCostFn, SingleCostFn};
+use crate::model::data_center::{
+    DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
+};
 use crate::problem::{
     DefaultGivenProblem, IntegralSmoothedBalancedLoadOptimization, Online,
-    SmoothedBalancedLoadOptimization,
+    Problem, SmoothedBalancedLoadOptimization,
 };
 use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
@@ -28,15 +31,21 @@ pub struct Memory<'a> {
     /// Hitting costs for modified problem instance.
     #[serde(skip, default = "default_hitting_cost")]
     #[derivative(Debug = "ignore")]
-    hitting_cost: Vec<CostFn<'a, f64>>,
+    hitting_cost: Vec<FailableCostFn<'a, f64, DataCenterModelOutputFailure>>,
     /// Schedule and memory of internally used algorithm.
     mod_m: (IntegralSchedule, Option<AlgBMemory>),
 }
-fn default_hitting_cost<'a>() -> Vec<CostFn<'a, f64>> {
+fn default_hitting_cost<'a>(
+) -> Vec<FailableCostFn<'a, f64, DataCenterModelOutputFailure>> {
     vec![]
 }
-impl<'a> DefaultGivenProblem<IntegralSmoothedBalancedLoadOptimization<'a>>
-    for Memory<'a>
+impl<'a>
+    DefaultGivenProblem<
+        i32,
+        IntegralSmoothedBalancedLoadOptimization<'a>,
+        DataCenterModelOutputSuccess,
+        DataCenterModelOutputFailure,
+    > for Memory<'a>
 {
     fn default(p: &IntegralSmoothedBalancedLoadOptimization) -> Self {
         Memory {
@@ -140,7 +149,7 @@ fn determine_sub_time_slots(
 ) -> Result<i32> {
     let max_fract = (0..p.d as usize)
         .map(|k| -> N64 {
-            let l = p.hitting_cost[k].call_certain(t, 0.);
+            let l = p.hitting_cost[k].call_certain(t, 0.).cost;
             l / n64(p.switching_cost[k])
         })
         .max()
@@ -153,7 +162,9 @@ fn determine_sub_time_slots(
 fn modify_problem<'a>(
     p: IntegralSmoothedBalancedLoadOptimization<'a>,
     load: &mut Vec<i32>,
-    hitting_cost: &mut Vec<CostFn<'a, f64>>,
+    hitting_cost: &mut Vec<
+        FailableCostFn<'a, f64, DataCenterModelOutputFailure>,
+    >,
     t: i32,
     n: i32,
     u_init: i32,
@@ -173,7 +184,8 @@ fn modify_problem<'a>(
                     u_init <= u && u <= u_end,
                     "sub time slot is outside valid sub time slot window"
                 );
-                raw_hitting_cost.call_certain(t, x) / n as f64
+                let hitting_cost = raw_hitting_cost.call_certain(t, x);
+                Cost::new(hitting_cost.cost / n as f64, hitting_cost.output)
             }),
         );
     });
@@ -205,10 +217,14 @@ fn determine_config(
             u_init,
             mod_p
                 .clone()
-                .hit_cost(u_init, mod_xs.get(u_init).unwrap().clone()),
+                .hit_cost(u_init, mod_xs.get(u_init).unwrap().clone())
+                .cost,
         ),
         |(min_u, min_c), u| {
-            let c = mod_p.clone().hit_cost(u, mod_xs.get(u).unwrap().clone());
+            let c = mod_p
+                .clone()
+                .hit_cost(u, mod_xs.get(u).unwrap().clone())
+                .cost;
             if c < min_c {
                 (u, c)
             } else {
@@ -282,7 +298,7 @@ fn alg_b(
 }
 
 fn deactivated_quantity(
-    hitting_cost: &CostFn<'_, f64>,
+    hitting_cost: &FailableCostFn<'_, f64, DataCenterModelOutputFailure>,
     switching_cost: f64,
     init_times: &Vec<Vec<i32>>,
     t_now: i32,
@@ -293,7 +309,7 @@ fn deactivated_quantity(
         .map(|t| {
             let cum_l =
                 cumulative_idle_hitting_cost(hitting_cost, t + 1, t_now - 1);
-            let l = hitting_cost.call_certain(t_now, 0.).raw();
+            let l = hitting_cost.call_certain(t_now, 0.).cost.raw();
 
             if cum_l <= switching_cost && switching_cost < cum_l + l {
                 init_times[t as usize - 1][k]
@@ -305,13 +321,13 @@ fn deactivated_quantity(
 }
 
 fn cumulative_idle_hitting_cost(
-    hitting_cost: &CostFn<'_, f64>,
+    hitting_cost: &FailableCostFn<'_, f64, DataCenterModelOutputFailure>,
     from: i32,
     to: i32,
 ) -> f64 {
     (from..=to)
         .into_iter()
-        .map(|t| hitting_cost.call_certain(t, 0.).raw())
+        .map(|t| hitting_cost.call_certain(t, 0.).cost.raw())
         .sum()
 }
 

@@ -6,11 +6,11 @@ use crate::algorithms::offline::{
 };
 use crate::config::Config;
 use crate::convert::ResettableProblem;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::convex_optimization::{find_minimizer, WrappedObjective};
-use crate::objective::Objective;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
-    IntegralSimplifiedSmoothedConvexOptimization,
+    IntegralSimplifiedSmoothedConvexOptimization, Problem,
 };
 use crate::result::{Failure, Result};
 use crate::utils::assert;
@@ -43,7 +43,12 @@ pub trait Bounded<T> {
     ) -> Result<T>;
 }
 
-impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
+impl<C, D> Bounded<f64>
+    for FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
@@ -65,14 +70,18 @@ impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
     }
 }
 
-struct ObjectiveData<'a> {
-    p: FractionalSimplifiedSmoothedConvexOptimization<'a>,
+struct ObjectiveData<'a, C, D> {
+    p: FractionalSimplifiedSmoothedConvexOptimization<'a, C, D>,
     alpha: f64,
     inverted: bool,
     x_start: f64,
 }
 
-impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
+impl<C, D> FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     fn find_bound(
         &self,
         alpha: f64,
@@ -105,6 +114,7 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
                         data.inverted,
                     )
                     .unwrap()
+                    .cost
             },
         );
         let bounds = vec![(0., p.bounds[0]); p.t_end as usize];
@@ -113,7 +123,12 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
     }
 }
 
-impl Bounded<i32> for IntegralSimplifiedSmoothedConvexOptimization<'_> {
+impl<C, D> Bounded<i32>
+    for IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
@@ -135,7 +150,11 @@ impl Bounded<i32> for IntegralSimplifiedSmoothedConvexOptimization<'_> {
     }
 }
 
-impl IntegralSimplifiedSmoothedConvexOptimization<'_> {
+impl<C, D> IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     fn find_bound(
         &self,
         alpha: f64,

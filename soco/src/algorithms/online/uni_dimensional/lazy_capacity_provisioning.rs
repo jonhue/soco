@@ -1,6 +1,7 @@
 use crate::algorithms::capacity_provisioning::Bounded;
 use crate::algorithms::online::Step;
 use crate::config::Config;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::problem::{Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
@@ -45,7 +46,7 @@ where
 }
 
 /// Lazy Capacity Provisioning
-pub fn lcp<'a, T, P>(
+pub fn lcp<'a, T, P, C, D>(
     o: Online<P>,
     t: i32,
     xs: &Schedule<T>,
@@ -54,7 +55,9 @@ pub fn lcp<'a, T, P>(
 ) -> Result<Step<T, Memory<T>>>
 where
     T: Value<'a>,
-    P: Bounded<T> + Problem,
+    P: Bounded<T> + Problem<T, C, D>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     assert(o.p.d() == 1, Failure::UnsupportedProblemDimension(o.p.d()))?;
     assert(

@@ -19,9 +19,10 @@ use soco::{
             },
             switching_cost::{SwitchingCost, SwitchingCostModel},
         },
+        DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
     },
     problem::FractionalSmoothedConvexOptimization,
-    streaming::online,
+    streaming::online::{self, OfflineResponse},
 };
 use std::{
     sync::{mpsc::channel, Arc},
@@ -42,7 +43,6 @@ fn integration() {
         let delta = 1.;
         let model = DataCenterModel::new(
             delta,
-            0.,
             vec![Location {
                 key: DEFAULT_KEY.to_string(),
                 m: hash_map(&[(DEFAULT_KEY.to_string(), m)]),
@@ -83,7 +83,11 @@ fn integration() {
 
         let options = Options::default();
 
-        let ((xs, _), (int_xs, _), _) = online::start(
+        let OfflineResponse {
+            xs: (xs, _),
+            int_xs: (int_xs, _),
+            ..
+        } = online::start(
             addr.parse().unwrap(),
             model,
             &rbg,
@@ -104,9 +108,14 @@ fn integration() {
         };
         let ((x, _), (int_x, _), _) = online::next::<
             f64,
-            FractionalSmoothedConvexOptimization,
+            FractionalSmoothedConvexOptimization<
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
+            >,
             Memory,
             DataCenterOnlineInput,
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
         >(addr.parse().unwrap(), input);
         x.verify(t_end + t, &vec![m as f64]).unwrap();
         int_x.verify(t_end + t, &vec![m]).unwrap();

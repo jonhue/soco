@@ -1,6 +1,7 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::norm::NormFn;
 use crate::numerics::convex_optimization::{
     find_unbounded_minimizer, WrappedObjective,
@@ -20,12 +21,16 @@ pub struct Options<'a> {
 }
 
 /// Online Balanced Descent (meta algorithm)
-pub fn obd(
-    o: Online<FractionalSmoothedConvexOptimization>,
+pub fn obd<C, D>(
+    o: Online<FractionalSmoothedConvexOptimization<C, D>>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
     options: Options,
-) -> Result<FractionalStep<()>> {
+) -> Result<FractionalStep<()>>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let t = xs.t_end() + 1;
@@ -55,13 +60,17 @@ struct ConstraintData<'a> {
 /// Bregman projection of `x` onto a convex `l`-sublevel set `K` of `f`.
 ///
 /// `mirror_map` must be `m`-strongly convex and `M`-Lipschitz smooth for the norm function with fixed `m` and `M`.
-fn bregman_projection(
+fn bregman_projection<C, D>(
     mirror_map: NormFn<'_, f64>,
-    f: CostFn<'_, FractionalConfig>,
+    f: CostFn<'_, FractionalConfig, C, D>,
     t: i32,
     l: f64,
     x: FractionalConfig,
-) -> Result<FractionalConfig> {
+) -> Result<FractionalConfig>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let d = x.d();
     let objective =
         WrappedObjective::new(ObjectiveData { mirror_map, x }, |y, data| {
@@ -74,7 +83,7 @@ fn bregman_projection(
     // `l`-sublevel set of `f`
     let constraint =
         WrappedObjective::new(ConstraintData { f, t, l }, |y, data| {
-            data.f.call_certain(data.t, Config::new(y.to_vec())) - n64(data.l)
+            data.f.call_certain(data.t, Config::new(y.to_vec())).cost - n64(data.l)
         });
 
     let (y, _) = find_unbounded_minimizer(objective, d, vec![constraint])?;

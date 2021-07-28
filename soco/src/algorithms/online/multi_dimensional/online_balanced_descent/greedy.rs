@@ -1,3 +1,4 @@
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::norm::NormFn;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::meta::{obd, Options as MetaOptions};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
@@ -23,12 +24,16 @@ pub struct Options<'a> {
 }
 
 /// Greedy Online Balanced Descent
-pub fn gobd(
-    o: Online<FractionalSmoothedConvexOptimization>,
+pub fn gobd<C, D>(
+    o: Online<FractionalSmoothedConvexOptimization<C, D>>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
     options: &Options,
-) -> Result<FractionalStep<()>> {
+) -> Result<FractionalStep<()>>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
     let mu = options.mu.unwrap_or(DEFAULT_MU);

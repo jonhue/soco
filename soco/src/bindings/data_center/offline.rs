@@ -8,6 +8,7 @@ use crate::{
             optimal_graph_search::{
                 optimal_graph_search, Options as OptimalGraphSearchOptions,
             },
+            static_integral::static_integral,
         },
         uni_dimensional::{
             capacity_provisioning::brcp,
@@ -18,12 +19,13 @@ use crate::{
         },
         OfflineOptions,
     },
+    bindings::DataCenterCost,
     model::data_center::model::{DataCenterModel, DataCenterOfflineInput},
     streaming::offline,
 };
 use pyo3::prelude::*;
 
-type Response<T> = (Vec<Vec<T>>, f64);
+type Response<T> = (Vec<Vec<T>>, DataCenterCost);
 
 /// Backward-Recurrent Capacity Provisioning
 #[pyfunction]
@@ -111,6 +113,20 @@ fn convex_optimization_py(
     Ok((xs.to_vec(), cost))
 }
 
+/// Static integral optimum.
+#[pyfunction]
+#[pyo3(name = "static_integral")]
+fn static_integral_py(
+    model: DataCenterModel,
+    input: DataCenterOfflineInput,
+    offline_options: OfflineOptions,
+) -> PyResult<Response<i32>> {
+    let (xs, cost) =
+        offline::solve(&model, &static_integral, (), offline_options, input)
+            .unwrap();
+    Ok((xs.to_vec(), cost))
+}
+
 pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<OfflineOptions>()?;
 
@@ -126,6 +142,8 @@ pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<ApproxGraphSearchOptions>()?;
 
     m.add_function(wrap_pyfunction!(convex_optimization_py, m)?)?;
+
+    m.add_function(wrap_pyfunction!(static_integral_py, m)?)?;
 
     Ok(())
 }

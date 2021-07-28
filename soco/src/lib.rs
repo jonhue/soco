@@ -7,6 +7,9 @@
 extern crate approx;
 
 #[macro_use]
+extern crate cached;
+
+#[macro_use]
 extern crate derivative;
 
 pub mod algorithms;
@@ -16,7 +19,6 @@ pub mod convert;
 pub mod cost;
 pub mod model;
 pub mod norm;
-pub mod objective;
 pub mod problem;
 pub mod result;
 pub mod schedule;

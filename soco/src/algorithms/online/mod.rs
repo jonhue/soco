@@ -2,6 +2,7 @@
 
 use crate::algorithms::Options;
 use crate::config::Config;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::problem::{DefaultGivenProblem, Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
@@ -23,30 +24,34 @@ pub type IntegralStep<M> = Step<i32, M>;
 pub type FractionalStep<M> = Step<f64, M>;
 
 /// Memory of online algorithm.
-pub trait Memory<'a, P>:
+pub trait Memory<'a, T, P, C, D>:
     Clone
     + std::fmt::Debug
-    + DefaultGivenProblem<P>
+    + DefaultGivenProblem<T, P, C, D>
     + DeserializeOwned
     + IntoPy<PyObject>
     + Send
     + Serialize
     + 'a
 where
-    P: Problem,
+    P: Problem<T, C, D>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
 }
-impl<'a, T, P> Memory<'a, P> for T
+impl<'a, T, P, C, D, M> Memory<'a, T, P, C, D> for M
 where
-    T: Clone
+    M: Clone
         + std::fmt::Debug
-        + DefaultGivenProblem<P>
+        + DefaultGivenProblem<T, P, C, D>
         + DeserializeOwned
         + IntoPy<PyObject>
         + Send
         + Serialize
         + 'a,
-    P: Problem,
+    P: Problem<T, C, D>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
 }
 
@@ -63,13 +68,15 @@ where
 /// * `xs` - Schedule up to the previous time slot.
 /// * `prev_m` - Latest memory, is the default if nothing was memorized.
 /// * `options` - Algorithm options.
-pub trait OnlineAlgorithm<'a, T, P, M, O>:
+pub trait OnlineAlgorithm<'a, T, P, M, O, C, D>:
     Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>> + Send + Sync
 where
     T: Value<'a>,
-    P: Problem + 'a,
-    M: Memory<'a, P>,
-    O: Options<P>,
+    P: Problem<T, C, D> + 'a,
+    M: Memory<'a, T, P, C, D>,
+    O: Options<T, P, C, D>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
 {
     fn next(
         &self,
@@ -94,27 +101,7 @@ where
 
         self(o, t, xs, prev_m, options)
     }
-}
-impl<'a, T, P, M, O, F> OnlineAlgorithm<'a, T, P, M, O> for F
-where
-    T: Value<'a>,
-    P: Problem + 'a,
-    M: Memory<'a, P>,
-    O: Options<P>,
-    F: Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>>
-        + Send
-        + Sync,
-{
-}
 
-pub trait OnlineAlgorithmWithDefaultOptions<'a, T, P, M, O>:
-    OnlineAlgorithm<'a, T, P, M, O>
-where
-    T: Value<'a>,
-    P: Problem + 'a,
-    M: Memory<'a, P>,
-    O: Options<P>,
-{
     fn next_with_default_options(
         &self,
         o: Online<P>,
@@ -122,15 +109,17 @@ where
         prev_m_: Option<M>,
     ) -> Result<Step<T, M>> {
         let options = O::default(&o.p);
-        OnlineAlgorithm::next(self, o, xs, prev_m_, options)
+        self.next(o, xs, prev_m_, options)
     }
 }
-impl<'a, T, P, M, O, F> OnlineAlgorithmWithDefaultOptions<'a, T, P, M, O> for F
+impl<'a, T, P, M, O, C, D, F> OnlineAlgorithm<'a, T, P, M, O, C, D> for F
 where
     T: Value<'a>,
-    P: Problem + 'a,
-    M: Memory<'a, P>,
-    O: Options<P>,
+    P: Problem<T, C, D> + 'a,
+    M: Memory<'a, T, P, C, D>,
+    O: Options<T, P, C, D>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
     F: Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>>
         + Send
         + Sync,

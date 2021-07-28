@@ -1,6 +1,7 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::breakpoints::Breakpoints;
 use crate::config::Config;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::finite_differences::{derivative, second_derivative};
 use crate::numerics::quadrature::piecewise::piecewise_integral;
@@ -81,13 +82,17 @@ impl Options {
 ///
 /// Assumes that the hitting costs are either smooth, i.e. infinitely many times continuously differentiable,
 /// or piecewise linear in which case the breakpoints must be provided through the options.
-pub fn probabilistic<'a>(
-    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
+pub fn probabilistic<'a, C, D>(
+    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a, C, D>>,
     t: i32,
     _: &FractionalSchedule,
     prev_m: Memory<'a>,
     options: Options,
-) -> Result<FractionalStep<Memory<'a>>> {
+) -> Result<FractionalStep<Memory<'a>>>
+where
+    C: ModelOutputSuccess + 'a,
+    D: ModelOutputFailure + 'a,
+{
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
 
@@ -111,6 +116,7 @@ pub fn probabilistic<'a>(
                         // needs to be unbounded for numerical approximations
                         o.p.hitting_cost
                             .call_certain(t, Config::single(x))
+                            .cost
                             .raw()
                     },
                     x,
@@ -132,20 +138,28 @@ pub fn probabilistic<'a>(
 }
 
 /// Determines `x_r` with a convex optimization.
-fn find_right_bound(
-    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
+fn find_right_bound<C, D>(
+    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>>,
     t: i32,
     breakpoints: &Breakpoints,
     prev_p: &Distribution,
     x_m: f64,
-) -> Result<f64> {
+) -> Result<f64>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     if (x_m - o.p.bounds[0]).abs() < PRECISION {
         Ok(o.p.bounds[0])
     } else {
         Ok(find_root((x_m, o.p.bounds[0]), |x| {
             // needs to be unbounded for numerical approximations
-            let f =
-                |x| o.p.hitting_cost.call_certain(t, Config::single(x)).raw();
+            let f = |x| {
+                o.p.hitting_cost
+                    .call_certain(t, Config::single(x))
+                    .cost
+                    .raw()
+            };
             derivative(f, x).raw()
                 - 2. * o.p.switching_cost[0]
                     * piecewise_integral(breakpoints, x, f64::INFINITY, |x| {
@@ -159,20 +173,28 @@ fn find_right_bound(
 }
 
 /// Determines `x_l` with a convex optimization.
-fn find_left_bound(
-    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_>>,
+fn find_left_bound<C, D>(
+    o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>>,
     t: i32,
     breakpoints: &Breakpoints,
     prev_p: &Distribution,
     x_m: f64,
-) -> Result<f64> {
+) -> Result<f64>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     if x_m < PRECISION {
         Ok(0.)
     } else {
         Ok(find_root((0., x_m), |x| {
             // needs to be unbounded for numerical approximations
-            let f =
-                |x| o.p.hitting_cost.call_certain(t, Config::single(x)).raw();
+            let f = |x| {
+                o.p.hitting_cost
+                    .call_certain(t, Config::single(x))
+                    .cost
+                    .raw()
+            };
             2. * o.p.switching_cost[0]
                 * piecewise_integral(breakpoints, f64::NEG_INFINITY, x, |x| {
                     prev_p(x)

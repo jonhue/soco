@@ -1,11 +1,16 @@
-use super::{Response, StepResponse};
+use super::{
+    DataCenterFractionalSimplifiedSmoothedConvexOptimization, Response,
+    StepResponse,
+};
 use crate::{
     algorithms::online::uni_dimensional::memoryless::memoryless,
-    model::data_center::model::{
-        DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+    model::data_center::{
+        model::{
+            DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
+        },
+        DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
     },
-    problem::FractionalSimplifiedSmoothedConvexOptimization,
-    streaming::online,
+    streaming::online::{self, OfflineResponse},
 };
 use pyo3::{exceptions::PyAssertionError, prelude::*};
 
@@ -18,7 +23,11 @@ fn start(
     input: DataCenterOfflineInput,
     w: i32,
 ) -> PyResult<Response<f64, ()>> {
-    let ((xs, cost), (int_xs, int_cost), _) = online::start(
+    let OfflineResponse {
+        xs: (xs, cost),
+        int_xs: (int_xs, int_cost),
+        ..
+    } = online::start(
         addr.parse().unwrap(),
         model,
         &memoryless,
@@ -42,9 +51,11 @@ fn next(
         let ((x, cost), (int_x, int_cost), _) =
             online::next::<
                 f64,
-                FractionalSimplifiedSmoothedConvexOptimization,
+                DataCenterFractionalSimplifiedSmoothedConvexOptimization,
                 (),
                 DataCenterOnlineInput,
+                DataCenterModelOutputSuccess,
+                DataCenterModelOutputFailure,
             >(addr.parse().unwrap(), input)
             .map_err(PyAssertionError::new_err)?;
         Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), None))

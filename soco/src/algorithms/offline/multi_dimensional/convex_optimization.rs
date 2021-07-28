@@ -1,8 +1,8 @@
 use crate::algorithms::offline::{OfflineOptions, PureOfflineResult};
 use crate::config::Config;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::convex_optimization::{minimize, WrappedObjective};
-use crate::objective::Objective;
-use crate::problem::FractionalSmoothedConvexOptimization;
+use crate::problem::{FractionalSmoothedConvexOptimization, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
@@ -19,11 +19,15 @@ struct ConstraintData<'a> {
 }
 
 /// Convex Optimization
-pub fn co(
-    p: FractionalSmoothedConvexOptimization<'_>,
+pub fn co<C, D>(
+    p: FractionalSmoothedConvexOptimization<'_, C, D>,
     _: (),
     OfflineOptions { inverted, alpha, l }: OfflineOptions,
-) -> Result<PureOfflineResult<f64>> {
+) -> Result<PureOfflineResult<f64>>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     assert(!inverted, Failure::UnsupportedInvertedCost)?;
 
     let d = p.d;
@@ -46,7 +50,7 @@ pub fn co(
             let xs = Schedule::from_raw(data.p.d, data.p.t_end, raw_xs);
             data.p
                 .alpha_unfair_objective_function(&xs, data.alpha)
-                .unwrap()
+                .unwrap().cost
         },
     );
 

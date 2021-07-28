@@ -5,7 +5,8 @@ use crate::algorithms::online::{IntegralStep, OnlineAlgorithm, Step};
 use crate::breakpoints::Breakpoints;
 use crate::config::{Config, FractionalConfig};
 use crate::convert::CastableSchedule;
-use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
+use crate::problem::{IntegralSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, frac, project, sample_uniform};
@@ -37,19 +38,23 @@ impl IntoPy<PyObject> for Memory<'_> {
 /// Randomized Integral Relaxation
 ///
 /// Relax discrete problem to fractional problem before use!
-pub fn randomized<'a>(
-    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a>>,
+pub fn randomized<'a, C, D>(
+    o: Online<IntegralSimplifiedSmoothedConvexOptimization<'a, C, D>>,
     _: i32,
     xs: &IntegralSchedule,
     prev_m: Memory<'a>,
     _: (),
-) -> Result<IntegralStep<Memory<'a>>> {
+) -> Result<IntegralStep<Memory<'a>>>
+where
+    C: ModelOutputSuccess + 'a,
+    D: ModelOutputFailure + 'a,
+{
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
     assert(o.p.d == 1, Failure::UnsupportedProblemDimension(o.p.d))?;
-    assert(o.p.bounds[0].fract() == 0., Failure::MustBeRelaxedProblem)?;
 
+    let relaxation_o = o.into_f();
     let Step(y, relaxation_m) = probabilistic.next(
-        o,
+        relaxation_o,
         &xs.to(),
         prev_m.relaxation_m,
         RelaxationOptions {

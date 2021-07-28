@@ -4,16 +4,14 @@ mod co {
     use crate::{factories::inv_e, utils::upper_bounds};
     use rand::prelude::*;
     use rand_pcg::Pcg64;
+    use soco::algorithms::offline::multi_dimensional::convex_optimization::co;
     use soco::algorithms::offline::{
-        multi_dimensional::convex_optimization::co,
-        OfflineAlgorithmWithDefaultOptions,
+        OfflineAlgorithm, OfflineOptions, OfflineResult,
     };
-    use soco::algorithms::offline::{OfflineOptions, OfflineResult};
     use soco::config::Config;
     use soco::convert::{CastableSchedule, DiscretizableSchedule};
     use soco::norm::{euclidean, manhattan_scaled, norm_squared};
-    use soco::objective::Objective;
-    use soco::problem::SmoothedConvexOptimization;
+    use soco::problem::{Problem, SmoothedConvexOptimization};
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
 
@@ -46,7 +44,7 @@ mod co {
             ])
         );
         assert_abs_diff_eq!(
-            p.objective_function(&cast_int_result).unwrap().raw(),
+            p.objective_function(&cast_int_result).unwrap().cost.raw(),
             3.5096,
             epsilon = 1e-4
         );

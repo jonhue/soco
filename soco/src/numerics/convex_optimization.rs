@@ -2,6 +2,7 @@
 
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use crate::result::{Failure, Result};
 use log::warn;
@@ -40,13 +41,17 @@ impl<'a, D> WrappedObjective<'a, D> {
 type OptimizationResult = (Vec<f64>, N64);
 
 /// Determines the minimizer of `hitting_cost` at time `t` with bounds `bounds`.
-pub fn find_minimizer_of_hitting_cost(
+pub fn find_minimizer_of_hitting_cost<C, D>(
     t: i32,
-    hitting_cost: CostFn<'_, FractionalConfig>,
+    hitting_cost: CostFn<'_, FractionalConfig, C, D>,
     bounds: Vec<(f64, f64)>,
-) -> Result<OptimizationResult> {
+) -> Result<OptimizationResult>
+where
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
     let objective = WrappedObjective::new(hitting_cost, |x, hitting_cost| {
-        hitting_cost.call_certain(t, Config::new(x.to_vec()))
+        hitting_cost.call_certain(t, Config::new(x.to_vec())).cost
     });
     find_minimizer(objective, bounds)
 }
