@@ -138,7 +138,7 @@ mod optimal_graph_search {
 
         let p = SimplifiedSmoothedConvexOptimization {
             d: 1,
-            t_end: 10,
+            t_end: 1_000,
             bounds: vec![9],
             switching_cost: vec![1.],
             hitting_cost: random(),
@@ -171,8 +171,7 @@ mod optimal_graph_search {
             .verify(transformed_p.t_end, &transformed_p.bounds)
             .unwrap();
 
-        println!("{:?};{:?}", path.xs, md_path.xs);
-        assert_abs_diff_eq!(path.cost, md_path.cost, epsilon = 1.);
+        assert_relative_eq!(path.cost, md_path.cost, max_relative = 0.00001);
         assert_eq!(path.xs, inv_path.xs);
         assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_abs_diff_eq!(
