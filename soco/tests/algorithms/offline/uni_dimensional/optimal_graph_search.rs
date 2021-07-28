@@ -172,7 +172,7 @@ mod optimal_graph_search {
             .unwrap();
 
         println!("{:?};{:?}", path.xs, md_path.xs);
-        assert_eq!(path.cost, md_path.cost);
+        assert_abs_diff_eq!(path.cost, md_path.cost, epsilon = 1.);
         assert_eq!(path.xs, inv_path.xs);
         assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_abs_diff_eq!(
