@@ -19,14 +19,22 @@ enum Direction {
     Maximize,
 }
 
-/// Convex inequality constraint. The used algorithms do not support equality
-/// constraints very well, and thus they are not supported by this interface.
-#[derive(Clone)]
-pub struct Constraint<'a, D> {
+type ObjectiveFn<'a, D> = Arc<dyn Fn(&[f64], &mut D) -> N64 + 'a>;
+
+/// Wrapper around objectives.
+pub struct WrappedObjective<'a, D> {
     /// Cached argument.
-    pub data: D,
-    /// Constraint.
-    pub g: Arc<dyn Fn(&[f64], &mut D) -> N64 + 'a>,
+    data: D,
+    /// Objective.
+    f: ObjectiveFn<'a, D>,
+}
+impl<'a, D> WrappedObjective<'a, D> {
+    pub fn new(data: D, f: impl Fn(&[f64], &mut D) -> N64 + 'a) -> Self {
+        Self {
+            data,
+            f: Arc::new(f),
+        }
+    }
 }
 
 /// Optimization result comprised of argmin and min.
@@ -35,132 +43,84 @@ type OptimizationResult = (Vec<f64>, N64);
 /// Determines the minimizer of `hitting_cost` at time `t` with bounds `bounds`.
 pub fn find_minimizer_of_hitting_cost<C, D>(
     t: i32,
-    hitting_cost: &CostFn<'_, FractionalConfig, C, D>,
-    bounds: &Vec<(f64, f64)>,
+    hitting_cost: CostFn<'_, FractionalConfig, C, D>,
+    bounds: Vec<(f64, f64)>,
 ) -> Result<OptimizationResult>
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    let f = |x: &[f64]| {
-        hitting_cost
-            .call_certain_within_bounds(t, Config::new(x.to_vec()), bounds)
-            .cost
-    };
-    find_minimizer(f, bounds)
+    let objective = WrappedObjective::new(hitting_cost, |x, hitting_cost| {
+        hitting_cost.call_certain(t, Config::new(x.to_vec())).cost
+    });
+    find_minimizer(objective, bounds)
 }
 
 /// Determines the minimizer of a convex function `f` with bounds `bounds`.
-pub fn find_minimizer(
-    f: impl Fn(&[f64]) -> N64,
-    bounds: &Vec<(f64, f64)>,
+pub fn find_minimizer<C>(
+    objective: WrappedObjective<C>,
+    bounds: Vec<(f64, f64)>,
 ) -> Result<OptimizationResult> {
-    minimize(f, bounds, vec![], Vec::<Constraint<()>>::new())
+    minimize(objective, bounds, None, Vec::<WrappedObjective<()>>::new())
 }
 
 /// Determines the minimizer of a convex function `f` in `d` dimensions with `constraints`.
-pub fn find_unbounded_minimizer<D>(
-    f: impl Fn(&[f64]) -> N64,
+pub fn find_unbounded_minimizer<C, D>(
+    objective: WrappedObjective<C>,
     d: i32,
-    constraints: Vec<Constraint<D>>,
-) -> Result<OptimizationResult>
-where
-    D: Clone,
-{
+    constraints: Vec<WrappedObjective<D>>,
+) -> Result<OptimizationResult> {
     let (bounds, init) = build_empty_bounds(d);
-    minimize(f, &bounds, vec![init], constraints)
+    minimize(objective, bounds, Some(init), constraints)
 }
 
 /// Determines the maximizer of a convex function `f` in `d` dimensions with `constraints`.
-pub fn find_unbounded_maximizer<D>(
-    f: impl Fn(&[f64]) -> N64,
+pub fn find_unbounded_maximizer<C, D>(
+    objective: WrappedObjective<C>,
     d: i32,
-    constraints: Vec<Constraint<D>>,
-) -> Result<OptimizationResult>
-where
-    D: Clone,
-{
+    constraints: Vec<WrappedObjective<D>>,
+) -> Result<OptimizationResult> {
     let (bounds, init) = build_empty_bounds(d);
-    maximize(f, &bounds, vec![init], constraints)
+    maximize(objective, bounds, Some(init), constraints)
 }
 
-pub fn minimize<D>(
-    f: impl Fn(&[f64]) -> N64,
-    bounds: &Vec<(f64, f64)>,
-    strategies: Vec<Vec<f64>>,
-    constraints: Vec<Constraint<D>>,
-) -> Result<OptimizationResult>
-where
-    D: Clone,
-{
-    evaluate_strategies(
-        Direction::Minimize,
-        &f,
-        bounds,
-        strategies,
-        constraints,
-    )
+pub fn minimize<C, D>(
+    objective: WrappedObjective<C>,
+    bounds: Vec<(f64, f64)>,
+    init: Option<Vec<f64>>,
+    constraints: Vec<WrappedObjective<D>>,
+) -> Result<OptimizationResult> {
+    optimize(Direction::Minimize, objective, bounds, init, constraints)
 }
 
-pub fn maximize<D>(
-    f: impl Fn(&[f64]) -> N64,
-    bounds: &Vec<(f64, f64)>,
-    strategies: Vec<Vec<f64>>,
-    constraints: Vec<Constraint<D>>,
-) -> Result<OptimizationResult>
-where
-    D: Clone,
-{
-    evaluate_strategies(
-        Direction::Maximize,
-        &f,
-        bounds,
-        strategies,
-        constraints,
-    )
-}
-
-/// Applies provided stratedies one-by-one and takes the first one that produces a finite result.
-fn evaluate_strategies<D>(
-    dir: Direction,
-    f: &impl Fn(&[f64]) -> N64,
-    bounds: &Vec<(f64, f64)>,
-    strategies: Vec<Vec<f64>>,
-    constraints: Vec<Constraint<D>>,
-) -> Result<OptimizationResult>
-where
-    D: Clone,
-{
-    let result = strategies.into_iter().find_map(|init| {
-        let (x, opt) =
-            optimize(dir, f, bounds, Some(init), constraints.clone()).unwrap();
-        if opt.is_finite() {
-            Some((x, opt))
-        } else {
-            None
-        }
-    });
-    match result {
-        Some(result) => Ok(result),
-        None => optimize(dir, f, bounds, None, constraints),
-    }
+pub fn maximize<C, D>(
+    objective: WrappedObjective<C>,
+    bounds: Vec<(f64, f64)>,
+    init: Option<Vec<f64>>,
+    constraints: Vec<WrappedObjective<D>>,
+) -> Result<OptimizationResult> {
+    optimize(Direction::Maximize, objective, bounds, init, constraints)
 }
 
 /// Determines the optimum of a convex function `f` w.r.t some direction `dir`
 /// with bounds `bounds`, and `constraints`.
 /// Optimization begins at `init` (defaults to lower bounds).
-fn optimize<D>(
+///
+/// The used algorithms do not support equality constraints very well, and thus
+/// they are not supported by this interface.
+fn optimize<C, D>(
     dir: Direction,
-    f: &impl Fn(&[f64]) -> N64,
-    bounds: &Vec<(f64, f64)>,
+    objective: WrappedObjective<C>,
+    bounds: Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
-    constraints: Vec<Constraint<D>>,
+    constraints: Vec<WrappedObjective<D>>,
 ) -> Result<OptimizationResult> {
     let d = bounds.len();
-    let (lower, upper): (Vec<_>, Vec<_>) = bounds.iter().cloned().unzip();
+    let (lower, upper): (Vec<_>, Vec<_>) = bounds.into_iter().unzip();
 
-    let objective = |xs: &[f64], _: Option<&mut [f64]>, _: &mut ()| {
-        evaluate(xs, &mut (), &|x, _| f(x))
+    let WrappedObjective { data, f } = objective;
+    let solver_objective = |xs: &[f64], _: Option<&mut [f64]>, data: &mut C| {
+        evaluate(xs, data, &f)
     };
     let mut x = match init {
         // we use the upper bound of the decision space as for mose cost functions
@@ -171,7 +131,7 @@ fn optimize<D>(
             upper.clone()
         }
         Some(x) => {
-            assert!(x.len() == bounds.len());
+            assert!(x.len() == d);
             x
         }
     };
@@ -179,9 +139,9 @@ fn optimize<D>(
     let mut solver = Nlopt::new(
         choose_algorithm(constraints.len()),
         d,
-        objective,
+        solver_objective,
         Target::from(dir),
-        (),
+        data,
     );
     solver.set_lower_bounds(&lower)?;
     solver.set_upper_bounds(&upper)?;
@@ -190,10 +150,10 @@ fn optimize<D>(
     // stop evaluation when solver appears to hit a dead end, this may happen when all function evaluations return infinity.
     solver.set_maxeval(MAX_ITERATIONS)?;
 
-    for Constraint { g, data } in constraints {
+    for WrappedObjective { f, data } in constraints {
         solver.add_inequality_constraint(
             |xs: &[f64], _: Option<&mut [f64]>, data: &mut D| {
-                evaluate(xs, data, &|x, data| g(x, data))
+                evaluate(xs, data, &f)
             },
             data,
             TOLERANCE,
@@ -249,11 +209,7 @@ fn build_empty_bounds(d: i32) -> (Vec<(f64, f64)>, Vec<f64>) {
 
 /// It appears that NLOpt sometimes produces NaN values for no reason.
 /// This is to ensure that NaN values are not chosen.
-fn evaluate<D>(
-    xs: &[f64],
-    data: &mut D,
-    f: &impl Fn(&[f64], &mut D) -> N64,
-) -> f64 {
+fn evaluate<D>(xs: &[f64], data: &mut D, f: &ObjectiveFn<D>) -> f64 {
     if xs.iter().any(|&x| x.is_nan()) {
         f64::NAN
     } else {

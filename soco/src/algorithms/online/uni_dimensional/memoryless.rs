@@ -1,15 +1,15 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::Config;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::numerics::convex_optimization::{minimize, Constraint};
+use crate::numerics::convex_optimization::{minimize, WrappedObjective};
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization, Online, Problem,
 };
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
+use log::debug;
 use noisy_float::prelude::*;
-use std::sync::Arc;
 
 /// Memoryless Algorithm. Special case of Primal Online Balanced Descent.
 pub fn memoryless<C, D>(
@@ -29,7 +29,14 @@ where
     let prev_x = xs.now_with_default(Config::single(0.))[0];
 
     let x = next(o, t, prev_x)?;
+    debug!("determined next config: {:?}", x);
     Ok(Step(Config::single(x), None))
+}
+
+#[derive(Clone)]
+struct ObjectiveData<'a, C, D> {
+    t: i32,
+    o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a, C, D>>,
 }
 
 /// Determines next `x` with a convex optimization.
@@ -43,16 +50,15 @@ where
     D: ModelOutputFailure,
 {
     let bounds = vec![(0., o.p.bounds[0])];
-    let objective =
-        |xs: &[f64]| -> N64 { o.p.hit_cost(t, Config::new(xs.to_vec())).cost };
-    let constraint = Constraint {
-        data: (),
-        g: Arc::new(|xs, _| {
-            n64(o.p.switching_cost[0]) * n64((xs[0] - prev_x).abs())
-                - o.p.hit_cost(t, Config::single(xs[0])).cost / n64(2.)
-        }),
-    };
+    let data = ObjectiveData { t, o };
+    let objective = WrappedObjective::new(data.clone(), |xs, data| {
+        data.o.p.hit_cost(data.t, Config::new(xs.to_vec())).cost
+    });
+    let constraint = WrappedObjective::new(data, |xs, data| {
+        n64(data.o.p.switching_cost[0]) * n64((xs[0] - prev_x).abs())
+            - data.o.p.hit_cost(data.t, Config::single(xs[0])).cost / n64(2.)
+    });
 
-    let (xs, _) = minimize(objective, &bounds, vec![], vec![constraint])?;
+    let (xs, _) = minimize(objective, bounds, None, vec![constraint])?;
     Ok(xs[0])
 }

@@ -24,7 +24,7 @@ pub struct Options<'a> {
 
 /// Primal Online Balanced Descent
 pub fn pobd<C, D>(
-    o: &Online<FractionalSmoothedConvexOptimization<C, D>>,
+    o: Online<FractionalSmoothedConvexOptimization<C, D>>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
     options: &Options,
@@ -43,7 +43,12 @@ where
     };
 
     let v = Config::new(
-        find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
+        find_minimizer_of_hitting_cost(
+            t,
+            o.p.hitting_cost.clone(),
+            o.p.bounds.clone(),
+        )?
+        .0,
     );
     let dist = (o.p.switching_cost)(prev_x.clone() - v.clone()).raw();
     let minimal_hitting_cost = o.p.hit_cost(t, v.clone()).cost.raw();
@@ -54,7 +59,7 @@ where
     let a = minimal_hitting_cost;
     let b = MAX_L_FACTOR * minimal_hitting_cost;
     let l = find_root((a, b), |l: f64| {
-        balance_function(o, xs, &prev_x, l, options.beta, &options.mirror_map)
+        balance_function(&o, xs, &prev_x, l, options.beta, &options.mirror_map)
     })?
     .raw();
 
@@ -62,7 +67,7 @@ where
         o,
         xs,
         &mut vec![],
-        &MetaOptions {
+        MetaOptions {
             l,
             mirror_map: options.mirror_map.clone(),
         },
@@ -82,10 +87,10 @@ where
     D: ModelOutputFailure,
 {
     let Step(x, _) = obd(
-        o,
+        o.clone(),
         xs,
         &mut vec![],
-        &MetaOptions {
+        MetaOptions {
             l,
             mirror_map: mirror_map.clone(),
         },

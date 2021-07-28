@@ -1,3 +1,5 @@
+use std::panic::UnwindSafe;
+
 use crate::problem::{Online, Problem};
 use pyo3::{IntoPy, PyObject, Python};
 use serde::{de::DeserializeOwned, Serialize};
@@ -10,7 +12,10 @@ pub trait OfflineInput: std::fmt::Debug {}
 
 /// Model inputs to update a problem instance (online) to the next time slot.
 /// Encapsulates information for the current time slot as well as all time slots in the prediction window.
-pub trait OnlineInput: std::fmt::Debug + DeserializeOwned + Serialize {}
+pub trait OnlineInput:
+    std::fmt::Debug + DeserializeOwned + Serialize + UnwindSafe
+{
+}
 
 /// Results of model.
 pub trait ModelOutputSuccess:

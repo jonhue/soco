@@ -101,8 +101,8 @@ where
 
     let x_m = find_minimizer_of_hitting_cost(
         t,
-        &o.p.hitting_cost,
-        &vec![(0., o.p.bounds[0])],
+        o.p.hitting_cost.clone(),
+        vec![(0., o.p.bounds[0])],
     )?
     .0[0];
     let x_r = find_right_bound(&o, t, &breakpoints, &prev_p, x_m)?;

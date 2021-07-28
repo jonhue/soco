@@ -15,11 +15,13 @@ use crate::{
     schedule::Schedule,
     value::Value,
 };
-use log::info;
+use backtrace::Backtrace;
+use log::{info, warn};
 use std::{
     io::Write,
     net::{SocketAddr, TcpListener, TcpStream},
-    sync::mpsc::Sender,
+    panic,
+    sync::{mpsc::Sender, Mutex},
     thread,
 };
 
@@ -29,6 +31,15 @@ pub struct OfflineResponse<T, C, D, M> {
     pub int_xs: (Schedule<i32>, Cost<C, D>),
     pub m: Option<M>,
 }
+
+type OnlineResponse<T, C, D, M> = std::result::Result<
+    (
+        (Config<T>, Cost<C, D>),
+        (Config<i32>, Cost<C, D>),
+        Option<M>,
+    ),
+    String,
+>;
 
 /// Generates problem instance from model and streams online algorithm using the provided input.
 /// Then, starts backend.
@@ -121,9 +132,9 @@ where
 fn run<'a, T, P, M, O, A, B, C, D>(
     addr: SocketAddr,
     model: impl Model<T, P, A, B, C, D>,
-    o: &mut Online<P>,
+    mut o: &mut Online<P>,
     alg: &impl OnlineAlgorithm<'a, T, P, M, O, C, D>,
-    xs: &mut Schedule<T>,
+    mut xs: &mut Schedule<T>,
     mut prev_m: Option<M>,
     options: O,
     sender: Option<Sender<&str>>,
@@ -149,22 +160,65 @@ fn run<'a, T, P, M, O, A, B, C, D>(
 
         match bincode::deserialize_from(&mut stream) {
             Ok(input) => {
-                info!("[server] Received: {:?}", input);
-                model.update(o, input);
-                info!("[server] Updated problem instance.");
+                let stream_ref = Mutex::new(&mut stream);
+                let model_ref = Mutex::new(&model);
+                let o_ref = Mutex::new(o);
+                let alg_ref = Mutex::new(alg);
+                let xs_ref = Mutex::new(xs);
+                let prev_m_ref = Mutex::new(prev_m);
+                let options_ref = Mutex::new(&options);
 
-                let (x, m) = o.next(alg, options.clone(), xs, prev_m).unwrap();
-                let cost = o.p.objective_function(&xs).unwrap();
-                let int_xs = xs.to_i();
-                let int_cost = o.p.objective_function(&int_xs.to()).unwrap();
-                let result = ((x, cost), (int_xs.now(), int_cost), m.clone());
-                let response = bincode::serialize(&result).unwrap();
+                match panic::catch_unwind(|| {
+                    panic::set_hook(Box::new(|_panic_info| {
+                        warn!("\n\n{:?}", Backtrace::new());
+                    }));
 
-                stream.write_all(&response).unwrap();
-                stream.flush().unwrap();
-                info!("[server] Sent: {:?}", result);
+                    let stream = stream_ref.into_inner().unwrap();
+                    let model = model_ref.into_inner().unwrap();
+                    let o = o_ref.into_inner().unwrap();
+                    let alg = alg_ref.into_inner().unwrap();
+                    let xs = xs_ref.into_inner().unwrap();
+                    let prev_m = prev_m_ref.into_inner().unwrap();
+                    let options = options_ref.into_inner().unwrap();
 
-                prev_m = m;
+                    info!("[server] Received: {:?}", input);
+                    model.update(o, input);
+                    info!("[server] Updated problem instance.");
+
+                    let (x, m) =
+                        o.next(alg, options.clone(), xs, prev_m).unwrap();
+
+                    let cost = o.p.objective_function(&xs).unwrap();
+                    let int_xs = xs.to_i();
+                    let int_cost =
+                        o.p.objective_function(&int_xs.to()).unwrap();
+
+                    let result: OnlineResponse<T, C, D, M> =
+                        Ok(((x, cost), (int_xs.now(), int_cost), m.clone()));
+                    let response = bincode::serialize(&result).unwrap();
+
+                    stream.write_all(&response).unwrap();
+                    stream.flush().unwrap();
+                    info!("[server] Sent: {:?}", result);
+
+                    (o, xs, m)
+                }) {
+                    Ok((new_o, new_xs, m)) => {
+                        o = new_o;
+                        xs = new_xs;
+                        prev_m = m
+                    }
+                    Err(panic_) => {
+                        let panic = panic_.downcast::<&str>().unwrap();
+                        warn!("[server] ERROR (unrecoverable): {:?}", panic);
+                        let result: OnlineResponse<T, C, D, M> =
+                            Err(panic.to_string());
+                        let response = bincode::serialize(&result).unwrap();
+                        stream.write_all(&response).unwrap();
+                        stream.flush().unwrap();
+                        break;
+                    }
+                };
             }
             Err(_) => {
                 info!("[server] Server stopped.");
@@ -180,11 +234,7 @@ fn run<'a, T, P, M, O, A, B, C, D>(
 pub fn next<'a, T, P, M, B, C, D>(
     addr: SocketAddr,
     input: B,
-) -> (
-    (Config<T>, Cost<C, D>),
-    (Config<i32>, Cost<C, D>),
-    Option<M>,
-)
+) -> OnlineResponse<T, C, D, M>
 where
     T: Value<'a>,
     P: Problem<T, C, D> + 'a,
