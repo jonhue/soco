@@ -115,7 +115,10 @@ where
                     Cost::new(
                         (j.ceil() - j) * lower.cost
                             + (j - j.floor()) * upper.cost,
-                        ModelOutput::reduce(vec![lower.output, upper.output]),
+                        ModelOutput::vertical_reduce(vec![
+                            lower.output,
+                            upper.output,
+                        ]),
                     )
                 }
             }),
@@ -296,6 +299,53 @@ where
         Online {
             w: self.w,
             p: self.p.into_f(),
+        }
+    }
+}
+
+impl<'a, T> Online<SmoothedLoadOptimization<T>>
+where
+    T: Value<'a>,
+{
+    pub fn into_sblo(self) -> Online<SmoothedBalancedLoadOptimization<'a, T>> {
+        Online {
+            w: self.w,
+            p: self.p.into_sblo(),
+        }
+    }
+}
+
+impl<'a, T> Online<SmoothedBalancedLoadOptimization<'a, T>>
+where
+    T: Value<'a>,
+{
+    pub fn into_ssco(
+        self,
+    ) -> Online<
+        SimplifiedSmoothedConvexOptimization<
+            'a,
+            T,
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
+        >,
+    > {
+        Online {
+            w: self.w,
+            p: self.p.into_ssco(),
+        }
+    }
+}
+
+impl<'a, T, C, D> Online<SimplifiedSmoothedConvexOptimization<'a, T, C, D>>
+where
+    T: Value<'a>,
+    C: ModelOutputSuccess + 'a,
+    D: ModelOutputFailure + 'a,
+{
+    pub fn into_sco(self) -> Online<SmoothedConvexOptimization<'a, T, C, D>> {
+        Online {
+            w: self.w,
+            p: self.p.into_sco(),
         }
     }
 }

@@ -59,9 +59,7 @@ where
 
     for t in t_init..=p.t_end {
         handle_layer(&p, alpha, inverted, t, true, &values, &mut paths, None)?;
-        debug!("handled first layer at time `{}`", t);
         handle_layer(&p, alpha, inverted, t, false, &values, &mut paths, None)?;
-        debug!("handled second layer at time `{}`", t);
     }
 
     Ok(CachedPath {

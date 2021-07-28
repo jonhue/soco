@@ -6,7 +6,7 @@ mod rbg {
         rbg, Options,
     };
     use soco::norm::manhattan;
-    use soco::problem::{Online, SmoothedConvexOptimization};
+    use soco::problem::{Online, Problem, SmoothedConvexOptimization};
 
     #[test]
     fn _1() {
@@ -46,5 +46,13 @@ mod rbg {
         let t_end = 2;
         let result = o.offline_stream(&rbg, t_end, Options::default()).unwrap();
         result.0.verify(t_end, &upper_bounds(&o.p.bounds)).unwrap();
+
+        assert!(o
+            .p
+            .objective_function(&result.0)
+            .unwrap()
+            .cost
+            .raw()
+            .is_finite());
     }
 }

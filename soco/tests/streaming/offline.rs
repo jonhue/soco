@@ -74,7 +74,7 @@ fn solve() {
         loads: vec![LoadProfile::raw(vec![10.]); t_end as usize],
     };
 
-    let (xs, _) = offline::solve(
+    let (xs, _, _) = offline::solve(
         &model,
         &optimal_graph_search,
         Options::default(),

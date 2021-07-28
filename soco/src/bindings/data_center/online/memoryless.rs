@@ -18,26 +18,35 @@ use pyo3::{exceptions::PyAssertionError, prelude::*};
 #[pyfunction]
 #[allow(clippy::type_complexity)]
 fn start(
+    py: Python,
     addr: String,
     model: DataCenterModel,
     input: DataCenterOfflineInput,
     w: i32,
 ) -> PyResult<Response<f64, ()>> {
-    let OfflineResponse {
-        xs: (xs, cost),
-        int_xs: (int_xs, int_cost),
-        ..
-    } = online::start(
-        addr.parse().unwrap(),
-        model,
-        &memoryless,
-        (),
-        w,
-        input,
-        None,
-    )
-    .unwrap();
-    Ok(((xs.to_vec(), cost), (int_xs.to_vec(), int_cost), None))
+    py.allow_threads(|| {
+        let OfflineResponse {
+            xs: (xs, cost),
+            int_xs: (int_xs, int_cost),
+            runtime,
+            ..
+        } = online::start(
+            addr.parse().unwrap(),
+            model,
+            &memoryless,
+            (),
+            w,
+            input,
+            None,
+        )
+        .unwrap();
+        Ok((
+            (xs.to_vec(), cost),
+            (int_xs.to_vec(), int_cost),
+            None,
+            runtime,
+        ))
+    })
 }
 
 /// Executes next iteration of the algorithm.
@@ -48,7 +57,7 @@ fn next(
     input: DataCenterOnlineInput,
 ) -> PyResult<StepResponse<f64, ()>> {
     py.allow_threads(|| {
-        let ((x, cost), (int_x, int_cost), _) =
+        let ((x, cost), (int_x, int_cost), _, runtime) =
             online::next::<
                 f64,
                 DataCenterFractionalSimplifiedSmoothedConvexOptimization,
@@ -58,7 +67,12 @@ fn next(
                 DataCenterModelOutputFailure,
             >(addr.parse().unwrap(), input)
             .map_err(PyAssertionError::new_err)?;
-        Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), None))
+        Ok((
+            (x.to_vec(), cost),
+            (int_x.to_vec(), int_cost),
+            None,
+            runtime,
+        ))
     })
 }
 

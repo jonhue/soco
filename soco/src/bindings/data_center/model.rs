@@ -9,6 +9,7 @@ use crate::model::data_center::{
         revenue_loss::MinimalDetectableDelayRevenueLossModel,
         switching_cost::SwitchingCost,
     },
+    DataCenterModelOutputSuccess,
 };
 use pyo3::prelude::*;
 
@@ -30,6 +31,8 @@ pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<MinimalDetectableDelayRevenueLossModel>()?;
 
     m.add_class::<SwitchingCost>()?;
+
+    m.add_class::<DataCenterModelOutputSuccess>()?;
 
     Ok(())
 }

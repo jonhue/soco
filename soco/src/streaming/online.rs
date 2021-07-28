@@ -18,11 +18,14 @@ use crate::{
 use backtrace::Backtrace;
 use log::{info, warn};
 use std::{
+    any::Any,
     io::Write,
     net::{SocketAddr, TcpListener, TcpStream},
+    ops::Deref,
     panic,
     sync::{mpsc::Sender, Mutex},
     thread,
+    time::Instant,
 };
 
 #[derive(Clone)]
@@ -30,6 +33,7 @@ pub struct OfflineResponse<T, C, D, M> {
     pub xs: (Schedule<T>, Cost<C, D>),
     pub int_xs: (Schedule<i32>, Cost<C, D>),
     pub m: Option<M>,
+    pub runtime: u128,
 }
 
 type OnlineResponse<T, C, D, M> = std::result::Result<
@@ -37,6 +41,7 @@ type OnlineResponse<T, C, D, M> = std::result::Result<
         (Config<T>, Cost<C, D>),
         (Config<i32>, Cost<C, D>),
         Option<M>,
+        u128,
     ),
     String,
 >;
@@ -109,20 +114,25 @@ where
     info!("Generated a problem instance: {:?}", o);
 
     info!("Simulating until time slot {}.", t_end);
+    let start = Instant::now();
     let (xs, m) = if t_end >= 1 {
         o.offline_stream(&alg, t_end, options)?
     } else {
         (Schedule::empty(), None)
     };
+    let runtime = start.elapsed().as_millis();
+
     let cost = o.p.objective_function(&xs)?;
     let int_xs = xs.to_i();
     let int_cost = o.p.objective_function(&int_xs.to())?;
+
     Ok((
         o,
         OfflineResponse {
             xs: (xs, cost),
             int_xs: (int_xs, int_cost),
             m,
+            runtime,
         },
     ))
 }
@@ -185,16 +195,22 @@ fn run<'a, T, P, M, O, A, B, C, D>(
                     model.update(o, input);
                     info!("[server] Updated problem instance.");
 
+                    let start = Instant::now();
                     let (x, m) =
                         o.next(alg, options.clone(), xs, prev_m).unwrap();
+                    let runtime = start.elapsed().as_millis();
 
                     let cost = o.p.objective_function(&xs).unwrap();
                     let int_xs = xs.to_i();
                     let int_cost =
                         o.p.objective_function(&int_xs.to()).unwrap();
 
-                    let result: OnlineResponse<T, C, D, M> =
-                        Ok(((x, cost), (int_xs.now(), int_cost), m.clone()));
+                    let result: OnlineResponse<T, C, D, M> = Ok((
+                        (x, cost),
+                        (int_xs.now(), int_cost),
+                        m.clone(),
+                        runtime,
+                    ));
                     let response = bincode::serialize(&result).unwrap();
 
                     stream.write_all(&response).unwrap();
@@ -209,7 +225,7 @@ fn run<'a, T, P, M, O, A, B, C, D>(
                         prev_m = m
                     }
                     Err(panic_) => {
-                        let panic = panic_.downcast::<&str>().unwrap();
+                        let panic = get_panic_message(&panic_).unwrap();
                         warn!("[server] ERROR (unrecoverable): {:?}", panic);
                         let result: OnlineResponse<T, C, D, M> =
                             Err(panic.to_string());
@@ -262,4 +278,14 @@ pub fn stop(addr: SocketAddr) {
     stream.write_all("".as_bytes()).unwrap();
     stream.flush().unwrap();
     info!("[client] Stopping server.");
+}
+
+/// From: https://stackoverflow.com/questions/42458210/why-cant-the-option-expect-message-be-downcast-as-a-static-str-when-a-panic
+fn get_panic_message(panic: &Box<dyn Any + Send>) -> Option<&str> {
+    panic
+        // Try to convert it to a String, then turn that into a str
+        .downcast_ref::<String>()
+        .map(String::as_str)
+        // If that fails, try to turn it into a &'static str
+        .or_else(|| panic.downcast_ref::<&'static str>().map(Deref::deref))
 }

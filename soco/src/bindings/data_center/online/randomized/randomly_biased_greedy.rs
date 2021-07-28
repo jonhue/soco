@@ -1,9 +1,10 @@
 use crate::{
-    algorithms::online::uni_dimensional::lazy_capacity_provisioning::{
-        lcp, Memory,
+    algorithms::online::uni_dimensional::{
+        randomized::{randomized, Memory, Relaxation},
+        randomly_biased_greedy::Memory as RandomlyBiasedGreedyMemory,
     },
     bindings::data_center::online::{
-        DataCenterFractionalSimplifiedSmoothedConvexOptimization, Response,
+        DataCenterIntegralSimplifiedSmoothedConvexOptimization, Response,
         StepResponse,
     },
     model::data_center::{
@@ -25,7 +26,7 @@ fn start(
     model: DataCenterModel,
     input: DataCenterOfflineInput,
     w: i32,
-) -> PyResult<Response<f64, Memory<f64>>> {
+) -> PyResult<Response<i32, Memory<RandomlyBiasedGreedyMemory>>> {
     py.allow_threads(|| {
         let OfflineResponse {
             xs: (xs, cost),
@@ -35,13 +36,8 @@ fn start(
         } = online::start(
             addr.parse().unwrap(),
             model,
-            &lcp::<
-                f64,
-                DataCenterFractionalSimplifiedSmoothedConvexOptimization,
-                DataCenterModelOutputSuccess,
-                DataCenterModelOutputFailure,
-            >,
-            (),
+            &randomized,
+            Relaxation::<RandomlyBiasedGreedyMemory>::default(),
             w,
             input,
             None,
@@ -57,13 +53,13 @@ fn next(
     py: Python,
     addr: String,
     input: DataCenterOnlineInput,
-) -> PyResult<StepResponse<f64, Memory<f64>>> {
+) -> PyResult<StepResponse<i32, Memory<RandomlyBiasedGreedyMemory>>> {
     py.allow_threads(|| {
         let ((x, cost), (int_x, int_cost), m, runtime) =
             online::next::<
-                f64,
-                DataCenterFractionalSimplifiedSmoothedConvexOptimization,
-                Memory<f64>,
+                i32,
+                DataCenterIntegralSimplifiedSmoothedConvexOptimization,
+                Memory<RandomlyBiasedGreedyMemory>,
                 DataCenterOnlineInput,
                 DataCenterModelOutputSuccess,
                 DataCenterModelOutputFailure,
@@ -73,7 +69,7 @@ fn next(
     })
 }
 
-/// Lazy Capacity Provisioning
+/// Memoryless Algorithm
 pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(start, m)?)?;
     m.add_function(wrap_pyfunction!(next, m)?)?;

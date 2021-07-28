@@ -10,7 +10,7 @@ pub fn submodule(py: Python, m: &PyModule) -> PyResult<()> {
 
     let integral = PyModule::new(py, "integral")?;
     integral::submodule(py, integral)?;
-    m.add_submodule(fractional)?;
+    m.add_submodule(integral)?;
 
     Ok(())
 }
