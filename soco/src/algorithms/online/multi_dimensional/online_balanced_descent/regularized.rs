@@ -18,7 +18,7 @@ pub struct Options {
 
 /// Regularized Online Balanced Descent
 pub fn robd(
-    o: &Online<FractionalSmoothedConvexOptimization>,
+    o: Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
     options: &Options,
@@ -36,7 +36,12 @@ pub fn robd(
     };
 
     let v = Config::new(
-        find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
+        find_minimizer_of_hitting_cost(
+            t,
+            o.p.hitting_cost.clone(),
+            o.p.bounds.clone(),
+        )?
+        .0,
     );
     let regularization_function: CostFn<'_, FractionalConfig> = CostFn::new(
         t,
@@ -50,8 +55,8 @@ pub fn robd(
     let x = Config::new(
         find_minimizer_of_hitting_cost(
             t,
-            &regularization_function,
-            &o.p.bounds,
+            regularization_function,
+            o.p.bounds.clone(),
         )?
         .0,
     );

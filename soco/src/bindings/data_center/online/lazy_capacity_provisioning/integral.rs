@@ -9,7 +9,7 @@ use crate::{
     problem::IntegralSimplifiedSmoothedConvexOptimization,
     streaming::online,
 };
-use pyo3::prelude::*;
+use pyo3::{exceptions::PyAssertionError, prelude::*};
 
 /// Starts backend in a new thread.
 #[pyfunction]
@@ -47,7 +47,8 @@ fn next(
                 IntegralSimplifiedSmoothedConvexOptimization,
                 Memory<i32>,
                 DataCenterOnlineInput,
-            >(addr.parse().unwrap(), input);
+            >(addr.parse().unwrap(), input)
+            .map_err(PyAssertionError::new_err)?;
         Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), m))
     })
 }

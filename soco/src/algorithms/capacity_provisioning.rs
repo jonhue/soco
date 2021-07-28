@@ -6,7 +6,7 @@ use crate::algorithms::offline::{
 };
 use crate::config::Config;
 use crate::convert::ResettableProblem;
-use crate::numerics::convex_optimization::find_minimizer;
+use crate::numerics::convex_optimization::{find_minimizer, WrappedObjective};
 use crate::objective::Objective;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
@@ -14,7 +14,6 @@ use crate::problem::{
 };
 use crate::result::{Failure, Result};
 use crate::utils::assert;
-use noisy_float::prelude::*;
 
 pub trait Bounded<T> {
     fn find_lower_bound(&self, t: i32, t_start: i32, x_start: T) -> Result<T> {
@@ -66,6 +65,13 @@ impl Bounded<f64> for FractionalSimplifiedSmoothedConvexOptimization<'_> {
     }
 }
 
+struct ObjectiveData<'a> {
+    p: FractionalSimplifiedSmoothedConvexOptimization<'a>,
+    alpha: f64,
+    inverted: bool,
+    x_start: f64,
+}
+
 impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
     fn find_bound(
         &self,
@@ -83,17 +89,26 @@ impl FractionalSimplifiedSmoothedConvexOptimization<'_> {
         }
 
         let p = self.reset(t_start);
-        let objective = |xs: &[f64]| -> N64 {
-            p._objective_function_with_default(
-                &xs.iter().map(|&x| Config::single(x)).collect(),
-                &Config::single(x_start),
+        let objective = WrappedObjective::new(
+            ObjectiveData {
+                p: p.clone(),
                 alpha,
                 inverted,
-            )
-            .unwrap()
-        };
+                x_start,
+            },
+            |xs, data| {
+                data.p
+                    ._objective_function_with_default(
+                        &xs.iter().map(|&x| Config::single(x)).collect(),
+                        &Config::single(data.x_start),
+                        data.alpha,
+                        data.inverted,
+                    )
+                    .unwrap()
+            },
+        );
         let bounds = vec![(0., p.bounds[0]); p.t_end as usize];
-        let (xs, _) = find_minimizer(objective, &bounds)?;
+        let (xs, _) = find_minimizer(objective, bounds)?;
         Ok(xs[(t - t_start) as usize - 1])
     }
 }

@@ -24,7 +24,7 @@ pub struct Options<'a> {
 
 /// Greedy Online Balanced Descent
 pub fn gobd(
-    o: &Online<FractionalSmoothedConvexOptimization>,
+    o: Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
     options: &Options,
@@ -37,13 +37,18 @@ pub fn gobd(
     let t = xs.t_end() + 1;
 
     let v = Config::new(
-        find_minimizer_of_hitting_cost(t, &o.p.hitting_cost, &o.p.bounds)?.0,
+        find_minimizer_of_hitting_cost(
+            t,
+            o.p.hitting_cost.clone(),
+            o.p.bounds.clone(),
+        )?
+        .0,
     );
     let Step(y, _) = obd(
         o,
         xs,
         &mut vec![],
-        &MetaOptions {
+        MetaOptions {
             l: gamma,
             mirror_map: options.mirror_map.clone(),
         },

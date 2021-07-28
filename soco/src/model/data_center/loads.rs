@@ -2,11 +2,12 @@
 
 use crate::config::Config;
 use crate::cost::{CostFn, SingleCostFn};
-use crate::numerics::convex_optimization::{minimize, Constraint};
+use crate::numerics::convex_optimization::{minimize, WrappedObjective};
 use crate::numerics::ApplicablePrecision;
 use crate::utils::{access, transpose, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
+use log::debug;
 use noisy_float::prelude::*;
 use num::NumCast;
 use pyo3::prelude::*;
@@ -24,7 +25,6 @@ use std::iter::FromIterator;
 use std::ops::Div;
 use std::ops::Index;
 use std::ops::Mul;
-use std::sync::Arc;
 
 static MAX_SAMPLE_SIZE: i32 = 100;
 
@@ -234,6 +234,7 @@ impl PredictedLoadProfile {
             .to_vec()
             .into_iter()
             .map(|zs| {
+                assert!(zs.len() >= sample_size as usize);
                 zs.into_iter()
                     .choose_multiple(&mut rng, sample_size as usize)
             })
@@ -431,6 +432,7 @@ where
     T: Value<'a>,
 {
     SingleCostFn::predictive(move |t, x: Config<T>| {
+        debug!("{};{};{}", t, t_start, unshift_time(t, t_start));
         let predicted_load_profile =
             access(&predicted_loads, unshift_time(t, t_start)).unwrap();
         predicted_load_profile
@@ -439,6 +441,21 @@ where
             .map(|lambda| apply_loads(d, e, &objective, &lambda, t, x.clone()))
             .collect()
     })
+}
+
+struct ObjectiveData<T> {
+    d: i32,
+    e: i32,
+    lambda: LoadProfile,
+    t: i32,
+    x: Config<T>,
+}
+
+struct ConstraintData {
+    d: i32,
+    e: i32,
+    i: usize,
+    lambda: LoadProfile,
 }
 
 /// Calculates cost based on a model for an optimal distribution of loads.
@@ -466,17 +483,26 @@ where
     // the final dimensions are completely determined by all preceding dimensions
     let solver_d = (d * e) as usize - e as usize;
     let bounds = vec![(0., 1.); solver_d];
-    let objective = |zs_: &[f64]| {
-        let zs = LoadFractions::new(zs_, d, e);
-        objective(t, &x, lambda, &zs)
-    };
+    let solver_objective = WrappedObjective::new(
+        ObjectiveData {
+            d,
+            e,
+            lambda: lambda.clone(),
+            t,
+            x: x.clone(),
+        },
+        |zs_, data| {
+            let zs = LoadFractions::new(zs_, data.d, data.e);
+            objective(data.t, &data.x, &data.lambda, &zs)
+        },
+    );
 
     // assigns each dimension a fraction of each load type
     // note: the chosen assignment ensures that any server type with `0` active servers
     // is also assigned an initial load fraction of `0`
     let number_of_non_zero_entries =
         x.iter().filter(|&&j| j > NumCast::from(0).unwrap()).count();
-    let strategy = if number_of_non_zero_entries == 0 {
+    let init = if number_of_non_zero_entries == 0 {
         vec![1. / (solver_d as f64 + e as f64); solver_d]
     } else {
         let value = 1. / (number_of_non_zero_entries as f64 * e as f64);
@@ -497,17 +523,24 @@ where
 
     // ensure that the fractions across all solver dimensions of each load type do not exceed `1`
     let constraints = (0..e as usize)
-        .map(|i| Constraint {
-            data: lambda.clone(),
-            g: Arc::new(move |zs_, lambda| {
-                let zs = LoadFractions::new(zs_, d, e);
-                -zs.get(d as usize - 1, i, lambda)
-            }),
+        .map(|i| {
+            WrappedObjective::new(
+                ConstraintData {
+                    d,
+                    e,
+                    i,
+                    lambda: lambda.clone(),
+                },
+                |zs_, data| {
+                    let zs = LoadFractions::new(zs_, data.d, data.e);
+                    -zs.get(d as usize - 1, data.i, &data.lambda)
+                },
+            )
         })
         .collect();
 
     // minimize cost across all possible server to load matchings
     let (_, opt) =
-        minimize(objective, &bounds, vec![strategy], constraints).unwrap();
+        minimize(solver_objective, bounds, Some(init), constraints).unwrap();
     opt
 }

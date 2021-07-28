@@ -2,7 +2,7 @@
 
 use crate::config::{Config, FractionalConfig};
 use crate::numerics::convex_optimization::{
-    find_unbounded_maximizer, Constraint,
+    find_unbounded_maximizer, WrappedObjective,
 };
 use crate::result::{Failure, Result};
 use crate::value::Value;
@@ -90,14 +90,12 @@ where
 /// Computes the dual norm of `x` given some `norm`.
 pub fn dual<'a>(norm: &'a NormFn<'a, f64>) -> NormFn<'a, f64> {
     Arc::new(move |x: FractionalConfig| {
-        let objective =
-            |z: &[f64]| -> N64 { n64(Config::new(z.to_vec()) * x.clone()) };
-        let constraint = Constraint {
-            g: Arc::new(|z: &[f64], _: &mut ()| -> N64 {
-                norm(Config::new(z.to_vec())) - n64(1.)
-            }),
-            data: (),
-        };
+        let objective = WrappedObjective::new(x.clone(), |z, x| {
+            n64(Config::new(z.to_vec()) * x.clone())
+        });
+        let constraint = WrappedObjective::new((), |z, _| {
+            norm(Config::new(z.to_vec())) - n64(1.)
+        });
 
         let (z, _) =
             find_unbounded_maximizer(objective, x.d(), vec![constraint])

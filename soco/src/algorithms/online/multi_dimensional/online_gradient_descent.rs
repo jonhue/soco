@@ -1,7 +1,7 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
 use crate::norm::euclidean;
-use crate::numerics::convex_optimization::find_minimizer;
+use crate::numerics::convex_optimization::{find_minimizer, WrappedObjective};
 use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
@@ -16,7 +16,7 @@ pub struct Options<'a> {
 
 /// Online Gradient Descent
 pub fn ogd(
-    o: &Online<FractionalSmoothedConvexOptimization>,
+    o: Online<FractionalSmoothedConvexOptimization>,
     xs: &mut FractionalSchedule,
     _: &mut Vec<()>,
     options: &Options,
@@ -32,7 +32,7 @@ pub fn ogd(
         let f = |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).raw();
         let step =
             (options.eta)(t) * Config::new(prev_x.to_vec().central_diff(&f));
-        project(&o.p.bounds, prev_x - step)?
+        project(o.p.bounds, prev_x - step)?
     };
 
     Ok(Step(x, None))
@@ -40,9 +40,11 @@ pub fn ogd(
 
 /// Projection of `y` under the Euclidean norm
 fn project(
-    bounds: &Vec<(f64, f64)>,
+    bounds: Vec<(f64, f64)>,
     y: FractionalConfig,
 ) -> Result<FractionalConfig> {
-    let f = |x: &[f64]| euclidean()(Config::new(x.to_vec()) - y.clone());
-    Ok(Config::new(find_minimizer(f, bounds)?.0))
+    let objective = WrappedObjective::new(y, |x, y| {
+        euclidean()(Config::new(x.to_vec()) - y.clone())
+    });
+    Ok(Config::new(find_minimizer(objective, bounds)?.0))
 }
