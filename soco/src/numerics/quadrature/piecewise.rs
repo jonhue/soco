@@ -3,7 +3,7 @@
 use crate::breakpoints::Breakpoints;
 use crate::numerics::quadrature::integral;
 use crate::numerics::PRECISION;
-use crate::result::Result;
+use log::debug;
 use noisy_float::prelude::*;
 
 /// Number of consecutive integrations below precision before the piecewise integration is stopped.
@@ -16,7 +16,7 @@ pub fn piecewise_integral(
     from: f64,
     to: f64,
     f_: impl Fn(f64) -> f64,
-) -> Result<N64> {
+) -> N64 {
     let f = |x| f_(x);
 
     // determine initial breakpoint
@@ -27,7 +27,7 @@ pub fn piecewise_integral(
     } else if to.is_infinite() {
         from
     } else {
-        (to - from) / 2.
+        (to - from) / 2. + from
     };
 
     // find initial indices of next and previous breakpoints in `breakpoints.bs`
@@ -52,17 +52,11 @@ pub fn piecewise_integral(
         f,
         prev_i,
         0,
-    )?;
-    let r = __piecewise_integral(
-        Direction::Right,
-        &breakpoints,
-        init,
-        to,
-        f,
-        i,
-        0,
-    )?;
-    Ok(l + r)
+    );
+    let r =
+        __piecewise_integral(Direction::Right, &breakpoints, init, to, f, i, 0);
+    // debug!("init={},l={},r={},from={},to={}", init, l, r, from, to);
+    l + r
 }
 
 #[derive(Debug)]
@@ -81,17 +75,18 @@ fn __piecewise_integral(
     i: i32,
     // number of consecutive integrations below tolerance
     n: i32,
-) -> Result<N64> {
+) -> N64 {
+    // debug!("{:?},b={},to={}", dir, b, to);
     // check if limit of integration is reached
     match dir {
         Direction::Left => {
             if b <= to {
-                return Ok(n64(0.));
+                return n64(0.);
             }
         }
         Direction::Right => {
             if b >= to {
-                return Ok(n64(0.));
+                return n64(0.);
             }
         }
     }
@@ -169,20 +164,20 @@ fn __piecewise_integral(
     };
     // otherwise, compute the integral over the new interval
     let result = match dir {
-        Direction::Left => integral(next_b.unwrap(), b, f)?,
-        Direction::Right => integral(b, next_b.unwrap(), f)?,
+        Direction::Left => integral(next_b.unwrap(), b, f),
+        Direction::Right => integral(b, next_b.unwrap(), f),
     };
 
     // check if convergence threshold is reached
     if result < PRECISION {
         next_n += 1;
         if next_n >= CONVERGENCE_THRESHOLD {
-            return Ok(result);
+            return result;
         }
     }
 
     // compute next interval
-    Ok(result
+    result
         + __piecewise_integral(
             dir,
             breakpoints,
@@ -191,7 +186,7 @@ fn __piecewise_integral(
             f_,
             next_i,
             next_n,
-        )?)
+        )
 }
 
 #[test]
@@ -200,7 +195,6 @@ fn piecewise_integral_empty_breakpoints() {
         piecewise_integral(&Breakpoints::empty(), 0., f64::INFINITY, |x| {
             std::f64::consts::E.powf(-x)
         })
-        .unwrap()
         .raw();
     assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
 }
@@ -213,7 +207,6 @@ fn piecewise_integral_default_breakpoints() {
         f64::INFINITY,
         |x| std::f64::consts::E.powf(-x),
     )
-    .unwrap()
     .raw();
     assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
 }
@@ -224,7 +217,6 @@ fn piecewise_integral_right() {
         piecewise_integral(&Breakpoints::grid(1.), 0., f64::INFINITY, |x| {
             std::f64::consts::E.powf(-x)
         })
-        .unwrap()
         .raw();
     assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
 }
@@ -237,7 +229,6 @@ fn piecewise_integral_left() {
         0.,
         |x| std::f64::consts::E.powf(x),
     )
-    .unwrap()
     .raw();
     assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
 }

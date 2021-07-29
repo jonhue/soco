@@ -38,19 +38,16 @@ where
             |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).cost.raw();
         let step =
             (options.eta)(t) * Config::new(prev_x.to_vec().central_diff(&f));
-        project(o.p.bounds, prev_x - step)?
+        project(o.p.bounds, prev_x - step)
     };
 
     Ok(Step(x, None))
 }
 
 /// Projection of `y` under the Euclidean norm
-fn project(
-    bounds: Vec<(f64, f64)>,
-    y: FractionalConfig,
-) -> Result<FractionalConfig> {
+fn project(bounds: Vec<(f64, f64)>, y: FractionalConfig) -> FractionalConfig {
     let objective = WrappedObjective::new(y, |x, y| {
         euclidean()(Config::new(x.to_vec()) - y.clone())
     });
-    Ok(Config::new(find_minimizer(objective, bounds)?.0))
+    Config::new(find_minimizer(objective, bounds).0)
 }

@@ -49,7 +49,7 @@ where
             t,
             o.p.hitting_cost.clone(),
             o.p.bounds.clone(),
-        )?
+        )
         .0,
     );
     let minimal_hitting_cost = o.p.hit_cost(t, v).cost.raw();
@@ -57,16 +57,17 @@ where
     let a = minimal_hitting_cost;
     let b = MAX_L_FACTOR * minimal_hitting_cost;
     let l = find_root((a, b), |l: f64| {
+        let mut xs = xs.clone();
         balance_function(
             &o,
-            xs,
+            &mut xs,
             &prev_x,
             t,
             l,
             options.eta,
             &options.mirror_map,
         )
-    })?
+    })
     .raw();
 
     obd(

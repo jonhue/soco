@@ -4,8 +4,7 @@ use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
-use crate::result::{Failure, Result};
-use log::warn;
+use log::{debug, warn};
 use nlopt::{Algorithm, Nlopt, Target};
 use noisy_float::prelude::*;
 use std::sync::Arc;
@@ -22,6 +21,7 @@ enum Direction {
 type ObjectiveFn<'a, D> = Arc<dyn Fn(&[f64], &mut D) -> N64 + 'a>;
 
 /// Wrapper around objectives.
+#[derive(Clone)]
 pub struct WrappedObjective<'a, D> {
     /// Cached argument.
     data: D,
@@ -45,7 +45,7 @@ pub fn find_minimizer_of_hitting_cost<C, D>(
     t: i32,
     hitting_cost: CostFn<'_, FractionalConfig, C, D>,
     bounds: Vec<(f64, f64)>,
-) -> Result<OptimizationResult>
+) -> OptimizationResult
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
@@ -60,7 +60,10 @@ where
 pub fn find_minimizer<C>(
     objective: WrappedObjective<C>,
     bounds: Vec<(f64, f64)>,
-) -> Result<OptimizationResult> {
+) -> OptimizationResult
+where
+    C: Clone,
+{
     minimize(objective, bounds, None, Vec::<WrappedObjective<()>>::new())
 }
 
@@ -69,7 +72,11 @@ pub fn find_unbounded_minimizer<C, D>(
     objective: WrappedObjective<C>,
     d: i32,
     constraints: Vec<WrappedObjective<D>>,
-) -> Result<OptimizationResult> {
+) -> OptimizationResult
+where
+    C: Clone,
+    D: Clone,
+{
     let (bounds, init) = build_empty_bounds(d);
     minimize(objective, bounds, Some(init), constraints)
 }
@@ -79,7 +86,11 @@ pub fn find_unbounded_maximizer<C, D>(
     objective: WrappedObjective<C>,
     d: i32,
     constraints: Vec<WrappedObjective<D>>,
-) -> Result<OptimizationResult> {
+) -> OptimizationResult
+where
+    C: Clone,
+    D: Clone,
+{
     let (bounds, init) = build_empty_bounds(d);
     maximize(objective, bounds, Some(init), constraints)
 }
@@ -89,7 +100,11 @@ pub fn minimize<C, D>(
     bounds: Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
     constraints: Vec<WrappedObjective<D>>,
-) -> Result<OptimizationResult> {
+) -> OptimizationResult
+where
+    C: Clone,
+    D: Clone,
+{
     optimize(Direction::Minimize, objective, bounds, init, constraints)
 }
 
@@ -98,8 +113,28 @@ pub fn maximize<C, D>(
     bounds: Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
     constraints: Vec<WrappedObjective<D>>,
-) -> Result<OptimizationResult> {
+) -> OptimizationResult
+where
+    C: Clone,
+    D: Clone,
+{
     optimize(Direction::Maximize, objective, bounds, init, constraints)
+}
+
+fn optimize<C, D>(
+    dir: Direction,
+    objective: WrappedObjective<C>,
+    bounds: Vec<(f64, f64)>,
+    init: Option<Vec<f64>>,
+    constraints: Vec<WrappedObjective<D>>,
+) -> OptimizationResult
+where
+    C: Clone,
+    D: Clone,
+{
+    // let (final_init, _) =
+    //     optimize_step(false, dir, objective.clone(), bounds.clone(), init, constraints.clone());
+    optimize_step(true, dir, objective, bounds, init, constraints)
 }
 
 /// Determines the optimum of a convex function `f` w.r.t some direction `dir`
@@ -108,13 +143,14 @@ pub fn maximize<C, D>(
 ///
 /// The used algorithms do not support equality constraints very well, and thus
 /// they are not supported by this interface.
-fn optimize<C, D>(
+fn optimize_step<C, D>(
+    local: bool,
     dir: Direction,
     objective: WrappedObjective<C>,
     bounds: Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
     constraints: Vec<WrappedObjective<D>>,
-) -> Result<OptimizationResult> {
+) -> OptimizationResult {
     let d = bounds.len();
     let (lower, upper): (Vec<_>, Vec<_>) = bounds.into_iter().unzip();
 
@@ -137,27 +173,29 @@ fn optimize<C, D>(
     };
 
     let mut solver = Nlopt::new(
-        choose_algorithm(constraints.len()),
+        choose_algorithm(local, constraints.len()),
         d,
         solver_objective,
         Target::from(dir),
         data,
     );
-    solver.set_lower_bounds(&lower)?;
-    solver.set_upper_bounds(&upper)?;
-    solver.set_xtol_rel(TOLERANCE)?;
+    solver.set_lower_bounds(&lower).unwrap();
+    solver.set_upper_bounds(&upper).unwrap();
+    solver.set_xtol_rel(TOLERANCE).unwrap();
 
     // stop evaluation when solver appears to hit a dead end, this may happen when all function evaluations return infinity.
-    solver.set_maxeval(MAX_ITERATIONS)?;
+    solver.set_maxeval(MAX_ITERATIONS).unwrap();
 
     for WrappedObjective { f, data } in constraints {
-        solver.add_inequality_constraint(
-            |xs: &[f64], _: Option<&mut [f64]>, data: &mut D| {
-                evaluate(xs, data, &f)
-            },
-            data,
-            TOLERANCE,
-        )?;
+        solver
+            .add_inequality_constraint(
+                |xs: &[f64], _: Option<&mut [f64]>, data: &mut D| {
+                    evaluate(xs, data, &f)
+                },
+                data,
+                TOLERANCE,
+            )
+            .unwrap();
     }
 
     let opt = match solver.optimize(&mut x) {
@@ -174,19 +212,26 @@ fn optimize<C, D>(
                 warn!("Warning: NLOpt terminated with a roundoff error.");
                 Ok(opt)
             }
-            _ => Err(Failure::NlOpt(state)),
+            _ => Err((state, opt)),
         },
-    }?;
-    Ok((x.apply_precision(), n64(opt)))
+    }.unwrap();
+
+    (x.apply_precision(), n64(opt))
 }
 
-fn choose_algorithm(constraints: usize) -> Algorithm {
-    // both Cobyla and Bobyqa are algorithms for derivative-free local optimization
-    if constraints > 0 {
-        Algorithm::Cobyla
+fn choose_algorithm(local: bool, constraints: usize) -> Algorithm {
+    if local {
+        // both Cobyla and Bobyqa are algorithms for derivative-free local optimization
+        if constraints > 0 {
+            Algorithm::Cobyla
+        } else {
+            // Bobyqa does not support (in-)equality constraints
+            // This might require some re-configuration depending on the problem at hand.
+            // Viable options are `Praxis`, `Sbplex`, and (in some cases) `Bobyqa`.
+            Algorithm::Sbplx
+        }
     } else {
-        // Bobyqa does not support (in-)equality constraints
-        Algorithm::Bobyqa
+        Algorithm::Isres
     }
 }
 

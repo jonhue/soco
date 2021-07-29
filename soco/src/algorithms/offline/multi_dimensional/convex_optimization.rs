@@ -8,11 +8,13 @@ use crate::schedule::Schedule;
 use crate::utils::assert;
 use noisy_float::prelude::*;
 
+#[derive(Clone)]
 struct ObjectiveData<'a, C, D> {
     p: FractionalSmoothedConvexOptimization<'a, C, D>,
     alpha: f64,
 }
 
+#[derive(Clone)]
 struct ConstraintData<'a, C, D> {
     p: FractionalSmoothedConvexOptimization<'a, C, D>,
     l: f64,
@@ -69,7 +71,7 @@ where
         None => vec![],
     };
 
-    let (raw_xs, _) = minimize(objective, bounds, None, constraints)?;
+    let (raw_xs, _) = minimize(objective, bounds, None, constraints);
     let xs = Schedule::from_raw(d, t_end, &raw_xs);
     Ok(PureOfflineResult { xs })
 }

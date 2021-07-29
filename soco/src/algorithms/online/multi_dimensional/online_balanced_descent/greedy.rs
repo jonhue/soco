@@ -46,7 +46,7 @@ where
             t,
             o.p.hitting_cost.clone(),
             o.p.bounds.clone(),
-        )?
+        )
         .0,
     );
     let Step(y, _) = obd(

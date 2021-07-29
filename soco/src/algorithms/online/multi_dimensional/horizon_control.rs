@@ -21,7 +21,7 @@ where
     D: ModelOutputFailure,
 {
     let t = xs.t_end() + 1;
-    let x = next(0, o, t, xs.clone())?;
+    let x = next(0, o, t, xs.clone());
     Ok(Step(x, None))
 }
 
@@ -40,11 +40,12 @@ where
 
     let mut x = Config::repeat(0., o.p.d);
     for k in 1..=o.w + 1 {
-        x = x + next(k, o.clone(), t, xs.clone())?;
+        x = x + next(k, o.clone(), t, xs.clone());
     }
     Ok(Step(x / (o.w + 1) as f64, None))
 }
 
+#[derive(Clone)]
 struct ObjectiveData<'a, C, D> {
     k: i32,
     o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a, C, D>>,
@@ -57,7 +58,7 @@ fn next<C, D>(
     o: Online<FractionalSimplifiedSmoothedConvexOptimization<C, D>>,
     t: i32,
     prev_xs: FractionalSchedule,
-) -> Result<FractionalConfig>
+) -> FractionalConfig
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
@@ -85,6 +86,6 @@ where
         },
     );
 
-    let (raw_xs, _) = find_minimizer(objective, bounds)?;
-    Ok(Config::new(raw_xs[0..d as usize].to_vec()))
+    let (raw_xs, _) = find_minimizer(objective, bounds);
+    Config::new(raw_xs[0..d as usize].to_vec())
 }

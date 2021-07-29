@@ -18,6 +18,7 @@ pub struct Options {
     pub beta: f64,
 }
 
+#[derive(Clone)]
 struct RegularizationFunctionObjectiveData<'a, C, D> {
     o: Online<FractionalSmoothedConvexOptimization<'a, C, D>>,
     t: i32,
@@ -55,7 +56,7 @@ where
             t,
             o.p.hitting_cost.clone(),
             o.p.bounds.clone(),
-        )?
+        )
         .0,
     );
     let bounds = o.p.bounds.clone();
@@ -78,7 +79,7 @@ where
                     * (data.o.p.switching_cost)(x - data.v.clone()).raw()
         },
     );
-    let x = Config::new(find_minimizer(regularization_function, bounds)?.0);
+    let x = Config::new(find_minimizer(regularization_function, bounds).0);
     Ok(Step(x, None))
 }
 

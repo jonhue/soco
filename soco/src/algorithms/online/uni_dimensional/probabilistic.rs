@@ -7,10 +7,11 @@ use crate::numerics::finite_differences::{derivative, second_derivative};
 use crate::numerics::quadrature::piecewise::piecewise_integral;
 use crate::numerics::roots::find_root;
 use crate::numerics::PRECISION;
-use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
+use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
+use log::debug;
 use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -103,10 +104,13 @@ where
         t,
         o.p.hitting_cost.clone(),
         vec![(0., o.p.bounds[0])],
-    )?
+    )
     .0[0];
-    let x_r = find_right_bound(&o, t, &breakpoints, &prev_p, x_m)?;
-    let x_l = find_left_bound(&o, t, &breakpoints, &prev_p, x_m)?;
+    debug!("{};{};{}", 0., x_m, o.p.bounds[0]);
+    debug!("{:?};{:?};{:?}", o.p.hit_cost(t, Config::new(vec![x_m])).cost, o.p.hit_cost(t, Config::new(vec![x_m - 1.])).cost, o.p.hit_cost(t, Config::new(vec![x_m - 2.])).cost);
+    let x_r = find_right_bound(&o, t, &breakpoints, &prev_p, x_m);
+    let x_l = find_left_bound(&o, t, &breakpoints, &prev_p, x_m);
+    debug!("{};{};{}", x_l, x_m, x_r);
 
     let p: Distribution = Arc::new(move |x| {
         if x_l <= x && x <= x_r {
@@ -131,9 +135,20 @@ where
         p: p.clone(),
         breakpoints: prev_m.breakpoints.clone(),
     };
-    m.breakpoints.extend(&vec![x_l, x_r]);
+    for b in [x_l, x_r] {
+        if !m.breakpoints.contains(&b) {
+            m.breakpoints.push(b)
+        }
+    }
 
-    let x = expected_value(&breakpoints, &p, x_l, x_r)?;
+    let mut x = expected_value(&breakpoints, &p, x_l, x_r);
+    // if the expected value is below the lower bound or above the upper bound
+    // (due to a numeric inaccuracy) we fallback to the minimizer
+    if x < x_l || x > x_r {
+        x = x_m;
+    }
+
+    debug!("x={}", x);
     Ok(Step(Config::single(x), Some(m)))
 }
 
@@ -144,32 +159,27 @@ fn find_right_bound<C, D>(
     breakpoints: &Breakpoints,
     prev_p: &Distribution,
     x_m: f64,
-) -> Result<f64>
+) -> f64
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    if (x_m - o.p.bounds[0]).abs() < PRECISION {
-        Ok(o.p.bounds[0])
-    } else {
-        Ok(find_root((x_m, o.p.bounds[0]), |x| {
-            // needs to be unbounded for numerical approximations
-            let f = |x| {
-                o.p.hitting_cost
-                    .call_certain(t, Config::single(x))
-                    .cost
-                    .raw()
-            };
-            derivative(f, x).raw()
-                - 2. * o.p.switching_cost[0]
-                    * piecewise_integral(breakpoints, x, f64::INFINITY, |x| {
-                        prev_p(x)
-                    })
-                    .unwrap()
-                    .raw()
-        })?
-        .raw())
-    }
+    let f = |x| {
+        // needs to be unbounded for numerical approximations
+        let f = |x| {
+            o.p.hitting_cost
+                .call_certain(t, Config::single(x))
+                .cost
+                .raw()
+        };
+        derivative(f, x).raw()
+            - 2. * o.p.switching_cost[0]
+                * piecewise_integral(breakpoints, x, f64::INFINITY, |x| {
+                    prev_p(x)
+                })
+                .raw()
+    };
+    find_root((x_m, o.p.bounds[0]), f).raw()
 }
 
 /// Determines `x_l` with a convex optimization.
@@ -179,32 +189,27 @@ fn find_left_bound<C, D>(
     breakpoints: &Breakpoints,
     prev_p: &Distribution,
     x_m: f64,
-) -> Result<f64>
+) -> f64
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    if x_m < PRECISION {
-        Ok(0.)
-    } else {
-        Ok(find_root((0., x_m), |x| {
-            // needs to be unbounded for numerical approximations
-            let f = |x| {
-                o.p.hitting_cost
-                    .call_certain(t, Config::single(x))
-                    .cost
-                    .raw()
-            };
-            2. * o.p.switching_cost[0]
-                * piecewise_integral(breakpoints, f64::NEG_INFINITY, x, |x| {
-                    prev_p(x)
-                })
-                .unwrap()
+    find_root((0., x_m), |x| {
+        // needs to be unbounded for numerical approximations
+        let f = |x| {
+            o.p.hitting_cost
+                .call_certain(t, Config::single(x))
+                .cost
                 .raw()
-                - derivative(f, x).raw()
-        })?
-        .raw())
-    }
+        };
+        2. * o.p.switching_cost[0]
+            * piecewise_integral(breakpoints, f64::NEG_INFINITY, x, |x| {
+                prev_p(x)
+            })
+            .raw()
+            - derivative(f, x).raw()
+    })
+    .raw()
 }
 
 fn expected_value(
@@ -212,6 +217,6 @@ fn expected_value(
     prev_p: &Distribution,
     from: f64,
     to: f64,
-) -> Result<f64> {
-    Ok(piecewise_integral(breakpoints, from, to, |x| x * prev_p(x))?.raw())
+) -> f64 {
+    piecewise_integral(breakpoints, from, to, |x| x * prev_p(x)).raw()
 }

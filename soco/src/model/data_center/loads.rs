@@ -467,6 +467,7 @@ where
     })
 }
 
+#[derive(Clone)]
 struct ObjectiveData<T> {
     d: i32,
     e: i32,
@@ -475,6 +476,7 @@ struct ObjectiveData<T> {
     x: Config<T>,
 }
 
+#[derive(Clone)]
 struct ConstraintData {
     d: i32,
     e: i32,
@@ -575,7 +577,7 @@ where
 
     // minimize cost across all possible server to load matchings
     let (zs_, cost) =
-        minimize(solver_objective, bounds, Some(init), constraints).unwrap();
+        minimize(solver_objective, bounds, Some(init), constraints);
 
     let zs = LoadFractions::new(&zs_, d, e);
     let output = objective(t, &x, lambda, &zs)
