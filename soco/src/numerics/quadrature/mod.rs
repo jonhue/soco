@@ -21,7 +21,7 @@ pub fn integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> N64 {
     };
 
     if result.is_nan() {
-        panic!("integration from {} to {} returned NaN", from, to)
+        panic!("Integration from {} to {} returned NaN.", from, to)
     } else {
         n64(result.raw().apply_precision())
     }
