@@ -3,7 +3,6 @@
 use crate::breakpoints::Breakpoints;
 use crate::numerics::quadrature::integral;
 use crate::numerics::PRECISION;
-use log::debug;
 use noisy_float::prelude::*;
 
 /// Number of consecutive integrations below precision before the piecewise integration is stopped.
@@ -55,7 +54,6 @@ pub fn piecewise_integral(
     );
     let r =
         __piecewise_integral(Direction::Right, &breakpoints, init, to, f, i, 0);
-    // debug!("init={},l={},r={},from={},to={}", init, l, r, from, to);
     l + r
 }
 
@@ -76,7 +74,6 @@ fn __piecewise_integral(
     // number of consecutive integrations below tolerance
     n: i32,
 ) -> N64 {
-    // debug!("{:?},b={},to={}", dir, b, to);
     // check if limit of integration is reached
     match dir {
         Direction::Left => {
