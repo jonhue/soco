@@ -139,19 +139,24 @@ where
     }
 
     /// Returns mean if cost function returns a prediction.
-    fn call_mean(&self, t_start: i32, t: i32, x: T) -> Cost<C, D> {
+    pub fn call_mean(&self, t_start: i32, t: i32, x: T) -> Cost<C, D> {
         Cost::mean(self.call_predictive(t_start, t, x))
     }
 
     /// Computes certain cost.
-    fn call_certain(&self, t_start: i32, t: i32, x: T) -> Cost<C, D> {
+    pub fn call_certain(&self, t_start: i32, t: i32, x: T) -> Cost<C, D> {
         let results = self.call_predictive(t_start, t, x);
         assert!(results.len() == 1);
         results.into_iter().next().unwrap()
     }
 
     /// Computes uncertain cost.
-    fn call_predictive(&self, t_start: i32, t: i32, x: T) -> Vec<Cost<C, D>> {
+    pub fn call_predictive(
+        &self,
+        t_start: i32,
+        t: i32,
+        x: T,
+    ) -> Vec<Cost<C, D>> {
         assert!(
             t >= t_start,
             "Time slot of hitting cost must be greater or equals to `t = {}` (got {}).",
@@ -199,6 +204,11 @@ where
     pub fn add(&mut self, t: i32, f: SingleCostFn<'a, T, C, D>) {
         self.0.insert(t, f);
     }
+
+    // /// Updates every single cost function.
+    // pub fn map(&mut self, map: impl Fn(SingleCostFn<'a, T, C, D>) -> SingleCostFn<'a, T, C, D>) {
+    //     self.0.values_mut().for_each(|f| *f = map(f.clone()));
+    // }
 
     /// Returns mean if cost function returns a prediction.
     pub fn call_mean(&self, t: i32, x: T) -> Cost<C, D> {
