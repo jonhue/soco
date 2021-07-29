@@ -57,7 +57,7 @@ where
     let a = minimal_hitting_cost;
     let b = MAX_L_FACTOR * minimal_hitting_cost;
     let l = find_root((a, b), |l: f64| {
-        let mut xs = xs.clone();
+        let mut xs = xs.clone(); // remove this!
         balance_function(
             &o,
             &mut xs,
