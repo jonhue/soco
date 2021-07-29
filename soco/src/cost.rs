@@ -139,19 +139,19 @@ where
     }
 
     /// Returns mean if cost function returns a prediction.
-    pub fn call_mean(&self, t_start: i32, t: i32, x: T) -> Cost<C, D> {
+    fn call_mean(&self, t_start: i32, t: i32, x: T) -> Cost<C, D> {
         Cost::mean(self.call_predictive(t_start, t, x))
     }
 
     /// Computes certain cost.
-    pub fn call_certain(&self, t_start: i32, t: i32, x: T) -> Cost<C, D> {
+    fn call_certain(&self, t_start: i32, t: i32, x: T) -> Cost<C, D> {
         let results = self.call_predictive(t_start, t, x);
         assert!(results.len() == 1);
         results.into_iter().next().unwrap()
     }
 
     /// Computes uncertain cost.
-    pub fn call_predictive(
+    fn call_predictive(
         &self,
         t_start: i32,
         t: i32,
