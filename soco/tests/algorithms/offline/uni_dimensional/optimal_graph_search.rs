@@ -311,6 +311,7 @@ mod optimal_graph_search {
             .unwrap();
         path.xs.verify(p.t_end, &p.bounds).unwrap();
 
+        assert!(path.cost.is_finite());
         assert_abs_diff_eq!(path.cost, md_path.cost);
         assert_relative_eq!(
             path.cost,
