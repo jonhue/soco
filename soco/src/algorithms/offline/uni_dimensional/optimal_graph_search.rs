@@ -197,7 +197,7 @@ fn find_shortest_subpath<C, D>(
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    let mut picked_source = 0;
+    let mut picked_source = from[0];
     let mut picked_cost = f64::INFINITY;
     for &source in from {
         let prev_cost = paths[&Vertice(t - 1, source)].cost;

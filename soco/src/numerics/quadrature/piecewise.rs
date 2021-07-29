@@ -45,7 +45,7 @@ pub fn piecewise_integral(
     // compute piecewise integrals in both directions
     let l = __piecewise_integral(
         Direction::Left,
-        &breakpoints,
+        breakpoints,
         init,
         from,
         f,
@@ -53,7 +53,7 @@ pub fn piecewise_integral(
         0,
     );
     let r =
-        __piecewise_integral(Direction::Right, &breakpoints, init, to, f, i, 0);
+        __piecewise_integral(Direction::Right, breakpoints, init, to, f, i, 0);
     l + r
 }
 

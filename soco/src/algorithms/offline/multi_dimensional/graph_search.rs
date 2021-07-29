@@ -112,7 +112,7 @@ where
         let mut config = if state.k == base_k {
             base_config.clone()
         } else {
-            build_config(dir, &values, &base_config, state.k).unwrap()
+            build_config(dir, values, base_config, state.k).unwrap()
         };
         if state.k != base_k {
             added_configs.push(config.clone());
@@ -128,7 +128,7 @@ where
                 values,
                 paths,
             );
-            config = match build_config(dir, &values, &config, state.k) {
+            config = match build_config(dir, values, &config, state.k) {
                 None => break,
                 Some(config) => {
                     added_configs.push(config.clone());
@@ -175,7 +175,7 @@ fn handle_config<C, D>(
         t,
         powering_up,
         k,
-        &config,
+        config,
         values,
     );
 

@@ -165,7 +165,7 @@ fn optimize<C, D>(
     solver.set_lower_bounds(&lower).unwrap();
     solver.set_upper_bounds(&upper).unwrap();
     solver.set_xtol_abs1(TOLERANCE).unwrap();
-    // solver.set_xtol_rel(TOLERANCE).unwrap();
+    solver.set_xtol_rel(TOLERANCE).unwrap();
 
     // stop evaluation when solver appears to hit a dead end, this may happen when all function evaluations return infinity.
     solver
@@ -215,7 +215,7 @@ fn choose_algorithm(constraints: usize) -> Algorithm {
         // This might require some re-configuration depending on the problem at hand.
         // Viable options are `Sbplex`, `Cobyla`, (a little less often) `Praxis`,
         // and (in some few cases) `Bobyqa`.
-        Algorithm::Cobyla
+        Algorithm::Sbplx
     }
 }
 

@@ -65,7 +65,7 @@ impl<'a, P> Online<P> {
     {
         loop {
             prev_m = self.next(alg, options.clone(), xs, prev_m)?.1;
-            if !update(self, &xs) {
+            if !update(self, xs) {
                 break;
             };
             self.verify()?;
