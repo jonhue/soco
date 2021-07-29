@@ -205,11 +205,6 @@ where
         self.0.insert(t, f);
     }
 
-    // /// Updates every single cost function.
-    // pub fn map(&mut self, map: impl Fn(SingleCostFn<'a, T, C, D>) -> SingleCostFn<'a, T, C, D>) {
-    //     self.0.values_mut().for_each(|f| *f = map(f.clone()));
-    // }
-
     /// Returns mean if cost function returns a prediction.
     pub fn call_mean(&self, t: i32, x: T) -> Cost<C, D> {
         let (&t_start, f) = self.get(t);

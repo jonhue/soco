@@ -43,7 +43,7 @@ mod approx_graph_search {
         inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_eq!(path.xs, inv_path.xs);
-        assert_eq!(path.cost, inv_path.cost);
+        assert_abs_diff_eq!(path.cost, inv_path.cost);
         assert_eq!(
             path.xs,
             Schedule::new(vec![
@@ -51,8 +51,8 @@ mod approx_graph_search {
                 Config::new(vec![0, 1])
             ])
         );
-        assert_eq!(path.cost, 1.);
-        assert_eq!(
+        assert_abs_diff_eq!(path.cost, 1.);
+        assert_abs_diff_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw()
         );
@@ -80,8 +80,8 @@ mod approx_graph_search {
             .unwrap();
         inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(path.cost, inv_path.cost);
-        assert_eq!(
+        assert_abs_diff_eq!(path.cost, inv_path.cost);
+        assert_abs_diff_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw()
         );
@@ -145,7 +145,7 @@ mod approx_graph_search {
             .unwrap();
         path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(
+        assert_abs_diff_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw()
         );
@@ -165,7 +165,7 @@ mod approx_graph_search {
             .unwrap();
         path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(
+        assert_abs_diff_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw()
         );
