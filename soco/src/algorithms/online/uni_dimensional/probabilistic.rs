@@ -6,7 +6,6 @@ use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::finite_differences::{derivative, second_derivative};
 use crate::numerics::quadrature::piecewise::piecewise_integral;
 use crate::numerics::roots::find_root;
-use crate::numerics::PRECISION;
 use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
@@ -106,11 +105,11 @@ where
         vec![(0., o.p.bounds[0])],
     )
     .0[0];
-    debug!("{};{};{}", 0., x_m, o.p.bounds[0]);
-    debug!("{:?};{:?};{:?}", o.p.hit_cost(t, Config::new(vec![x_m])).cost, o.p.hit_cost(t, Config::new(vec![x_m - 1.])).cost, o.p.hit_cost(t, Config::new(vec![x_m - 2.])).cost);
+    debug!("determined minimizer {}", x_m);
+
     let x_r = find_right_bound(&o, t, &breakpoints, &prev_p, x_m);
     let x_l = find_left_bound(&o, t, &breakpoints, &prev_p, x_m);
-    debug!("{};{};{}", x_l, x_m, x_r);
+    debug!("determined bounds {} and {}", x_l, x_r);
 
     let p: Distribution = Arc::new(move |x| {
         if x_l <= x && x <= x_r {
@@ -147,8 +146,8 @@ where
     if x < x_l || x > x_r {
         x = x_m;
     }
+    debug!("determined next config: {:?}", x);
 
-    debug!("x={}", x);
     Ok(Step(Config::single(x), Some(m)))
 }
 
@@ -164,7 +163,7 @@ where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    let f = |x| {
+    find_root((x_m, o.p.bounds[0]), |x| {
         // needs to be unbounded for numerical approximations
         let f = |x| {
             o.p.hitting_cost
@@ -178,8 +177,7 @@ where
                     prev_p(x)
                 })
                 .raw()
-    };
-    find_root((x_m, o.p.bounds[0]), f).raw()
+    }).raw()
 }
 
 /// Determines `x_l` with a convex optimization.
