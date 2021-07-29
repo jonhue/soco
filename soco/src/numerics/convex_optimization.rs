@@ -203,7 +203,7 @@ fn optimize<C, D>(
 }
 
 fn choose_algorithm(constraints: usize) -> Algorithm {
-    // we use algorithms for derivative-free local optimization
+    // We use algorithms for derivative-free local optimization
     if constraints > 0 {
         // Only Cobyla supports (in-)equality constraints
         Algorithm::Cobyla
