@@ -3,7 +3,7 @@
 use super::PRECISION;
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use bacon_sci::roots::brent;
-use log::debug;
+use log::{debug, warn};
 use noisy_float::prelude::*;
 
 // in practice, the inputs to the function may be imprecise enough to lead to the error:
@@ -23,14 +23,7 @@ pub fn find_root(interval: (f64, f64), f: impl Fn(f64) -> f64) -> N64 {
     } else if r.abs() < ROOT_PRECISION {
         n64(interval.1)
     } else if l * r > 0. {
-        debug!(
-            "a={},b={},fa={},fb={}, fc={}",
-            interval.0,
-            interval.1,
-            f(interval.0),
-            f(interval.1),
-            f(interval.0 - 1.)
-        );
+        warn!("Interval does not contain root. This may be the result of an earlier numerical inaccuracy. Assuming the boundary with function value closest to `0` is the root.");
         if l.abs() <= r.abs() {
             n64(interval.0)
         } else {
