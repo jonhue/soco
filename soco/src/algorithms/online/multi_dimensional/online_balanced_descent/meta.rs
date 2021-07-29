@@ -42,15 +42,17 @@ where
         t,
         options.l,
         prev_x,
-    )?;
+    );
     Ok(Step(x, None))
 }
 
+#[derive(Clone)]
 struct ObjectiveData<'a> {
     mirror_map: NormFn<'a, f64>,
     x: FractionalConfig,
 }
 
+#[derive(Clone)]
 struct ConstraintData<'a, C, D> {
     f: CostFn<'a, FractionalConfig, C, D>,
     t: i32,
@@ -66,7 +68,7 @@ fn bregman_projection<C, D>(
     t: i32,
     l: f64,
     x: FractionalConfig,
-) -> Result<FractionalConfig>
+) -> FractionalConfig
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
@@ -87,8 +89,8 @@ where
                 - n64(data.l)
         });
 
-    let (y, _) = find_unbounded_minimizer(objective, d, vec![constraint])?;
-    Ok(Config::new(y))
+    let (y, _) = find_unbounded_minimizer(objective, d, vec![constraint]);
+    Config::new(y)
 }
 
 /// Bregman divergence between `x` and `y`.

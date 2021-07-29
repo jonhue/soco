@@ -70,6 +70,7 @@ where
     Ok(Step(Config::single(x), None))
 }
 
+#[derive(Clone)]
 struct NextObjectiveData<'a, C, D> {
     o: Online<FractionalSmoothedConvexOptimization<'a, C, D>>,
     t: i32,
@@ -99,16 +100,15 @@ where
                 data.t - 1,
                 data.theta,
                 x.clone(),
-            )
-            .unwrap()
-                + n64(data.r) * n64(data.theta) * (data.o.p.switching_cost)(x)
+            ) + n64(data.r) * n64(data.theta) * (data.o.p.switching_cost)(x)
         },
     );
 
-    let (x, _) = find_minimizer(objective, bounds)?;
+    let (x, _) = find_minimizer(objective, bounds);
     Ok(x[0])
 }
 
+#[derive(Clone)]
 struct WorkObjectiveData<'a> {
     bounds: Vec<(f64, f64)>,
     switching_cost: NormFn<'a, f64>,
@@ -117,22 +117,22 @@ struct WorkObjectiveData<'a> {
     x: FractionalConfig,
 }
 
-cached_key_result! {
+cached_key! {
     WORK: SizedCache<String, N64> = SizedCache::with_size(1_000);
     Key = { format!("{}-{:?}", t, x) };
-    fn w(bounds: &Vec<(f64, f64)>, hitting_cost: &impl Fn(i32, FractionalConfig) -> N64, switching_cost: &NormFn<'_, f64>, t: i32, theta: f64, x: FractionalConfig) -> Result<N64> = {
+    fn w(bounds: &Vec<(f64, f64)>, hitting_cost: &impl Fn(i32, FractionalConfig) -> N64, switching_cost: &NormFn<'_, f64>, t: i32, theta: f64, x: FractionalConfig) -> N64 = {
         if t == 0 {
-            Ok(n64(theta) * switching_cost(x))
+            n64(theta) * switching_cost(x)
         } else {
             let objective = WrappedObjective::new(WorkObjectiveData { bounds: bounds.clone(), switching_cost: switching_cost.clone(), t, theta, x }, |raw_y, data| {
                 let y = Config::new(raw_y.to_vec());
-                w(&data.bounds, hitting_cost, &data.switching_cost, data.t - 1, data.theta, y.clone()).unwrap()
+                w(&data.bounds, hitting_cost, &data.switching_cost, data.t - 1, data.theta, y.clone())
                     + hitting_cost(data.t, y.clone())
                     + n64(data.theta) * switching_cost(data.x.clone() - y)
             });
 
-            let (_, opt) = find_minimizer(objective, bounds.clone())?;
-            Ok(opt)
+            let (_, opt) = find_minimizer(objective, bounds.clone());
+            opt
         }
     }
 }

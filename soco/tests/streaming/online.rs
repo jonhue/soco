@@ -1,8 +1,6 @@
 use crate::{init, utils::hash_map};
 use soco::{
-    algorithms::online::uni_dimensional::randomly_biased_greedy::{
-        rbg, Memory, Options,
-    },
+    algorithms::online::uni_dimensional::memoryless::memoryless,
     model::data_center::{
         loads::{LoadProfile, PredictedLoadProfile},
         model::{
@@ -81,8 +79,6 @@ fn integration() {
             loads: vec![LoadProfile::raw(vec![10.]); t_end as usize],
         };
 
-        let options = Options::default();
-
         let OfflineResponse {
             xs: (xs, _),
             int_xs: (int_xs, _),
@@ -90,8 +86,8 @@ fn integration() {
         } = online::start(
             addr.parse().unwrap(),
             model,
-            &rbg,
-            options,
+            &memoryless,
+            (),
             0,
             input,
             Some(sender),
@@ -112,7 +108,7 @@ fn integration() {
                 DataCenterModelOutputSuccess,
                 DataCenterModelOutputFailure,
             >,
-            Memory,
+            (),
             DataCenterOnlineInput,
             DataCenterModelOutputSuccess,
             DataCenterModelOutputFailure,

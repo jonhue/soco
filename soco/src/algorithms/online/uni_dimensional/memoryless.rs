@@ -28,7 +28,7 @@ where
 
     let prev_x = xs.now_with_default(Config::single(0.))[0];
 
-    let x = next(o, t, prev_x)?;
+    let x = next(o, t, prev_x);
     debug!("determined next config: {:?}", x);
     Ok(Step(Config::single(x), None))
 }
@@ -44,7 +44,7 @@ fn next<C, D>(
     o: Online<FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>>,
     t: i32,
     prev_x: f64,
-) -> Result<f64>
+) -> f64
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
@@ -59,6 +59,6 @@ where
             - data.o.p.hit_cost(data.t, Config::single(xs[0])).cost / n64(2.)
     });
 
-    let (xs, _) = minimize(objective, bounds, None, vec![constraint])?;
-    Ok(xs[0])
+    let (xs, _) = minimize(objective, bounds, None, vec![constraint]);
+    xs[0]
 }

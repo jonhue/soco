@@ -94,7 +94,7 @@ mod randomly_biased_greedy {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let t_end = 2;
+        let t_end = 1;
         let result = o
             .offline_stream(&randomized, t_end, Relaxation::<Memory>::default())
             .unwrap();

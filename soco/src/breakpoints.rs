@@ -42,6 +42,7 @@ impl Breakpoints {
     }
 
     /// Adds breakpoints in `bs` to the set of breakpoints, unless already included.
+    /// Note: The caller must ensure that there are no duplicates within `bs`.
     pub fn add(&self, bs: &Vec<f64>) -> Self {
         let new_bs = bs
             .iter()

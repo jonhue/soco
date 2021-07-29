@@ -70,6 +70,7 @@ where
     }
 }
 
+#[derive(Clone)]
 struct ObjectiveData<'a, C, D> {
     p: FractionalSimplifiedSmoothedConvexOptimization<'a, C, D>,
     alpha: f64,
@@ -118,7 +119,7 @@ where
             },
         );
         let bounds = vec![(0., p.bounds[0]); p.t_end as usize];
-        let (xs, _) = find_minimizer(objective, bounds)?;
+        let (xs, _) = find_minimizer(objective, bounds);
         Ok(xs[(t - t_start) as usize - 1])
     }
 }
