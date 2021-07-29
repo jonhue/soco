@@ -213,7 +213,7 @@ mod optimal_graph_search {
                 .unwrap()
                 .cost
                 .raw(),
-                max_relative = 1e-4
+            max_relative = 1e-4
         );
     }
 
@@ -246,7 +246,7 @@ mod optimal_graph_search {
                 .unwrap()
                 .cost
                 .raw(),
-                max_relative = 1e-4
+            max_relative = 1e-4
         );
     }
 
@@ -314,11 +314,8 @@ mod optimal_graph_search {
         assert_abs_diff_eq!(path.cost, md_path.cost);
         assert_relative_eq!(
             path.cost,
-            p.objective_function(&path.xs)
-                .unwrap()
-                .cost
-                .raw(),
-                max_relative = 1e-4
+            p.objective_function(&path.xs).unwrap().cost.raw(),
+            max_relative = 1e-4
         );
     }
 }
