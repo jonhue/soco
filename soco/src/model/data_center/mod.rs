@@ -13,7 +13,7 @@ pub mod model;
 pub mod models;
 
 #[pyclass]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct DataCenterModelOutputSuccess {
     /// Energy cost of model.
     #[pyo3(get)]
@@ -62,7 +62,7 @@ impl DataCenterModelOutputSuccess {
     }
 }
 
-#[derive(Clone, Debug, Error, Deserialize, Serialize)]
+#[derive(Clone, Debug, Error, Deserialize, PartialEq, Serialize)]
 pub enum DataCenterModelOutputFailure {
     #[error("The configuration is unable to support the given load profile.")]
     DemandExceedingSupply,

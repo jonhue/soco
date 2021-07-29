@@ -536,6 +536,16 @@ impl Default for DataCenterOfflineInput {
     }
 }
 impl OfflineInput for DataCenterOfflineInput {}
+impl DataCenterOfflineInput {
+    pub fn into_online(self) -> Vec<DataCenterOnlineInput> {
+        self.loads
+            .into_iter()
+            .map(|lambda| DataCenterOnlineInput {
+                loads: vec![LoadProfile::to_predicted_load_profile(lambda)],
+            })
+            .collect()
+    }
+}
 
 #[derive(Clone, Debug, Deserialize, FromPyObject, Serialize)]
 #[pyo3(transparent)]

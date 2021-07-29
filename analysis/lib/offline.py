@@ -18,10 +18,12 @@ import numpy as np
 def evaluate_1d(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, float]:
     options = OfflineOptions(False, 1, None)
 
-    # _, cost_brcp = brcp(model, inp, options)
-    # _, cost_optimal_graph_search_1d = optimal_graph_search_1d(
-    #     model, inp, OptimalGraphSearch1dOptions(0), options
-    # )
+    # _, cost_brcp, runtime_brcp = brcp(model, inp, options)
+    # (
+    #     _,
+    #     cost_optimal_graph_search_1d,
+    #     runtime_optimal_graph_search_1d,
+    # ) = optimal_graph_search_1d(model, inp, OptimalGraphSearch1dOptions(0), options)
     _, cost_optimal_graph_search, runtime_optimal_graph_search = optimal_graph_search(
         model, inp, OptimalGraphSearchOptions(), options
     )
@@ -35,8 +37,8 @@ def evaluate_1d(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, fl
     return (
         cost_co[0],
         cost_optimal_graph_search[0],
-        runtime_optimal_graph_search,
         runtime_co,
+        runtime_optimal_graph_search,
     )
 
 
@@ -62,21 +64,24 @@ def evaluate_static(
 #     assert cost_co <= cost_optimal_graph_search
 
 
-# def evaluate_approx_graph_search(
-#     model: DataCenterModel, inp: List[List[int]]
-# ) -> Tuple[np.array, np.array, float]:
-#     _, cost_optimal_graph_search = optimal_graph_search(model, inp, False)
+def evaluate_approx_graph_search(
+    model: DataCenterModel, inp: List[List[int]], gammas: List[float]
+) -> Tuple[np.array, np.array, float]:
+    options = OfflineOptions(False, 1, None)
 
-#     gammas = np.arange(1.1, 3, 0.1)
-#     costs = []
-#     for gamma in gammas:
-#         _, cost = approx_graph_search(
-#             model, inp, ApproxGraphSearchOptions(gamma), False
-#         )
+    # _, cost_optimal_graph_search = optimal_graph_search(model, inp, False)
 
-#         # sanity checks
-#         assert cost >= cost_optimal_graph_search
+    costs = []
+    runtimes = []
+    for gamma in gammas:
+        _, cost, runtime = approx_graph_search(
+            model, inp, ApproxGraphSearchOptions(gamma), options
+        )
 
-#         costs.append(cost)
+        # # sanity checks
+        # assert cost >= cost_optimal_graph_search
 
-#     return gammas, np.array(costs), cost_optimal_graph_search
+        costs.append(cost[0])
+        runtimes.append(runtime)
+
+    return gammas, np.array(costs), runtimes

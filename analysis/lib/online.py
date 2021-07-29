@@ -32,10 +32,10 @@ def evaluate(
     runtimes = []
     for i in tqdm(range(len(online_inp))):
         fractional, integral, m, runtime = alg.next(ADDR, online_inp[i])
-        cost += fractional[1][0]
-        int_cost += integral[1][0]
-        energy_cost += integral[1][1].energy_cost
-        revenue_loss += integral[1][1].revenue_loss
+        cost = fractional[1][0]
+        int_cost = integral[1][0]
+        energy_cost = integral[1][1].energy_cost
+        revenue_loss = integral[1][1].revenue_loss
         assert int_cost >= energy_cost + revenue_loss
         runtimes.append(runtime)
     stop(ADDR)
