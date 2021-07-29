@@ -4,7 +4,7 @@ use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
-use log::{debug, warn};
+use log::warn;
 use nlopt::{Algorithm, Nlopt, Target};
 use noisy_float::prelude::*;
 use std::sync::Arc;
@@ -121,30 +121,13 @@ where
     optimize(Direction::Maximize, objective, bounds, init, constraints)
 }
 
-fn optimize<C, D>(
-    dir: Direction,
-    objective: WrappedObjective<C>,
-    bounds: Vec<(f64, f64)>,
-    init: Option<Vec<f64>>,
-    constraints: Vec<WrappedObjective<D>>,
-) -> OptimizationResult
-where
-    C: Clone,
-    D: Clone,
-{
-    // let (final_init, _) =
-    //     optimize_step(false, dir, objective.clone(), bounds.clone(), init, constraints.clone());
-    optimize_step(true, dir, objective, bounds, init, constraints)
-}
-
 /// Determines the optimum of a convex function `f` w.r.t some direction `dir`
 /// with bounds `bounds`, and `constraints`.
 /// Optimization begins at `init` (defaults to lower bounds).
 ///
 /// The used algorithms do not support equality constraints very well, and thus
 /// they are not supported by this interface.
-fn optimize_step<C, D>(
-    local: bool,
+fn optimize<C, D>(
     dir: Direction,
     objective: WrappedObjective<C>,
     bounds: Vec<(f64, f64)>,
@@ -173,7 +156,7 @@ fn optimize_step<C, D>(
     };
 
     let mut solver = Nlopt::new(
-        choose_algorithm(local, constraints.len()),
+        choose_algorithm(constraints.len()),
         d,
         solver_objective,
         Target::from(dir),
@@ -219,19 +202,15 @@ fn optimize_step<C, D>(
     (x.apply_precision(), n64(opt))
 }
 
-fn choose_algorithm(local: bool, constraints: usize) -> Algorithm {
-    if local {
-        // both Cobyla and Bobyqa are algorithms for derivative-free local optimization
-        if constraints > 0 {
-            Algorithm::Cobyla
-        } else {
-            // Bobyqa does not support (in-)equality constraints
-            // This might require some re-configuration depending on the problem at hand.
-            // Viable options are `Praxis`, `Sbplex`, and (in some cases) `Bobyqa`.
-            Algorithm::Sbplx
-        }
+fn choose_algorithm(constraints: usize) -> Algorithm {
+    // we use algorithms for derivative-free local optimization
+    if constraints > 0 {
+        // Only Cobyla supports (in-)equality constraints
+        Algorithm::Cobyla
     } else {
-        Algorithm::Isres
+        // This might require some re-configuration depending on the problem at hand.
+        // Viable options are `Praxis`, `Sbplex`, and (in some cases) `Bobyqa`.
+        Algorithm::Sbplx
     }
 }
 
