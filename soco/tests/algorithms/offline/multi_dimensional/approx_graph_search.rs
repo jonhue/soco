@@ -119,11 +119,11 @@ mod approx_graph_search {
             .unwrap();
         inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_abs_diff_eq!(path.cost, inv_path.cost, epsilon = 1.);
-        assert_abs_diff_eq!(
+        assert_relative_eq!(path.cost, inv_path.cost, max_relative = 1e-4);
+        assert_relative_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw(),
-            epsilon = 1.
+            max_relative = 1e-4
         );
     }
 

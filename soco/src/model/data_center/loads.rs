@@ -10,7 +10,7 @@ use crate::model::data_center::DataCenterObjective;
 use crate::model::ModelOutput;
 use crate::numerics::convex_optimization::{minimize, WrappedObjective};
 use crate::numerics::ApplicablePrecision;
-use crate::utils::{access, transpose, unshift_time};
+use crate::utils::{access, mean, transpose, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
@@ -71,6 +71,11 @@ impl LoadProfile {
     /// Converts load profile to a vector.
     pub fn to_raw(&self) -> Vec<f64> {
         self.0.iter().map(|z| z.raw()).collect()
+    }
+
+    /// Converts load profile to a predicted load profile.
+    pub fn into_predicted_load_profile(self) -> PredictedLoadProfile {
+        PredictedLoadProfile::new(self.0.into_iter().map(|z| vec![z]).collect())
     }
 }
 
@@ -224,6 +229,11 @@ impl PredictedLoadProfile {
             .iter()
             .map(|zs| zs.iter().map(|z| z.raw()).collect())
             .collect()
+    }
+
+    /// Converts predicted load profile to a load profile.
+    pub fn into_load_profile(self) -> LoadProfile {
+        LoadProfile::new(self.0.into_iter().map(mean).collect())
     }
 
     /// Samples load profiles.

@@ -43,10 +43,10 @@ mod co {
                 Config::new(vec![2, 1])
             ])
         );
-        assert_abs_diff_eq!(
+        assert_relative_eq!(
             p.objective_function(&cast_int_result).unwrap().cost.raw(),
             3.5096,
-            epsilon = 1e-4
+            max_relative = 1e-4
         );
     }
 
@@ -107,7 +107,7 @@ mod co {
         init();
 
         let euclidean_ = euclidean();
-        let epsilon = 0.00001;
+        let epsilon = 1e-4;
 
         let d = 4;
         let t_end = 5;

@@ -62,23 +62,21 @@ where
     }
 
     let k_init = if p.bounds[0] > 2 {
-        (p.bounds[0] as f64).log(2.).floor() as u32 - 2
+        (p.bounds[0] as f64).log(2.) as u32 - 2
     } else {
         0
     };
 
     let mut path =
         find_schedule(&p, select_initial_rows(&p), alpha, inverted, x_start);
-    if k_init > 0 {
-        for k in k_init - 1..=0 {
-            path = find_schedule(
-                &p,
-                select_next_rows(&p, &path.xs, k),
-                alpha,
-                inverted,
-                x_start,
-            );
-        }
+    for k in (0..k_init).rev() {
+        path = find_schedule(
+            &p,
+            select_next_rows(&p, &path.xs, k),
+            alpha,
+            inverted,
+            x_start,
+        );
     }
 
     Ok(path)
@@ -92,7 +90,8 @@ where
     C: ModelOutputSuccess + 'a,
     D: ModelOutputFailure + 'a,
 {
-    let m = 2_i32.pow((p.bounds[0] as f64).log(2.).ceil() as u32);
+    let prev_m = p.bounds[0];
+    let m = 2_i32.pow((prev_m as f64).log(2.).ceil() as u32);
 
     Ok(SimplifiedSmoothedConvexOptimization {
         d: p.d,
@@ -102,15 +101,12 @@ where
         hitting_cost: CostFn::new(
             1,
             SingleCostFn::certain(move |t, x: IntegralConfig| {
-                if x[0] <= p.bounds[0] {
+                if x[0] <= prev_m {
                     p.hit_cost(t, x)
                 } else {
-                    let hitting_cost =
-                        p.hit_cost(t, Config::new(p.bounds.clone()));
-                    Cost::new(
-                        n64(x[0] as f64) * (hitting_cost.cost + f64::EPSILON),
-                        hitting_cost.output,
-                    )
+                    let Cost { cost, output } =
+                        p.hit_cost(t, Config::new(vec![prev_m]));
+                    Cost::new(n64(x[0] as f64) * (cost + f64::EPSILON), output)
                 }
             }),
         ),
@@ -201,7 +197,7 @@ fn find_shortest_subpath<C, D>(
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    let mut picked_source = 0;
+    let mut picked_source = from[0];
     let mut picked_cost = f64::INFINITY;
     for &source in from {
         let prev_cost = paths[&Vertice(t - 1, source)].cost;

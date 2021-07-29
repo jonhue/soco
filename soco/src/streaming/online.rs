@@ -200,7 +200,7 @@ fn run<'a, T, P, M, O, A, B, C, D>(
                         o.next(alg, options.clone(), xs, prev_m).unwrap();
                     let runtime = start.elapsed().as_millis();
 
-                    let cost = o.p.objective_function(&xs).unwrap();
+                    let cost = o.p.objective_function(xs).unwrap();
                     let int_xs = xs.to_i();
                     let int_cost =
                         o.p.objective_function(&int_xs.to()).unwrap();

@@ -9,7 +9,7 @@ use nlopt::{Algorithm, Nlopt, Target};
 use noisy_float::prelude::*;
 use std::sync::Arc;
 
-static MAX_ITERATIONS: u32 = 1_000;
+static MAX_ITERATIONS_PER_DIM: u32 = 1_000;
 
 /// Optimization direction.
 #[derive(Clone, Copy)]
@@ -164,10 +164,13 @@ fn optimize<C, D>(
     );
     solver.set_lower_bounds(&lower).unwrap();
     solver.set_upper_bounds(&upper).unwrap();
+    solver.set_xtol_abs1(TOLERANCE).unwrap();
     solver.set_xtol_rel(TOLERANCE).unwrap();
 
     // stop evaluation when solver appears to hit a dead end, this may happen when all function evaluations return infinity.
-    solver.set_maxeval(MAX_ITERATIONS).unwrap();
+    solver
+        .set_maxeval(d as u32 * MAX_ITERATIONS_PER_DIM)
+        .unwrap();
 
     for WrappedObjective { f, data } in constraints {
         solver
@@ -209,7 +212,8 @@ fn choose_algorithm(constraints: usize) -> Algorithm {
         Algorithm::Cobyla
     } else {
         // This might require some re-configuration depending on the problem at hand.
-        // Viable options are `Praxis`, `Sbplex`, and (in some cases) `Bobyqa`.
+        // Viable options are `Sbplex`, `Cobyla`, (a little less often) `Praxis`,
+        // and (in some few cases) `Bobyqa`.
         Algorithm::Sbplx
     }
 }

@@ -8,6 +8,7 @@ use crate::{
             optimal_graph_search::{
                 optimal_graph_search, Options as OptimalGraphSearchOptions,
             },
+            static_fractional::static_fractional,
             static_integral::static_integral,
         },
         uni_dimensional::{
@@ -134,6 +135,29 @@ fn convex_optimization_py(
     })
 }
 
+/// Static fractional optimum.
+#[pyfunction]
+#[pyo3(name = "static_fractional")]
+fn static_fractional_py(
+    py: Python,
+    model: DataCenterModel,
+    input: DataCenterOfflineInput,
+    offline_options: OfflineOptions,
+) -> PyResult<Response<f64>> {
+    py.allow_threads(|| {
+        info!("Static Integral");
+        let (xs, cost, runtime) = offline::solve(
+            &model,
+            &static_fractional,
+            (),
+            offline_options,
+            input,
+        )
+        .unwrap();
+        Ok((xs.to_vec(), cost, runtime))
+    })
+}
+
 /// Static integral optimum.
 #[pyfunction]
 #[pyo3(name = "static_integral")]
@@ -172,6 +196,8 @@ pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<ApproxGraphSearchOptions>()?;
 
     m.add_function(wrap_pyfunction!(convex_optimization_py, m)?)?;
+
+    m.add_function(wrap_pyfunction!(static_fractional_py, m)?)?;
 
     m.add_function(wrap_pyfunction!(static_integral_py, m)?)?;
 

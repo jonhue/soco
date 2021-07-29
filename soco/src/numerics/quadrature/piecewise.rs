@@ -45,7 +45,7 @@ pub fn piecewise_integral(
     // compute piecewise integrals in both directions
     let l = __piecewise_integral(
         Direction::Left,
-        &breakpoints,
+        breakpoints,
         init,
         from,
         f,
@@ -53,7 +53,7 @@ pub fn piecewise_integral(
         0,
     );
     let r =
-        __piecewise_integral(Direction::Right, &breakpoints, init, to, f, i, 0);
+        __piecewise_integral(Direction::Right, breakpoints, init, to, f, i, 0);
     l + r
 }
 
@@ -193,7 +193,7 @@ fn piecewise_integral_empty_breakpoints() {
             std::f64::consts::E.powf(-x)
         })
         .raw();
-    assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
+    assert_relative_eq!(result, 1., max_relative = PRECISION);
 }
 
 #[test]
@@ -205,7 +205,7 @@ fn piecewise_integral_default_breakpoints() {
         |x| std::f64::consts::E.powf(-x),
     )
     .raw();
-    assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
+    assert_relative_eq!(result, 1., max_relative = PRECISION);
 }
 
 #[test]
@@ -215,7 +215,7 @@ fn piecewise_integral_right() {
             std::f64::consts::E.powf(-x)
         })
         .raw();
-    assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
+    assert_relative_eq!(result, 1., max_relative = PRECISION);
 }
 
 #[test]
@@ -227,5 +227,5 @@ fn piecewise_integral_left() {
         |x| std::f64::consts::E.powf(x),
     )
     .raw();
-    assert_abs_diff_eq!(result, 1., epsilon = PRECISION);
+    assert_relative_eq!(result, 1., max_relative = PRECISION);
 }

@@ -45,10 +45,10 @@ mod optimal_graph_search {
             ])
         );
         assert_abs_diff_eq!(path.cost, 1.);
-        assert_abs_diff_eq!(
+        assert_relative_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw(),
-            epsilon = 1.
+            max_relative = 1e-4
         );
     }
 
@@ -75,10 +75,10 @@ mod optimal_graph_search {
         inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
         assert_abs_diff_eq!(path.cost, inv_path.cost);
-        assert_abs_diff_eq!(
+        assert_relative_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw(),
-            epsilon = 1.
+            max_relative = 1e-4
         );
     }
 
@@ -114,11 +114,11 @@ mod optimal_graph_search {
             .unwrap();
         inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_abs_diff_eq!(path.cost, inv_path.cost, epsilon = 1.);
-        assert_abs_diff_eq!(
+        assert_relative_eq!(path.cost, inv_path.cost, max_relative = 1e-4);
+        assert_relative_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw(),
-            epsilon = 1.
+            max_relative = 1e-4
         );
     }
 
@@ -150,10 +150,10 @@ mod optimal_graph_search {
             .unwrap();
         path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_abs_diff_eq!(
+        assert_relative_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw(),
-            epsilon = 1.
+            max_relative = 1e-4
         );
 
         p.t_end = 10;
@@ -168,10 +168,10 @@ mod optimal_graph_search {
             .unwrap();
         path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_abs_diff_eq!(
+        assert_relative_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw(),
-            epsilon = 1.
+            max_relative = 1e-4
         );
     }
 }

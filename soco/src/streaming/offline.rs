@@ -1,4 +1,4 @@
-use std::time::Instant;
+use std::{panic, time::Instant};
 
 use crate::{
     algorithms::{
@@ -15,7 +15,8 @@ use crate::{
     schedule::Schedule,
     value::Value,
 };
-use log::info;
+use backtrace::Backtrace;
+use log::{info, warn};
 
 /// Generates problem instance from model and solves it using an offline algorithm.
 pub fn solve<'a, T, R, P, O, A, B, C, D>(
@@ -35,6 +36,10 @@ where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
+    panic::set_hook(Box::new(|_panic_info| {
+        warn!("\n\n{:?}", Backtrace::new());
+    }));
+
     let p = model.to(input);
     p.verify()?;
     info!("Generated a problem instance: {:?}", p);

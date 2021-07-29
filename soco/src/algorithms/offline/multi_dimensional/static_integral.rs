@@ -1,7 +1,7 @@
 use crate::algorithms::offline::{OfflineOptions, PureOfflineResult};
 use crate::config::IntegralConfig;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::problem::{IntegralSimplifiedSmoothedConvexOptimization, Problem};
+use crate::problem::{IntegralSmoothedConvexOptimization, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::assert;
@@ -10,7 +10,7 @@ use crate::utils::assert;
 ///
 /// Warning: do not use in practice, this algorithm is naive and has an exponential runtime.
 pub fn static_integral<C, D>(
-    p: IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>,
+    p: IntegralSmoothedConvexOptimization<'_, C, D>,
     _: (),
     OfflineOptions { inverted, alpha, l }: OfflineOptions,
 ) -> Result<PureOfflineResult<i32>>
@@ -31,7 +31,7 @@ where
 }
 
 fn check_configs<C, D>(
-    p: &IntegralSimplifiedSmoothedConvexOptimization<'_, C, D>,
+    p: &IntegralSmoothedConvexOptimization<'_, C, D>,
     alpha: f64,
     k: usize,
     mut base_config: IntegralConfig,
@@ -43,7 +43,7 @@ where
     if k < p.d as usize {
         let mut picked_config = base_config.clone();
         let mut picked_cost = f64::INFINITY;
-        for j in 0..=p.bounds[k] {
+        for j in p.bounds[k].0..=p.bounds[k].1 {
             base_config[k] = j;
             let (config, cost) =
                 check_configs(p, alpha, k + 1, base_config.clone())?;

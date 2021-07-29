@@ -13,7 +13,7 @@ use std::iter::Sum;
 use std::sync::Arc;
 
 /// Result of cost computation.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Cost<C, D> {
     pub cost: N64,
     pub output: ModelOutput<C, D>,

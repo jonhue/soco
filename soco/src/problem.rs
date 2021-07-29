@@ -248,6 +248,8 @@ where
         (self.switching_cost)(x - prev_x)
     }
 }
+pub type IntegralSmoothedConvexOptimization<'a, C, D> =
+    SmoothedConvexOptimization<'a, i32, C, D>;
 pub type FractionalSmoothedConvexOptimization<'a, C, D> =
     SmoothedConvexOptimization<'a, f64, C, D>;
 
