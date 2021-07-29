@@ -151,12 +151,7 @@ where
     }
 
     /// Computes uncertain cost.
-    fn call_predictive(
-        &self,
-        t_start: i32,
-        t: i32,
-        x: T,
-    ) -> Vec<Cost<C, D>> {
+    fn call_predictive(&self, t_start: i32, t: i32, x: T) -> Vec<Cost<C, D>> {
         assert!(
             t >= t_start,
             "Time slot of hitting cost must be greater or equals to `t = {}` (got {}).",
