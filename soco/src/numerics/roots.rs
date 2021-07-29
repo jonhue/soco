@@ -3,7 +3,7 @@
 use super::PRECISION;
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use bacon_sci::roots::brent;
-use log::{debug, warn};
+use log::warn;
 use noisy_float::prelude::*;
 
 // in practice, the inputs to the function may be imprecise enough to lead to the error:
