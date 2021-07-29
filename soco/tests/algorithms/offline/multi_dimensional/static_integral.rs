@@ -8,6 +8,7 @@ mod static_integral {
     use soco::algorithms::offline::{
         OfflineAlgorithm, OfflineOptions, OfflineResult,
     };
+    use soco::config::IntegralConfig;
     use soco::norm::manhattan_scaled;
     use soco::problem::{Problem, SmoothedConvexOptimization};
     use soco::verifiers::VerifiableProblem;
@@ -32,6 +33,13 @@ mod static_integral {
         result.verify(p.t_end, &upper_bounds(&p.bounds)).unwrap();
 
         assert!(p.objective_function(&result).unwrap().cost.is_finite());
-        assert!(p.total_movement(&result, false).unwrap() == 0.);
+        assert!(
+            p.total_movement(&result, false).unwrap()
+                == p.movement(
+                    IntegralConfig::repeat(0, p.d),
+                    result[0].clone(),
+                    false
+                )
+        );
     }
 }
