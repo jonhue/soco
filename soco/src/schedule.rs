@@ -31,6 +31,10 @@ where
         Schedule(vec![])
     }
 
+    pub fn repeat(x: Config<T>, t: i32) -> Schedule<T> {
+        Schedule(vec![x; t as usize])
+    }
+
     /// Returns `true` if the schedule is empty (i.e. does not include any config).
     pub fn is_empty(&self) -> bool {
         self.t_end() == 0

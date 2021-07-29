@@ -207,6 +207,7 @@ fn optimize<C, D>(
 
 fn choose_algorithm(constraints: usize) -> Algorithm {
     // We use algorithms for derivative-free local optimization
+    #[allow(clippy::if_same_then_else)]
     if constraints > 0 {
         // Only Cobyla supports (in-)equality constraints
         Algorithm::Cobyla

@@ -1,10 +1,12 @@
 use crate::{init, utils::hash_map};
-use soco::{algorithms::offline::{
+use soco::{
+    algorithms::offline::{
         multi_dimensional::optimal_graph_search::{
             optimal_graph_search, Options,
         },
         OfflineOptions,
-    }, model::{
+    },
+    model::{
         data_center::{
             loads::LoadProfile,
             model::{
@@ -25,7 +27,10 @@ use soco::{algorithms::offline::{
             DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
         },
         Model,
-    }, problem::{IntegralSimplifiedSmoothedConvexOptimization, Online, Problem}, streaming::offline};
+    },
+    problem::{IntegralSimplifiedSmoothedConvexOptimization, Online, Problem},
+    streaming::offline,
+};
 use std::sync::Arc;
 
 #[test]
@@ -100,7 +105,12 @@ fn solve() {
     xs.verify(t_end, &vec![m]).unwrap();
 
     let online_inputs = input.into_online();
-    let mut online = Online::<IntegralSimplifiedSmoothedConvexOptimization<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>> {
+    let mut online = Online::<
+        IntegralSimplifiedSmoothedConvexOptimization<
+            DataCenterModelOutputSuccess,
+            DataCenterModelOutputFailure,
+        >,
+    > {
         p: model.to(DataCenterOfflineInput::default()),
         w: 0,
     };

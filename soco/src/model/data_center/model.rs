@@ -541,7 +541,7 @@ impl DataCenterOfflineInput {
         self.loads
             .into_iter()
             .map(|lambda| DataCenterOnlineInput {
-                loads: vec![LoadProfile::to_predicted_load_profile(lambda)],
+                loads: vec![LoadProfile::into_predicted_load_profile(lambda)],
             })
             .collect()
     }

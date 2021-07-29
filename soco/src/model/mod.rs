@@ -1,7 +1,7 @@
 use std::panic::UnwindSafe;
 
 use crate::problem::{Online, Problem};
-use log::{info};
+use log::info;
 use pyo3::{IntoPy, PyObject, Python};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_derive::{Deserialize, Serialize};
@@ -20,12 +20,7 @@ pub trait OnlineInput:
 
 /// Results of model.
 pub trait ModelOutputSuccess:
-    Clone
-    + std::fmt::Debug
-    + DeserializeOwned
-    + IntoPy<PyObject>
-    + Send
-    + Serialize
+    Clone + std::fmt::Debug + DeserializeOwned + IntoPy<PyObject> + Send + Serialize
 {
     /// Merge two outputs across time steps.
     fn horizontal_merge(self, output: Self) -> Self;
@@ -38,12 +33,7 @@ impl ModelOutputSuccess for () {
     fn vertical_merge(self, _: ()) {}
 }
 pub trait ModelOutputFailure:
-    Clone
-    + std::fmt::Debug
-    + DeserializeOwned
-    + IntoPy<PyObject>
-    + Send
-    + Serialize
+    Clone + std::fmt::Debug + DeserializeOwned + IntoPy<PyObject> + Send + Serialize
 {
     fn outside_decision_space() -> Self;
 }
@@ -139,7 +129,7 @@ where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    assert!(span >= o.w + 1, "There should be information for each time slot in the prediction window (`w = {}`) plus the current time slot. Got information for `{}` time slots.", o.w, span);
+    assert!(span > o.w, "There should be information for each time slot in the prediction window (`w = {}`) plus the current time slot. Got information for `{}` time slots.", o.w, span);
     if span > o.w + 1 {
         info!("The inputs have prediction window `{}` which is not used completely by the algorithm with prediction window `{}`. Consider using a different algorithm.", span, o.w);
     }

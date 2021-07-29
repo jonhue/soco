@@ -3,6 +3,7 @@
 pub mod approx_graph_search;
 pub mod convex_optimization;
 pub mod optimal_graph_search;
+pub mod static_fractional;
 pub mod static_integral;
 
 mod graph_search;

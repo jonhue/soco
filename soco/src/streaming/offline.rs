@@ -10,12 +10,12 @@ use crate::{
         Model, ModelOutputFailure, ModelOutputSuccess, OfflineInput,
         OnlineInput,
     },
-    problem::{Problem},
+    problem::Problem,
     result::Result,
     schedule::Schedule,
     value::Value,
 };
-use log::{info};
+use log::info;
 
 /// Generates problem instance from model and solves it using an offline algorithm.
 pub fn solve<'a, T, R, P, O, A, B, C, D>(

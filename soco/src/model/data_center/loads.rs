@@ -74,7 +74,7 @@ impl LoadProfile {
     }
 
     /// Converts load profile to a predicted load profile.
-    pub fn to_predicted_load_profile(self) -> PredictedLoadProfile {
+    pub fn into_predicted_load_profile(self) -> PredictedLoadProfile {
         PredictedLoadProfile::new(self.0.into_iter().map(|z| vec![z]).collect())
     }
 }
@@ -232,8 +232,8 @@ impl PredictedLoadProfile {
     }
 
     /// Converts predicted load profile to a load profile.
-    pub fn to_load_profile(self) -> LoadProfile {
-        LoadProfile::new(self.0.into_iter().map(|zs| mean(zs)).collect())
+    pub fn into_load_profile(self) -> LoadProfile {
+        LoadProfile::new(self.0.into_iter().map(mean).collect())
     }
 
     /// Samples load profiles.
