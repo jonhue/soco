@@ -6,7 +6,7 @@ use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::finite_differences::{derivative, second_derivative};
 use crate::numerics::quadrature::piecewise::piecewise_integral;
 use crate::numerics::roots::find_root;
-use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online, Problem};
+use crate::problem::{FractionalSimplifiedSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
@@ -164,8 +164,8 @@ where
     D: ModelOutputFailure,
 {
     find_root((x_m, o.p.bounds[0]), |x| {
-        // needs to be unbounded for numerical approximations
         let f = |x| {
+            // needs to be unbounded for numerical approximations
             o.p.hitting_cost
                 .call_certain(t, Config::single(x))
                 .cost
@@ -173,11 +173,15 @@ where
         };
         derivative(f, x).raw()
             - 2. * o.p.switching_cost[0]
-                * piecewise_integral(breakpoints, x, f64::INFINITY, |x| {
-                    prev_p(x)
-                })
+                * piecewise_integral(
+                    breakpoints,
+                    x,
+                    f64::INFINITY,
+                    prev_p.as_ref(),
+                )
                 .raw()
-    }).raw()
+    })
+    .raw()
 }
 
 /// Determines `x_l` with a convex optimization.
@@ -193,17 +197,20 @@ where
     D: ModelOutputFailure,
 {
     find_root((0., x_m), |x| {
-        // needs to be unbounded for numerical approximations
         let f = |x| {
+            // needs to be unbounded for numerical approximations
             o.p.hitting_cost
                 .call_certain(t, Config::single(x))
                 .cost
                 .raw()
         };
         2. * o.p.switching_cost[0]
-            * piecewise_integral(breakpoints, f64::NEG_INFINITY, x, |x| {
-                prev_p(x)
-            })
+            * piecewise_integral(
+                breakpoints,
+                f64::NEG_INFINITY,
+                x,
+                prev_p.as_ref(),
+            )
             .raw()
             - derivative(f, x).raw()
     })

@@ -15,7 +15,7 @@ pub fn derivative(f: impl Fn(f64) -> f64, x: f64) -> N64 {
     let r = derivative_(f, x, TOLERANCE).apply_precision();
     if r.is_nan() {
         debug!("x={};f(x)={}", x, y);
-        return n64(0.)
+        return n64(0.);
     }
     n64(r)
 }
@@ -28,7 +28,7 @@ pub fn second_derivative(f: impl Fn(f64) -> f64, x: f64) -> N64 {
     let r = second_derivative_(f, x, TOLERANCE.powf(-0.25)).apply_precision();
     if r.is_nan() {
         debug!("x={};f(x)={}", x, y);
-        return n64(0.)
+        return n64(0.);
     }
     n64(r)
 }

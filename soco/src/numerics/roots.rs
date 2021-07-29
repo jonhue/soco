@@ -13,7 +13,7 @@ static ROOT_PRECISION: f64 = PRECISION * 1_000.;
 
 pub fn find_root(interval: (f64, f64), f: impl Fn(f64) -> f64) -> N64 {
     if (interval.0 - interval.1).abs() < PRECISION {
-        return n64(interval.0)
+        return n64(interval.0);
     }
 
     let l = f(interval.0);
@@ -23,8 +23,19 @@ pub fn find_root(interval: (f64, f64), f: impl Fn(f64) -> f64) -> N64 {
     } else if r.abs() < ROOT_PRECISION {
         n64(interval.1)
     } else if l * r > 0. {
-        debug!("a={},b={},fa={},fb={}, fc={}", interval.0, interval.1, f(interval.0), f(interval.1), f(interval.0 - 1.));
-        if l.abs() <= r.abs() { n64(interval.0) } else { n64(interval.1) }
+        debug!(
+            "a={},b={},fa={},fb={}, fc={}",
+            interval.0,
+            interval.1,
+            f(interval.0),
+            f(interval.1),
+            f(interval.0 - 1.)
+        );
+        if l.abs() <= r.abs() {
+            n64(interval.0)
+        } else {
+            n64(interval.1)
+        }
     } else {
         n64(brent(interval, f, TOLERANCE).unwrap().apply_precision())
     }
