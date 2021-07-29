@@ -25,13 +25,13 @@ def evaluate_1d(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, fl
         cost_optimal_graph_search_1d,
         runtime_optimal_graph_search_1d,
     ) = optimal_graph_search_1d(model, inp, OptimalGraphSearch1dOptions(0), options)
-    _, cost_optimal_graph_search, runtime_optimal_graph_search = optimal_graph_search(
-        model, inp, OptimalGraphSearchOptions(), options
-    )
+    # _, cost_optimal_graph_search, runtime_optimal_graph_search = optimal_graph_search(
+    #     model, inp, OptimalGraphSearchOptions(), options
+    # )
     _, cost_co, runtime_co = convex_optimization(model, inp, options)
 
     # sanity checks
-    assert cost_optimal_graph_search_1d == cost_optimal_graph_search
+    # assert cost_optimal_graph_search_1d == cost_optimal_graph_search
     # assert cost_brcp == cost_co
     # assert cost_brcp <= cost_optimal_graph_search_1d
 

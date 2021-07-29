@@ -23,12 +23,12 @@ def convert_offline_to_online_input(
     return [[[load_profile] for load_profile in loads] for _ in range(len(loads))]
 
 
-def predict_loads(trace: str, t: int) -> List[List[List[int]]]:
-    """
-    Predict loads for a trace with the data up to some time `t`.
-    Returns: Time > Job Type > List of Samples
-    """
-    path = f"out/loads/{trace}.json"
-    with open(path, "r") as f:
-        predictions = json.load(f).values()
-        print(predictions[0])
+# def predict_loads(trace: str, t: int) -> List[List[List[int]]]:
+#     """
+#     Predict loads for a trace with the data up to some time `t`.
+#     Returns: Time > Job Type > List of Samples
+#     """
+#     path = f"out/loads/{trace}.json"
+#     with open(path, "r") as f:
+#         predictions = json.load(f).values()
+#         print(predictions[0])
