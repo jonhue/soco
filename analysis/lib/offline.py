@@ -9,6 +9,7 @@ from soco.data_center.offline import (
     approx_graph_search,
     ApproxGraphSearchOptions,
     convex_optimization,
+    static_fractional,
     static_integral,
 )
 from soco.data_center.model import DataCenterModel
@@ -19,26 +20,26 @@ def evaluate_1d(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, fl
     options = OfflineOptions(False, 1, None)
 
     # _, cost_brcp, runtime_brcp = brcp(model, inp, options)
-    # (
-    #     _,
-    #     cost_optimal_graph_search_1d,
-    #     runtime_optimal_graph_search_1d,
-    # ) = optimal_graph_search_1d(model, inp, OptimalGraphSearch1dOptions(0), options)
+    (
+        _,
+        cost_optimal_graph_search_1d,
+        runtime_optimal_graph_search_1d,
+    ) = optimal_graph_search_1d(model, inp, OptimalGraphSearch1dOptions(0), options)
     _, cost_optimal_graph_search, runtime_optimal_graph_search = optimal_graph_search(
         model, inp, OptimalGraphSearchOptions(), options
     )
     _, cost_co, runtime_co = convex_optimization(model, inp, options)
 
     # sanity checks
-    # assert cost_optimal_graph_search_1d == cost_optimal_graph_search
+    assert cost_optimal_graph_search_1d == cost_optimal_graph_search
     # assert cost_brcp == cost_co
     # assert cost_brcp <= cost_optimal_graph_search_1d
 
     return (
         cost_co[0],
-        cost_optimal_graph_search[0],
+        cost_optimal_graph_search_1d[0],
         runtime_co,
-        runtime_optimal_graph_search,
+        runtime_optimal_graph_search_1d,
     )
 
 
@@ -47,13 +48,20 @@ def evaluate_static(
 ) -> Tuple[float, float]:
     options = OfflineOptions(False, 1, 0)
 
-    _, cost_fractional, runtime_co = convex_optimization(model, inp, options)
+    _, cost_fractional, runtime_static_fractional = static_fractional(
+        model, inp, options
+    )
     _, cost_integral, runtime_static_integral = static_integral(model, inp, options)
 
     # sanity checks
     # assert cost_fractional <= cost_integral
 
-    return cost_fractional[0], cost_integral[0], runtime_co, runtime_static_integral
+    return (
+        cost_fractional[0],
+        cost_integral[0],
+        runtime_static_fractional,
+        runtime_static_integral,
+    )
 
 
 # def evaluate(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, float]:
