@@ -43,7 +43,7 @@ mod rbg {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let t_end = 1;
+        let t_end = 2;
         let result = o.offline_stream(&rbg, t_end, Options::default()).unwrap();
         result.0.verify(t_end, &upper_bounds(&o.p.bounds)).unwrap();
 
