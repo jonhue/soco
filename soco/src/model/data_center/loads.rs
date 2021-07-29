@@ -586,6 +586,7 @@ where
                  energy_cost,
                  revenue_loss,
              }| {
+                assert!(cost == energy_cost + revenue_loss);
                 ModelOutput::Success(DataCenterModelOutputSuccess::new(
                     energy_cost.raw(),
                     revenue_loss.raw(),
