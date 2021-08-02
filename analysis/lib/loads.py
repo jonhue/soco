@@ -27,7 +27,9 @@ def convert_offline_to_online_input(
     return [[[load_profile]] for load_profile in loads]
 
 
-def select_load_from_last_day(loads: List[List[int]], time_slot_length: int) -> List[List[int]]:
+def select_load_from_last_day(
+    loads: List[List[int]], time_slot_length: int
+) -> List[List[int]]:
     """
     Selects all load profiles for time slots belonging to the last day.
     """
