@@ -245,8 +245,7 @@ impl PredictedLoadProfile {
         );
 
         // we only use a randomly chosen subset of all samples to remain efficient
-        self
-            .to_vec()
+        self.to_vec()
             .into_iter()
             .map(|zs| {
                 assert!(zs.len() >= sample_size as usize);
