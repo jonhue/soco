@@ -7,4 +7,4 @@ prophet==1.0.1
 scipy==1.7.0
 seaborn==0.11.1
 tikzplotlib==0.9.9
-tqdm==4.61.2
+tqdm==4.62.0
