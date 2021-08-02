@@ -45,7 +45,6 @@ def evaluate(
 
     switching_cost = int_cost - energy_cost - revenue_loss
 
-    print(len(xs), len(initial_xs), len(online_inp))
     assert len(xs) - len(initial_xs) == len(online_inp)
     print(f"Resulting schedule: {xs}")
 
