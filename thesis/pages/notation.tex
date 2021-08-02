@@ -2,7 +2,7 @@
 
 \section*{Problems}
 
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{p{100pt}X}
     $T \in \mathbb{N}$ & number of time slots \\
     $\delta \in \mathbb{R}_{>0}$ & length of a time slot \\
     $d \in \mathbb{N}$ & number of dimensions \\
@@ -16,13 +16,11 @@
     $c_k \in \mathbb{R}_{\geq 0}$ & time-independent hitting cost of dimension $k$ \\
 \end{tabularx}
 
-\vspace{\fill}
-
 \section*{Data Center Model}
 
 \subsection*{Dispatching}
 
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{p{100pt}X}
     $m_k \in \mathbb{N}$ & maximum number of servers of type $k$ \\
     $l_k^{max} \in \mathbb{N}$ & maximum number of jobs a server of type $k$ can process in a single time slot \\
     $e \in \mathbb{N}$ & number of load types \\
@@ -41,7 +39,7 @@
 
 \subsection*{Energy Cost}
 
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{p{100pt}X}
     $e_{t,k}(s) \in \mathbb{R}_{\geq 0}$ & energy cost of a server of type $k$ with utilization $s$ during time slot $t$ \\
     $\nu_{t,k}(p) \in \mathbb{R}_{\geq 0}$ & energy cost of a server of type $k$ with energy consumption $p$ during time slot $t$ \\
     $\phi_k(s) \in \mathbb{R}_{\geq 0}$ & energy consumption of a server of type $k$ with utilization $s$ \\
@@ -51,12 +49,10 @@
     $c_{t,i} \in \mathbb{R}_{\geq 0}$ & energy cost of energy source $i$ per unit of energy during time slot $t$ \\
 \end{tabularx}
 
-\vspace{\fill}
-
 \subsection*{Revenue Loss}
 
-\begin{tabularx}{\textwidth}{lX}
-    $\gamma \in \mathbb{R}_{\geq 0}$ & weight of revenue loss as opposed to energy cost \\
+\begin{tabularx}{\textwidth}{p{100pt}X}
+    $\gamma \in \mathbb{R}_{\geq 0}$ & revenue loss factor, i.e. lost revenue per unit of delay \\
     $r_{t,i}(d) \in \mathbb{R}_{\geq 0}$ & revenue loss of jobs of type $i$ with an average delay $d$ during time slot $t$ \\
     $d_{t,k,i}(l) \in \mathbb{R}_{\geq 0}$ & average delay of a job of type $i$ processed on a server of type $k$ during time slot $t$ where the total load on the server is $l$ \\
     $\delta_{t,k,i} \in \mathbb{R}_{\geq 0}$ & constant delay when processing a job of type $i$ on a server of type $k$ during time slot $t$ \\
@@ -67,7 +63,7 @@
 
 \subsection*{Switching Cost}
 
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{p{100pt}X}
     $\epsilon_k \in \mathbb{R}_{\geq 0}$ & additional energy consumed by toggling a server of type $k$ on and off \\
     $\delta_k \in \mathbb{R}_{\geq 0}$ & delay in migrating connections or data of a server of type $k$ before it can be powered down \\
     $\tau_k \in \mathbb{R}_{\geq 0}$ & wear-and-tear costs of toggling a server \\
@@ -77,7 +73,7 @@
 
 \subsection*{Networks}
 
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{p{100pt}X}
     $\iota \in \mathbb{N}$ & number of data centers \\
     $\zeta \in \mathbb{N}$ & number of geographically centered request sources \\
     $\delta_{t,j,s} \in \mathbb{R}_{\geq 0}$ & network delay incurred by routing a request from source $s$ to data center $j$ during time slot $t$ \\
@@ -90,16 +86,14 @@
 
 \section*{Complexity}
 
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{p{100pt}X}
     $\mathcal{O}(C)$ & complexity of computing the hitting costs $f_t$ \\
     $\mathcal{O}(O_{\epsilon})$ & convergence rate of a convex optimization finding an $\epsilon$-optimal solution \\
 \end{tabularx}
 
-\vspace{\fill}
-
 \section*{Algorithms}
 
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{p{100pt}X}
     $\tau$ & current time slot \\
     $\hat{x}$ & optimal value of $x$ with respect to some optimization \\
     $X \in \mathcal{X}^t$ & schedule, i.e. sequence of configurations over the time horizon $t$ \\
@@ -108,9 +102,15 @@
     $x_{k \gets j}$ & configuration $x$ after updating dimension $k$ to $j$ \\
 \end{tabularx}
 
+\section*{Implementation}
+
+\begin{tabularx}{\textwidth}{p{100pt}X}
+    $\chi_{\tau}(t, x) \in \bigcup_{n=1}^{\infty} \mathbb{R}_{\geq 0}^n$ & hitting cost of action $x \in \mathcal{S}$ at time slot $t \in [T]$ given the information from time slot $\tau$ \\
+\end{tabularx}
+
 \section*{Miscellaneous}
 
-\begin{tabularx}{\textwidth}{lX}
+\begin{tabularx}{\textwidth}{p{100pt}X}
     $[n] := \{1, \dots, n\}$ & range of natural numbers from $1$ to $n$ \\
     $[n]_0 := \{0\} \cup [n]$ & range of integers from $0$ to $n$ \\
     $[a : b] := \{a, a+1, \dots, b\}$ & range of integers from $a$ to $b$ \\
