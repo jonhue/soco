@@ -3,7 +3,7 @@
 
 \chapter{Online Algorithms}\label{chapter:online_algorithms}
 
-In this chapter, we discuss the online algorithms we implemented in our work. Similarly, to the previous chapter on offline algorithms, we begin our discussion in \autoref{section:online_algorithms:ud} with algorithms for the uni-dimensional setting. As was discussed in \autoref{chapter:theory}, these algorithms give strong guarantees yielding a constant competitive ratio. Next in \autoref{section:online_algorithms:md}, we extend our discussion to the multi-dimensional setting. Here, the guarantees are not as strong. We thus begin in \autoref{section:online_algorithms:md:lazy_budgeting} by considering lazy budgeting algorithms for smoothed convex optimization problems with very specific cost functions. As mentioned previously in \autoref{chapter:theory}, while there are algorithms with sublinear regret (gradient descent) there cannot be any algorithms achieving a dimension-independent constant competitive ratio unless the class of allowed cost functions is restricted \cite{Chen2018}. In \autoref{section:online_algorithms:md:descent_methods}, we therefore discuss gradient methods that have been shown to be able to perform well with regard to either the competitive ratio or regret with a restricted class of cost functions. Still, sublinear regret and a constant competitive ratio cannot be achieved at the same time, even for linear cost functions \cite{Andrew2015}. We therefore end this chapter in \autoref{section:online_algorithms:md:predictions} with a discussion of algorithms that make use of predictions to circumvent this fundamental limitation.
+In this chapter, we discuss the online algorithms we implemented in our work. Similar to the previous chapter on offline algorithms, we begin our discussion in \autoref{section:online_algorithms:ud} with algorithms for the uni-dimensional setting. As was discussed in \autoref{chapter:theory}, these algorithms give strong guarantees yielding a constant competitive ratio. Next in \autoref{section:online_algorithms:md}, we extend our discussion to the multi-dimensional setting. Here, the guarantees are not as strong. We thus begin in \autoref{section:online_algorithms:md:lazy_budgeting} by considering lazy budgeting algorithms for smoothed convex optimization problems with particular cost functions. As mentioned previously in \autoref{chapter:theory}, while there are algorithms with sublinear regret (gradient descent), there cannot be any algorithms achieving a dimension-independent constant competitive ratio unless the class of allowed cost functions is restricted \cite{Chen2018}. In \autoref{section:online_algorithms:md:descent_methods}, we thus discuss gradient methods that perform well with regard to either the competitive ratio or regret with a restricted class of cost functions. Still, sublinear regret and a constant competitive ratio cannot be achieved simultaneously, even for linear cost functions \cite{Andrew2015}. We, therefore, end this chapter in \autoref{section:online_algorithms:md:predictions} with a discussion of algorithms that make use of predictions to circumvent this fundamental limitation.
 
 Throughout this chapter, we denote by $\tau \in [T]$ the current time slot. In contrast to offline algorithms that know the hitting costs $f_t$ for all $t \in [T]$, an online algorithm only knows the hitting costs $f_t$ up to $\tau$, i.e. $t \in [\tau]$.
 
@@ -13,12 +13,12 @@ Throughout this chapter, we denote by $\tau \in [T]$ the current time slot. In c
 
 \subsubsection{Fractional Algorithm}
 
-We begin by returning to the notion of capacity provisioning that we introduced in \autoref{section:offline_algorithms:ud:capacity_provisioning} yielding a backward-recurrent algorithm finding an optimal schedule for SSCO. This algorithm computed bounds $X_{\tau}^L$ and $X_{\tau}^U$ on the optimal solution which only depend on the schedule up to time slot $\tau$. However, the optimal offline algorithm stayed within these bounds moving backwards in time which is not possible for an online algorithm. \citeauthor*{Lin2011} present a similar algorithm moving forward in time called \emph{lazy capacity provisioning} \cite{Lin2011}. We computes the schedule $X_{\tau}$ during time slot $\tau$ by setting $X_{\tau} = X_{\tau-1}$ unless this violates the bounds in which case we make the smallest possible change: \begin{align*}
+We begin by returning to the notion of capacity provisioning that we introduced in \autoref{section:offline_algorithms:ud:capacity_provisioning}, yielding a backward-recurrent algorithm finding an optimal schedule for SSCO. This algorithm computed bounds $X_{\tau}^L$ and $X_{\tau}^U$ on the optimal solution, which only depend on the schedule up to time slot $\tau$. However, the optimal offline algorithm stayed within these bounds moving backward in time which is impossible for an online algorithm. \citeauthor*{Lin2011} present a similar algorithm moving forward in time called \emph{lazy capacity provisioning} \cite{Lin2011}. We compute the schedule $X_{\tau}$ during time slot $\tau$ by setting $X_{\tau} = X_{\tau-1}$ unless this violates the bounds in which case we make the smallest possible change: \begin{align*}
     X_{\tau} = \begin{cases}
         0 & \tau \leq 0 \\
         (X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U} & \tau \geq 1
     \end{cases}
-\end{align*} where $(X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$ is the projection of $X_{\tau-1}$ onto $[X_{\tau,\tau}^L, X_{\tau,\tau}^U]$ \cite{Lin2011}. \autoref{fig:backward_recurrent_capacity_provisioing_vs_lazy_capacity_provisioning} shows how this update rule differs from \nameref{alg:brcp}. The resulting algorithm is described in \autoref{alg:ud:lcp}. Similarly to the offline algorithm, we are able to use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(\tau C O_{\epsilon})$ for $\epsilon$-optimal upper and lower bounds. This complexity is worrying as it depends on $\tau$ which may grow to be very large. However, \citeauthor*{Lin2011} prove the following lemma which implies that it suffices to compute the lower and upper bounds using only the history since the last time slot where the bounds were either both decreased or both increased.
+\end{align*} where $(X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U}$ is the projection of $X_{\tau-1}$ onto $[X_{\tau,\tau}^L, X_{\tau,\tau}^U]$ \cite{Lin2011}. \autoref{fig:backward_recurrent_capacity_provisioing_vs_lazy_capacity_provisioning} shows how this update rule differs from \nameref{alg:brcp}. The resulting algorithm is described in \autoref{alg:ud:lcp}. Similar to the offline algorithm, we can use algorithms for convex optimization to compute the upper and lower bounds. Hence, we obtain a complexity of $\mathcal{O}(\tau C O_{\epsilon}^{\tau})$ for $\epsilon$-optimal upper and lower bounds. This complexity is worrying as it depends on $\tau$, which may grow very large. However, \citeauthor*{Lin2011} prove the following lemma, which implies that it suffices to compute the lower and upper bounds using only the history since the last time slot where both bounds were either decreased or increased.
 
 \begin{figure}
     \centering
@@ -32,7 +32,7 @@ We begin by returning to the notion of capacity provisioning that we introduced 
 If there exists an index $t \in [1, \tau-1]$ such that $X_{\tau,t+1}^U < X_{\tau,t}^U$ or $X_{\tau,t+1}^L > X_{\tau,t}^L$, then $(\hat{X}_{\tau,1},\dots,\hat{X}_{\tau,t}) := (X_{\tau,1}^L,\dots,X_{\tau,t}^L) = (X_{\tau,1}^U,\dots,X_{\tau,t}^U)$, and no matter what the future arrival is, solving the optimization in $[1,\tau']$ for $\tau' > \tau$ is equivalent to solving two optimizations: one over $[1,t]$ with initial condition $X_0$ and final condition $\hat{X}_{\tau,t}$ and the second over $[t+1,\tau']$ with initial condition $\hat{X}_{\tau,t}$ \cite{Lin2011}.
 \end{lemma}
 
-While not changing the worst-case complexity, this significantly improves the practical complexity in the application of right-sizing data centers as diurnal load patterns typically ensure that less than a day needs to be considered \cite{Lin2011}. We denote by $X_{\tau}^{L,(t,x_0)}$ and $X_{\tau}^{U,(t,x_0)}$ the bounds resulting from optimizations beginning at time slot $t$ with initial condition $x_0$. \citeauthor*{Lin2011} showed that lazy capacity provisioning is tightly $3$-competitive \cite{Lin2011}.
+While not changing the worst-case complexity, this significantly improves the practical complexity in the application of right-sizing data centers as diurnal load patterns typically ensure that less than a day needs to be considered \cite{Lin2011}. We denote by $X_{\tau}^{L,(t,x_0)}$ and $X_{\tau}^{U,(t,x_0)}$ the bounds resulting from optimizations beginning at time slot $t$ with initial condition $x_0$. \citeauthor*{Lin2011} showed that lazy capacity provisioning is $3$-competitive \cite{Lin2011} and also proved that this result is tight.
 
 \begin{algorithm}
     \caption{Lazy Capacity Provisioning \cite{Lin2011}}\label{alg:ud:lcp}
@@ -54,26 +54,26 @@ While not changing the worst-case complexity, this significantly improves the pr
 
 \subsubsection{Integral Algorithm}
 
-\citeauthor*{Albers2018} applied lazy capacity provisioning to the integral variant Int-SSCO using their graph-based offline algorithm discussed in \autoref{section:offline_algorithms:ud:graph_based} to compute the integral lower and upper bounds \cite{Albers2018}. It is apparent, that this immediately yields a deterministic online algorithm for Int-SSCO. \citeauthor*{Albers2018} showed that similar to lazy capacity provisioning their algorithm is $3$-competitive \cite{Albers2018}. Due to the changed method of determining the bounds its runtime is $\mathcal{O}(\tau C \log_2 m)$. By using the same method of shortening the used history that was proposed by \citeauthor*{Lin2011} we are able to reduce this time complexity drastically in practice (for large $\tau$). Thus, the adopted algorithm is still described by \autoref{alg:ud:lcp}. We simply need to slightly modify the graph-based algorithm computing optimal offline solutions to allow for initial conditions other than $0$.
+\citeauthor*{Albers2018} applied lazy capacity provisioning to the integral variant Int-SSCO using their graph-based offline algorithm discussed in \autoref{section:offline_algorithms:ud:graph_based} to compute the integral lower and upper bounds \cite{Albers2018}. It is apparent that this immediately yields a deterministic online algorithm for Int-SSCO. \citeauthor*{Albers2018} showed that similar to lazy capacity provisioning, their algorithm is $3$-competitive \cite{Albers2018}. Due to the changed method of determining the bounds, its runtime is $\mathcal{O}(\tau^2 C \log_2 m)$. Note that it is not possible to cache the intermediate results of the dynamic program (see \autoref{alg:ud:optimal_graph_search}) as the binary search over possible configurations considers different vertices depending on the obtained schedule, which changes over time. Thus, for large $\tau$, it may be beneficial to use caching instead of binary search resulting in a runtime of $\mathcal{O}(\tau C m)$. By using the same method of shortening the used history that was proposed by \citeauthor*{Lin2011}, we can reduce this time complexity drastically in practice (for large $\tau$). Thus, the adopted algorithm is still described by \autoref{alg:ud:lcp}. We simply need to slightly modify the graph-based algorithm computing optimal offline solutions to allow for initial conditions other than $0$.
 
 \subsection{Memoryless Algorithm}\label{section:online_algorithms:ud:memoryless}
 
-\citeauthor*{Bansal2015} showed that for SSCO a competitive ratio of $3$ can also be attained by a memoryless algorithm \cite{Bansal2015}. In a memoryless online algorithm for smoothed convex optimization, the configuration $X_{\tau}$ only depends on the preceding configuration $X_{\tau-1}$ and the current hitting cost $f_{\tau}$. This generally allows for a more space and time efficient algorithm. This is important when we want to choose a small time slot length $\delta$ so as to be more responsive to changes in load.
+\citeauthor*{Bansal2015} showed that for SSCO, a competitive ratio of $3$ can also be attained by a memoryless algorithm \cite{Bansal2015}. In a memoryless online algorithm for smoothed convex optimization, the configuration $X_{\tau}$ only depends on the preceding configuration $X_{\tau-1}$ and the current hitting cost $f_{\tau}$. This generally allows for a more space and time-efficient algorithm, which is important when we want to choose a small time slot length $\delta$ to be more responsive to changes in load.
 
 The algorithm proposed by \citeauthor*{Bansal2015} works as follows. Let $x_m$ be the minimizer of $f_{\tau}(x)$, i.e. $x_m = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. The algorithm moves into the direction of the minimizer until it either reaches $x_m$, or it reaches a configuration $x$ where its switching cost equals twice the hitting cost of $x$. \autoref{fig:memoryless_algorithm} gives an example of a step of the algorithm. We observe that this is equivalent to the following convex optimization: \begin{align}\label{eq:ud:memoryless}\begin{aligned}
     &\min_{x \in \mathcal{X}} &&f_{\tau}(x) \\
     &\text{subject to}        &&\beta |x - X_{\tau-1}| \leq \frac{f_{\tau}(x)}{2}.
-\end{aligned}\end{align} Originally, \citeauthor*{Bansal2015} proposed this algorithm for a restricted variant of uni-dimensional SSCO where the decision space is unbounded, i.e. $\mathcal{X} = \mathbb{R}$, and the switching costs are given by the $\ell_1$ norm. In particular, they choose $\beta = 1$. First, it is easy to see that we can adapt the algorithm for a bounded decision space by bounding the feasible region of the optimization problem in \autoref{eq:ud:memoryless}. Second, we observe that $\beta$ can simply be interpreted as the weight that we associate with smoothing (that is minimizing movement) as opposed to minimizing hitting costs. This is shown by the following equation which is obtained by dividing the cost of \autoref{eq:simplified_smoothed_convex_optimization} by $\beta$: \begin{align}\label{eq:simplified_smoothed_convex_optimization:without_beta}
+\end{aligned}\end{align} Originally, \citeauthor*{Bansal2015} proposed this algorithm for a restricted variant of uni-dimensional SSCO where the decision space is unbounded, i.e., $\mathcal{X} = \mathbb{R}$, and the switching costs are given by the $\ell_1$ norm. In particular, they choose $\beta = 1$. First, it is easy to see that we can adapt the algorithm for a bounded decision space by bounding the feasible region of the optimization problem in \autoref{eq:ud:memoryless}. Second, we observe that $\beta$ can simply be interpreted as the weight that we associate with smoothing (i.e., minimizing movement) instead of minimizing hitting costs. This is shown by the following equation, which is obtained by dividing the cost of \autoref{eq:simplified_smoothed_convex_optimization} by $\beta$: \begin{align}\label{eq:simplified_smoothed_convex_optimization:without_beta}
     \sum_{t=1}^T \frac{1}{\beta} f_t(X_t) + \sum_{k=1}^d (X_{t,k} - X_{t-1,k})^+.
-\end{align} The cost associated with this equation is therefore the cost of \autoref{eq:simplified_smoothed_convex_optimization} linearly scaled by $1 / \beta$. Especially, this argument shows the following lemma.
+\end{align} The cost associated with this equation is the cost of \autoref{eq:simplified_smoothed_convex_optimization} linearly scaled by $1 / \beta$. Especially, this argument shows the following lemma.
 
 \begin{lemma}\label{lemma:switching_cost_absolute_vs_positive_movement}
 A schedule is optimal with respect to \autoref{eq:simplified_smoothed_convex_optimization:without_beta} if and only if it is optimal with respect to \autoref{eq:simplified_smoothed_convex_optimization}.
 \end{lemma}
 
-We can therefore, without loss of optimality, incorporate the weight of the switching cost beta into the hitting costs. Further, note that in their model, \citeauthor*{Bansal2015} consider the absolute movement, i.e. $|X_{t,k} - X_{t-1,k}|$, rather than only positive movements, i.e. $(X_{t,k} - X_{t-1,k})^+$. However, we have shown with \autoref{lemma:switching_cost_l1_norm_vs_pos_movement} in \autoref{chapter:theory} that these two switching costs only differ by a constant factor (namely $1/2$).
+Therefore, we can, without loss of optimality, incorporate the weight of the switching cost beta into the hitting costs. Further, note that in their model, \citeauthor*{Bansal2015} consider the absolute movement, i.e. $|X_{t,k} - X_{t-1,k}|$, rather than only positive movements, i.e. $(X_{t,k} - X_{t-1,k})^+$. However, with \autoref{lemma:switching_cost_l1_norm_vs_pos_movement} in \autoref{chapter:theory}, we have shown that these switching costs only differ by a constant factor (namely $1/2$).
 
-The resulting algorithm is simply given by determining $\hat{x}$ based on the convex optimization in \autoref{eq:ud:memoryless}, see \autoref{alg:ud:memoryless}. Thus, the time (and space) complexity of this memoryless algorithm is $\mathcal{O}(C O_{\epsilon})$ for finding $\epsilon$-optimal solutions.
+The resulting algorithm is simply given by determining $\hat{x}$ based on the convex optimization in \autoref{eq:ud:memoryless}, see \autoref{alg:ud:memoryless}. Thus, the time (and space) complexity of this memoryless algorithm is $\mathcal{O}(C O_{\epsilon}^1)$ for finding $\epsilon$-optimal solutions.
 
 \begin{figure}
     \centering
@@ -92,17 +92,17 @@ The resulting algorithm is simply given by determining $\hat{x}$ based on the co
 
 \subsection{Probabilistic Algorithm}\label{section:online_algorithms:ud:probabilistic}
 
-Next, we discuss a $2$-competitive algorithm developed by \citeauthor*{Bansal2015} which works by maintaining a probability distribution over configurations \cite{Bansal2015}. Using this probability distribution they describe a randomized algorithm which they subsequently translate into a deterministic algorithm. We begin our description by describing how to gather first a randomized and then a deterministic algorithm from a probability distribution. Then, we describe how \citeauthor*{Bansal2015} determine the probability distribution and how it can be computed in practice.
+Next, we discuss a $2$-competitive algorithm developed by \citeauthor*{Bansal2015}, which works by maintaining a probability distribution over configurations \cite{Bansal2015}. Using this probability distribution, they describe a randomized algorithm which they subsequently translate into a deterministic algorithm. We begin our description by describing how to gather a randomized and then a deterministic algorithm from a probability distribution. Then, we describe how \citeauthor*{Bansal2015} determine the probability distribution and how it can be computed in practice.
 
 \subsubsection{From Probability Distribution to Deterministic Algorithm}
 
-Let's suppose we have given a probability distribution $p$ over configurations $x \in \mathcal{X}$. A randomized algorithm is then described by initially picking a number $\gamma \in [0,1]$ uniformly at random and then maintaining the invariant that at time $\tau$ the chosen configuration $x_{\tau}$ has the property that the probability mass to the left of $x_{\tau}$ with respect to $p$ is exactly $\gamma$ \cite{Bansal2015}. Crucially, this approach only works in the fractional setting. Also note that $\gamma$ is chosen only once prior to running the algorithm. This describes how we obtain a randomized algorithm from a probability distribution over configurations.
+Let's suppose we have given a probability distribution $p$ over configurations $x \in \mathcal{X}$. A randomized algorithm is then described by initially picking a number $\gamma \in [0,1]$ uniformly at random and then maintaining the invariant that at time $\tau$ the chosen configuration $x_{\tau}$ has the property that the probability mass to the left of $x_{\tau}$ with respect to $p$ is exactly $\gamma$ \cite{Bansal2015}. Crucially, this approach only works in the fractional setting. Also, note that $\gamma$ is chosen only once prior to running the algorithm. This describes how we obtain a randomized algorithm from a probability distribution over configurations.
 
-Next, \citeauthor*{Bansal2015} show the following theorem which describes how we can obtain a deterministic algorithm from a randomized algorithm. \begin{theorem}
+Next, \citeauthor*{Bansal2015} show the following theorem, which describes how we can obtain a deterministic algorithm from a randomized algorithm. \begin{theorem}
     For the problem of (fractional) online convex optimization, if there exists a $\rho$-competitive randomized algorithm $\mathcal{R}$ then there exists a $\rho$-competitive deterministic algorithm $\mathcal{D}$ \cite{Bansal2015}.
 \end{theorem}
 \begin{proof}
-\citeauthor*{Bansal2015} prove this theorem using Jensen's inequality. In the setting of a probability space, \textit{Jensen's inequality}\index{Jensen's inequality} claims that given a convex function $\varphi$ and a random variable $X$ we have \begin{align}
+\citeauthor*{Bansal2015} prove this theorem using Jensen's inequality. In the setting of a probability space, \emph{Jensen's inequality}\index{Jensen's inequality} claims that given a convex function $\varphi$ and a random variable $X$ we have \begin{align}
     E(\varphi(X)) \geq \varphi(E X)
 \end{align} provided both expectations exist, i.e. $E |X|$ and $E |\varphi(X)| < \infty$ \cite{Durrett2010}.
 
@@ -113,11 +113,11 @@ Hence, we have seen that a deterministic algorithm can be obtained from a random
 
 \subsubsection{Assumptions}
 
-In the description of their algorithm, \citeauthor*{Bansal2015} consider a restricted variant of uni-dimensional SSCO. Similarly to their memoryless algorithm which we discussed in \autoref{section:online_algorithms:ud:memoryless}, they consider an unbounded decision space, i.e. $\mathcal{X} = \mathbb{R}$, and the $\ell_1$ norm as switching costs. Further, for their description of this probabilistic algorithm they assume that the minimizer $x_m$ of $f_{\tau}$ is unique and bounded and that the hitting costs $f_{\tau}$ are continuous and smooth, i.e. is infinitely many times continuously differentiable. In particular, they assume the first order and second order derivatives of $f_{\tau}$ are well-defined and continuous. In \autoref{section:theory:beyond_convexity}, we discussed the assumption of differentiability and how it relates to our data center model.
+In the description of their algorithm, \citeauthor*{Bansal2015} consider a restricted variant of uni-dimensional SSCO. Similar to their memoryless algorithm, which we discussed in \autoref{section:online_algorithms:ud:memoryless}, they consider an unbounded decision space, i.e., $\mathcal{X} = \mathbb{R}$, and the $\ell_1$ norm as switching costs. Further, for their description of this probabilistic algorithm, they assume that the minimizer $x_m$ of $f_{\tau}$ is unique and bounded and that the hitting costs $f_{\tau}$ are continuous and smooth, i.e., is infinitely many times continuously differentiable. In particular, they assume the first-order and second-order derivatives of $f_{\tau}$ are well-defined and continuous. In \autoref{section:theory:beyond_convexity}, we discussed the assumption of differentiability and how it relates to our data center model.
 
-Our implementation generalizes their algorithm to instances of SSCO with a bounded decision space $\mathcal{X}$, variable switching costs $\beta$, and piecewise linear functions. The second assumption, namely that the minimizer of the hitting cost is bounded, is natural in the setting of a data center as revenue loss increases for small configurations whereas energy costs increase for large configurations.
+Our implementation generalizes their algorithm to instances of SSCO with a bounded decision space $\mathcal{X}$, variable switching costs $\beta$, and piecewise linear functions. The second assumption, namely that the minimizer of the hitting cost is bounded, is natural in a data center setting as revenue loss increases for small configurations, whereas energy costs increase for large configurations.
 
-In summary, our final algorithm is $2$-competitive for arbitrary instances of uni-dimensional SSCO with the restriction that hitting costs must either be piecewise linear or smooth.
+In summary, the final algorithm is $2$-competitive for arbitrary instances of uni-dimensional SSCO with the restriction that hitting costs must either be piecewise linear or smooth.
 
 \subsubsection{The Probability Distribution}
 
@@ -142,9 +142,9 @@ For any time $\tau$, the algorithm maintains a probability distribution $p_{\tau
 
 \subsubsection{The Algorithm}
 
-To begin with our description of the algorithm, recall that the algorithm developed by \citeauthor*{Bansal2015} operates on an unbounded decision space. To translate the algorithm to a setting with a bounded decision space it is easy to see that we need to ensure that the underlying probability distribution does not assign positive probability to $x \not\in \mathcal{X}$. This can be achieved by introducing the additional restrictions $0 \leq x_l$ and $x_r \leq m$ which requires the assumption $x_m \in [0,m]$. This is not a restriction as we simply define $x_m$ as the minimizer of the hitting cost $f_{\tau}$ with respect to the decision space $\mathcal{X}$.
+To begin with, recall that the algorithm developed by \citeauthor*{Bansal2015} operates on an unbounded decision space. To translate the algorithm to a setting with a bounded decision space, it is easy to see that we need to ensure that the underlying probability distribution does not assign positive probability to $x \not\in \mathcal{X}$. This can be achieved by introducing the additional restrictions $0 \leq x_l$ and $x_r \leq m$ which requires the assumption $x_m \in [0,m]$. This is not a restriction as we simply define $x_m$ as the minimizer of the hitting cost $f_{\tau}$ with respect to the decision space $\mathcal{X}$.
 
-We use a convex optimization (as described in \autoref{section:offline_algorithms:convex_optimization}) to find the minimizer of the hitting cost $x_m$. To determine $x_l$ and $x_r$, we use Brent's method with suitably defined functions and intervals to find a root. We will define these intervals and functions and describe how they can be computed in the following. Before we begin their description, note that we are only able to use a bracketed root finding method as we assumed that our decision space is bounded. If the decision space was not bounded, $x_l$ can be determined using a search for a local optimum minimizing $x$ starting from $x_m$ under the equality constraint given in \autoref{eq:ud:probabilistic:left}. This works because the equality constraint reduces the dimensionality of the optimization to $0$, resulting in a single feasible point. The analogous approach can be used to determine $x_r$.
+We use a convex optimization (as described in \autoref{section:offline_algorithms:convex_optimization}) to find the minimizer of the hitting cost $x_m$. To determine $x_l$ and $x_r$, we use Brent's method with suitably defined functions and intervals to find a root. We will define these intervals and functions and describe how they can be computed in the following. Before we begin their description, note that we can only use a bracketed root finding method as we assumed that our decision space is bounded. If the decision space was not bounded, $x_l$ could be determined using a search for a local optimum minimizing $x$ starting from $x_m$ under the equality constraint given in \autoref{eq:ud:probabilistic:left}. This works because the equality constraint reduces the dimensionality of the optimization to $0$, resulting in a single feasible point. The analogous approach can be used to determine $x_r$.
 
 We begin by describing how $x_r$ can be determined by a local search for a root. First, note that $x_r \in [x_m,m]$. Next, we restate \autoref{eq:ud:probabilistic:right} as a function of $x_r$: \begin{align*}
     && \frac{1}{2} \int_{x_m}^{x_r} \diff[2]{f_{\tau}}{y}(y) \,dy =&\ \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy \\
@@ -170,28 +170,28 @@ are available'' \cite{Press2007}.
 
 Next, we describe how the constraints from \autoref{eq:ud:probabilistic:right:opt} and \autoref{eq:ud:probabilistic:left:opt} can be computed numerically.
 
-\paragraph{Numerical Integration} In our implementation we need to compute both finite and semi-infinite integrals over the probability distribution $p$.
+\paragraph{Numerical Integration} In our implementation, we need to compute both finite and semi-infinite integrals over the probability distribution $p$.
 
 We use the \emph{Tanh-sinh quadrature}\index{Tanh-sinh quadrature} (also known as the double exponential method) to compute finite integrals. \citeauthor*{Bailey2005} describe the convergence and error of this method in more detail \cite{Bailey2005}. They conclude that ``overall, the tanh-sinh scheme appears to be the best
 for integrands of the type most often encountered in experimental math research'' and highlight that it has ``excellent accuracy and runtime performance'' \cite{Bailey2005}.
 
-For semi-inifinite integrals we use the \emph{Gauss-Laguerre quadrature}\index{Gauss-Laguerre quadrature} which can be used to approximate values of integrals of the kind \begin{align}\label{eq:gauss_laguerre}
-    \int_0^{\infty} e^{-x} f(x) \,dx.
+We use the \emph{Gauss-Laguerre quadrature}\index{Gauss-Laguerre quadrature} for semi-infinite integrals, which approximates values of integrals of the kind \begin{align}\label{eq:gauss_laguerre}
+    \int_0^{\infty} e^{-x} f(x) \,dx
 \end{align} \cite{Weisstein}. It is easy to see that we can eliminate the weights by multiplying the integrand $g$ with $e^x$. Let $\text{GL}(g)$ denote the approximation of \autoref{eq:gauss_laguerre} obtained by the Gauss-Laguerre quadrature. We are then able to compute any right-open integral over the interval $[{a,\infty})$ with integrand $p$ by setting $g(x) := p(a+x)$ and any left-open integral over the interval $({-\infty,b}]$ with integrand $p$ by setting $g(x) := p(b-x)$.
 
-Crucially, for numeric stability in both integration schemes we need that the integrands are continuous. It is easy to see that, in general, this is not the case for our probability distribution $p$. We describe in the following paragraph how integrals can be suitably discretized to allow for stable numeric results. Moreover, as the integration schemes are not universal, there potentially exist probability distributions for which the used quadratures are unable to find the integral. In such a case one would have to resort to another integration scheme. We denote the convergence rate of approximating the integral with tolerance $\epsilon$ by $\mathcal{O}(I_{\epsilon})$.
+Crucially, for numeric stability in both integration schemes, we need that the integrands are continuous. It is easy to see that, in general, this is not the case for our probability distribution $p$. We describe in the following paragraph how integrals can be suitably discretized to allow for stable numeric results. Moreover, as the integration schemes are not universal, probability distributions potentially exist for which the used quadratures cannot find the integral. In such a case, one would have to resort to another integration scheme. We denote the convergence rate of approximating the integral with tolerance $\epsilon$ by $\mathcal{O}(I_{\epsilon})$.
 
 \paragraph{Piecewise Linear Hitting Costs} We have already discharged the assumptions that $\beta = 1$ and that the decision space is unbounded. It remains to extend this algorithm to allow for piecewise linear hitting costs.
 
-In our description of the adaption to piecewise linear hitting costs $f_{\tau}$, we refer to the non-continuous or non-smooth points of $f_{\tau}$ as \emph{breakpoints}\index{breakpoint}. For a piecewise linear function, we are able to discretize the integral into a summation, replace the first order derivative at a breakpoint by the difference of consecutive points, and replace the second order derivative at a point by the difference in slopes of consecutive points \cite{Bansal2015}. Let $B_{f_{\tau}}$ denote the set of breakpoints of $f_{\tau}$. Further, we denote by $x_{\tau,l}$ and $x_{\tau,r}$ the values of $x_l$ and $x_r$ at time $\tau$, respectively. It is easy to see that the set of breakpoints of $p_{\tau}$ is then given by \begin{align*}
+In our description of the adaption to piecewise linear hitting costs $f_{\tau}$, we refer to the non-continuous or non-smooth points of $f_{\tau}$ as \emph{breakpoints}\index{breakpoint}. For a piecewise linear function, we can discretize the integral into a summation, replace the first-order derivative at a breakpoint by the difference of consecutive points, and replace the second-order derivative at a point by the difference in slopes of consecutive points \cite{Bansal2015}. Let $B_{f_{\tau}}$ denote the set of breakpoints of $f_{\tau}$. Further, we denote by $x_{\tau,l}$ and $x_{\tau,r}$ the values of $x_l$ and $x_r$ at time $\tau$, respectively. It is easy to see that the set of breakpoints of $p_{\tau}$ is then given by \begin{align*}
     B_{p_{\tau}} := \{0, m\} \cup \left(B_{f_1} \cup \{x_{1,l}, x_{1,r}\}\right) \cup \dots \cup \left(B_{f_{\tau}} \cup \{x_{\tau,l}, x_{\tau,r}\}\right).
 \end{align*}
 
 Let $B_{p_{\tau}}^I := B_{p_{\tau}} \cap I$. The integral of $p_{\tau}$ over $I \subseteq \mathbb{R} \cup \{-\infty, \infty\}$ can then be computed using the quadrature methods described previously by integrating piecewise: \begin{align*}
     \int_I p_{\tau}(y) \,dy = \int_{\min I}^{\min B_{p_{\tau}}^I} p_{\tau}(y) \,dy + \int_{\max B_{p_{\tau}}^I}^{\max I} p_{\tau}(y) \,dy + \sum_{(i, j) \in \text{sort}(B_{p_{\tau}}^I)} \int_i^j p_{\tau}(y) \,dy
-\end{align*} where $\text{sort}(A)$ denotes the pairs of consecutive elements of some set $A \subset \mathbb{R}$ in ascending order. We can continue to use finite difference approximations for the first order and second order derivatives.
+\end{align*} where $\text{sort}(A)$ denotes the pairs of consecutive elements of some set $A \subset \mathbb{R}$ in ascending order. We can continue to use finite difference approximations for the first-order and second-order derivatives.
 
-\paragraph{} Note that the computation of $p_{\tau}$ requires $\mathcal{O}(\tau)$ many approximations of the second order derivative of $f_{t}$. Therefore, any evaluation of $p_{\tau}$ requires $\mathcal{O}(\tau C)$ time and we are thus able to compute the $\epsilon$-optimal integral in $\mathcal{O}(\tau C I_{\epsilon} |B_{p_{\tau}}|) = \mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}|)$ time, assuming $B_{f_{\tau}}$ add a constant number of new breakpoints in each time step and with $B_{f_0}$ denoting the number of breakpoints that is shared between multiple $f_{\tau}$. Overall, the described convex optimizations can be solved $\epsilon$-optimally in $\mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}| O_{\epsilon})$ time. This is also the time complexity of the algorithm. This shows that similarly to lazy capacity provisioning, the computational complexity grows polynomially with time. However, unlike for lazy capacity provisioning, we do not have a method of regularly resetting the history, rendering this algorithm computationally inefficient in practice. The algorithm is described in \autoref{alg:ud:probabilistic}.
+\paragraph{} Note that the computation of $p_{\tau}$ requires $\mathcal{O}(\tau)$ many approximations of the second-order derivative of $f_{t}$. Therefore, any evaluation of $p_{\tau}$ requires $\mathcal{O}(\tau C)$ time and we are thus able to compute the $\epsilon$-optimal integral in $\mathcal{O}(\tau C I_{\epsilon} |B_{p_{\tau}}|) = \mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}|)$ time, assuming $B_{f_{\tau}}$ add a constant number of new breakpoints in each time step and with $B_{f_0}$ denoting the number of breakpoints that is shared between multiple $f_{\tau}$. Overall, the described convex optimizations can be solved $\epsilon$-optimally in $\mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}| O_{\epsilon}^1)$ time. This is also the time complexity of the algorithm. This shows that, similarly to lazy capacity provisioning, the computational complexity grows polynomially with time. However, unlike lazy capacity provisioning, we cannot regularly reset the history, rendering this algorithm computationally inefficient for short time slot lengths. The algorithm is described in \autoref{alg:ud:probabilistic}.
 
 \begin{algorithm}
     \caption{Probabilistic algorithm \cite{Bansal2015}}\label{alg:ud:probabilistic}
@@ -206,9 +206,42 @@ Let $B_{p_{\tau}}^I := B_{p_{\tau}} \cap I$. The integral of $p_{\tau}$ over $I 
 
 Updating the probability distribution $p$ can be done in constant time as this does not require any function evaluations. As discussed in the beginning of this subsection, given a uniformly picked $\gamma \in [0,1]$, the randomized algorithm chooses $X_{\tau}$ (randomly) such that $\int_{-\infty}^{X_{\tau}} p_{\tau}(y) \,dy = \gamma$. In other words, $P_{\tau}(X_{\tau}) \sim \text{Unif}(0,1)$ where $P_{\tau}$ is the cumulative distribution function of $p_{\tau}$. By the universality of the uniform, $X_{\tau}$ is $P_{\tau}$-distributed, i.e. $X_{\tau} \sim P_{\tau}$. Hence, $E X_{\tau} = \int_{x_l}^{x_r} y \cdot p_{\tau}(y) \,dy$ computes the configuration for time slot $\tau$ as $p_{\tau}(y) = 0$ for $y \not\in [x_l, x_r]$. We then return $E X_{\tau}$. Similarly to the previously discussed integrals, this integral can be computed $\epsilon$-optimally in $\mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}|)$ time, not affecting the asymptotic time complexity of the algorithm.
 
+\subsection{Randomly Biased Greedy Algorithm}
+
+We have seen many constant-competitive online algorithms for uni-dimensional smoothed convex optimization. However, we have not yet paid much attention to minimizing regret. This is also partially because sublinear regret can be achieved easily using online gradient descent. As this approach generalizes to the multi-dimensional setting, we discuss this approach in \autoref{section:online_algorithms:md:descent_methods} when we look at descent methods more generally.
+
+Still, one important question regarding the uni-dimensional setting remains. Namely, whether there is an algorithmic framework that achieves both a constant-competitive ratio and sublinear regret. Note that while it is impossible to achieve both simultaneously, it is possible to develop an algorithmic framework that balances both performance metrics.
+
+In their paper, where the incompatibility between the competitive ratio and regret was first introduced, \citeauthor*{Andrew2015} already proposed an algorithmic framework for SCO balancing the two notions in the uni-dimensional setting \cite{Andrew2015}. Their approach is to scale the norm used to penalize movement in the decision space with a parameter $\theta \geq 1$. If $\theta = 1$, i.e., the algorithm solves the original problem, their algorithm is $2$-competitive and has linear regret. In contrast, for $\theta > 1$, movement in the decision space is penalized more. This allows reducing the regret to an arbitrary amount (which still depends linearly on $T$) while maintaining a constant competitive ratio \cite{Andrew2015}.
+
+Note that while regret is understood as introduced in \autoref{section:theory:performance_metrics}, the competitive ratio is understood with respect to the modified problem with lookahead $1$. In general, with \emph{lookahead}\index{lookahead} $i$, the environment plays actions $i$ steps before the agent follows suit. In other words, a step at time $i$ is evaluated using the cost function from time $t-i$, and the initial step $X_i$ is $\mathbf{0}$. For lookahead $i$, we consider the modified overall cost \begin{align*}
+    \sum_{t=1}^T f_t(X_{t+i}) + \norm{X_{t+i} - X_{t+i-1}}.
+\end{align*} For $i=1$, this modified problem is equivalent to metrical task systems where the environment plays first. In contrast, with SCO, the agent plays first, resulting in a lookahead of $i=0$ \cite{Andrew2015}. Note that SCO is the more restricted setting as the agent has less knowledge than in the case of metrical task systems implying that the corresponding competitive algorithm for lookahead $0$ is at least as competitive as the discussed algorithm for lookahead $i$. Given an algorithm with lookahead $i$, the corresponding algorithm with lookahead $0$ is obtained simply by shifting determined configurations $i$ time slots into the past.
+
+\citeauthor*{Bansal2015} mention in their paper that the claims on this algorithm were withdrawn, however, \citeauthor*{Andrew2015} clarified their proof, showing it is correct as stated in the original paper \cite{Bansal2015, Wierman}.
+
+The algorithm of \citeauthor*{Andrew2015} is initialized with a random parameter $r$ which is uniformly sampled from $({-1,1})$, i.e. $r \sim \text{Unif}(-1, 1)$. They define the work function \begin{align}\label{eq:randomly_biased_greedy:work_function}
+    w_{\tau}(x) = \min_{y \in \mathcal{X}} w_{\tau-1}(y) + f_{\tau}(y) + \theta \norm{x - y}
+\end{align} where $w_0(x) = \theta \norm{x}$. During each time slot $\tau$ the algorithm moves to the configuration $x$ minimizing $w_{\tau-1}(x) + r \theta \norm{x}$. The resulting algorithm is described in \autoref{alg:ud:rbg}.
+
+\begin{algorithm}
+    \caption{Randomly Biased Greedy \cite{Andrew2015}}\label{alg:ud:rbg}
+    \SetKwInOut{Input}{Input}
+    \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau}), \theta \geq 1, r \sim \text{Unif}(-1,1)$}
+    $x \gets \argmin_{x \in \mathcal{X}} w_{\tau-1}(x) + r \theta \norm{x}$\;
+    set $w_{\tau}$ as described in \autoref{eq:randomly_biased_greedy:work_function}\;
+    \Return $x$\;
+\end{algorithm}
+
+Observe that as expected, the algorithm returns $X_1 = \mathbf{0}$ for the initial step.
+
+\citeauthor*{Andrew2015} show that given a $\theta \geq 1$ their algorithm attains the $\alpha$-unfair competitive ratio $(1+\theta) / \min \{\theta, \alpha\}$ and regret $\mathcal{O}(\max \{T / \theta, \theta\})$. Hence, for $\alpha = 1$ and $\theta = 1$ the algorithm is $2$-competitive. For any $\alpha > 0$, the optimal $\alpha$-unfair competitive ration is $1 + 1 / \alpha$ and obtained by setting $\theta = \alpha$ \cite{Andrew2015}. In contrast, $\theta = 1 / \epsilon$ for some $\epsilon > 0$ yields the minimal regret $\mathcal{O}(\epsilon T)$ \cite{Andrew2015}. In general, when $T$ is known in advance, \citeauthor*{Andrew2015} show that for $\theta \in \mathcal{O}(\sqrt{T})$, their algorithm achieves a $\mathcal{O}(\sqrt{T})$ $\alpha$-unfair competitive ratio and $\mathcal{O}(\sqrt{T})$ regret \cite{Andrew2015}.
+
+It is easy to see that the work function itself is convex as it can be interpreted as the inf-projection of the convex function $f(x,y) = w_{\tau-1}(y) + f_{\tau}(y) + \theta \norm{x - y}$. This fact is shown in proposition 2.22 of \cite{Burke2015}. The evaluation of $w_{\tau}$ requires $\mathcal{O}(\tau)$ recursive evaluations of the work function each of which uses a convex optimization and evaluates the hitting costs. Thus, an $\epsilon$-optimal evaluation of $w_{\tau}$ can be obtained in $\mathcal{O}(C (O_{\epsilon}^1)^{\tau})$ time. Hence, the overall time complexity of the algorithm is in $\mathcal{O}(C (O_{\epsilon}^1)^{\tau+1})$. We improve the practical runtime by memoizing the work function.
+
 \subsection{Randomized Integral Relaxation}
 
-\citeauthor*{Albers2018} use the probabilistic algorithm described in \autoref{section:online_algorithms:ud:probabilistic} in their randomized algorithm for Int-SSCO achieving the optimal competitive ratio $2$ against an oblivious adversary \cite{Albers2018}. Roughly, the algorithm works by solving the relaxed problem using the probabilistic algorithm of \citeauthor*{Bansal2015} and then randomly rounding the resulting fractional schedule.
+\citeauthor*{Albers2018} use the probabilistic algorithm described in \autoref{section:online_algorithms:ud:probabilistic} in their randomized algorithm for Int-SSCO achieving the optimal competitive ratio $2$ against an oblivious adversary \cite{Albers2018}. Although they used the probabilistic algorithm in their paper, their proof generalizes to any $2$-competitive fractional algorithm, so, in particular, the randomly biased greedy algorithm can be used as well. Roughly, the algorithm works by solving the relaxed problem using the probabilistic algorithm of \citeauthor*{Bansal2015} and then randomly rounding the resulting fractional schedule.
 
 Let $\bar{\mathcal{I}} = (T, m, \beta, \bar{F})$ with $\bar{F} = (\bar{f}_1, \dots, \bar{f}_T)$ be the fractional relaxation of the instance $\mathcal{I} = (T, m, \beta, F)$ of Int-SSCO and let $\bar{\mathcal{X}} = [0,m]$ denote the decision space of $\bar{\mathcal{I}}$. \citeauthor*{Albers2018} define the relaxed operating costs $\bar{f}_{\tau} : \bar{\mathcal{X}} \to \mathbb{R}_{\geq 0}$ as the linear interpolation of the integral operating costs $f_{\tau}$: \begin{align*}
     \bar{f}_{\tau} := \begin{cases}
@@ -253,59 +286,32 @@ The randomized algorithm distinguishes between time slots where the configuratio
     }
 \end{algorithm}
 
-We use the universality of the uniform to simulate Bernoulli-distributed random variables with parameters $p_{\tau}^{\uparrow}$ and $p_{\tau}^{\downarrow}$, respectively. Any pseudo-random number generator can be used to produce the uniformly distributed $\gamma$. It is easy to see that the time complexity is given by the time complexity of \autoref{alg:ud:probabilistic}, i.e. $\mathcal{O}(\tau^2 m C I_{\epsilon} O_{\epsilon})$ with $|B_{f_0}| \in \mathcal{O}(m)$.
-
-\subsection{Randomly Biased Greedy Algorithm}
-
-We have seen many constant-competitive online algorithms for uni-dimensional smoothed convex optimization, however, we have not yet paid much attention to minimizing regret. This is also partially because sublinear regret can be achieved easily using online gradient descent. As this approach generalizes to the multi-dimensional setting, we discuss this approach in \autoref{section:online_algorithms:md:descent_methods} when we look at descent methods more generally.
-
-Still, one important question regarding the uni-dimensional setting remains. Namely, whether there is an algorithmic framework which achieves both a constant-competitive ratio and sublinear regret. Note that while it is impossible to achieve both at the same time, it is possible to develop an algorithmic framework which balances both performance metrics.
-
-In their paper where the incompatibility between the competitive ratio and regret was first introduced, \citeauthor*{Andrew2015} already proposed an algorithmic framework for SCO which balances the two notions in the uni-dimensional setting \cite{Andrew2015}. Their approach is to scale the norm used to penalize movement in the decision space with a parameter $\theta \geq 1$. If $\theta = 1$, i.e. the algorithm solves the original problem, their algorithm is $2$-competitive and has linear regret. Yet, for $\theta > 1$, movement in the decision space is penalized more. This allows to reduce the regret to an arbitrary amount (which still depends linearly on $T$) while maintaining a constant competitive ratio \cite{Andrew2015}.
-
-The algorithm of \citeauthor*{Andrew2015} is initialized with a random parameter $r$ which is uniformly sampled from $({-1,1})$, i.e. $r \sim \text{Unif}(-1, 1)$. They define the work function \begin{align}\label{eq:randomly_biased_greedy:work_function}
-    w_{\tau}(x) = \min_{y \in \mathcal{X}} w_{\tau-1}(y) + f_{\tau}(y) + \theta \norm{x - y}
-\end{align} where $w_0(x) = \theta \norm{x}$. During each time slot $\tau$ the algorithm moves to the configuration $x$ minimizing $w_{\tau-1}(x) + r \theta \norm{x}$. The resulting algorithm is described in \autoref{alg:ud:rbg}.
-
-\begin{algorithm}
-    \caption{Randomly Biased Greedy \cite{Andrew2015}}\label{alg:ud:rbg}
-    \SetKwInOut{Input}{Input}
-    \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau}), \theta \geq 1, r \sim \text{Unif}(-1,1)$}
-    $x \gets \argmin_{x \in \mathcal{X}} w_{\tau-1}(x) + r \theta \norm{x}$\;
-    set $w_{\tau}$ as described in \autoref{eq:randomly_biased_greedy:work_function}\;
-    \Return $x$\;
-\end{algorithm}
-
-\citeauthor*{Andrew2015} show that given a $\theta \geq 1$ their algorithm attains the $\alpha$-unfair competitive ratio $(1+\theta) / \min \{\theta, \alpha\}$ and regret $\mathcal{O}(\max \{T / \theta, \theta\})$. Hence, for $\alpha = 1$ and $\theta = 1$ the algorithm is $2$-competitive. For any $\alpha > 0$, the optimal $\alpha$-unfair competitive ration is $1 + 1 / \alpha$ and obtained by setting $\theta = \alpha$ \cite{Andrew2015}. In contrast, $\theta = 1 / \epsilon$ for some $\epsilon > 0$ yields the minimal regret $\mathcal{O}(\epsilon T)$ \cite{Andrew2015}. In general, when $T$ is known in advance, \citeauthor*{Andrew2015} show that for $\theta \in \mathcal{O}(\sqrt{T})$, their algorithm achieves a $\mathcal{O}(\sqrt{T})$ $\alpha$-unfair competitive ratio and $\mathcal{O}(\sqrt{T})$ regret \cite{Andrew2015}.
-
-It is easy to see that the work function itself is convex as it can be interpreted as the inf-projection of the convex function $f(x,y) = w_{\tau-1}(y) + f_{\tau}(y) + \theta \norm{x - y}$. This fact is shown in proposition 2.22 of \cite{Burke2015}. The evaluation of $w_{\tau}$ requires $\mathcal{O}(\tau)$ recursive evaluations of the work function each of which uses a convex optimization and evaluates the hitting costs. Thus, an $\epsilon$-optimal evaluation of $w_{\tau}$ can be obtained in $\mathcal{O}(\tau C O_{\epsilon})$ time. Hence, the overall time complexity of the algorithm is in $\mathcal{O}(\tau C O_{\epsilon}^2)$.
+We use the universality of the uniform to simulate Bernoulli-distributed random variables with parameters $p_{\tau}^{\uparrow}$ and $p_{\tau}^{\downarrow}$, respectively. Any pseudo-random number generator can be used to produce the uniformly distributed $\gamma$. It is easy to see that the time complexity is given by the time complexity of \autoref{alg:ud:probabilistic}, i.e., $\mathcal{O}(\tau^2 m C I_{\epsilon} O_{\epsilon}^1)$ with $|B_{f_0}| \in \mathcal{O}(m)$, or the complexity of \autoref{alg:ud:rbg}, i.e., $\mathcal{O}(C (O_{\epsilon}^1)^{\tau+1})$ depending on which algorithm is used for the relaxed problem.
 
 \section{Multi-Dimensional}\label{section:online_algorithms:md}
 
 \subsection{Lazy Budgeting}\label{section:online_algorithms:md:lazy_budgeting}
 
-To begin with our discussion of the multi-dimensional setting, we examine two algorithms developed by \citeauthor*{Albers2021} for a restricted class of convex cost functions. Their first algorithm is $2d$-competitive for SLO, i.e. load and time independent costs. and their second algorithm is $(2d+1)$-competitive for SBLO. Note that we only defined SBLO and SLO for the integral case. As no online algorithm for SLO can attain a competitive ratio smaller then $2d$, their first algorithm is optimal and their second algorithm is nearly optimal \cite{Albers2021, Albers2021_2}.
+To begin with our discussion of the multi-dimensional setting, we examine two algorithms developed by \citeauthor*{Albers2021} for a restricted class of convex cost functions. Their first algorithm is $2d$-competitive for SLO, i.e., load and time-independent costs, and their second algorithm is $(2d+1)$-competitive for SBLO. Note that we only defined SBLO and SLO for the integral case. As no online algorithm for SLO can attain a competitive ratio smaller than $2d$, their first algorithm is optimal, and their second algorithm is nearly optimal \cite{Albers2021, Albers2021_2}.
 
-The idea behind both algorithms is to calculate optimal schedules up to the current time slot. Depending on this schedule, the algorithm decides if a server is powered up. To perform the smoothing, the algorithm remembers how long a server was idling and powers this server down if the idle duration surpasses a threshold. \citeauthor*{Albers2021} do not name their algorithms, yet, within this work we refer to them as \emph{lazy budgeting methods}.
+The idea behind both algorithms is to calculate optimal schedules up to the current time slot. Depending on this schedule, the algorithm decides if a server is powered up. To perform the smoothing, the algorithm remembers how long a server was idling and powers this server down if the idle duration surpasses a threshold. \citeauthor*{Albers2021} do not name their algorithms, yet, within this work, we refer to them as \emph{lazy budgeting methods}\index{lazy budgeting}.
 
 \subsubsection{Lazy Budgeting for Smoothed Load Optimization}
 
-Let $\mathcal{I} = (d, \tau, m, \beta, \Lambda, c)$ be an instance of SLO. \citeauthor*{Albers2021} focus on a setting without inefficient server types. A server type $k$ is called \emph{inefficient} if there exists another server type $k'$ where both the operating cost and the switching cost is lower, i.e. $c_k \geq c_{k'}$ and $\beta_k \geq \beta_{k'}$. In practice, this is not a restriction as a server of an inefficient server type is only ever powered up if all more efficient server are already active as there is no trade-off between operating and switching costs. Furthermore, typically servers with a lower operating cost also has a higher switching cost \cite{Albers2021}. In addition, \citeauthor*{Albers2021} assume that there are no duplicated server types, i.e. server types with equal operating and switching costs.
+Let $\mathcal{I} = (d, \tau, m, \beta, \Lambda, c)$ be an instance of SLO. \citeauthor*{Albers2021} focus on a setting without inefficient server types. A server type $k$ is called \emph{inefficient} if there exists another server type $k'$ where both the operating cost and the switching cost is lower, i.e. $c_k \geq c_{k'}$ and $\beta_k \geq \beta_{k'}$. In practice, this is not a restriction as a server of an inefficient server type is only ever powered up if all more efficient servers are already active as there is no trade-off between operating and switching costs. Furthermore, typically servers with a lower operating cost also have a higher switching cost \cite{Albers2021}. In addition, \citeauthor*{Albers2021} assume that there are no duplicated server types, i.e., server types with equal operating and switching costs.
 
 We assume that the server types are sorted in descending order by their operating costs, i.e. $c_1 > \dots > c_d$. As we excluded inefficient server types, switching costs are in ascending order, $\beta_1 < \dots < \beta_d$.
 
-The algorithm of \citeauthor*{Albers2021} separates a problem instance into $m := \sum_{k=1}^d m_k$ lanes. Recall that with SLO we assume that each active server can handle a single job during each time slot. The algorithm uses that at time slot $t$ there is a job in line $j$ if and only if $j \leq \lambda_{t}$. Thus, all servers represented by lines $j > \lambda_{t}$ are either inactive or idling.
+The algorithm of \citeauthor*{Albers2021} separates a problem instance into $m := \sum_{k=1}^d m_k$ lanes. Recall that with SLO, we assume that each active server can handle a single job during each time slot. The algorithm uses that at time slot $t$ there is a job in line $j$ if and only if $j \leq \lambda_{t}$. Thus, all servers represented by lines $j > \lambda_{t}$ are either inactive or idling.
 
-Let $y_{t,j}$ denote the server type that handles the $j$-th lane during time slot $t$ given some underlying schedule $X$. We say $y_{t,j} = 0$ if there is no active server in lane $j$ during time slot $t$, which is only the case if $j > \lambda_{t}$ as we can assume that $\lambda_{t} \leq m$ holds for all time slots $t \in [T]$. \citeauthor*{Albers2021} give the following formal defintion: \begin{align*}
+Let $y_{t,j}$ denote the server type that handles the $j$-th lane during time slot $t$ given some underlying schedule $X$. We say $y_{t,j} = 0$ if there is no active server in lane $j$ during time slot $t$, which is only the case if $j > \lambda_{t}$ as we can assume that $\lambda_{t} \leq m$ holds for all time slots $t \in [T]$. \citeauthor*{Albers2021} give the following formal definition: \begin{align*}
     y_{t,j} := \begin{cases}
         \max \{k \in [d] \mid \sum_{k' = k}^d X_{t,k'} \geq j\} & k \in \left[\sum_{k=1}^d X_{t,k}\right] \\
         0 & \text{otherwise}.
     \end{cases}
 \end{align*} By this definition, we prefer to use servers of the server type with the lowest operating cost (and largest switching cost). In other words, the server types handling each lane $y_{t,1}, \dots, y_{t,m}$ are sorted in descending order, i.e. $y_{t,j} \geq y_{t,j'}$ for $j < j'$ \cite{Albers2021}. We denote by $\hat{y}_{t,j}^{\tau}$ the server type in lane $j$ during time slot $t$ induced by some optimal schedule $\hat{X}^{\tau}$ up to time $\tau$ and by $\widetilde{y}_{t,j}$ the server type in lane $j$ during time slot $t$ as assigned by the algorithm.
 
-The algorithm begins by finding an optimal schedule $\hat{X}^{\tau}$ up to time slot $\tau$. This schedule is chosen such that the server type in a lane of $\hat{X}^{\tau}$ is never reduced compared to the previously used optimal schedule $\hat{X}^{\tau-1}$, i.e. $\hat{y}_{t,j}^{\tau} \geq \hat{y}_{t,j}^{\tau-1}$ for all time slots $t \in [\tau]$ and lanes $j \in [m]$. Moreover, we assume that $\hat{X}^{\tau}$ is a schedule that powers up servers as late as possible and powers down servers as early as possible. This is necessary in case $c_k = 0$ for some server type $k \in [d]$.
-
-[TODO: describe finding maximum ooptimal schedule]
+The algorithm begins by finding an optimal schedule $\hat{X}^{\tau}$ up to time slot $\tau$. This schedule is chosen such that the server type in a lane of $\hat{X}^{\tau}$ is never reduced compared to the previously used optimal schedule $\hat{X}^{\tau-1}$, i.e. $\hat{y}_{t,j}^{\tau} \geq \hat{y}_{t,j}^{\tau-1}$ for all time slots $t \in [\tau]$ and lanes $j \in [m]$. Moreover, we assume that $\hat{X}^{\tau}$ is a schedule that powers up servers as late as possible and powers down servers as early as possible. This is necessary in case $c_k = 0$ for some server type $k \in [d]$. We observe that these properties are fulfilled by all optimal schedules that \autoref{alg:md:optimal_graph_search} obtains. We cache the results of the optimal graph-based algorithm such that in every iteration of the online algorithm, only one dynamic update needs to be performed. The asymptotic time complexity of this dynamic update is thus given as $\mathcal{O}(|\mathcal{M}| C d)$ where $|\mathcal{M}| \in \mathcal{O}(\prod_{k=1}^d m_k)$.
 
 Now, the algorithm ensures that no server type is used for lane $j \in [m]$ that is smaller than the server type used by $\hat{X}^{\tau}$, i.e. $\widetilde{y}_{\tau,j} \geq \hat{y}_{\tau,j}^{\tau}$. If $\widetilde{y}_{\tau-1,j} < \hat{y}_{\tau,j}^{\tau}$, a server of type $\widetilde{y}_{\tau-1,j}$ is powered down and a server of type $\hat{y}_{\tau,j}^{\tau}$ is powered up. A server of type $k$ that is not replaced by a greater server type remains active for $\bar{t}_k := \lfloor \beta_k / c_k \rfloor$ time slots \cite{Albers2021}. If $\hat{X}^{\tau}$ uses a smaller server type $k' \leq k$ in the meantime, then the server of type $k$ will run for at least $\bar{t}_{k'}$ further time slots.
 
@@ -314,23 +320,38 @@ The algorithm computes $\widetilde{y}_{\tau,j}$ directly. The corresponding numb
 \begin{algorithm}
     \caption{Lazy Budgeting for SLO \cite{Albers2021}}\label{alg:md:lazy_budgeting:det_slo}
     \KwIn{$\mathcal{I}_{\text{SLO}} = (d \in \mathbb{N}, \tau \in \mathbb{N}, m \in \mathbb{N}^d, \beta \in \mathbb{R}_{>0}^d, \Lambda \in \mathbb{N}_0^{\tau}, c \in \mathbb{R}_{\geq 0}^d)$}
-    Calculate $\hat{X}^{\tau}$ such that $\hat{y}_{t,j}^{\tau} \geq \hat{y}_{t,j}^{\tau-1}$ for all $t \in [\tau]$ and $j \in [m]$ [TODO: replace with more concrete steps]\;
+    Update the previously found optimal schedule $\hat{X}^{\tau-1}$ to $\hat{X}^{\tau}$ such that $\hat{y}_{t,j}^{\tau} \geq \hat{y}_{t,j}^{\tau-1}$ for all  $j \in [m]$\;
     \For{$j \gets 1$ \KwTo $m$}{
         \eIf{$\widetilde{y}_{\tau-1,j} < \hat{y}_{\tau,j}^{\tau}$ \KwOr $t \geq h_j$}{
             $\widetilde{y}_{\tau,j} \gets \hat{y}_{\tau,j}^{\tau}$\;
-            $h_j \gets \tau + \bar{t}_{\widetilde{y}_{\tau,j}}$\;
+            $h_j \gets \tau + \bar{t}_{\hat{y}_{\tau,j}^{\tau}}$\;
         }{
             $\widetilde{y}_{\tau,j} \gets \widetilde{y}_{\tau-1,j}$\;
-            $h_j \gets \max \{h_j, \tau + \bar{t}_{\widetilde{y}_{\tau,j}}\}$ where $\bar{t}_0 = 0$\;
+            $h_j \gets \max \{h_j, \tau + \bar{t}_{\hat{y}_{\tau,j}^{\tau}}\}$ where $\bar{t}_0 = 0$\;
         }
     }
     \ForEach{$k \in [d]$}{
-        $X_{\tau,j} \gets |\{j \in [m] \mid \widetilde{y}_{\tau,j} = k\}|$\;
+        $X_{\tau,k} \gets |\{j \in [m] \mid \widetilde{y}_{\tau,j} = k\}|$\;
     }
     \Return $X_{\tau}$\;
 \end{algorithm}
 
-[TODO: discuss time complexity]
+\begin{function}
+	\caption{BuildLanes($x, d, m$)}\label{proc:md:lazy_budgeting:build_lanes}
+	$y \gets \mathbf{0}$\;
+	\For{$j \gets 1$ \KwTo $m$}{
+	    \If{$j \leq \sum_{k=1}^d x_k$}{
+	        \For{$k \gets 1$ \KwTo $d$}{
+        	    \If{$\sum_{k'=k}^d x_{k'} \geq j$}{
+        	        $y_j \gets k$\;
+        	    }
+        	}
+	    }
+	}
+    \Return $y$\;
+\end{function}
+
+Schedules can be converted to lanes in $\mathcal{O}(m d^2)$ time as described by \ref{proc:md:lazy_budgeting:build_lanes} and lanes can be converted back to schedules in $\mathcal{O}(m)$ time by iterating over all lanes. Hence, the overall asymptotic time complexity of the algorithm is described by adding the time required to find the optimal schedule, i.e., $\mathcal{O}(m d^2 + C d \prod_{k=1}^d m_k)$.
 
 \subsubsection{Randomized Lazy Budgeting for Smoothed Load Optimization}
 
@@ -347,13 +368,13 @@ To sample $\gamma$ we first seek to find the cumulative distribution function $F
                   &= \frac{1}{e-1} (e^x - 1).
 \end{align*} By the universality of the uniform, realizations of $F_{\gamma}$ can be simulated given $U \sim \text{Unif}(0,1)$ as $F_{\gamma}^{-1}(U) \sim F_{\gamma}$. It is now easy to see that $F_{\gamma}^{-1}(x) = \ln (x (e - 1) + 1)$.
 
-This completely describes the implementation of the randomized variant of lazy budgeting for SLO. The asymptotic time complexity is given by the time complexity of \autoref{alg:md:lazy_budgeting:det_slo}.
+This completes the description of the implementation of the randomized variant of lazy budgeting for SLO. The asymptotic time complexity is given by the time complexity of \autoref{alg:md:lazy_budgeting:det_slo}.
 
 \subsubsection{Lazy Budgeting for Smoothed Balanced-Load Optimization}
 
-In a subsequent paper \citeauthor*{Albers2021_2} modified their lazy bugdeting method to SBLO, allowing for more complex cost functions. The method remains similar: First, an optimal schedule is found which ends at the current time slot. Then, the algorithm ensures for each server type, that the number of active servers is at least as large as the number of active servers in the optimal schedule. Lastly, to make the algorithm competitive, if the accumulated idle operating cost of a server of type $k$, $g_{t,k}(0)$, exceeds the switching cost $\beta_k$, a server of type $k$ is powered down \cite{Albers2021_2}.
+In a subsequent paper, \citeauthor*{Albers2021_2} modified their lazy budgeting method to SBLO, allowing for more complex cost functions. The method remains similar: First, an optimal schedule is found which ends at the current time slot. Then, the algorithm ensures for each server type that the number of active servers is at least as large as the number of active servers in the optimal schedule. Lastly, to make the algorithm competitive, if the accumulated idle operating cost of a server of type $k$, $g_{t,k}(0)$ exceeds the switching cost $\beta_k$, a server of type $k$ is powered down \cite{Albers2021_2}.
 
-First, \citeauthor*{Albers2021_2} developed a $(2d+1)$-competitive online algorithm for a setting where the operating costs are time-independent. This allows to determine the runtime of a server in advance as both $g_{t,k}(0)$ and $\beta_k$ are known. Then, they extend their algorithm to a setting which allows for time-dependent operating costs where their algorithm attains a competitive ratio of $2d+1+\epsilon$ for any $\epsilon > 0$.
+First, \citeauthor*{Albers2021_2} developed a $(2d+1)$-competitive online algorithm for a setting where the operating costs are time-independent. This allows to determine the runtime of a server in advance as both $g_{t,k}(0)$ and $\beta_k$ are known. Then, they extend their algorithm to a setting that allows for time-dependent operating costs where their algorithm attains a competitive ratio of $2d+1+\epsilon$ for any $\epsilon > 0$.
 
 \paragraph{Time-Independent Operating Costs}
 
@@ -362,7 +383,7 @@ Again, we denote by $\hat{X}^{\tau}$ the optimal schedule with information up to
 \begin{algorithm}
     \caption{Lazy Budgeting for SBLO (for time-independent operating costs) \cite{Albers2021_2}}\label{alg:md:lazy_budgeting:sblo_a}
     \KwIn{$\mathcal{I}_{\text{SBLO}} = (d \in \mathbb{N}, \tau \in \mathbb{N}, m \in \mathbb{N}^d, \beta \in \mathbb{R}_{>0}^d, \Lambda \in \mathbb{N}_0, G \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0}^d)^d)$}
-    Calculate $\hat{X}^{\tau}$\;
+    Update $\hat{X}^{\tau-1}$ to $\hat{X}^{\tau}$\;
     \For{$k \gets 1$ \KwTo $d$}{
         $X_{\tau,k} \gets X_{\tau-1,k} - h_{\tau - \bar{t}_k, k}$\;
         \If{$X_{\tau,k} < \hat{X}_{\tau,k}^{\tau}$}{
@@ -373,15 +394,15 @@ Again, we denote by $\hat{X}^{\tau}$ the optimal schedule with information up to
     \Return $X_{\tau}$\;
 \end{algorithm}
 
-An optimal schedule $\hat{X}^{\tau}$ up to time $\tau$ can be obtained by \autoref{alg:md:optimal_graph_search} in $\mathcal{O}(\tau |\mathcal{M}| C)$ time. It is easy to see that this is also the time complexity of \autoref{alg:md:lazy_budgeting:sblo_a} as $d \in \mathcal{O}(|\mathcal{M}|)$, even when $d$ is not treated as a constant.
+Similar to our implementation of Lazy Budgeting for SLO (\autoref{alg:md:lazy_budgeting:det_slo}), we cache intermediate results of the algorithm computing the optimal schedule up to time slot $\tau$ (\autoref{alg:md:optimal_graph_search}). It is therefore enough to perform a single dynamic update to obtain $\hat{X}^{\tau}$ which is possible in $\mathcal{O}(|\mathcal{M}| C d)$ time where $|\mathcal{M}| \in \mathcal{O}(\prod_{k=1}^d m_k)$. It is easy to see that this is also the time complexity of \autoref{alg:md:lazy_budgeting:sblo_a}.
 
 \paragraph{Time-Dependent Operating Costs}
 
-Next, \citeauthor*{Albers2021_2} extend \autoref{alg:md:lazy_budgeting:sblo_a} to an algorithm which supports time-dependent operating costs and achieves a competitive ratio of $2d + 1 + c(\mathcal{I})$ where $c(\mathcal{I}) := \sum_{k=1}^d \max_{t \in [T]} \frac{g_{t,k}(0)}{\beta_k}$ \cite{Albers2021_2}. Now, the idle operating cost $g_{t,k}(0)$ is not constant over time anymore. As at time $\tau$ we only know the operating costs up to time $\tau$, we cannot pre-determine the number of time slots that a server of type $k$ is active until powered down, yet at the time slot when a server is powered down we know all relevant cost functions. \citeauthor*{Albers2021_2} formally define the maximal number of time slots such that the sum of the idle operating costs beginning from the next time slot, $\tau+1$, is smaller than or equal to the switching cost as \begin{align*}
+Next, \citeauthor*{Albers2021_2} extend \autoref{alg:md:lazy_budgeting:sblo_a} to an algorithm which supports time-dependent operating costs and achieves a competitive ratio of $2d + 1 + c(\mathcal{I})$ where $c(\mathcal{I}) := \sum_{k=1}^d \max_{t \in [T]} \frac{g_{t,k}(0)}{\beta_k}$ \cite{Albers2021_2}. Now, the idle operating cost $g_{t,k}(0)$ is not constant over time anymore. Since at time $\tau$ we only know the operating costs up to time $\tau$, we cannot pre-determine the number of time slots that a server of type $k$ is active until powered down, yet at the time slot when a server is powered down we know all relevant cost functions. \citeauthor*{Albers2021_2} formally define the maximal number of time slots such that the sum of the idle operating costs beginning from the next time slot, $\tau+1$, is smaller than or equal to the switching cost as \begin{align*}
     \bar{t}_{t,k} := \max \left\{\bar{t} \in [T - t] \mid \sum_{t' = t+1}^{t+\bar{t}} g_{t,k}(0) \leq \beta_k\right\}
 \end{align*} In contrast to \autoref{alg:md:lazy_budgeting:sblo_a} where servers of type $k$ that were powered up at time $\tau$ were active for $\bar{t}_{\tau,k}$ time slots, they are now active for $\bar{t}_{\tau,k} + 1$ time slots.
 
-Let $W_{\tau,k}$ denote the set of all time slots $t$ such that servers of type $k$ that were powered up at time $t$ are powered down during time slot $\tau$, i.e. $t + \bar{t}_{t,k} + 1 = \tau$. Again, we denote by $h_{t,k}$ the number of servers of type $k$ that were powered up at time $t$. Using the same powering-up policy as \autoref{alg:md:lazy_budgeting:sblo_a}, the updated algorithm is described in \autoref{alg:md:lazy_budgeting:sblo_b}.
+Let $W_{\tau,k}$ denote the set of all time slots $t$ such that servers of type $k$ that were powered up at time $t$ are powered down during time slot $\tau$, i.e., $t + \bar{t}_{t,k} + 1 = \tau$. Again, we denote by $h_{t,k}$ the number of servers of type $k$ that were powered up at time $t$. Using the same powering-up policy as \autoref{alg:md:lazy_budgeting:sblo_a}, the updated algorithm is described in \autoref{alg:md:lazy_budgeting:sblo_b}.
 
 \begin{algorithm}
     \caption{Lazy Budgeting for SBLO (for time-dependent operating costs) \cite{Albers2021_2}}\label{alg:md:lazy_budgeting:sblo_b}
@@ -398,7 +419,7 @@ Let $W_{\tau,k}$ denote the set of all time slots $t$ such that servers of type 
     \Return $X_{\tau}$\;
 \end{algorithm}
 
-$W_{\tau,k}$ can be computed in $\mathcal{O}(\tau^2 C)$ time. Thus, the overall time complexity of the algorithm is $\mathcal{O}(\tau^2 |\mathcal{M}| C)$.
+$W_{\tau,k}$ can be computed in $\mathcal{O}(\tau^2 C)$ time. Thus, the overall time complexity of the algorithm is $\mathcal{O}(\tau^2 |\mathcal{M}| C d)$.
 
 \paragraph{Reducing the Competitive Ratio}
 
@@ -406,7 +427,7 @@ We now describe how \citeauthor*{Albers2021_2} improve the competitive ratio of 
 
 In our description, we refer to time slots of $\mathcal{I}$ by $t$ and to sub time slots of $\widetilde{\mathcal{I}}$ by $u$. The total number of sub time slots is given by $\widetilde{\tau} := \sum_{t=1}^{\tau} \widetilde{n}_t$. We denote by $U(t) = [u+1 : u+\widetilde{n}_t] \subseteq [\widetilde{\tau}]$ with $u = \sum_{t'=1}^{t-1} \widetilde{n}_t$ the set of sub time slots corresponding to time slot $t$. In contrast, let $U^{-1}(u)$ be the time slot $t \in [\tau]$ such that $u \in U(t)$.
 
-The operating cost $g_{t,k}(l)$ of a server of type $k$ during time slot $t$ under load $l$ is divided equally among all sub time slots $\widetilde{n}_t$, i.e. $\widetilde{g}_{u,k}(l) := g_{U^{-1}(u),k}(l)$. The job volume does not change, so $\widetilde{\lambda}_u := \lambda_{U^{-1}(u)}$.
+The operating cost $g_{t,k}(l)$ of a server of type $k$ during time slot $t$ under load $l$ is divided equally among all sub time slots $\widetilde{n}_t$, i.e. $\widetilde{g}_{u,k}(l) := g_{U^{-1}(u),k}(l) / \widetilde{n}_{U^{-1}(u)}$. The job volume does not change, so $\widetilde{\lambda}_u := \lambda_{U^{-1}(u)}$.
 
 \citeauthor*{Albers2021_2} show that for \begin{align*}
     \widetilde{n}_t = \left\lceil\frac{d}{\epsilon} \cdot \max_{k \in [d]} \frac{g_{t,k}(0)}{\beta_k}\right\rceil
@@ -414,7 +435,7 @@ The operating cost $g_{t,k}(l)$ of a server of type $k$ during time slot $t$ und
 
 Let $\widetilde{X}$ be the schedule obtained by \autoref{alg:md:lazy_budgeting:sblo_b} for $\widetilde{\mathcal{I}}$. Then, the schedule $X$ for the original problem instance $\mathcal{I}$ can be obtained by setting $X_{\tau} = \widetilde{X}_{\mu(\tau)}$ where $\mu(\tau) = \argmin_{u \in U(\tau)} \widetilde{f}_{u}(\widetilde{X}_u)$ is the configuration that minimizes the operating cost during $U(t)$ \cite{Albers2021_2}.
 
-The resulting algorithm is shown in \autoref{alg:md:lazy_budgeting:sblo_c}. First, the modified problem instance $\widetilde{\mathcal{I}}$ is created and the next $\widetilde{n}_{\tau}$ time steps are simulated using \autoref{alg:md:lazy_budgeting:sblo_b}. Then, the resulting schedule $X$ is constructed from $\widetilde{X}$.
+The resulting algorithm is shown in \autoref{alg:md:lazy_budgeting:sblo_c}. First, the modified problem instance $\widetilde{\mathcal{I}}$ is created, and the next $\widetilde{n}_{\tau}$ time steps are simulated using \autoref{alg:md:lazy_budgeting:sblo_b}. Then, the resulting schedule $X$ is constructed from $\widetilde{X}$.
 
 \begin{algorithm}
     \caption{Lazy Budgeting for SBLO \cite{Albers2021_2}}\label{alg:md:lazy_budgeting:sblo_c}
@@ -426,7 +447,7 @@ The resulting algorithm is shown in \autoref{alg:md:lazy_budgeting:sblo_c}. Firs
     \Return $X_{\tau}$\;
 \end{algorithm}
 
-The number of sub time slots $\widetilde{n}_t$ can be determined in $\mathcal{O}(1)$, assuming $d$ is a constant. Creating the modified problem instance and constructing the obtained schedule take $\mathcal{O}(\widetilde{n}_{\tau})$ time each. Simulating \autoref{alg:md:lazy_budgeting:sblo_b} for $\widetilde{n}_{\tau}$ sub time slots takes $\mathcal{O}(\widetilde{n}_{\tau} \widetilde{\tau}^2 |\mathcal{M}| C)$ time. Hence, the overall asymptotic time complexity of \autoref{alg:md:lazy_budgeting:sblo_c} is given by $\mathcal{O}(\widetilde{n}_{\tau} \widetilde{\tau}^2 |\mathcal{M}| C)$, which is inversely proportional to $\epsilon^3$.
+The number of sub time slots $\widetilde{n}_t$ can be determined in $\mathcal{O}(C d)$ time. Creating the modified problem instance takes $\mathcal{O}(\widetilde{n}_{\tau})$ time. Simulating \autoref{alg:md:lazy_budgeting:sblo_b} for $\widetilde{n}_{\tau}$ sub time slots takes $\mathcal{O}(\widetilde{n}_{\tau} \widetilde{\tau}^2 |\mathcal{M}| C d)$ time. The obtained schedule can be constructed in $\mathcal{O}(\widetilde{n}_{\tau} C)$ time. Hence, the overall asymptotic time complexity of \autoref{alg:md:lazy_budgeting:sblo_c} is given by $\mathcal{O}(\widetilde{n}_{\tau} \widetilde{\tau}^2 |\mathcal{M}| C d)$, which is inversely proportional to $\epsilon^3$.
 
 \subsection{Descent Methods}\label{section:online_algorithms:md:descent_methods}
 
@@ -438,7 +459,15 @@ The number of sub time slots $\widetilde{n}_t$ can be determined in $\mathcal{O}
 
 \section{Predicting}\label{section:online_algorithms:md:predictions}
 
-\subsection{Making Predictions}
+In practice, we can attempt to use predicted hitting costs to improve the performance of online algorithms. In the data-center setting, it is often possible to predict future incoming loads to a high degree of accuracy. Using predicted hitting costs and their uncertainty distributions, online algorithms can make more informed decisions in practice. In this section, we begin by describing approaches for time-series predictions and end with discussing algorithms that use such predictions.
+
+\subsection{Making Predictions}\label{section:online_algorithms:md:predictions:making_predictions}
+
+There exist multiple paradigms for making time-series predictions. Due to much recent engagement in deep learning generally and time-series predictions specifically, multiple approaches perform well in practical settings. Most algorithms separately tune parameters of individual models for short-term and long-term trends as well as seasonality \cite{Taylor2017, Hosseini2021}.
+
+A fundamental difference between models is whether they are Bayesian, i.e., use an underlying uncertainty distribution within the model. Facebook's Prophet algorithm is Bayesian, whereas LinkedIn's Greykite algorithm is not \cite{Taylor2017, Hosseini2021}.
+
+For Bayesian models, online algorithms can use the uncertainty distribution to consider outliers appropriately. For non-Bayesian models, additive white Gaussian noise can be added to the prediction to achieve a similar effect. In general, many strategies can be used to obtain a single representative prediction of the underlying distribution. In our experiments, we use the mean prediction to ensure appropriate consideration of outliers. The median or 90th percentile predictions are alternatives that are more robust to outliers.
 
 \subsection{Prediction Window}
 
@@ -446,16 +475,16 @@ A natural model to allow incorporating predictions is the use of a finite predic
 
 \subsubsection{Lazy Capacity Provisioning with Prediction Window}
 
-\citeauthor*{Lin2011} extend their algorithm lazy capacity provisioning which we discussed in \autoref{section:online_algorithms:ud:lazy_capacity_provisioning} to support the prediction window by changing the update rule to \begin{align*}
+\citeauthor*{Lin2011} extend their algorithm lazy capacity provisioning, which we discussed in \autoref{section:online_algorithms:ud:lazy_capacity_provisioning} to support the prediction window by changing the update rule to \begin{align*}
     X_{\tau} = \begin{cases}
         0 & \tau \leq 0 \\
         (X_{\tau-1})_{X_{\tau+w,\tau}^L}^{X_{\tau+w,\tau}^U} & \tau \geq 1
     \end{cases}
 \end{align*}
 
-The assumption of perfect knowledge of the future is certain to be violated when an online algorithm is used in practice, still \citeauthor*{Lin2011} show and we confirm in [TODO: add reference] that lazy capacity provisioning with a prediction window is robust to this assumption in practice \cite{Lin2011}. Unfortunately, \citeauthor*{Lin2011} and \citeauthor*{Albers2018} showed that using a finite prediction window does not improve the worst-case performance of the online algorithm for the fractional and integral case, respectively \cite{Lin2011, Albers2018}. In other words, the competitive ratio of lazy capacity provisioning is $3$ regardless of whether it uses a finite prediction window. In practice, however, we observe that a prediction window already significantly improves the performance of the algorithm [TODO: add reference].
+The assumption of perfect knowledge of the future is sure to be violated when an online algorithm is used in practice. Still, \citeauthor*{Lin2011} show that lazy capacity provisioning with a prediction window is robust to this assumption in practice \cite{Lin2011}. Unfortunately, \citeauthor*{Lin2011} and \citeauthor*{Albers2018} showed that using a finite prediction window does not improve the worst-case performance of the online algorithm for the fractional and integral case, respectively \cite{Lin2011, Albers2018}. In other words, the competitive ratio of lazy capacity provisioning is $3$ regardless of whether it uses a finite prediction window. In practice, however, \citeauthor*{Lin2011} show that a prediction window already significantly improves the algorithm's performance.
 
-There are two main drawbacks to using a finite prediction window. First, predictions windows are finite and typically constrained to a short period of time as they are assumed to be perfect. In contrast, predictions can be made for much longer time horizons, albeit with a decreasing accuracy. Second, it completely disregards any knowledge or assumptions of the certainty and noise of the predictions by assuming the predictions to be perfect. Therefore, for the remainder of this section, it will be our goal to devise better algorithms that use this information to make more informed decisions.
+There are two main drawbacks to using a finite prediction window. First, predictions windows are finite and typically constrained to a short period as they are assumed to be perfect. In contrast, predictions can be made for much longer time horizons, albeit with decreasing accuracy. Second, it completely disregards any knowledge or assumptions of the certainty and noise of the predictions by assuming the predictions to be perfect. Therefore, for the remainder of this section, it will be our goal to devise better algorithms that use this information to make more informed decisions.
 
 \subsection{Model Predictive Control}
 

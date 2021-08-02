@@ -1,0 +1,237 @@
+% !TeX root = ../main.tex
+% Add the above to each chapter to make compiling the PDF easier in some editors.
+
+\chapter{Case Studies}\label{chapter:case_studies}
+
+In this chapter, we examine the performance of the previously described models and algorithms using real server traces. Thereby we focus on two aspects: First, we are interested in how well the discussed algorithms compare in absolute terms and relative to each other. Second, we are interested in the general promise of dynamically right-sizing data centers, which we study by conservatively estimating cost savings and relating them to previous research.
+
+\section{Method}
+
+We begin by describing our experimental setup. We begin with a detailed discussion of the characteristics of the server traces, which we use as a basis for our analysis. Then, we examine the underlying assumptions of our analysis. This is followed by a discussion of alternative approaches to right-sizing data centers, which we use as a foundation for estimating the cost savings resulting from dynamic right-sizing of data centers. Next, we describe the general model parameters we use in our analysis and relate them to previous research. Lastly, we introduce the precise performance metrics used in the subsequent sections.
+
+Throughout our experiments, we seek to determine conservative approximations for the resulting performance and cost savings.
+
+\subsection{Traces}\label{section:case_studies:method:traces}
+
+We use several traces with varying characteristics for our experiments. Some traces are from clusters rather than individual data centers. However, to simplify our analysis, we assume traces to apply to a single data center without restricting the considered server architectures.
+
+\citeauthor*{Amvrosiadis2018} showed that the characteristics of traces vary drastically even within a single trace when different subsets are considered individually \cite{Amvrosiadis2018}. Their observation shows that it is crucial to examine long server traces and various server traces from different sources to gain a proper perspective of real-world performance.
+
+\subsubsection{Characteristics}
+
+To understand the varying effectiveness of dynamic right-sizing for the considered traces, we first analyze the properties of the given traces.
+
+The most immediate and fundamental properties of a trace are its duration, the number of appearing jobs, the number of job types, and the underlying server infrastructure -- especially whether this infrastructure is homogeneous or heterogeneous.
+
+Then, we also consider several more specific characteristics. The \emph{interarrival time}\index{interarrival time} (or submission rate) of jobs is the distribution of times between job arrivals. This distribution indicates the average system load as well as load uniformity. The \emph{peak-to-mean ratio (PMR)}\index{peak-to-mean ratio} is defined as the ratio of the maximum load and the mean load. It is a good indicator of the uniformity of loads. We refer to time slots as \emph{peaks}\index{peak load} when their load is smaller than the 0.9-quartile of loads. We call the ratio of the 0.9-quantile of loads and the mean load \emph{true peak-to-mean-ratio (TPMR)}\index{true peak-to-mean ratio} as it is less sensitive to outliers than the PMR. We refer to periods between peaks as \emph{valleys}\index{valley}. More concretely, we refer to the time distance between two consecutive peaks as \emph{peak distance}\index{peak distance} and the number of consecutive time slots up to a time slot with a smaller load as \emph{valley length}\index{valley length}. Further, we say that a trace follows a \emph{diurnal pattern}\index{diurnal pattern} if during every 24 hours, excluding the final day, there is at least one valley spanning 12 hours or more. We exclude the final day as the final valley might be shortened by the end of the trace.
+
+We also consider some additional information included in some traces, such as the measured scheduling rate (or queuing delay), an indicator for utilization.
+% and, if provided, the distribution of the measured utilization of servers which may be an indicator for resource over-commitment.
+
+\subsubsection{Overview}
+
+We now give an overview of all used traces. For our initial analysis, we use a time slot length of 10 minutes.
+
+\paragraph{MapReduce\footnote{MapReduce is a programming model for processing and generating large data sets in a functional style \cite{Dean2004}} Workload from a Hadoop\footnote{Apache Hadoop is an open-source software for managing clusters} Cluster at Facebook \cite{SWIM2013}} This trace encompasses three day-long traces from 2009 and 2010, extracted from a 6-month and a 1.5-month-long trace containing 1 million homogeneous jobs each. The cluster consists of 600 machines which we assume to be homogeneous. The trace was published by \citeauthor*{SWIM2013} as part of the SWIM project at UC Berkeley.
+
+\begin{figure}
+    \begin{subfigure}[b]{.3\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/facebook_2009_0_histogram.tex}}
+    \caption{2009-0}
+    \end{subfigure}
+    \begin{subfigure}[b]{.3\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/facebook_2009_1_histogram.tex}}
+    \caption{2009-1}
+    \end{subfigure}
+    \begin{subfigure}[b]{.3\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/facebook_2010_histogram.tex}}
+    \caption{2010}
+    \end{subfigure}
+    \caption{Facebook MapReduce Workloads}
+    \label{tab:facebook:histogram}
+\end{figure}
+
+\begin{figure}
+    \begin{subfigure}[b]{.3\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/facebook_2009_0_valley_lengths.tex}}
+    \caption{2009-0}
+    \end{subfigure}
+    \begin{subfigure}[b]{.3\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/facebook_2009_1_valley_lengths.tex}}
+    \caption{2009-1}
+    \end{subfigure}
+    \begin{subfigure}[b]{.3\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/facebook_2010_valley_lengths.tex}}
+    \caption{2010}
+    \end{subfigure}
+    \caption{Valley length distributions from the Facebook MapReduce Workloads}
+    \label{tab:facebook:valley_lengths}
+\end{figure}
+
+\begin{table}[]
+    \centering
+    \begin{tabular}{>{\bfseries\centering}l|c|c|c}
+        characteristic & 2009-0 & 2009-1 & 2010 \\\hline
+        duration & 1 day & 1 day & 1 day \\
+        number of jobs & 6 thousand & 7 thousand & 24 thousand \\
+        median interarrival time & 7 seconds & 7 seconds & 2 seconds \\
+        PMR & 3.91 & 2.97 & 2.2 \\
+        TPMR & 2.04 & 1.93 & 1.69 \\
+        mean peak distance & 95 minutes & 106 minutes & 87 minutes \\
+        mean valley length & 44 minutes & 36 minutes & 35 minutes \\
+        % diurnal pattern & \emph{trace too short} & \emph{trace too short} & \emph{trace too short} \\
+    \end{tabular}
+    \caption{Facebook MapReduce Workloads}
+    \label{tab:facebook}
+\end{table}
+
+\paragraph{Los Alamos National Lab HPC Traces \cite{Amvrosiadis2018_3, Amvrosiadis2018, Amvrosiadis2018_2}} This trace comprises two separate traces from high-performance computing clusters from Los Alamos National Lab (LANL). The traces were published by \citeauthor*{Amvrosiadis2018} as part of the Atlas project at Carnegie Mellon University.
+
+The first trace is from the Mustang cluster, a general-purpose cluster consisting of 1600 homogeneous servers. Jobs were assigned to entire servers. The dataset covers 61 months from October 2011 to November 2016. Note that the PMR is large at $622$ due to some outliers in the data. The median job duration is roughly 7 minutes, although the trace includes some extremely long-running outliers, resulting in a mean job duration of over 2.5 hours. In the trace, jobs were assigned to one or multiple servers. To normalize the trace, we consider each job once for each server it was processed on.
+
+The second trace is from the Trinity supercomputer. This trace is very similar to the Mustang trace but includes an even more significant number of long-running jobs. We, therefore, do not consider this trace in our analysis.
+
+\paragraph{Microsoft Fiddle Trace \cite{Jeon2019}} This trace consists of deep neural network training workloads on internal servers from Microsoft. The trace was published as part of the Fiddle project from Microsoft Research. The jobs are run on a heterogeneous set of servers which we group based on the number of GPUs of each server. There are 321 servers with two GPUs and 231 servers with eight GPUs. The median job duration is just below 15 minutes.
+
+The CPU utilization of the trace is extremely low, with more than 80\% of servers running with utilization 30\% or less \cite{Santhanam2019}. However, memory utilization is high, with an average of more than 80\% indicating that overall server utilization is already very high \cite{Santhanam2019}. Again, the PMR is rather large at 89.43 due to outliers.
+
+In our model, we adjust the runtime of jobs relative to the number of available GPUs in the respective server. We adjust for the increased energy consumption of a server with eight GPUs by increasing the energy consumption of servers with two GPUs by a factor of 3.75 to account for increases in cooling efficiency.
+
+\paragraph{Alibaba Trace \cite{Alibaba2018}} This trace consists of a mixture of long-running applications and batch jobs. We are using their trace from 2018, covering eight days. The jobs are processed on 4000 homogeneous servers. Jobs themselves are grouped into 11 types which we further simplify to 4 types based on their average runtime. The median job duration is just below 15 minutes. The median job duration is 8 seconds, and the mean job duration is just over 1.5 minutes.
+
+Data from a previous trace indicates that mean CPU utilization varies between 10\% and 40\% while mean memory utilization varies between 40\% and 65\% \cite{Lu2017}. This indicates that the overall server utilization is not optimal.
+
+In our model, we scale job runtimes by a factor of 2.5 from short to very long jobs, roughly matching the runtimes of jobs from the trace.
+
+\begin{figure}
+    \begin{subfigure}[b]{.3\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/los_alamos_mustang_histogram.tex}}
+    \caption{LANL Mustang}\label{fig:los_alamos:histogram}
+    \end{subfigure}
+    \begin{subfigure}[b]{.3\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/microsoft_histogram}}
+    \caption{Microsoft Fiddle}\label{fig:microsoft:histogram}
+    \end{subfigure}
+    \begin{subfigure}[b]{.3\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/alibaba_histogram}}
+    \caption{Alibaba}\label{fig:alibaba:histogram}
+    \end{subfigure}
+
+    The figures display the average number of job arrivals throughout a day. The interquartile range is shown as the shaded region.
+    \caption{LANL Mustang, Microsoft Fiddle, and Alibaba Traces}
+\end{figure}
+
+\begin{table}[]
+    \centering
+    \begin{tabular}{>{\bfseries\centering}l|c|c|c}
+        characteristic & LANL Mustang & Microsoft Fiddle & Alibaba \\\hline
+        duration & 5 years & 30 days & 8 days \\
+        number of jobs & 20 million & 120 thousand & 14 million \\
+        median interarrival time & 0 seconds & 8 seconds & 0 seconds \\
+        PMR & 621.94 & 89.43 & 3.93 \\
+        TPMR & 2.5 & 1.68 & 1.77 \\
+        mean peak distance & 100 minutes & 105 minutes & 89 minutes \\
+        mean valley length & 120 minutes & 115 minutes & 74 minutes \\
+        diurnal pattern & yes & - & yes \\
+    \end{tabular}
+    \caption{LANL Mustang, Microsoft Fiddle, and Alibaba Traces}
+    \label{tab:traces}
+\end{table}
+
+\paragraph{} We have seen traces from very different real-world use cases. The Microsoft Fiddle trace is based on a heterogeneous server architecture, and the Alibaba trace receives heterogeneous loads. Interestingly, their TPMR, peak distances, and valley lengths are mostly similar.
+
+\subsection{Assumptions}
+
+We impose a couple of assumptions to simplify our analysis. First, and already mentioned, our analysis is inherently limited by the traces we used as a basis for our experiments. While we examine a wide variety of traces, the high variability in traces indicates they are a fundamental limitation to any estimation of real-world performance.
+
+Another common imitation of models is that the interarrival times of jobs are on the order of seconds or smaller \cite{Amvrosiadis2018}. However, this is not a limitation of our analysis as we are using a general Poisson process with an appropriate mean arrival rate in our delay model.
+
+In the context of high-performance computing, jobs typically have a \emph{gang scheduling}\index{gang scheduling} requirement, i.e., a requirement that related jobs are processed simultaneously even though they are run on different hardware \cite{Amvrosiadis2018}. For simplification, we assume this requirement always to be satisfied. However, this is not a substantial limitation as the scheduling of jobs within a time slot is not determined by the discussed algorithms and instead left to the server operator. Nevertheless, in principle, the gang scheduling requirement may render some schedules infeasible if the processing time on servers exceeds the length of a time slot when gang scheduling constraints are considered.
+
+There are also some limitations resulting from the design of our model. As was mentioned previously, we assume that the jobs arrive at the beginning of a new time slot rather than at random times throughout the time slot. Moreover, we assumed that for every job, there exists a server type that can process this job within one time slot. In other words, there exists no job running longer than $\delta$. We have seen in \autoref{section:case_studies:method:traces} that this assumption is violated in most practical scenarios. In \autoref{section:application:dynamic_duration}, we described how this assumption can be removed. The same approach can also be used to remove the assumption that jobs must arrive at the beginning of a time slot.
+
+\subsection{Alternatives to Right-Sizing Data Centers}
+
+To determine the benefit of dynamically right-sizing data centers, we must first describe the alternative strategies to managing a data center. We will then use these approaches as a point of reference in our analysis.
+
+Most data centers are statically provisioned; that is, the configuration of active servers is only changed rarely (often manually) and remains constant during most periods \cite{Whitney2014}. To support the highest loads, the data centers are peak-provisioned, i.e., the number of servers is chosen such that they suffice to process all jobs even during times where most jobs arrive. Moreover, as a safety measure, data centers are typically provisioned to handle much higher loads than the loads encountered in practice \cite{Whitney2014}.
+
+Naturally, traces with a high PMR or long valleys are more likely to benefit from alternatives to static provisioning. Therefore another widely used alternative is \emph{valley filling}\index{valley filling}, which aims to schedule lower priority jobs (i.e., some batch jobs) during valleys. In an ideal scenario, this approach can achieve $\text{PMR} \approx 1$, which would allow for efficient static provisioning. Crucially, this approach requires a large number of low-priority jobs which may be processed with a significant delay (requiring a considerable minimum perceptible delay $\delta_i$ for a large number of jobs of type $i$), and thus in most cases, valleys cannot be eliminated entirely. \citeauthor*{Lin2011} showed that dynamic-right sizing can be combined with valley filling to achieve a significant cost reduction \cite{Lin2011}. The optimal balancing of dynamic right-sizing and valley-filling is mainly determined by the change to the PMR. \citeauthor*{Lin2011} showed that cost savings of 20\% are possible with a PMR of 2 and a PMR of approximately 1.3 can still achieve cost savings of more than 5\% \cite{Lin2011}. Generally, the cost reduction vanishes once the PMR approaches $1$, which may happen between 30\% to 70\% mean background load \cite{Lin2011}.
+
+In our analysis, we base our estimated cost reduction on an optimal offline static provisioning. The results when dynamic right-sizing is used together with valley-filling can then be estimated from previous results.
+
+\subsection{Previous Results}
+
+\citeauthor*{Lin2011} showed that the cost reduction is directly proportional to the PMR and inversely proportional to the normalized switching cost \cite{Lin2011}. We observe the same relationship in our experiments, and find that the normalized cost (i.e., the actual competitive ratio) is uncorrelated to both model features. This indicates that while the PMR and normalized switching cost are good predictors of the overall possible cost reduction, they do not reveal a flaw in the design of the described online algorithms.
+
+Additionally, \citeauthor*{Lin2011} showed that, as one would expect, the possible cost reduction decreases as the delay cost assumes a more significant fraction of the overall hitting costs \cite{Lin2011}. In practice, this can be understood as the effect of making the model more conservative.
+
+\subsection{Model Parameters}
+
+We now describe how we parametrized our model in our case studies. In our models, we strive to choose conservative estimates to under-estimate the cost savings from dynamically right-sizing data centers. This approach is similar to the study by \citeauthor*{Lin2011}.
+
+\paragraph{Energy} In their analysis, \citeauthor*{Lin2011} choose energy cost and energy consumption such that the fixed energy cost (i.e., the energy cost of a server when idling) is $1$ and the dynamic energy cost is $0$ as, on most servers, the fixed costs dominate the dynamic costs \cite{Clark2005, Lin2011}. We investigate this model and an alternative model. In the alternative model, we estimate the power consumption of a server with 1 kW during peak loads and with 500 W when idling to yield a conservative estimate. According to the U.S. Energy Information Administration (EIA), the average cost of energy in the industrial sector in the United States during April 2021 was 6.77 cents per kilowatt-hour \cite{EIA2021}. We use this as a conservative estimate as data centers typically use a more expensive portfolio of energy sources. If the actual carbon cost of the used energy were to be considered, which is the case in some data centers as we discussed in \autoref{section:application:operating_cost:energy}, energy costs are likely to be substantially higher.
+
+\paragraph{Revenue Loss} According to measurements, a 500 ms increase in delay results in a revenue loss of 20\% or 0.04\%/ms \cite{Lin2012, Hamilton2009}. Thus, scaling the delay measured in ms by 0.1 can be used as a slight over-approximation of revenue loss. \citeauthor*{Lin2011} choose the minimal perceptible delay as 1.5 times the time to run a job, which is a very conservative estimate if valley-filling is assumed a viable alternative. In our model, we choose the minimal perceptible delay as 2.5 times the time to run a job which is equivalent as we also added the processing time of a job to the delay. In the case of valley filling, jobs are typically processed with a much more significant delay \cite{Lin2011}. Similar to \citeauthor*{Lin2012}, we also estimate a constant network delay of 10 ms \cite{Lin2012}.
+
+\paragraph{Switching Cost} We mentioned in \autoref{section:application:switching_cost} that in practice, the switching cost should be on the order of operating a server between an hour to several hours. To obtain a conservative estimate, we choose $\beta$ such that the normalized switching cost times the length of a time slot equals 4 hours. However, in our experiments, we observe that this choice is robust with respect to the normalized cost achieved by the online algorithms.
+
+\paragraph{Time Slot Length} We choose a time slot length of 1 hour. Similar to the switching cost, we observe that the performance of the algorithms is robust to this choice. For example, choosing a time slot length of 10 minutes does not improve the achieved normalized cost (although it achieves an even more significant cost reduction). We further assume that the average processing time of jobs is $\delta / 2$ unless noted otherwise.
+
+\section{Uni-Dimensional Algorithms}
+
+The results of this section are based on the final day of the LANL Mustang, Alibaba, and Facebook traces. We begin by dicussing general features of the traces. Then, we compare the uni-dimensional online algorithms with respect to their achieved normalized cost, cost reduction, and runtime.
+
+\paragraph{Fractional vs Integral Cost} For all traces, the ratio of the fractional and the integral costs is 1 for a precision of at least $10^{-3}$. This is not surprising due to the large number of servers that is used in each model.
+
+\begin{figure}
+    \begin{subfigure}[b]{.5\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/opt_vs_opts}}
+    \caption{Ratio of static and dynamic optima}\label{fig:case_studies:ud:opt_vs_opts}
+    \end{subfigure}
+    \begin{subfigure}[b]{.5\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/opt_vs_opts_against_mean_cost_reduction}}
+    \caption{Cost reduction}\label{fig:case_studies:ud:opt_vs_opts_against_mean_cost_reduction}
+    \end{subfigure}
+    \caption{Effect of the ratio of static and dynamic optima on the cost reduction}
+\end{figure}
+
+\paragraph{Dynamic vs Static Cost} The dynamic and static costs differ significantly depending on the trace. The ratio of dynamic and static optimal costs for each trace is shown in \autoref{fig:case_studies:ud:opt_vs_opts}. \autoref{fig:case_studies:ud:opt_vs_opts_against_mean_cost_reduction} shows that there is a strong positive correlation between the average cost reduction achieved by the algorithms and the ratio of the static and dynamic optima. This also indicates a strong correlation between cost reduction and the PMR.
+
+\begin{figure}
+    \centering
+    \input{figures/costs}
+    \caption{Cost profiles of uni-dimensional online algorithms}\label{fig:case_studies:ud:costs}
+\end{figure}
+
+\paragraph{Cost Makeup} An interesting aspect of the (integral) schedules obtained by the online algorithms is the makeup of their associated costs to understand whether an algorithm systematically prefers some cost over another. We measure this preference of an algorithm as the normalized deviation, i.e., the cost of the algorithm minus the mean cost among all algorithms divided by the standard deviation. We then average the results between all traces. \autoref{fig:case_studies:ud:costs} shows the cost profiles for each algorithm. We observe that fractional algorithms appear to prefer energy cost over revenue loss and switching cost while integral algorithms prefer revenue loss and switching cost over energy cost. In absolute terms, the deviations makeup less than 1\% of the overall costs of each type.
+
+\begin{figure}
+    \begin{subfigure}[b]{.5\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/ud_runtimes}}
+    \end{subfigure}
+    \begin{subfigure}[b]{.5\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/ud_runtimes_slow}}
+    \end{subfigure}
+    \caption{Runtimes of uni-dimensional online algorithms}\label{fig:case_studies:ud:runtimes}
+\end{figure}
+
+\paragraph{Runtime} \autoref{fig:case_studies:ud:runtimes} shows the distribution of runtimes (per iteration) of the online algorithms using the Facebook 2009-1 trace. Most algorithms are very fast, even as the number of time slots increases. Rand-Probabilistic is significantly slower than Probabilistic as the integrals need to be computed in a piecewise fashion. The runtime of RBG grows linearly with time. After roughly fifty time slots, an iteration of RBG typically takes around 5 minutes.
+
+\begin{figure}
+    \begin{subfigure}[b]{.5\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/ud_normalized_cost}}
+    \caption{Normalized cost}\label{fig:case_studies:ud:normalized_cost}
+    \end{subfigure}
+    \begin{subfigure}[b]{.5\linewidth}
+    \resizebox{\textwidth}{!}{\input{figures/ud_cost_reduction}}
+    \caption{Cost reduction}\label{fig:case_studies:ud:cost_reduction}
+    \end{subfigure}
+    \caption{Performance of uni-dimensional online algorithms}
+\end{figure}
+
+\paragraph{Normalized Cost} The normalized cost of an online algorithm is the ratio of the obtained cost and the optimal cost. In the application of right-sizing data centers, we are interested in the cost associated with integral schedules. \autoref{fig:case_studies:ud:normalized_cost} shows the normalized cost of each algorithm. For fractional algorithms, we consider the cost of the associated integral schedule that is obtained by ceiling each configuration. We observe that, in practice, the discussed online algorithms are able to determine the dynamic offline optimum to a very high precision across all server traces.
+
+\paragraph{Cost Reduction} The overall cost reduction is shown in \autoref{fig:case_studies:ud:opt_vs_opts_against_mean_cost_reduction}. \autoref{fig:case_studies:ud:cost_reduction} shows how each algorithm deviates from the mean cost reduction averaged over all traces. Similar to the cost makeup, the absolute deviations are less than a percentage point which is not enough difference to draw general conclusions regarding the behavior of individual algorithms.
+
+\section{Multi-Dimensional Algorithms}

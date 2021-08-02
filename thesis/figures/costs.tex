@@ -1,0 +1,53 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+% legend cell align={left},
+% legend style={fill opacity=0.8, draw opacity=1, text opacity=1, draw=white!80!black},
+legend pos=south east,
+% tick align=outside,
+% tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xmin=-0.5, xmax=6.5,
+% xtick style={color=black},
+xtick={0,1,2,3,4,5,6},
+xticklabel style={rotate=90.0},
+xticklabels={Memoryless,LCP,Int-LCP,Probabilistic,RBG,Rand-Probabilistic,Rand-RBG},
+% y grid style={white!69.0196078431373!black},
+ylabel={deviation from mean cost},
+ymin=-1.9, ymax=1.99,
+% ytick style={color=black}
+]
+\draw[draw=none,fill=black] (axis cs:-0.25,0) rectangle (axis cs:0.25,0.807425489200161);
+\addlegendimage{no markers,black}
+\addlegendentry{energy cost}
+
+\draw[draw=none,fill=black] (axis cs:0.75,0) rectangle (axis cs:1.25,0.259863816981542);
+\draw[draw=none,fill=black] (axis cs:1.75,0) rectangle (axis cs:2.25,-0.700678355792212);
+\draw[draw=none,fill=black] (axis cs:2.75,0) rectangle (axis cs:3.25,0.319075095160393);
+\draw[draw=none,fill=black] (axis cs:3.75,0) rectangle (axis cs:4.25,0.168654808542322);
+\draw[draw=none,fill=black] (axis cs:4.75,0) rectangle (axis cs:5.25,-0.580276790210896);
+\draw[draw=none,fill=black] (axis cs:5.75,0) rectangle (axis cs:6.25,-0.274064063881251);
+\draw[draw=none,fill=red] (axis cs:-0.25,0) rectangle (axis cs:0.25,-0.724683429714598);
+\addlegendimage{no markers,red}
+\addlegendentry{revenue loss}
+
+\draw[draw=none,fill=red] (axis cs:0.75,0) rectangle (axis cs:1.25,-0.786649839499435);
+\draw[draw=none,fill=red] (axis cs:1.75,0) rectangle (axis cs:2.25,1.14036434195245);
+\draw[draw=none,fill=red] (axis cs:2.75,0) rectangle (axis cs:3.25,-0.318959604873333);
+\draw[draw=none,fill=red] (axis cs:3.75,0) rectangle (axis cs:4.25,-0.168406286607572);
+\draw[draw=none,fill=red] (axis cs:4.75,0) rectangle (axis cs:5.25,0.583295009974132);
+\draw[draw=none,fill=red] (axis cs:5.75,0) rectangle (axis cs:6.25,0.275039808768246);
+\draw[draw=none,fill=blue] (axis cs:-0.25,-0.724683429714598) rectangle (axis cs:0.25,-1.27941378667647);
+\addlegendimage{no markers,blue}
+\addlegendentry{switching cost}
+
+\draw[draw=none,fill=blue] (axis cs:0.75,0.259863816981542) rectangle (axis cs:1.25,0.355127278784924);
+\draw[draw=none,fill=blue] (axis cs:1.75,1.14036434195245) rectangle (axis cs:2.25,1.62741859052182);
+\draw[draw=none,fill=blue] (axis cs:2.75,-0.318959604873333) rectangle (axis cs:3.25,-0.394731114222359);
+\draw[draw=none,fill=blue] (axis cs:3.75,-0.168406286607572) rectangle (axis cs:4.25,-0.657894163636206);
+\draw[draw=none,fill=blue] (axis cs:4.75,0.583295009974132) rectangle (axis cs:5.25,1.02713102645744);
+\draw[draw=none,fill=blue] (axis cs:5.75,0.275039808768246) rectangle (axis cs:6.25,0.36887582525156);
+\end{axis}
+
+\end{tikzpicture}

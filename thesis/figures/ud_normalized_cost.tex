@@ -1,0 +1,33 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+height=8cm,
+% tick align=outside,
+% tick pos=left,
+% x grid style={white!69.0196078431373!black},
+% xlabel={$OPT_s / OPT$},
+xmin=-0.5, xmax=6.5,
+xtick={0,1,2,3,4,5,6},
+xticklabel style={rotate=90.0},
+xticklabels={Memoryless,LCP,Int-LCP,Probabilistic,RBG,Rand-Probabilistic,Rand-RBG},
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+ylabel={normalized cost},
+ymin=0.9999, ymax=1.000599,
+/pgf/number format/precision=5,
+% ytick style={color=black}
+]
+\addplot [semithick, black]
+table {%
+0 1.0004967256
+1 1.0000318073999999
+2 1.0000000138
+3 1.0000306995
+4 0.999996357
+5 1.0000245885
+6 1.000018572
+};
+\end{axis}
+
+\end{tikzpicture}
