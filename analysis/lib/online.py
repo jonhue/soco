@@ -30,6 +30,8 @@ def evaluate(
     revenue_loss = integral[1][1].revenue_loss if integral[1][1] is not None else 0
     assert int_cost >= energy_cost + revenue_loss
     runtimes = []
+    initial_xs = integral[0]
+    xs = initial_xs.copy()
     for i in tqdm(range(len(online_inp))):
         fractional, integral, m, runtime = alg.next(ADDR, online_inp[i])
         cost = fractional[1][0]
@@ -37,10 +39,16 @@ def evaluate(
         energy_cost = integral[1][1].energy_cost
         revenue_loss = integral[1][1].revenue_loss
         assert int_cost >= energy_cost + revenue_loss
+        xs.append(integral[0])
         runtimes.append(runtime)
     stop(ADDR)
 
     switching_cost = int_cost - energy_cost - revenue_loss
+
+    print(len(xs), len(initial_xs), len(online_inp))
+    assert len(xs) - len(initial_xs) == len(online_inp)
+    print(f"Resulting schedule: {xs}")
+
     return (
         initial_cost,
         cost,

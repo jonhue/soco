@@ -76,6 +76,14 @@ def plot(x: np.array, y: np.array, xlabel: str, ylabel: str, name: str):
     tikzplotlib.save(f"out/figures/{name}.tex")
 
 
+def barplot(x: np.array, y: np.array, xlabel: str, ylabel: str, name: str):
+    df = pd.DataFrame({"x": x, "y": y})
+    sb.barplot(x="x", y="y", data=df)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    tikzplotlib.save(f"out/figures/{name}.tex")
+
+
 def scale_xaxis(fig, factor: float):
     ticks = ticker.FuncFormatter(lambda x, pos: "{0:g}".format(round(x * factor, 2)))
     fig.xaxis.set_major_formatter(ticks)

@@ -2,6 +2,7 @@
 
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use bacon_sci::integrate::{integrate, integrate_hermite, integrate_laguerre};
+use log::debug;
 use noisy_float::prelude::*;
 
 pub mod piecewise;
@@ -29,18 +30,27 @@ pub fn integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> N64 {
 
 /// Uses the double exponential method (Tanh-sinh quadrature)
 fn finite_integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> N64 {
-    n64(integrate(from, to, f, TOLERANCE).unwrap())
+    handle_integration_result(integrate(from, to, f, TOLERANCE))
 }
 
 /// Uses the Gaussian-Laguerre quadrature
 fn semi_infinite_integral(f: impl Fn(f64) -> f64) -> N64 {
     n64(
-        integrate_laguerre(|x| f(x) * std::f64::consts::E.powf(x), TOLERANCE)
-            .unwrap(),
+        integrate_laguerre(|x| f(x) * std::f64::consts::E.powf(x), TOLERANCE).unwrap()
     )
 }
 
 /// Uses the Gaussian-Hermite quadrature
 fn infinite_integral(f: impl Fn(f64) -> f64) -> N64 {
     n64(integrate_hermite(|x| f(x), TOLERANCE).unwrap())
+}
+
+fn handle_integration_result(result: std::result::Result<f64, (f64, String)>) -> N64 {
+    n64(match result {
+        Ok(integral) => integral,
+        Err((integral, error)) => {
+            debug!("Integration failed with message: {}", error);
+            integral
+        },
+    })
 }
