@@ -10,7 +10,7 @@ use crate::model::data_center::DataCenterObjective;
 use crate::model::ModelOutput;
 use crate::numerics::convex_optimization::{minimize, WrappedObjective};
 use crate::numerics::ApplicablePrecision;
-use crate::utils::{access, mean, transpose, unshift_time};
+use crate::utils::{access, mean, unshift_time};
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
 use noisy_float::prelude::*;
@@ -245,17 +245,13 @@ impl PredictedLoadProfile {
         );
 
         // we only use a randomly chosen subset of all samples to remain efficient
-        let samples = self
-            .to_vec()
+        self.to_vec()
             .into_iter()
             .map(|zs| {
                 assert!(zs.len() >= sample_size as usize);
                 zs.into_iter()
                     .choose_multiple(&mut rng, sample_size as usize)
             })
-            .collect();
-        transpose(samples)
-            .into_iter()
             .map(LoadProfile::new)
             .collect()
     }

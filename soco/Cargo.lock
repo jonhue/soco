@@ -96,7 +96,7 @@ dependencies = [
 [[package]]
 name = "bacon-sci"
 version = "0.11.0"
-source = "git+https://github.com/aftix/bacon?branch=master#ae764ac7acc7a4c7d35d3d62a09d96ae3ea5f4c8"
+source = "git+https://github.com/jonhue/bacon?branch=master#e4f6d68b2ed97e7e0b3db2e133987e4c13dc8907"
 dependencies = [
  "nalgebra 0.24.1",
  "num-complex 0.3.1",

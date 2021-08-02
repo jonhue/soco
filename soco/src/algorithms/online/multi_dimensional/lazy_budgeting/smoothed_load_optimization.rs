@@ -186,8 +186,6 @@ fn build_lanes(x: &IntegralConfig, d: i32, bound: i32) -> Lanes {
                 #[allow(clippy::int_plus_one)]
                 if active_lanes(x, j, d) >= k as i32 + 1 {
                     *lane = j;
-                } else {
-                    continue;
                 }
             }
         }
