@@ -8,19 +8,46 @@ use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use finitediff::FiniteDiff;
+use pyo3::prelude::*;
 use std::sync::Arc;
 
-pub struct Options<'a> {
+#[pyclass]
+#[derive(Clone)]
+pub struct Options {
     /// Learning rates in each time step.
-    pub eta: Arc<dyn Fn(i32) -> f64 + 'a>,
+    pub eta: Arc<dyn Fn(i32) -> f64 + Send + Sync>,
+}
+impl Default for Options {
+    fn default() -> Self {
+        Self {
+            eta: Arc::new(|t| 1. / (t as f64).sqrt())
+        }
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(eta: Py<PyAny>) -> Self {
+        Options {
+            eta: Arc::new(move |t| {
+                Python::with_gil(|py| {
+                    eta.call1(py, (t,))
+                        .expect("options `eta` method invalid")
+                        .extract(py)
+                        .expect("options `eta` method invalid")
+                })
+            }),
+        }
+    }
 }
 
 /// Online Gradient Descent
 pub fn ogd<C, D>(
     o: Online<FractionalSmoothedConvexOptimization<C, D>>,
-    xs: &mut FractionalSchedule,
-    _: &mut Vec<()>,
-    options: &Options,
+    mut t: i32,
+    xs: &FractionalSchedule,
+    _: (),
+    options: Options,
 ) -> Result<FractionalStep<()>>
 where
     C: ModelOutputSuccess,
@@ -28,18 +55,15 @@ where
 {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
-    let t = xs.t_end();
-    let default_x = Config::repeat(0., o.p.d);
-    let x = if xs.is_empty() {
-        default_x
-    } else {
-        let prev_x = xs.now();
-        let f =
-            |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).cost.raw();
-        let step =
-            (options.eta)(t) * Config::new(prev_x.to_vec().central_diff(&f));
-        project(o.p.bounds, prev_x - step)
-    };
+    // apply lookahead
+    t += 1;
+
+    let prev_x = xs.now_with_default(Config::repeat(0., o.p.d));
+    let f =
+        |x: &Vec<f64>| o.p.hit_cost(t - 1, Config::new(x.clone())).cost.raw();
+    let step =
+        (options.eta)(t - 1) * Config::new(prev_x.to_vec().central_diff(&f));
+    let x = project(o.p.bounds, prev_x - step);
 
     Ok(Step(x, None))
 }

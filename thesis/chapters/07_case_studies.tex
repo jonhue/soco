@@ -3,7 +3,7 @@
 
 \chapter{Case Studies}\label{chapter:case_studies}
 
-In this chapter, we examine the performance of the previously described models and algorithms using real server traces. Thereby we focus on two aspects: First, we are interested in how well the discussed algorithms compare in absolute terms and relative to each other. Second, we are interested in the general promise of dynamically right-sizing data centers, which we study by conservatively estimating cost savings and relating them to previous research.
+This chapter examines the performance of the previously described models and algorithms using real server traces. Thereby we focus on two aspects: First, we are interested in how well the discussed algorithms compare in absolute terms and relative to each other. Second, we are interested in the general promise of dynamically right-sizing data centers, which we study by conservatively estimating cost savings and relating them to previous research.
 
 \section{Method}
 
@@ -13,7 +13,7 @@ Throughout our experiments, we seek to determine conservative approximations for
 
 \subsection{Traces}\label{section:case_studies:method:traces}
 
-We use several traces with varying characteristics for our experiments. Some traces are from clusters rather than individual data centers. However, to simplify our analysis, we assume traces to apply to a single data center without restricting the considered server architectures.
+We use several traces with varying characteristics for our experiments. Some traces are from clusters rather than individual data centers. However, to simplify our analysis, we assume traces apply to a single data center without restricting the considered server architectures.
 
 \citeauthor*{Amvrosiadis2018} showed that the characteristics of traces vary drastically even within a single trace when different subsets are considered individually \cite{Amvrosiadis2018}. Their observation shows that it is crucial to examine long server traces and various server traces from different sources to gain a proper perspective of real-world performance.
 
@@ -148,7 +148,7 @@ Another common imitation of models is that the interarrival times of jobs are on
 
 In the context of high-performance computing, jobs typically have a \emph{gang scheduling}\index{gang scheduling} requirement, i.e., a requirement that related jobs are processed simultaneously even though they are run on different hardware \cite{Amvrosiadis2018}. For simplification, we assume this requirement always to be satisfied. However, this is not a substantial limitation as the scheduling of jobs within a time slot is not determined by the discussed algorithms and instead left to the server operator. Nevertheless, in principle, the gang scheduling requirement may render some schedules infeasible if the processing time on servers exceeds the length of a time slot when gang scheduling constraints are considered.
 
-There are also some limitations resulting from the design of our model. As was mentioned previously, we assume that the jobs arrive at the beginning of a new time slot rather than at random times throughout the time slot. Moreover, we assumed that for every job, there exists a server type that can process this job within one time slot. In other words, there exists no job running longer than $\delta$. We have seen in \autoref{section:case_studies:method:traces} that this assumption is violated in most practical scenarios. In \autoref{section:application:dynamic_duration}, we described how this assumption can be removed. The same approach can also be used to remove the assumption that jobs must arrive at the beginning of a time slot.
+There are also some limitations resulting from the design of our model. As was mentioned previously, we assume that the jobs arrive at the beginning of a new time slot rather than at random times throughout the time slot. Moreover, we assumed that for every job, a server type exists that can process this job within one time slot. In other words, there exists no job running longer than $\delta$. We have seen in \autoref{section:case_studies:method:traces} that this assumption is violated in most practical scenarios. In \autoref{section:application:dynamic_duration}, we described how this assumption can be removed. The same approach can also be used to remove the assumption that jobs must arrive at the beginning of a time slot.
 
 \subsection{Alternatives to Right-Sizing Data Centers}
 
@@ -170,7 +170,7 @@ Additionally, \citeauthor*{Lin2011} showed that, as one would expect, the possib
 
 We now describe how we parametrized our model in our case studies. In our models, we strive to choose conservative estimates to under-estimate the cost savings from dynamically right-sizing data centers. This approach is similar to the study by \citeauthor*{Lin2011}.
 
-\paragraph{Energy} In their analysis, \citeauthor*{Lin2011} choose energy cost and energy consumption such that the fixed energy cost (i.e., the energy cost of a server when idling) is $1$ and the dynamic energy cost is $0$ as, on most servers, the fixed costs dominate the dynamic costs \cite{Clark2005, Lin2011}. We investigate this model and an alternative model. In the alternative model, we estimate the power consumption of a server with 1 kW during peak loads and with 500 W when idling to yield a conservative estimate. According to the U.S. Energy Information Administration (EIA), the average cost of energy in the industrial sector in the United States during April 2021 was 6.77 cents per kilowatt-hour \cite{EIA2021}. We use this as a conservative estimate as data centers typically use a more expensive portfolio of energy sources. If the actual carbon cost of the used energy were to be considered, which is the case in some data centers as we discussed in \autoref{section:application:operating_cost:energy}, energy costs are likely to be substantially higher.
+\paragraph{Energy} In their analysis, \citeauthor*{Lin2011} choose energy cost and energy consumption such that the fixed energy cost (i.e., the energy cost of a server when idling) is $1$ and the dynamic energy cost is $0$ as, on most servers, the fixed costs dominate the dynamic costs \cite{Clark2005, Lin2011}. We investigate this model and an alternative model. In the alternative model, we estimate the power consumption of a server with 1 kW during peak loads and with 500 W when idling to yield a conservative estimate. According to the U.S. Energy Information Administration (EIA), the average cost of energy in the industrial sector in the United States during April 2021 was 6.77 cents per kilowatt-hour \cite{EIA2021}. We use this as a conservative estimate as data centers typically use a more expensive portfolio of energy sources. If the actual carbon cost of the used energy were to be considered, which is the case in some data centers as discussed in \autoref{section:application:operating_cost:energy}, energy costs are likely to be substantially higher.
 
 \paragraph{Revenue Loss} According to measurements, a 500 ms increase in delay results in a revenue loss of 20\% or 0.04\%/ms \cite{Lin2012, Hamilton2009}. Thus, scaling the delay measured in ms by 0.1 can be used as a slight over-approximation of revenue loss. \citeauthor*{Lin2011} choose the minimal perceptible delay as 1.5 times the time to run a job, which is a very conservative estimate if valley-filling is assumed a viable alternative. In our model, we choose the minimal perceptible delay as 2.5 times the time to run a job which is equivalent as we also added the processing time of a job to the delay. In the case of valley filling, jobs are typically processed with a much more significant delay \cite{Lin2011}. Similar to \citeauthor*{Lin2012}, we also estimate a constant network delay of 10 ms \cite{Lin2012}.
 
@@ -180,9 +180,9 @@ We now describe how we parametrized our model in our case studies. In our models
 
 \section{Uni-Dimensional Algorithms}
 
-The results of this section are based on the final day of the LANL Mustang, Alibaba, and Facebook traces. We begin by dicussing general features of the traces. Then, we compare the uni-dimensional online algorithms with respect to their achieved normalized cost, cost reduction, and runtime.
+The results of this section are based on the final day of the LANL Mustang, Alibaba, and Facebook traces. We begin by discussing the general features of the traces. Then, we compare the uni-dimensional online algorithms with respect to their achieved normalized cost, cost reduction, and runtime.
 
-\paragraph{Fractional vs Integral Cost} For all traces, the ratio of the fractional and the integral costs is 1 for a precision of at least $10^{-3}$. This is not surprising due to the large number of servers that is used in each model.
+\paragraph{Fractional vs. Integral Cost} For all traces, the ratio of the fractional and the integral costs is 1 for a precision of at least $10^{-3}$. This is not surprising due to the large number of servers used in each model.
 
 \begin{figure}
     \begin{subfigure}[b]{.5\linewidth}
@@ -196,7 +196,7 @@ The results of this section are based on the final day of the LANL Mustang, Alib
     \caption{Effect of the ratio of static and dynamic optima on the cost reduction}
 \end{figure}
 
-\paragraph{Dynamic vs Static Cost} The dynamic and static costs differ significantly depending on the trace. The ratio of dynamic and static optimal costs for each trace is shown in \autoref{fig:case_studies:ud:opt_vs_opts}. \autoref{fig:case_studies:ud:opt_vs_opts_against_mean_cost_reduction} shows that there is a strong positive correlation between the average cost reduction achieved by the algorithms and the ratio of the static and dynamic optima. This also indicates a strong correlation between cost reduction and the PMR.
+\paragraph{Dynamic vs. Static Cost} The dynamic and static costs differ significantly depending on the trace. The ratio of dynamic and static optimal costs for each trace is shown in \autoref{fig:case_studies:ud:opt_vs_opts}. \autoref{fig:case_studies:ud:opt_vs_opts_against_mean_cost_reduction} shows a strong positive correlation between the average cost reduction achieved by the algorithms and the ratio of the static and dynamic optima. This also indicates a strong correlation between cost reduction and the PMR.
 
 \begin{figure}
     \centering
@@ -204,7 +204,7 @@ The results of this section are based on the final day of the LANL Mustang, Alib
     \caption{Cost profiles of uni-dimensional online algorithms}\label{fig:case_studies:ud:costs}
 \end{figure}
 
-\paragraph{Cost Makeup} An interesting aspect of the (integral) schedules obtained by the online algorithms is the makeup of their associated costs to understand whether an algorithm systematically prefers some cost over another. We measure this preference of an algorithm as the normalized deviation, i.e., the cost of the algorithm minus the mean cost among all algorithms divided by the standard deviation. We then average the results between all traces. \autoref{fig:case_studies:ud:costs} shows the cost profiles for each algorithm. We observe that fractional algorithms appear to prefer energy cost over revenue loss and switching cost while integral algorithms prefer revenue loss and switching cost over energy cost. In absolute terms, the deviations makeup less than 1\% of the overall costs of each type.
+\paragraph{Cost Makeup} An interesting aspect of the (integral) schedules obtained by the online algorithms is the makeup of their associated costs to understand whether an algorithm systematically prefers some cost over another. We measure this preference of an algorithm as the normalized deviation, i.e., the cost of the algorithm minus the mean cost among all algorithms divided by the standard deviation. We then average the results between all traces. \autoref{fig:case_studies:ud:costs} shows the cost profiles for each algorithm. We observe that fractional algorithms prefer energy cost over revenue loss and switching cost, while integral algorithms prefer revenue loss and switching cost over energy cost. In absolute terms, the deviations make up less than 1\% of the overall costs of each type.
 
 \begin{figure}
     \begin{subfigure}[b]{.5\linewidth}
@@ -230,7 +230,7 @@ The results of this section are based on the final day of the LANL Mustang, Alib
     \caption{Performance of uni-dimensional online algorithms}
 \end{figure}
 
-\paragraph{Normalized Cost} The normalized cost of an online algorithm is the ratio of the obtained cost and the optimal cost. In the application of right-sizing data centers, we are interested in the cost associated with integral schedules. \autoref{fig:case_studies:ud:normalized_cost} shows the normalized cost of each algorithm. For fractional algorithms, we consider the cost of the associated integral schedule that is obtained by ceiling each configuration. We observe that, in practice, the discussed online algorithms are able to determine the dynamic offline optimum to a very high precision across all server traces.
+\paragraph{Normalized Cost} The normalized cost of an online algorithm is the ratio of the obtained cost and the optimal cost. In the application of right-sizing data centers, we are interested in the cost associated with integral schedules. \autoref{fig:case_studies:ud:normalized_cost} shows the normalized cost of each algorithm. For fractional algorithms, we consider the cost of the associated integral schedule obtained by ceiling each configuration. We observe that, in practice, the discussed online algorithms can determine the dynamic offline optimum to a very high precision across all server traces.
 
 \paragraph{Cost Reduction} The overall cost reduction is shown in \autoref{fig:case_studies:ud:opt_vs_opts_against_mean_cost_reduction}. \autoref{fig:case_studies:ud:cost_reduction} shows how each algorithm deviates from the mean cost reduction averaged over all traces. Similar to the cost makeup, the absolute deviations are less than a percentage point which is not enough difference to draw general conclusions regarding the behavior of individual algorithms.
 

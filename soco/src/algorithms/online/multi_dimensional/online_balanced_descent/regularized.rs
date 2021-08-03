@@ -8,7 +8,10 @@ use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
+use pyo3::prelude::*;
 
+#[pyclass]
+#[derive(Clone)]
 pub struct Options {
     /// Convexity parameter. Chosen such that `f_t(x) \geq f_t(v_t) + \frac{m}{2} \norm{x - v_t}_2^2` where `v_t` is the minimizer of `f_t`.
     pub m: f64,
@@ -16,6 +19,18 @@ pub struct Options {
     pub alpha: f64,
     /// Smoothness parameter of potential function of Bregman convergence.
     pub beta: f64,
+}
+impl Default for Options {
+    fn default() -> Self {
+        unimplemented!()
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(m: f64, alpha: f64, beta: f64) -> Self {
+        Options { m, alpha, beta }
+    }
 }
 
 #[derive(Clone)]
@@ -31,9 +46,10 @@ struct RegularizationFunctionObjectiveData<'a, C, D> {
 /// Regularized Online Balanced Descent
 pub fn robd<C, D>(
     o: Online<FractionalSmoothedConvexOptimization<C, D>>,
-    xs: &mut FractionalSchedule,
-    _: &mut Vec<()>,
-    options: &Options,
+    t: i32,
+    xs: &FractionalSchedule,
+    _: (),
+    Options { m, alpha, beta }: Options,
 ) -> Result<FractionalStep<()>>
 where
     C: ModelOutputSuccess,
@@ -41,15 +57,9 @@ where
 {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
-    let (lambda_1, lambda_2) =
-        build_parameters(options.m, options.alpha, options.beta);
+    let (lambda_1, lambda_2) = build_parameters(m, alpha, beta);
 
-    let t = xs.t_end() + 1;
-    let prev_x = if xs.is_empty() {
-        Config::repeat(0., o.p.d)
-    } else {
-        xs.now()
-    };
+    let prev_x = xs.now_with_default(Config::repeat(0., o.p.d));
 
     let v = Config::new(
         find_minimizer_of_hitting_cost(

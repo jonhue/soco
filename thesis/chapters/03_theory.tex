@@ -17,7 +17,7 @@ We begin by considering the offline case. In most cases, we seek to find optimal
 An $\alpha$-approximation algorithm for a minimization problem $c$ is a polynomial-time algorithm $ALG$ that for all instances of the problem produces a solution whose value is within a factor of $\alpha$ of the value of an optimal solution $OPT$, i.e., $c(ALG) \leq \alpha \cdot c(OPT)$ \cite{Williamson2011}.
 \end{definition}
 
-In other words, an $\alpha$-approximation guarantees that its results are at most a factor of $\alpha$ worse than the optimal solution. The integral smoothed convex optimization problem is an example where substantial progress on approximation algorithms has recently been made by \citeauthor*{Kappelmann2017} and \citeauthor*{Albers2021_2} \cite{Kappelmann2017, Albers2021_2}.
+In other words, an $\alpha$-approximation guarantees that its results are at most a factor of $\alpha$ worse than the optimal solution. The integral smoothed convex optimization problem is an example where \citeauthor*{Kappelmann2017} and \citeauthor*{Albers2021_2} recently made substantial progress on approximation algorithms \cite{Kappelmann2017, Albers2021_2}.
 
 \subsection{Competitiveness}
 
@@ -107,7 +107,7 @@ We define integral smoothed convex optimization analogously to SCO with the adde
 
 In this work, we often refer to the convex cost functions of fractional problems as hitting costs, whereas we generally refer to them as operating costs in the context of integral problems.
 
-In \autoref{chapter:introduction}, we have seen that metrical task systems subsume Int-SCO. However, it was shown that, in general, the competitiveness of deterministic and randomized algorithms for metrical task systems must be proportional to the size of the decision space \cite{Blum1992, Borodin1992}. Further, \citeauthor*{Chen2018} have shown that the competitiveness of any online algorithm for SCO is lower bounded by $\Omega(\sqrt{d})$ \cite{Chen2018}. Therefore, many of the online algorithms for SCO that we examine in \autoref{chapter:online_algorithms} further restrict hitting costs and switching costs.
+In \autoref{chapter:introduction}, we have seen that metrical task systems subsume Int-SCO. However, it was shown that, in general, the competitiveness of deterministic and randomized algorithms for metrical task systems must be proportional to the size of the decision space \cite{Blum1992, Borodin1992}. Further, \citeauthor*{Chen2018} have shown that the competitiveness of any online algorithm for SCO is lower bounded by $\Omega(\sqrt{d})$ \cite{Chen2018}. Therefore, many of the online algorithms for SCO that we examine in \autoref{chapter:online_algorithms} further restrict hitting and switching costs.
 
 Another similar problem is the ski rental problem. In the \emph{ski rental problem}\index{ski rental problem}, skis can be bought for a cost of $b$ units or rented for a cost of one unit per day. Each day of the ski season, the agent has to decide whether to rent the skis or end the sequence of decisions by buying the skis without knowing how long the ski season will last \cite{Shah2021}. Consider the uni-dimensional decision space $\{0,b\}$, the $\ell_2$ norm as switching cost, and the sequence of hitting costs $f_t(0) = 1$ and $f_t(b) = 0$. The solution to this instance of SCO is a solution to the corresponding ski rental problem, yielding that the ski rental problem is a special case of SCO. \citeauthor*{Karlin1990} showed that the best competitive ratio attainable by a randomized algorithm is $e/(e-1) \approx 1.58$, giving a lower bound for the competitive ratio of online algorithms for SCO \cite{Karlin1990}.
 
@@ -115,7 +115,7 @@ Another similar problem is the ski rental problem. In the \emph{ski rental probl
 
 \subsubsection{Complexity of the Offline Problem}
 
-We now want to examine the complexity of Int-SCO in the offline case. That is, we know all arriving convex cost functions $f_t$ in advance. We prove Int-SCO NP-hard for varying $d$ by giving a polynomial-time reduction from the Knapsack problem. In \autoref{section:theory:simplified_smoothed_convex_optimization}, we extend this proof of NP-hardness to the integral simplified smoothed convex optimization problem, which further restricts the decision space and switching cost.
+We now want to examine the complexity of Int-SCO in the offline case. That is, we know all arriving convex cost functions $f_t$ in advance. We prove Int-SCO NP-hard for varying $d$ by giving a polynomial-time reduction from the Knapsack problem. In \autoref{section:theory:simplified_smoothed_convex_optimization}, we extend this proof of NP-hardness to the integral simplified smoothed convex optimization problem, further restricting the decision space and switching cost.
 
 Given a set of items with an associated value and weight and an upper bound to the total weight, Knapsack is the problem of determining the number of copies of each item that maximizes the total value and conforms to the given upper bound on total weight. Formally we define Knapsack as follows.
 
@@ -355,6 +355,56 @@ In contrast to our definition of SBLO, SLO balances the load implicitly among al
 
 We have seen that the optimal competitiveness of online algorithms for smoothed convex optimization is fundamentally limited to be dimension-dependent as long as arbitrary convex hitting costs and arbitrary norms as switching costs are allowed. In the literature, many promising approaches are based on restricting the class of hitting costs (and switching costs) to achieve a dimension-independent competitive ratio. This section focuses mainly on hitting costs, introducing these restrictions, and investigating how they relate to our data center model.
 
-\paragraph{Continuity and Differentiability} A very first natural restriction is to assume that hitting costs are continuous. In fact, theorem 10.1 of \cite{Rockafellar1970} proves that given a convex function $f : \mathcal{X} \to \mathbb{R}$, $f$ is continuous on the interior of its domain, $\mathcal{X}^{\circ}$. Throughout this work, we will thus frequently assume the hitting costs to be continuous on the interior of the decision space $\mathcal{X}$ without an explicit mention.
+\subsection{Continuity and Differentiability}\label{section:theory:beyond_convexity:continuity_and_differentiability}
+
+A very first natural restriction is to assume that hitting costs are continuous. In fact, theorem 10.1 of \cite{Rockafellar1970} proves that given a convex function $f : \mathcal{X} \to \mathbb{R}$, $f$ is continuous on the interior of its domain, $\mathcal{X}^{\circ}$. Throughout this work, we will thus frequently assume the hitting costs to be continuous on the interior of the decision space $\mathcal{X}$ without an explicit mention.
 
 As continuity does not represent a limitation, we investigate the continuous differentiability of the hitting costs. We call a function \emph{smooth}\index{smooth} if it is infinitely-many times continuously differentiable. However, to obtain a smooth hitting cost in the application of right-sizing data centers, one would have to drastically reduce the complexity of the model we discussed in \autoref{chapter:application}. For example, \citeauthor*{Bansal2015} focus entirely on the energy cost, which is a good approximation in practice as energy represents the largest fraction of the overall cost \cite{Bansal2015}. Still, in general, it appears that the assumption of smoothness is too strong.
+
+\subsection{Stronger Assumptions}
+
+Some of the algorithms, which we discuss, require a more restricted class of convex cost functions. We thus introduce some terminology that is commonly used in convex optimization to describe properties of well-behaved functions.
+
+\paragraph{Lipschitz Continuity} We begin with the fundamental notion of Lipschitz continuity.
+
+\begin{definition}\index{Lipschitz continuity}
+A function $f : K \to \mathbb{R}$ is called $L$-Lipschitz over a convex set $K \subseteq \mathbb{R}^d$ with respect to the norm $\norm{\cdot}$ if \begin{align*}
+    \norm{f(x) - f(y)} \leq L \norm{x - y}
+\end{align*} holds for all $x, y \in K$ \cite{Gupta2020}.
+\end{definition}
+
+Intuitively, the absolute slope of an $L$-Lipschitz function cannot be greater than $L$. Alternatively, in other words, the function values cannot change arbitrarily fast.
+
+\paragraph{Lipschitz Smoothness} In the context of convex optimization, there is a notion of smoothness that is distinct from the smoothness that we discussed in \autoref{section:theory:beyond_convexity:continuity_and_differentiability}. For descent methods, it is beneficial if the difference in gradients of two points shrinks with the distance between the points. Formally, we define smoothness as follows.
+
+\begin{definition}\index{$\beta$-Lipschitz smooth}
+A function $f : K \to \mathbb{R}$ is called $\beta$-Lipschitz smooth over a convex set $K \subseteq \mathbb{R}^d$ with respect to the norm $\norm{\cdot}$ if its gradient $\nabla f$ is $\beta$-Lipschitz over $K$. Thus, $f$ is $\beta$-Lipschitz smooth if \begin{align*}
+    \norm{\nabla f(x) - \nabla f(y)} \leq \beta \norm{x - y}
+\end{align*} holds for all $x, y \in K$. This is equivalent to saying that \begin{align*}
+    f(y) \leq f(x) + \langle\nabla f(x), y-x\rangle + \frac{\beta}{2}\norm{x-y}^2
+\end{align*} holds for all $x, y \in K$ \cite{Gupta2020}.
+\end{definition}
+
+Intuitively, this ensures that at any point $x \in K$, a quadratic can be fit above the curve of $f$. This ensures that a descent method does not ``overshoot" when approaching the minimum because the gradient decreases as the minimum is approached.
+
+\paragraph{Strong Convexity} In contrast, descent methods converge faster if gradients are large, very far away from the optimal solution. The notion of strong convexity describes this property.
+
+\begin{definition}\index{$\alpha$-strongly convex}
+A function $f : K \to \mathbb{R}$ is called $\alpha$-strongly convex over a convex set $K \subseteq \mathbb{R}^d$ with respect to the norm $\norm{\cdot}$ if $g(x) = f(x) - \frac{\alpha}{2}\norm{x-y}^2$ is convex over $K$. Equivalently, $f$ is $\alpha$-strongly convex if \begin{align*}
+    f(y) \geq f(x) + \langle\nabla f(x), y-x\rangle + \frac{\alpha}{2}\norm{x-y}^2
+\end{align*} holds for all $x, y \in K$ \cite{Gupta2020}.
+\end{definition}
+
+Intuitively, at any point $x \in K$, a quadratic can be fit under the curve of $f$. In other words, $f$ grows at least quadratically as one moves away from the minimizer. This contrasts our definition of $\beta$-Lipschitz smoothness. When a function is $\alpha$-strongly convex and $\beta$-Lipschitz smooth, descent methods converge quickly as the gradient is large when far away and small when close to the optimal solution.
+
+Note that constant and even linear functions are not strongly convex. Recall that most energy consumption models we discussed in \autoref{section:application:operating_cost:energy} were linear in the number of active servers, implying that the overall operating cost of a server is not strongly convex. However, if strong convexity is sought, it suffices to choose a strongly convex (in particular, non-linear) energy consumption model as the energy cost model is assumed to be convex.
+
+\paragraph{Local Polyhedrality} Still, strong convexity represents a significant restriction. A similar but not quite as strong is the property of local polyhedrality.
+
+\begin{definition}\index{$\alpha$-locally polyhedral}
+A function $f : K \to \mathbb{R}$ with minimizer $\hat{x}$ is called $\alpha$-locally polyhedral over a convex set $K \subseteq \mathbb{R}^d$ with respect to the norm $\norm{\cdot}$ if there exists some $\epsilon > 0$ such that \begin{align*}
+    f(x) - f(\hat{x}) \geq \alpha \norm{x - \hat{x}}
+\end{align*} holds for all $x \in K$ with $\norm{x - \hat{x}} \leq \epsilon$ \cite{Goel2018}.
+\end{definition}
+
+Local polyhedrality indicates that at any point $x \in K$, a linear function with slope $\alpha$ can be fit below the curve of $f$ \cite{Goel2018}. In other words, $f$ grows at least linearly as one moves away from the minimizer. Similar to strong convexity, constant functions are not locally polyhedral. Nevertheless, local polyhedrality encompasses many functions, among others the cost functions we described in \autoref{chapter:application} modeling the cost of a data center \cite{Goel2018}.

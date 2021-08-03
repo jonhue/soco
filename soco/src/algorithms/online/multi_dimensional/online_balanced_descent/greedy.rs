@@ -1,45 +1,66 @@
+use std::sync::Arc;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::norm::NormFn;
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::meta::{obd, Options as MetaOptions};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::config::{Config};
-use crate::algorithms::online::{FractionalStep, Step};
+use crate::algorithms::online::{FractionalStep, OnlineAlgorithm, Step};
 use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
+use pyo3::prelude::*;
+use super::DistanceGeneratingFn;
 
-static DEFAULT_MU: f64 = 1.;
-static DEFAULT_GAMMA: f64 = 1.;
-
-pub struct Options<'a> {
+#[pyclass]
+#[derive(Clone)]
+pub struct Options {
     /// Convexity parameter. Chosen such that `f_t(x) \geq f_t(v_t) + \frac{m}{2} \norm{x - v_t}_2^2` where `v_t` is the minimizer of `f_t`.
     pub m: f64,
     /// Controls the size of the step towards the minimizer. `mu > 0`. Defaults to `1`.
-    pub mu: Option<f64>,
+    pub mu: f64,
     /// Balance parameter in OBD. `gamma > 0`. Defaults to `1`.
-    pub gamma: Option<f64>,
-    /// Mirror map chosen based on the used norm.
-    pub mirror_map: NormFn<'a, f64>,
+    pub gamma: f64,
+    /// Distance-generating function.
+    pub h: DistanceGeneratingFn,
+}
+impl Default for Options {
+    fn default() -> Self {
+        unimplemented!()
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(m: f64, mu: f64, gamma: f64, h: Py<PyAny>) -> Self {
+        Options {
+            m,
+            mu,
+            gamma,
+            h: Arc::new(move |x| {
+                Python::with_gil(|py| {
+                    h.call1(py, (x,))
+                        .expect("options `h` method invalid")
+                        .extract(py)
+                        .expect("options `h` method invalid")
+                })
+            }),
+        }
+    }
 }
 
 /// Greedy Online Balanced Descent
 pub fn gobd<C, D>(
     o: Online<FractionalSmoothedConvexOptimization<C, D>>,
-    xs: &mut FractionalSchedule,
-    _: &mut Vec<()>,
-    options: &Options,
+    t: i32,
+    xs: &FractionalSchedule,
+    _: (),
+    Options { m, mu, gamma, h }: Options,
 ) -> Result<FractionalStep<()>>
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
-
-    let mu = options.mu.unwrap_or(DEFAULT_MU);
-    let gamma = options.gamma.unwrap_or(DEFAULT_GAMMA);
-
-    let t = xs.t_end() + 1;
 
     let v = Config::new(
         find_minimizer_of_hitting_cost(
@@ -49,20 +70,12 @@ where
         )
         .0,
     );
-    let Step(y, _) = obd(
-        o,
-        xs,
-        &mut vec![],
-        MetaOptions {
-            l: gamma,
-            mirror_map: options.mirror_map.clone(),
-        },
-    )?;
+    let Step(y, _) = obd.next(o, xs, None, MetaOptions { l: gamma, h })?;
 
-    let x = if mu * options.m.sqrt() >= 1. {
+    let x = if mu * m.sqrt() >= 1. {
         v
     } else {
-        mu * options.m.sqrt() * v + (1. - mu * options.m.sqrt()) * y
+        mu * m.sqrt() * v + (1. - mu * m.sqrt()) * y
     };
     Ok(Step(x, None))
 }
