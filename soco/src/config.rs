@@ -2,6 +2,7 @@
 
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
+use pyo3::prelude::*;
 use rayon::iter::{
     FromParallelIterator, IntoParallelIterator, IntoParallelRefIterator,
 };
@@ -59,6 +60,24 @@ where
 
     pub fn total(&self) -> T {
         self.0.clone().into_iter().sum()
+    }
+}
+
+impl<'a, T> FromPyObject<'a> for Config<T>
+where
+    T: Value<'a> + FromPyObject<'a>,
+{
+    fn extract(ob: &'a PyAny) -> PyResult<Self> {
+        Ok(Config::new(ob.extract()?))
+    }
+}
+
+impl<'a, T> IntoPy<PyObject> for Config<T>
+where
+    T: Value<'a> + IntoPy<PyObject>,
+{
+    fn into_py(self, py: Python) -> PyObject {
+        self.to_vec().into_py(py)
     }
 }
 

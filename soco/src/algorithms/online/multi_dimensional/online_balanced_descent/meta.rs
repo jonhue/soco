@@ -1,8 +1,8 @@
+use super::DistanceGeneratingFn;
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::norm::NormFn;
 use crate::numerics::convex_optimization::{
     find_unbounded_minimizer, WrappedObjective,
 };
@@ -12,20 +12,47 @@ use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use finitediff::FiniteDiff;
 use noisy_float::prelude::*;
+use pyo3::prelude::*;
+use std::sync::Arc;
 
-pub struct Options<'a> {
+#[pyclass]
+#[derive(Clone)]
+pub struct Options {
     /// Determines the l-level set used in each step by the algorithm.
     pub l: f64,
-    /// Mirror map chosen based on the used norm.
-    pub mirror_map: NormFn<'a, f64>,
+    /// Distance-generating function.
+    pub h: DistanceGeneratingFn,
+}
+impl Default for Options {
+    fn default() -> Self {
+        unimplemented!()
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(l: f64, h: Py<PyAny>) -> Self {
+        Options {
+            l,
+            h: Arc::new(move |x| {
+                Python::with_gil(|py| {
+                    h.call1(py, (x,))
+                        .expect("options `h` method invalid")
+                        .extract(py)
+                        .expect("options `h` method invalid")
+                })
+            }),
+        }
+    }
 }
 
 /// Online Balanced Descent (meta algorithm)
 pub fn obd<C, D>(
     o: Online<FractionalSmoothedConvexOptimization<C, D>>,
-    xs: &mut FractionalSchedule,
-    _: &mut Vec<()>,
-    options: Options,
+    t: i32,
+    xs: &FractionalSchedule,
+    _: (),
+    Options { l, h }: Options,
 ) -> Result<FractionalStep<()>>
 where
     C: ModelOutputSuccess,
@@ -33,22 +60,14 @@ where
 {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
-    let t = xs.t_end() + 1;
     let prev_x = xs.now_with_default(Config::repeat(0., o.p.d));
-
-    let x = bregman_projection(
-        options.mirror_map,
-        o.p.hitting_cost,
-        t,
-        options.l,
-        prev_x,
-    );
+    let x = bregman_projection(h, l, o.p.hitting_cost, t, prev_x);
     Ok(Step(x, None))
 }
 
 #[derive(Clone)]
-struct ObjectiveData<'a> {
-    mirror_map: NormFn<'a, f64>,
+struct ObjectiveData {
+    h: DistanceGeneratingFn,
     x: FractionalConfig,
 }
 
@@ -61,12 +80,12 @@ struct ConstraintData<'a, C, D> {
 
 /// Bregman projection of `x` onto a convex `l`-sublevel set `K` of `f`.
 ///
-/// `mirror_map` must be `m`-strongly convex and `M`-Lipschitz smooth for the norm function with fixed `m` and `M`.
+/// `h` must be `m`-strongly convex and `M`-Lipschitz smooth for the norm function with fixed `m` and `M`.
 fn bregman_projection<C, D>(
-    mirror_map: NormFn<'_, f64>,
+    h: DistanceGeneratingFn,
+    l: f64,
     f: CostFn<'_, FractionalConfig, C, D>,
     t: i32,
-    l: f64,
     x: FractionalConfig,
 ) -> FractionalConfig
 where
@@ -74,14 +93,9 @@ where
     D: ModelOutputFailure,
 {
     let d = x.d();
-    let objective =
-        WrappedObjective::new(ObjectiveData { mirror_map, x }, |y, data| {
-            bregman_divergence(
-                &data.mirror_map,
-                Config::new(y.to_vec()),
-                data.x.clone(),
-            )
-        });
+    let objective = WrappedObjective::new(ObjectiveData { h, x }, |y, data| {
+        bregman_divergence(&data.h, Config::new(y.to_vec()), data.x.clone())
+    });
     // `l`-sublevel set of `f`
     let constraint =
         WrappedObjective::new(ConstraintData { f, t, l }, |y, data| {
@@ -95,13 +109,13 @@ where
 
 /// Bregman divergence between `x` and `y`.
 fn bregman_divergence(
-    mirror_map: &NormFn<'_, f64>,
+    h: &DistanceGeneratingFn,
     x: FractionalConfig,
     y: FractionalConfig,
 ) -> N64 {
-    let m = |x: &Vec<f64>| mirror_map(Config::new(x.clone())).raw();
-    let mx = mirror_map(x.clone());
-    let my = mirror_map(y.clone());
+    let m = |x: &Vec<f64>| h(Config::new(x.clone()));
+    let mx = h(x.clone());
+    let my = h(y.clone());
     let grad = Config::new(y.to_vec().central_diff(&m));
-    mx - my - grad * (x - y)
+    n64(mx - my - grad * (x - y))
 }

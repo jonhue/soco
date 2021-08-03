@@ -1,6 +1,6 @@
-use crate::algorithms::online::{FractionalStep, Step};
+use super::DistanceGeneratingFn;
+use crate::algorithms::online::{FractionalStep, OnlineAlgorithm, Step};
 use crate::config::{Config, FractionalConfig};
-use crate::norm::NormFn;
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::roots::find_root;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
@@ -14,20 +14,47 @@ use crate::{
     },
     model::{ModelOutputFailure, ModelOutputSuccess},
 };
+use pyo3::prelude::*;
+use std::sync::Arc;
 
-pub struct Options<'a> {
+#[pyclass]
+#[derive(Clone)]
+pub struct Options {
     /// The movement cost is at most `beta` times the hitting cost. `beta > 0`.
     pub beta: f64,
-    /// Mirror map chosen based on the used norm.
-    pub mirror_map: NormFn<'a, f64>,
+    /// Distance-generating function.
+    pub h: DistanceGeneratingFn,
+}
+impl Default for Options {
+    fn default() -> Self {
+        unimplemented!()
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(beta: f64, h: Py<PyAny>) -> Self {
+        Options {
+            beta,
+            h: Arc::new(move |x| {
+                Python::with_gil(|py| {
+                    h.call1(py, (x,))
+                        .expect("options `h` method invalid")
+                        .extract(py)
+                        .expect("options `h` method invalid")
+                })
+            }),
+        }
+    }
 }
 
 /// Primal Online Balanced Descent
 pub fn pobd<C, D>(
     o: Online<FractionalSmoothedConvexOptimization<C, D>>,
-    xs: &mut FractionalSchedule,
-    _: &mut Vec<()>,
-    options: &Options,
+    t: i32,
+    xs: &FractionalSchedule,
+    _: (),
+    Options { beta, h }: Options,
 ) -> Result<FractionalStep<()>>
 where
     C: ModelOutputSuccess,
@@ -35,12 +62,7 @@ where
 {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
 
-    let t = xs.t_end() + 1;
-    let prev_x = if xs.is_empty() {
-        Config::repeat(0., o.p.d)
-    } else {
-        xs.now()
-    };
+    let prev_x = xs.now_with_default(Config::repeat(0., o.p.d));
 
     let v = Config::new(
         find_minimizer_of_hitting_cost(
@@ -52,7 +74,7 @@ where
     );
     let dist = (o.p.switching_cost)(prev_x.clone() - v.clone()).raw();
     let minimal_hitting_cost = o.p.hit_cost(t, v.clone()).cost.raw();
-    if dist < options.beta * minimal_hitting_cost {
+    if dist < beta * minimal_hitting_cost {
         return Ok(Step(v, None));
     }
 
@@ -60,26 +82,11 @@ where
     let b = MAX_L_FACTOR * minimal_hitting_cost;
     let l = find_root((a, b), |l: f64| {
         let mut xs = xs.clone(); // remove this!
-        balance_function(
-            &o,
-            &mut xs,
-            &prev_x,
-            l,
-            options.beta,
-            &options.mirror_map,
-        )
+        balance_function(&o, &mut xs, &prev_x, l, beta, h.clone())
     })
     .raw();
 
-    obd(
-        o,
-        xs,
-        &mut vec![],
-        MetaOptions {
-            l,
-            mirror_map: options.mirror_map.clone(),
-        },
-    )
+    obd.next(o, xs, None, MetaOptions { l, h })
 }
 
 fn balance_function<C, D>(
@@ -88,21 +95,13 @@ fn balance_function<C, D>(
     prev_x: &FractionalConfig,
     l: f64,
     beta: f64,
-    mirror_map: &NormFn<'_, f64>,
+    h: DistanceGeneratingFn,
 ) -> f64
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    let Step(x, _) = obd(
-        o.clone(),
-        xs,
-        &mut vec![],
-        MetaOptions {
-            l,
-            mirror_map: mirror_map.clone(),
-        },
-    )
-    .unwrap();
+    let Step(x, _) =
+        obd.next(o.clone(), xs, None, MetaOptions { l, h }).unwrap();
     (o.p.switching_cost)(x - prev_x.clone()).raw() - beta * l
 }

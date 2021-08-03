@@ -3,7 +3,7 @@
 
 \chapter{Online Algorithms}\label{chapter:online_algorithms}
 
-In this chapter, we discuss the online algorithms we implemented in our work. Similar to the previous chapter on offline algorithms, we begin our discussion in \autoref{section:online_algorithms:ud} with algorithms for the uni-dimensional setting. As was discussed in \autoref{chapter:theory}, these algorithms give strong guarantees yielding a constant competitive ratio. Next in \autoref{section:online_algorithms:md}, we extend our discussion to the multi-dimensional setting. Here, the guarantees are not as strong. We thus begin in \autoref{section:online_algorithms:md:lazy_budgeting} by considering lazy budgeting algorithms for smoothed convex optimization problems with particular cost functions. As mentioned previously in \autoref{chapter:theory}, while there are algorithms with sublinear regret (gradient descent), there cannot be any algorithms achieving a dimension-independent constant competitive ratio unless the class of allowed cost functions is restricted \cite{Chen2018}. In \autoref{section:online_algorithms:md:descent_methods}, we thus discuss gradient methods that perform well with regard to either the competitive ratio or regret with a restricted class of cost functions. Still, sublinear regret and a constant competitive ratio cannot be achieved simultaneously, even for linear cost functions \cite{Andrew2015}. We, therefore, end this chapter in \autoref{section:online_algorithms:md:predictions} with a discussion of algorithms that make use of predictions to circumvent this fundamental limitation.
+In this chapter, we discuss the online algorithms we implemented in our work. Similar to the previous chapter on offline algorithms, we begin our discussion in \autoref{section:online_algorithms:ud} with algorithms for the uni-dimensional setting. As was discussed in \autoref{chapter:theory}, these algorithms give strong guarantees yielding a constant competitive ratio. Next in \autoref{section:online_algorithms:md}, we extend our discussion to the multi-dimensional setting. Here, the guarantees are not as strong. We thus begin in \autoref{section:online_algorithms:md:lazy_budgeting} by considering lazy budgeting algorithms for smoothed convex optimization problems with particular cost functions. As mentioned previously in \autoref{chapter:theory}, while there are algorithms with sublinear regret (gradient descent), there cannot be any algorithms achieving a dimension-independent constant competitive ratio unless the class of allowed cost functions is restricted \cite{Chen2018}. In \autoref{section:online_algorithms:md:descent_methods}, we thus discuss gradient methods that perform well with regard to either the competitive ratio or regret with a restricted class of cost functions. Still, sublinear regret and a constant competitive ratio cannot be achieved simultaneously, even for linear cost functions \cite{Andrew2015}. We, therefore, end this chapter in \autoref{section:online_algorithms:md:predictions} with a discussion of algorithms that use predictions to circumvent this fundamental limitation.
 
 Throughout this chapter, we denote by $\tau \in [T]$ the current time slot. In contrast to offline algorithms that know the hitting costs $f_t$ for all $t \in [T]$, an online algorithm only knows the hitting costs $f_t$ up to $\tau$, i.e. $t \in [\tau]$.
 
@@ -54,11 +54,11 @@ While not changing the worst-case complexity, this significantly improves the pr
 
 \subsubsection{Integral Algorithm}
 
-\citeauthor*{Albers2018} applied lazy capacity provisioning to the integral variant Int-SSCO using their graph-based offline algorithm discussed in \autoref{section:offline_algorithms:ud:graph_based} to compute the integral lower and upper bounds \cite{Albers2018}. It is apparent that this immediately yields a deterministic online algorithm for Int-SSCO. \citeauthor*{Albers2018} showed that similar to lazy capacity provisioning, their algorithm is $3$-competitive \cite{Albers2018}. Due to the changed method of determining the bounds, its runtime is $\mathcal{O}(\tau^2 C \log_2 m)$. Note that it is not possible to cache the intermediate results of the dynamic program (see \autoref{alg:ud:optimal_graph_search}) as the binary search over possible configurations considers different vertices depending on the obtained schedule, which changes over time. Thus, for large $\tau$, it may be beneficial to use caching instead of binary search resulting in a runtime of $\mathcal{O}(\tau C m)$. By using the same method of shortening the used history that was proposed by \citeauthor*{Lin2011}, we can reduce this time complexity drastically in practice (for large $\tau$). Thus, the adopted algorithm is still described by \autoref{alg:ud:lcp}. We simply need to slightly modify the graph-based algorithm computing optimal offline solutions to allow for initial conditions other than $0$.
+\citeauthor*{Albers2018} applied lazy capacity provisioning to the integral variant Int-SSCO using their graph-based offline algorithm discussed in \autoref{section:offline_algorithms:ud:graph_based} to compute the integral lower and upper bounds \cite{Albers2018}. It is apparent that this immediately yields a deterministic online algorithm for Int-SSCO. \citeauthor*{Albers2018} showed that similar to lazy capacity provisioning, their algorithm is $3$-competitive \cite{Albers2018}. Due to the changed method of determining the bounds, its runtime is $\mathcal{O}(\tau^2 C \log_2 m)$. Note that it is impossible to cache the intermediate results of the dynamic program (see \autoref{alg:ud:optimal_graph_search}) as the binary search over possible configurations considers different vertices depending on the obtained schedule, which changes over time. Thus, for large $\tau$, it may be beneficial to use caching instead of binary search resulting in a runtime of $\mathcal{O}(\tau C m)$. By using the same method of shortening the used history that was proposed by \citeauthor*{Lin2011}, we can reduce this time complexity drastically in practice (for large $\tau$). Thus, the adopted algorithm is still described by \autoref{alg:ud:lcp}. We simply need to slightly modify the graph-based algorithm computing optimal offline solutions to allow for initial conditions other than $0$.
 
 \subsection{Memoryless Algorithm}\label{section:online_algorithms:ud:memoryless}
 
-\citeauthor*{Bansal2015} showed that for SSCO, a competitive ratio of $3$ can also be attained by a memoryless algorithm \cite{Bansal2015}. In a memoryless online algorithm for smoothed convex optimization, the configuration $X_{\tau}$ only depends on the preceding configuration $X_{\tau-1}$ and the current hitting cost $f_{\tau}$. This generally allows for a more space and time-efficient algorithm, which is important when we want to choose a small time slot length $\delta$ to be more responsive to changes in load.
+\citeauthor*{Bansal2015} showed that for SSCO, a competitive ratio of $3$ can also be attained by a memoryless algorithm \cite{Bansal2015}. In a memoryless online algorithm for smoothed convex optimization, the configuration $X_{\tau}$ only depends on the preceding configuration $X_{\tau-1}$ and the current hitting cost $f_{\tau}$. This generally allows for a more space and time-efficient algorithm, which is important when choosing a small time slot length $\delta$ to be more responsive to changes in load.
 
 The algorithm proposed by \citeauthor*{Bansal2015} works as follows. Let $x_m$ be the minimizer of $f_{\tau}(x)$, i.e. $x_m = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. The algorithm moves into the direction of the minimizer until it either reaches $x_m$, or it reaches a configuration $x$ where its switching cost equals twice the hitting cost of $x$. \autoref{fig:memoryless_algorithm} gives an example of a step of the algorithm. We observe that this is equivalent to the following convex optimization: \begin{align}\label{eq:ud:memoryless}\begin{aligned}
     &\min_{x \in \mathcal{X}} &&f_{\tau}(x) \\
@@ -71,7 +71,7 @@ The algorithm proposed by \citeauthor*{Bansal2015} works as follows. Let $x_m$ b
 A schedule is optimal with respect to \autoref{eq:simplified_smoothed_convex_optimization:without_beta} if and only if it is optimal with respect to \autoref{eq:simplified_smoothed_convex_optimization}.
 \end{lemma}
 
-Therefore, we can, without loss of optimality, incorporate the weight of the switching cost beta into the hitting costs. Further, note that in their model, \citeauthor*{Bansal2015} consider the absolute movement, i.e. $|X_{t,k} - X_{t-1,k}|$, rather than only positive movements, i.e. $(X_{t,k} - X_{t-1,k})^+$. However, with \autoref{lemma:switching_cost_l1_norm_vs_pos_movement} in \autoref{chapter:theory}, we have shown that these switching costs only differ by a constant factor (namely $1/2$).
+Therefore, without loss of optimality, we can incorporate the weight of the switching cost beta into the hitting costs. Further, note that in their model, \citeauthor*{Bansal2015} consider the absolute movement, i.e. $|X_{t,k} - X_{t-1,k}|$, rather than only positive movements, i.e. $(X_{t,k} - X_{t-1,k})^+$. However, with \autoref{lemma:switching_cost_l1_norm_vs_pos_movement} in \autoref{chapter:theory}, we have shown that these switching costs only differ by a constant factor (namely $1/2$).
 
 The resulting algorithm is simply given by determining $\hat{x}$ based on the convex optimization in \autoref{eq:ud:memoryless}, see \autoref{alg:ud:memoryless}. Thus, the time (and space) complexity of this memoryless algorithm is $\mathcal{O}(C O_{\epsilon}^1)$ for finding $\epsilon$-optimal solutions.
 
@@ -92,7 +92,7 @@ The resulting algorithm is simply given by determining $\hat{x}$ based on the co
 
 \subsection{Probabilistic Algorithm}\label{section:online_algorithms:ud:probabilistic}
 
-Next, we discuss a $2$-competitive algorithm developed by \citeauthor*{Bansal2015}, which works by maintaining a probability distribution over configurations \cite{Bansal2015}. Using this probability distribution, they describe a randomized algorithm which they subsequently translate into a deterministic algorithm. We begin our description by describing how to gather a randomized and then a deterministic algorithm from a probability distribution. Then, we describe how \citeauthor*{Bansal2015} determine the probability distribution and how it can be computed in practice.
+Next, we discuss a $2$-competitive algorithm developed by \citeauthor*{Bansal2015}, which works by maintaining a probability distribution over configurations \cite{Bansal2015}. Using this probability distribution, they describe a randomized algorithm which they subsequently translate into a deterministic algorithm. We discuss how to gather a randomized and then a deterministic algorithm from a probability distribution. Then, we describe how \citeauthor*{Bansal2015} determine the probability distribution and how it can be computed in practice.
 
 \subsubsection{From Probability Distribution to Deterministic Algorithm}
 
@@ -125,7 +125,7 @@ For any time $\tau$, the algorithm maintains a probability distribution $p_{\tau
     \frac{1}{2} \int_{x_m}^{x_r} \diff[2]{f_{\tau}}{y}(y) \,dy = \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy
 \end{align} and a point $x_l \leq x_m$ such that \begin{align}\label{eq:ud:probabilistic:left}
     \frac{1}{2} \int_{x_l}^{x_m} \diff[2]{f_{\tau}}{y}(y) \,dy = \beta \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy.
-\end{align} Note that we use \autoref{lemma:switching_cost_absolute_vs_positive_movement} to linearly scale the hitting cost $f_{\tau}$ by $1 / \beta$ to allow for $\beta \neq 1$. We then simply moved the constant factor outside of the derivative and integral. The probability distribution is now updated as follows: \begin{align}\label{eq:ud:probabilistic:update}
+\end{align} Note that we use \autoref{lemma:switching_cost_absolute_vs_positive_movement} to linearly scale the hitting cost $f_{\tau}$ by $1 / \beta$ to allow for $\beta \neq 1$. We then simply moved the constant factor outside of the derivative and integral. The probability distribution is updated as follows: \begin{align}\label{eq:ud:probabilistic:update}
     p_{\tau}(x) = \begin{cases}
         p_{\tau-1}(x) + \frac{1}{2 \beta} \diff[2]{f_{\tau}}{x}(x) & x \in [x_l,x_r] \\
         0 & \text{otherwise}
@@ -144,7 +144,7 @@ For any time $\tau$, the algorithm maintains a probability distribution $p_{\tau
 
 To begin with, recall that the algorithm developed by \citeauthor*{Bansal2015} operates on an unbounded decision space. To translate the algorithm to a setting with a bounded decision space, it is easy to see that we need to ensure that the underlying probability distribution does not assign positive probability to $x \not\in \mathcal{X}$. This can be achieved by introducing the additional restrictions $0 \leq x_l$ and $x_r \leq m$ which requires the assumption $x_m \in [0,m]$. This is not a restriction as we simply define $x_m$ as the minimizer of the hitting cost $f_{\tau}$ with respect to the decision space $\mathcal{X}$.
 
-We use a convex optimization (as described in \autoref{section:offline_algorithms:convex_optimization}) to find the minimizer of the hitting cost $x_m$. To determine $x_l$ and $x_r$, we use Brent's method with suitably defined functions and intervals to find a root. We will define these intervals and functions and describe how they can be computed in the following. Before we begin their description, note that we can only use a bracketed root finding method as we assumed that our decision space is bounded. If the decision space was not bounded, $x_l$ could be determined using a search for a local optimum minimizing $x$ starting from $x_m$ under the equality constraint given in \autoref{eq:ud:probabilistic:left}. This works because the equality constraint reduces the dimensionality of the optimization to $0$, resulting in a single feasible point. The analogous approach can be used to determine $x_r$.
+We use a convex optimization (as described in \autoref{section:offline_algorithms:convex_optimization}) to find the minimizer of the hitting cost $x_m$. To determine $x_l$ and $x_r$, we use Brent's method with suitably defined functions and intervals to find a root. We will define these intervals and functions and describe how they can be computed in the following. Before beginning their description, note that we can only use a bracketed root finding method as we assumed that our decision space is bounded. If the decision space was not bounded, $x_l$ could be determined using a search for a local optimum minimizing $x$ starting from $x_m$ under the equality constraint given in \autoref{eq:ud:probabilistic:left}. This works because the equality constraint reduces the dimensionality of the optimization to $0$, resulting in a single feasible point. The analogous approach can be used to determine $x_r$.
 
 We begin by describing how $x_r$ can be determined by a local search for a root. First, note that $x_r \in [x_m,m]$. Next, we restate \autoref{eq:ud:probabilistic:right} as a function of $x_r$: \begin{align*}
     && \frac{1}{2} \int_{x_m}^{x_r} \diff[2]{f_{\tau}}{y}(y) \,dy =&\ \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy \\
@@ -179,7 +179,7 @@ We use the \emph{Gauss-Laguerre quadrature}\index{Gauss-Laguerre quadrature} for
     \int_0^{\infty} e^{-x} f(x) \,dx
 \end{align} \cite{Weisstein}. It is easy to see that we can eliminate the weights by multiplying the integrand $g$ with $e^x$. Let $\text{GL}(g)$ denote the approximation of \autoref{eq:gauss_laguerre} obtained by the Gauss-Laguerre quadrature. We are then able to compute any right-open integral over the interval $[{a,\infty})$ with integrand $p$ by setting $g(x) := p(a+x)$ and any left-open integral over the interval $({-\infty,b}]$ with integrand $p$ by setting $g(x) := p(b-x)$.
 
-Crucially, for numeric stability in both integration schemes, we need that the integrands are continuous. It is easy to see that, in general, this is not the case for our probability distribution $p$. We describe in the following paragraph how integrals can be suitably discretized to allow for stable numeric results. Moreover, as the integration schemes are not universal, probability distributions potentially exist for which the used quadratures cannot find the integral. In such a case, one would have to resort to another integration scheme. We denote the convergence rate of approximating the integral with tolerance $\epsilon$ by $\mathcal{O}(I_{\epsilon})$.
+Crucially, for numeric stability in both integration schemes, we need that the integrands are continuous. It is easy to see that, in general, this is not the case for our probability distribution $p$. We describe in the following paragraph how integrals can be suitably discretized to allow for stable numeric results. Moreover, as the integration schemes are not universal, probability distributions exist for which the used quadratures cannot find the integral. In such a case, one would have to resort to another integration scheme. We denote the convergence rate of approximating the integral with tolerance $\epsilon$ by $\mathcal{O}(I_{\epsilon})$.
 
 \paragraph{Piecewise Linear Hitting Costs} We have already discharged the assumptions that $\beta = 1$ and that the decision space is unbounded. It remains to extend this algorithm to allow for piecewise linear hitting costs.
 
@@ -206,17 +206,17 @@ Let $B_{p_{\tau}}^I := B_{p_{\tau}} \cap I$. The integral of $p_{\tau}$ over $I 
 
 Updating the probability distribution $p$ can be done in constant time as this does not require any function evaluations. As discussed in the beginning of this subsection, given a uniformly picked $\gamma \in [0,1]$, the randomized algorithm chooses $X_{\tau}$ (randomly) such that $\int_{-\infty}^{X_{\tau}} p_{\tau}(y) \,dy = \gamma$. In other words, $P_{\tau}(X_{\tau}) \sim \text{Unif}(0,1)$ where $P_{\tau}$ is the cumulative distribution function of $p_{\tau}$. By the universality of the uniform, $X_{\tau}$ is $P_{\tau}$-distributed, i.e. $X_{\tau} \sim P_{\tau}$. Hence, $E X_{\tau} = \int_{x_l}^{x_r} y \cdot p_{\tau}(y) \,dy$ computes the configuration for time slot $\tau$ as $p_{\tau}(y) = 0$ for $y \not\in [x_l, x_r]$. We then return $E X_{\tau}$. Similarly to the previously discussed integrals, this integral can be computed $\epsilon$-optimally in $\mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}|)$ time, not affecting the asymptotic time complexity of the algorithm.
 
-\subsection{Randomly Biased Greedy Algorithm}
+\subsection{Randomly Biased Greedy Algorithm}\label{section:online_algorithms:ud:rbg}
 
-We have seen many constant-competitive online algorithms for uni-dimensional smoothed convex optimization. However, we have not yet paid much attention to minimizing regret. This is also partially because sublinear regret can be achieved easily using online gradient descent. As this approach generalizes to the multi-dimensional setting, we discuss this approach in \autoref{section:online_algorithms:md:descent_methods} when we look at descent methods more generally.
+We have seen many constant-competitive online algorithms for uni-dimensional smoothed convex optimization. However, we have not yet paid much attention to minimizing regret. This is also partially because sublinear regret can be achieved easily using online gradient descent. As this approach generalizes to the multi-dimensional setting, we discuss this approach in \autoref{section:online_algorithms:md:descent_methods} more generally looking at descent methods.
 
-Still, one important question regarding the uni-dimensional setting remains. Namely, whether there is an algorithmic framework that achieves both a constant-competitive ratio and sublinear regret. Note that while it is impossible to achieve both simultaneously, it is possible to develop an algorithmic framework that balances both performance metrics.
+Still, one important question regarding the uni-dimensional setting remains, namely, whether there is an algorithmic framework that achieves both a constant-competitive ratio and sublinear regret. While it is impossible to achieve both simultaneously, developing an algorithmic framework that balances both performance metrics is possible.
 
 In their paper, where the incompatibility between the competitive ratio and regret was first introduced, \citeauthor*{Andrew2015} already proposed an algorithmic framework for SCO balancing the two notions in the uni-dimensional setting \cite{Andrew2015}. Their approach is to scale the norm used to penalize movement in the decision space with a parameter $\theta \geq 1$. If $\theta = 1$, i.e., the algorithm solves the original problem, their algorithm is $2$-competitive and has linear regret. In contrast, for $\theta > 1$, movement in the decision space is penalized more. This allows reducing the regret to an arbitrary amount (which still depends linearly on $T$) while maintaining a constant competitive ratio \cite{Andrew2015}.
 
 Note that while regret is understood as introduced in \autoref{section:theory:performance_metrics}, the competitive ratio is understood with respect to the modified problem with lookahead $1$. In general, with \emph{lookahead}\index{lookahead} $i$, the environment plays actions $i$ steps before the agent follows suit. In other words, a step at time $i$ is evaluated using the cost function from time $t-i$, and the initial step $X_i$ is $\mathbf{0}$. For lookahead $i$, we consider the modified overall cost \begin{align*}
     \sum_{t=1}^T f_t(X_{t+i}) + \norm{X_{t+i} - X_{t+i-1}}.
-\end{align*} For $i=1$, this modified problem is equivalent to metrical task systems where the environment plays first. In contrast, with SCO, the agent plays first, resulting in a lookahead of $i=0$ \cite{Andrew2015}. Note that SCO is the more restricted setting as the agent has less knowledge than in the case of metrical task systems implying that the corresponding competitive algorithm for lookahead $0$ is at least as competitive as the discussed algorithm for lookahead $i$. Given an algorithm with lookahead $i$, the corresponding algorithm with lookahead $0$ is obtained simply by shifting determined configurations $i$ time slots into the past.
+\end{align*} For $i=1$, this modified problem is equivalent to metrical task systems where the environment plays first. In contrast, with SCO, the agent plays first, resulting in a lookahead of $i=0$ \cite{Andrew2015}. Note that SCO is the more restricted setting as the agent has less knowledge than in metrical task systems implying that the corresponding competitive algorithm for lookahead $0$ is as competitive as the discussed algorithm for lookahead $i$. Given an algorithm with lookahead $i$, the corresponding algorithm with lookahead $0$ is obtained simply by shifting determined configurations $i$ time slots into the past.
 
 \citeauthor*{Bansal2015} mention in their paper that the claims on this algorithm were withdrawn, however, \citeauthor*{Andrew2015} clarified their proof, showing it is correct as stated in the original paper \cite{Bansal2015, Wierman}.
 
@@ -227,7 +227,7 @@ The algorithm of \citeauthor*{Andrew2015} is initialized with a random parameter
 \begin{algorithm}
     \caption{Randomly Biased Greedy \cite{Andrew2015}}\label{alg:ud:rbg}
     \SetKwInOut{Input}{Input}
-    \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau}), \theta \geq 1, r \sim \text{Unif}(-1,1)$}
+    \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathbb{X} \to \mathbb{R}_{\geq 0})^{\tau}), \theta \geq 1, r \sim \text{Unif}(-1,1)$}
     $x \gets \argmin_{x \in \mathcal{X}} w_{\tau-1}(x) + r \theta \norm{x}$\;
     set $w_{\tau}$ as described in \autoref{eq:randomly_biased_greedy:work_function}\;
     \Return $x$\;
@@ -451,23 +451,127 @@ The number of sub time slots $\widetilde{n}_t$ can be determined in $\mathcal{O}
 
 \subsection{Descent Methods}\label{section:online_algorithms:md:descent_methods}
 
+When we seek fractional solutions and the cost functions are differentiable, a promising method is to descent towards the minimizer of the current cost function. This is an approach that is commonly used in online convex optimization, yielding algorithms with sublinear regret \cite{Andrew2015}. As was mentioned in \autoref{section:online_algorithms:ud:rbg} on the Randomly Biased Greedy algorithm, in the online convex optimization setting, switching costs are not considered and the agent picks a point in the decision space before the cost function is revealed. A commonly used algorithm that achieves no-regret in the setting of online convex optimization, is \emph{online gradient descent} (OGD).
+
 \subsubsection{Online Gradient Descent}
 
-\subsubsection{Online Mirror Descent}
+Online gradient descent works by selecting an arbitrary initial point $X_1 \in \mathcal{X}$ and then choosing, at time $\tau > 1$, $X_{\tau} = \Pi_{\mathcal{X}}(X_{\tau-1} - \eta_{\tau-1} \nabla f_{\tau-1}(X_{\tau-1}))$ where $\eta_t$ are the learning rates and $\Pi_{\mathcal{X}}(y)$ is the euclidean projection of $y$ onto $\mathcal{X}$ \cite{Andrew2015}. The algorithm is described in \autoref{alg:md:ogd}. Similar to RBG, OGD operates with lookahead $1$. In the multi-dimensional setting, the \emph{euclidean projection}\index{euclidean projection} of a point $y \in \mathbb{R}^d$ onto a convex set $\mathcal{K}$ is given as $\Pi_{\mathcal{K}}(y) = \argmin_{x \in \mathcal{K}} \norm{x - y}_2$.
 
-\subsubsection{Online Balanced Descent}
+\begin{algorithm}
+    \caption{Online Gradient Descent \cite{Andrew2015}}\label{alg:md:ogd}
+    \SetKwInOut{Input}{Input}
+    \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}^d, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathbb{X} \to \mathbb{R}_{\geq 0})^{\tau}), \eta \geq 0$}
+    $X_{\tau} \gets P(X_{\tau-1} - \eta \nabla f_{\tau-1}(X_{\tau-1}))$\;
+    \Return $X_{\tau}$\;
+\end{algorithm}
+
+With appropriate learning rates OGD achieves no-regret for online convex otpimization. For example, OGD obtains $\mathcal{O}(\sqrt{T})$-regret for $\eta_t \in \Theta(1 / \sqrt{t})$ \cite{Andrew2015}. \citeauthor*{Andrew2015} showed that an OGD algorithm with $\mathcal{O}(\rho_2(T))$-regret in the online convex optimization setting, and $\sum_{t=1}^T \eta_t \in \mathcal{O}(\rho_1(T))$, achieves $\mathcal{O}(\rho_1(T) + \rho_2(T))$-regret in the online smoothed convex otpimization setting \cite{Andrew2015}. In particular, for learning rates $\eta_t \in \Theta(1 / \sqrt{t})$, OGD obtains $\mathcal{O}(\sqrt{T})$-regret when switching costs are considered and the agent picks a point after the hitting costs were revealed.
+
+\subsubsection{Online Mirror Descent}\label{section:online_algorithms:md:descent_methods:omd}
+
+Thus, with respect to regret, where algorithms seek to minimize the hitting cost immediately, the smoothing property of SCO does not require the development of new algorithms. In contrast, competitive algorithms need to wait before moving to the minimizer of the hitting cost until the switching costs are amortized. In other words, in each step, a competitive algorithm has to decide how far to move into the direction of the minimizer to balance hitting cost and switching cost. Crucially, where to move depends on the geometry of the cost function. As is shown in \autoref{fig:level_sets_of_the_hitting_costs}, rather than moving towards the minimizer directly, it is advantageous to move to a projection on some level set of the cost function. This approach minimizes the switching costs that are required to reach a point with the same hitting cost. This approach can be used to balance hitting costs and switching costs, and is discussed in \autoref{section:online_algorithms:md:descent_methods:obd} where we introduce the online balanced descent framework.
+
+\begin{figure}
+    \centering
+    [TODO]
+    \caption{Level sets of the hitting costs}
+    \label{fig:level_sets_of_the_hitting_costs}
+\end{figure}
+
+The mirror descent framework is an extension of gradient descent allowing to adapt to the underlying ``geometry" of a problem \cite{Gupta2020}. The original gradient descent algorithm uses Euclidean geometry. This is shown by a slightly modified form of its update rule: \begin{align*}
+    X_{\tau} = \argmin_{x \in \mathcal{X}} \eta_{\tau-1} \langle\nabla f_{\tau-1}(X_{\tau-1}), x\rangle + \frac{1}{2} \norm{x - X_{\tau-1}}_2^2.
+\end{align*} Observe that OGD uses the squared Euclidean distance as a regularizer (i.e., a function ensuring that we remain close to the point $X_{\tau-1}$) which can be replaced by another distance to obtain different algorithms \cite{Gupta2020}.
+
+\paragraph{Proximal Point View} The Bregman divergence is a commonly used class of distance functions. Given a strictly convex \emph{distance-generating function}\index{distance-generating function} $h$, the Bregman divergence measures the deviation of $h$ from its linear approximation.
+
+\begin{definition}\index{Bregman divergence}
+The Bregman divergence from a point $x$ to a point $y$ with respect to a strictly convex function $h$ is given as \begin{align*}
+    D_h(x,y) = h(x) - h(y) - \langle\nabla h(x), x - y\rangle.
+\end{align*} \cite{Goel2018}
+\end{definition}
+
+\begin{figure}
+    \centering
+    [TODO]
+    \caption{Bregman Divergence}
+    \label{fig:bregman_divergence}
+\end{figure}
+
+The definition of the Bregman divergence of a univariate function $h$ is visualized in \autoref{fig:bregman_divergence}.
+
+The modified variant of OGD, which uses a Bregman divergence as regularizer, is known as \emph{online mirror descent}\index{mirror descent} (OMD) or online proximal gradient descent. Note that OMD is parametrized by $h$ which is used to describe the underlying geometry of the problem \cite{Goel2018}.
+
+For the function $h(x) = \frac{1}{2} \norm{x}_2^2$ from $\mathbb{R}^d$ to $\mathbb{R}$, the Bregman divergence is the Euclidean distance, i.e. $D_h(x,y) = \frac{1}{2} \norm{x-y}_2^2$ \cite{Goel2018}. Hence, OMD reduces to OGD if it is parametrized with the provided definition of $h$, i.e., a Euclidean geometry is used.
+
+\paragraph{Mirror Map View} The proximal point view gives just one perspective of mirror descent. Another perspective which is used frequently, is the perspective of mirror maps.
+
+Recall that in OGD, starting from some point $X_{\tau-1}$, we moved into the direction of the gradient of $f$. However, note that $\nabla f_{\tau-1}(X_{\tau-1})$ belongs to the dual space\footnote{The \emph{dual space}\index{dual space} of a vector space $V$ over some field $\mathbb{F}$ is the set of all linear maps from vectors in $V$ to scalars in $\mathbb{F}$ (which are called \emph{linear functionals}\index{linear functionals}) \cite{Wadsley2015}} of $\mathbb{R}^d$. In the Euclidean space this is not a problem as the dual space of the Euclidean space is the Euclidean space itself \cite{Gupta2020}. However, when working with normed spaces that are not self-dual, this might be problematic.
+
+Instead of adding elements from the dual space to elements from the primal space, mirror descent maps points from the primal space to the dual space, performs the gradient step in the dual space, and then maps the resulting point back to the primal space
+
+\begin{figure}
+    \centering
+    [TODO]
+    \caption{Mirror Descent}
+    \label{fig:mirror_descent}
+\end{figure}
+
+\begin{definition}\index{mirror map}
+Given a norm $\norm{\cdot}$ and a differentiable and $\alpha$-strongly convex function $h : \mathbb{R}^d \to \mathbb{R}$, the associated mirror map is $\nabla h : \mathbb{R}^d \to \mathbb{R}^d$ and the inverse mirror map is $(\nabla h)^{-1} : \mathbb{R}^d \to \mathbb{R}^d$ \cite{Gupta2020}.
+\end{definition}
+
+For $h(x) = \frac{1}{2} \norm{x}_2^2$ the mirror map and its inverse are the identity map \cite{Gupta2020}. A complete description of the mirror descent framework is given in \autoref{alg:md:omd}. Note that the choice of the mirror map is central as it describes the dual space (also called mirror image) where the gradient step is taken. \autoref{fig:mirror_descent} visualizes a step of mirror descent.
+
+\begin{algorithm}
+    \caption{Online Mirror Descent \cite{Gupta2020}}\label{alg:md:omd}
+    \SetKwInOut{Input}{Input}
+    \Input{$\tau \in \mathbb{N}, K \subset \mathbb{R}^d, \norm{\cdot}, h \in \mathbb{R}^d \to \mathbb{R}$}
+    map to the dual space $\theta_{\tau-1} \gets \nabla h (X_{\tau-1})$\;
+    take a gradient step in the dual space $\theta_{\tau} \gets \theta_{\tau-1} - \eta_{\tau-1} \nabla f_{\tau-1}(X_{\tau-1})$\;
+    map back to the primal space $X'_{\tau} \gets (\nabla h)^{-1}(\theta_{\tau})$\;
+    project $X'_{\tau}$ onto a point $X_{\tau} \in K$ using the Bregman projection $X_{\tau} \gets \Pi_K^h(X'_{\tau})$\;
+    \Return $X_{\tau}$\;
+\end{algorithm}
+
+\begin{definition}\index{Bregman projection}
+The Bregman projection of a point $x$ onto a convex set $K \subseteq \mathbb{R}^d$ given the distance-generating function $h$ is \begin{align*}
+    \Pi_K^h(x) = \argmin_{y \in K} D_h(y,x).
+\end{align*} \cite{Gupta2020}
+\end{definition}
+
+Next, we describe how the ideas from mirror descent are adapted for the smoothed online convex optimization setting, where agents operate with lookahead $1$ and switching costs need to be considered.
+
+\subsubsection{Online Balanced Descent}\label{section:online_algorithms:md:descent_methods:obd}
+
+The online balanced descent (OBD) algorithms were developed by \citeauthor*{Goel2018} \cite{Goel2018} are a special case of online mirror descent (OMD) with lookahead $1$. In practice, to achieve the one-step lookahead, OBD moves to a point $X_{\tau}$ on a level set of $f_{\tau}(\cdot)$ such that the step is normal to the contour line of $f_{\tau-1}$. In contrast, OMD steps into a direction that is normal to the contour line of $f_{\tau-1}(X_{\tau-1})$. In other words, OMD takes a step with respect to its starting point on some level set, whereas OBD takes a step with respect to its destination on some level set. \autoref{fig:comparison_of_an_update_of_omd_and_obd} shows how these updates compare.
+
+\begin{figure}
+    \centering
+    [TODO]
+    \caption{Comparison of an update of OMD and OBD}
+    \label{fig:comparison_of_an_update_of_omd_and_obd}
+\end{figure}
+
+The algorithmic framework for OBD can roughly be divided into two parts. First, the projection of the previous point onto some level set of the cost function.  Second, the strategies to choose the specific level set and geometry to balance hitting costs and switching costs. The algorithm for (1) is also called the \emph{meta} algorithm as it is parametrized with a concrete level set and geometry.
+
+\subsubsection{Meta Algorithm}
+
+
+
+\begin{definition}\index{dual norm}
+Given some norm $\norm{\cdot}$ on $\mathbb{R}^d$, its dual norm $\norm{\cdot}_*$ is defined as \begin{align*}
+    \norm{y}_* = \sup_{x \in \mathbb{R}^d} \{\langle x, y \rangle \mid \norm{x} \leq 1\}.
+\end{align*} \cite{Gupta2020}
+\end{definition}
+
+The $\ell_2$ norm is self-dual \cite{Gupta2020}. In general, the dual norm for a concrete point $y \in \mathbb{R}^d$ can be computed with the following convex optimization: \begin{align*}
+    &\max_{x \in \mathbb{R}^d} &&\langle x, y \rangle \\
+    &\text{subject to}         &&\norm{x} \leq 1.
+\end{align*}
 
 \section{Predicting}\label{section:online_algorithms:md:predictions}
 
-In practice, we can attempt to use predicted hitting costs to improve the performance of online algorithms. In the data-center setting, it is often possible to predict future incoming loads to a high degree of accuracy. Using predicted hitting costs and their uncertainty distributions, online algorithms can make more informed decisions in practice. In this section, we begin by describing approaches for time-series predictions and end with discussing algorithms that use such predictions.
-
-\subsection{Making Predictions}\label{section:online_algorithms:md:predictions:making_predictions}
-
-There exist multiple paradigms for making time-series predictions. Due to much recent engagement in deep learning generally and time-series predictions specifically, multiple approaches perform well in practical settings. Most algorithms separately tune parameters of individual models for short-term and long-term trends as well as seasonality \cite{Taylor2017, Hosseini2021}.
-
-A fundamental difference between models is whether they are Bayesian, i.e., use an underlying uncertainty distribution within the model. Facebook's Prophet algorithm is Bayesian, whereas LinkedIn's Greykite algorithm is not \cite{Taylor2017, Hosseini2021}.
-
-For Bayesian models, online algorithms can use the uncertainty distribution to consider outliers appropriately. For non-Bayesian models, additive white Gaussian noise can be added to the prediction to achieve a similar effect. In general, many strategies can be used to obtain a single representative prediction of the underlying distribution. In our experiments, we use the mean prediction to ensure appropriate consideration of outliers. The median or 90th percentile predictions are alternatives that are more robust to outliers.
+In practice, we can attempt to use predicted hitting costs to improve the performance of online algorithms. Predicting future incoming loads to a high degree of accuracy in the data-center setting is often possible. Using predicted hitting costs and their uncertainty distributions, online algorithms can make more informed decisions in practice. In this section, we begin by describing approaches for time-series predictions and end with discussing algorithms that use such predictions.
 
 \subsection{Prediction Window}
 
@@ -484,7 +588,17 @@ A natural model to allow incorporating predictions is the use of a finite predic
 
 The assumption of perfect knowledge of the future is sure to be violated when an online algorithm is used in practice. Still, \citeauthor*{Lin2011} show that lazy capacity provisioning with a prediction window is robust to this assumption in practice \cite{Lin2011}. Unfortunately, \citeauthor*{Lin2011} and \citeauthor*{Albers2018} showed that using a finite prediction window does not improve the worst-case performance of the online algorithm for the fractional and integral case, respectively \cite{Lin2011, Albers2018}. In other words, the competitive ratio of lazy capacity provisioning is $3$ regardless of whether it uses a finite prediction window. In practice, however, \citeauthor*{Lin2011} show that a prediction window already significantly improves the algorithm's performance.
 
-There are two main drawbacks to using a finite prediction window. First, predictions windows are finite and typically constrained to a short period as they are assumed to be perfect. In contrast, predictions can be made for much longer time horizons, albeit with decreasing accuracy. Second, it completely disregards any knowledge or assumptions of the certainty and noise of the predictions by assuming the predictions to be perfect. Therefore, for the remainder of this section, it will be our goal to devise better algorithms that use this information to make more informed decisions.
+There are two main drawbacks to using a finite prediction window. First, predictions windows are finite and typically constrained to a short period as they are assumed to be perfect. In contrast, predictions can be made for much longer time horizons, albeit with decreasing accuracy. Second, it completely disregards any knowledge or assumptions of the certainty and noise of the predictions by assuming the predictions to be perfect. Therefore, for the remainder of this section, our goal is to devise better algorithms that use this information to make more informed decisions.
+
+\subsection{Making Predictions}\label{section:online_algorithms:md:predictions:making_predictions}
+
+There exist multiple paradigms for making time-series predictions. Due to much recent engagement in the field of deep learning generally and time-series predictions specifically, multiple approaches perform well in practical settings. Most algorithms separately tune parameters of individual models for short-term and long-term trends as well as seasonality \cite{Taylor2017, Hosseini2021}.
+
+A fundamental difference between models is Bayesianness, i.e., whether they use an underlying uncertainty distribution within the model. Facebook's Prophet algorithm is Bayesian, whereas LinkedIn's Greykite algorithm is not \cite{Taylor2017, Hosseini2021}.
+
+For Bayesian models, online algorithms can use the uncertainty distribution to consider outliers appropriately. For non-Bayesian models, additive white Gaussian noise can be added to the prediction to achieve a similar effect. In general, many strategies can be used to obtain a single representative prediction of the underlying distribution. In our experiments, we use the mean prediction to ensure appropriate consideration of outliers. The median or 90th percentile predictions are alternatives that are more robust to outliers.
+
+Note that, in principle, predictions can be made arbitrarily far into the future. However, at some point, they become too uncertain to be valuable. For example, infeasible load profiles may be assigned a positive probability, which would result an infinite cost if we use the mean to obtain a representative prediction, even if all servers are active. Thus, we also use a prediction window, which needs to be set appropriately to account for the uncertainty distribution of the predicted loads.
 
 \subsection{Model Predictive Control}
 
