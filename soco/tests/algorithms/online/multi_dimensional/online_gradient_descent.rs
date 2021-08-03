@@ -27,13 +27,12 @@ mod ogd {
 
         let t_end = 5;
         let result = o.offline_stream(&ogd, t_end, Options::default()).unwrap();
-        result.0.verify(o.p.t_end, &upper_bounds(&o.p.bounds)).unwrap();
+        result
+            .0
+            .verify(o.p.t_end, &upper_bounds(&o.p.bounds))
+            .unwrap();
 
-        assert!(p
-            .objective_function(&result.0)
-            .unwrap()
-            .cost
-            .is_finite());
+        assert!(p.objective_function(&result.0).unwrap().cost.is_finite());
         assert_eq!(
             result.0.to_i(),
             Schedule::new(vec![

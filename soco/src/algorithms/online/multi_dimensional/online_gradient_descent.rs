@@ -20,7 +20,7 @@ pub struct Options {
 impl Default for Options {
     fn default() -> Self {
         Self {
-            eta: Arc::new(|t| 1. / (t as f64).sqrt())
+            eta: Arc::new(|t| 1. / (t as f64).sqrt()),
         }
     }
 }
