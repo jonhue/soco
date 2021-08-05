@@ -201,6 +201,27 @@ where
     }
 }
 
+/// Gives type a default value which may depend on an online problem instance.
+pub trait DefaultGivenOnlineProblem<T, P, C, D>
+where
+    P: Problem<T, C, D>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+{
+    fn default(o: &Online<P>) -> Self;
+}
+impl<T, P, C, D, U> DefaultGivenOnlineProblem<T, P, C, D> for U
+where
+    P: Problem<T, C, D>,
+    C: ModelOutputSuccess,
+    D: ModelOutputFailure,
+    U: Default,
+{
+    fn default(_: &Online<P>) -> Self {
+        U::default()
+    }
+}
+
 /// Online instance of a problem.
 #[derive(Clone, Debug)]
 pub struct Online<P> {
