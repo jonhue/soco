@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::algorithms::online::multi_dimensional::online_balanced_descent::meta::{obd, Options as MetaOptions};
+use crate::algorithms::online::multi_dimensional::online_balanced_descent::primal::{pobd, Options as PrimalOptions};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::config::{Config};
 use crate::algorithms::online::{FractionalStep, OnlineAlgorithm, Step};
@@ -70,7 +70,8 @@ where
         )
         .0,
     );
-    let Step(y, _) = obd.next(o, xs, None, MetaOptions { l: gamma, h })?;
+    let Step(y, _) =
+        pobd.next(o, xs, None, PrimalOptions { beta: gamma, h })?;
 
     let x = if mu * m.sqrt() >= 1. {
         v

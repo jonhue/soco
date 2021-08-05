@@ -1,6 +1,6 @@
 use super::DistanceGeneratingFn;
 use crate::algorithms::online::{FractionalStep, OnlineAlgorithm, Step};
-use crate::config::{Config, FractionalConfig};
+use crate::config::Config;
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::roots::find_root;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
@@ -8,9 +8,8 @@ use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use crate::{
-    algorithms::online::multi_dimensional::online_balanced_descent::{
-        meta::{obd, Options as MetaOptions},
-        MAX_L_FACTOR,
+    algorithms::online::multi_dimensional::online_balanced_descent::meta::{
+        obd, Options as MetaOptions,
     },
     model::{ModelOutputFailure, ModelOutputSuccess},
 };
@@ -64,44 +63,27 @@ where
 
     let prev_x = xs.now_with_default(Config::repeat(0., o.p.d));
 
-    let v = Config::new(
-        find_minimizer_of_hitting_cost(
-            t,
-            o.p.hitting_cost.clone(),
-            o.p.bounds.clone(),
-        )
-        .0,
+    let (v_, opt_) = find_minimizer_of_hitting_cost(
+        t,
+        o.p.hitting_cost.clone(),
+        o.p.bounds.clone(),
     );
-    let dist = (o.p.switching_cost)(prev_x.clone() - v.clone()).raw();
-    let minimal_hitting_cost = o.p.hit_cost(t, v.clone()).cost.raw();
-    if dist < beta * minimal_hitting_cost {
+    let v = Config::new(v_);
+    let opt = opt_.raw();
+
+    if (o.p.switching_cost)(v.clone() - prev_x.clone()).raw() <= beta * opt {
         return Ok(Step(v, None));
     }
 
-    let a = minimal_hitting_cost;
-    let b = MAX_L_FACTOR * minimal_hitting_cost;
+    let a = opt;
+    let b = o.p.hit_cost(t, prev_x.clone()).cost.raw();
     let l = find_root((a, b), |l: f64| {
-        let mut xs = xs.clone(); // remove this!
-        balance_function(&o, &mut xs, &prev_x, l, beta, h.clone())
+        let Step(x, _) = obd
+            .next(o.clone(), xs, None, MetaOptions { l, h: h.clone() })
+            .unwrap();
+        (o.p.switching_cost)(x - prev_x.clone()).raw() - beta * l
     })
     .raw();
 
     obd.next(o, xs, None, MetaOptions { l, h })
-}
-
-fn balance_function<C, D>(
-    o: &Online<FractionalSmoothedConvexOptimization<C, D>>,
-    xs: &mut FractionalSchedule,
-    prev_x: &FractionalConfig,
-    l: f64,
-    beta: f64,
-    h: DistanceGeneratingFn,
-) -> f64
-where
-    C: ModelOutputSuccess,
-    D: ModelOutputFailure,
-{
-    let Step(x, _) =
-        obd.next(o.clone(), xs, None, MetaOptions { l, h }).unwrap();
-    (o.p.switching_cost)(x - prev_x.clone()).raw() - beta * l
 }

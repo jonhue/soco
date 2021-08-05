@@ -11,8 +11,8 @@ use crate::model::data_center::{
     DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
 };
 use crate::problem::{
-    DefaultGivenProblem, IntegralSmoothedBalancedLoadOptimization, Online,
-    Problem, SmoothedBalancedLoadOptimization,
+    DefaultGivenOnlineProblem, IntegralSmoothedBalancedLoadOptimization,
+    Online, Problem, SmoothedBalancedLoadOptimization,
 };
 use crate::result::{Failure, Result};
 use crate::schedule::{IntegralSchedule, Schedule};
@@ -40,17 +40,17 @@ fn default_hitting_cost<'a>(
     vec![]
 }
 impl<'a>
-    DefaultGivenProblem<
+    DefaultGivenOnlineProblem<
         i32,
         IntegralSmoothedBalancedLoadOptimization<'a>,
         DataCenterModelOutputSuccess,
         DataCenterModelOutputFailure,
     > for Memory<'a>
 {
-    fn default(p: &IntegralSmoothedBalancedLoadOptimization) -> Self {
+    fn default(o: &Online<IntegralSmoothedBalancedLoadOptimization>) -> Self {
         Memory {
             load: vec![],
-            hitting_cost: (0..p.d as usize)
+            hitting_cost: (0..o.p.d as usize)
                 .into_iter()
                 .map(|_| CostFn::empty())
                 .collect(),

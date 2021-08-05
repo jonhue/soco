@@ -3,7 +3,7 @@
 use crate::algorithms::Options;
 use crate::config::Config;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::problem::{DefaultGivenProblem, Online, Problem};
+use crate::problem::{DefaultGivenOnlineProblem, Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::assert;
@@ -27,7 +27,7 @@ pub type FractionalStep<M> = Step<f64, M>;
 pub trait Memory<'a, T, P, C, D>:
     Clone
     + std::fmt::Debug
-    + DefaultGivenProblem<T, P, C, D>
+    + DefaultGivenOnlineProblem<T, P, C, D>
     + DeserializeOwned
     + IntoPy<PyObject>
     + Send
@@ -43,7 +43,7 @@ impl<'a, T, P, C, D, M> Memory<'a, T, P, C, D> for M
 where
     M: Clone
         + std::fmt::Debug
-        + DefaultGivenProblem<T, P, C, D>
+        + DefaultGivenOnlineProblem<T, P, C, D>
         + DeserializeOwned
         + IntoPy<PyObject>
         + Send
@@ -95,7 +95,7 @@ where
             },
         )?;
         let prev_m = match prev_m_ {
-            None => M::default(&o.p),
+            None => M::default(&o),
             Some(prev_m) => prev_m,
         };
 

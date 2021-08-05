@@ -7,7 +7,9 @@ use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Online, Step};
 use crate::config::{Config, IntegralConfig};
 use crate::model::data_center::DataCenterModelOutputFailure;
-use crate::problem::{DefaultGivenProblem, IntegralSmoothedLoadOptimization};
+use crate::problem::{
+    DefaultGivenOnlineProblem, IntegralSmoothedLoadOptimization,
+};
 use crate::result::{Failure, Result};
 use crate::schedule::IntegralSchedule;
 use crate::utils::{assert, sample_uniform};
@@ -32,15 +34,15 @@ pub struct Memory {
     cache: Option<Cache<Vertice>>,
 }
 impl
-    DefaultGivenProblem<
+    DefaultGivenOnlineProblem<
         i32,
         IntegralSmoothedLoadOptimization,
         (),
         DataCenterModelOutputFailure,
     > for Memory
 {
-    fn default(p: &IntegralSmoothedLoadOptimization) -> Self {
-        let bound: i32 = p.bounds.iter().sum();
+    fn default(o: &Online<IntegralSmoothedLoadOptimization>) -> Self {
+        let bound: i32 = o.p.bounds.iter().sum();
         Memory {
             lanes: vec![0; bound as usize],
             horizons: vec![0; bound as usize],
