@@ -1,0 +1,37 @@
+\begin{landscape}
+    \chapter{Taxonomy of Online Algorithms}\label{appendix:taxonomy}
+
+    Here, we give an overview of the algorithms that were discussed in this chapter. The first table includes online algorithms for the one dimensional setting. The latter table includes online algorithms for the general setting.
+
+    \begin{table}
+        \centering
+        \begin{tabularx}{\textheight}{l|l|X|l}
+            name & problem & performance & time complexity \\\hline
+            \hyperref[alg:ud:lcp]{LCP} & \hyperref[problem:simplified_smoothed_convex_optimization]{SSCO} & 3-competitive & $\mathcal{O}(\tau C O_{\epsilon}^{\tau})$ \\
+            \hyperref[alg:ud:lcp]{Int-LCP} & \hyperref[problem:simplified_smoothed_convex_optimization]{Int-SSCO} & 3-competitive & $\mathcal{O}(\tau^2 C \log_2 m)$ \\
+            \hyperref[alg:ud:memoryless]{Memoryless} & \hyperref[problem:simplified_smoothed_convex_optimization]{SSCO} & 3-competitive & $\mathcal{O}(C O_{\epsilon}^1)$ \\
+            \hyperref[alg:ud:probabilistic]{Probabilistic} & \hyperref[problem:simplified_smoothed_convex_optimization]{SSCO} & 2-competitive & $\mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}| R_{\epsilon} O_{\epsilon}^1)$ \\
+            \hyperref[alg:ud:rbg]{RBG} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $\alpha$-unfair competitive ratio $(1+\theta) / \min \{\theta, \alpha\}$ and regret $\mathcal{O}(\max \{T / \theta, \theta\})$; 2-competitive for $\theta = 1$ & $\mathcal{O}(C (O_{\epsilon}^1)^{\tau+1})$ \\
+            \hyperref[alg:ud:randomized]{Rand-Probabilistic} & \hyperref[problem:simplified_smoothed_convex_optimization]{Int-SSCO} & 2-competitive & $\mathcal{O}(\tau^2 m C I_{\epsilon} R_{\epsilon} O_{\epsilon}^1)$ \\
+            \hyperref[alg:ud:randomized]{Rand-RBG} & \hyperref[problem:smoothed_convex_optimization]{Int-SCO} & 2-competitive & $\mathcal{O}(C (O_{\epsilon}^1)^{\tau+1})$ \\
+        \end{tabularx}
+        \caption{Taxonomy of online algorithms.}
+    \end{table}
+
+    \begin{table}
+        \centering
+        \begin{tabularx}{\textheight}{l|l|X|l}
+            name & problem & performance & time complexity \\\hline
+            \hyperref[alg:md:lazy_budgeting:det_slo]{LB} & \hyperref[problem:slo]{SLO} & $2d$-competitive & $\mathcal{O}(m d^2 + C d \prod_{k=1}^d m_k)$ \\
+            \hyperref[alg:md:lazy_budgeting:det_slo]{Randomized LB} & \hyperref[problem:slo]{SLO} & $\frac{e}{e-1}d$-competitive & $\mathcal{O}(m d^2 + C d \prod_{k=1}^d m_k)$ \\
+            \hyperref[alg:md:lazy_budgeting:sblo_c]{LB} & \hyperref[problem:sblo]{SBLO} & $(2d + 1 + \epsilon)$-competitive & $\mathcal{O}(\widetilde{n}_{\tau} \widetilde{\tau}^2 |\mathcal{M}| C d)$ \\
+            \hyperref[alg:md:ogd]{OGD} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $\mathcal{O}(\sqrt{T})$-regret & $\mathcal{O}(d C O_{\epsilon}^d)$ \\
+            \hyperref[alg:md:obd]{OBD} & \hyperref[problem:smoothed_convex_optimization]{SCO} & - & $\mathcal{O}(O_{\epsilon}^d)$ \\
+            \hyperref[alg:md:pobd]{P-OBD} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $3 + \mathcal{O}(1 / \alpha)$-competitive & $\mathcal{O}(C O_{\epsilon}^d + O_{\epsilon}^d R_{\epsilon})$ \\
+            \hyperref[alg:md:dobd]{D-OBD} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $\mathcal{O}(\sqrt{T})$-regret & $\mathcal{O}(C O_{\epsilon}^d + (O_{\epsilon}^d)^2 R_{\epsilon})$ \\
+            \hyperref[alg:predictions:rhc]{\nameref{alg:predictions:rhc}} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $(1 + \mathcal{O}(1/w))$-competitive in one dimension; otherwise $(1 + \max_{k \in [d]} \beta_k / e_k(0))$-competitive & $\mathcal{O}(C O_{\epsilon}^{dw})$ \\
+            \hyperref[alg:predictions:afhc]{\nameref{alg:predictions:afhc}} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $(1 + \max_{k \in [d]} \frac{\beta_k}{(w+1) e_k(0)})$-competitive, i.e., $(1 + \mathcal{O}(1/w))$-competitive & $\mathcal{O}(w C O_{\epsilon}^{dw})$ \\
+        \end{tabularx}
+        \caption{Taxonomy of online algorithms.}
+    \end{table}
+    \end{landscape}

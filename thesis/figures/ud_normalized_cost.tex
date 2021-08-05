@@ -2,6 +2,8 @@
 \begin{tikzpicture}
 
 \begin{axis}[
+ybar,
+% bar width=0.5cm,
 height=8cm,
 % tick align=outside,
 % tick pos=left,
@@ -14,11 +16,11 @@ xticklabels={Memoryless,LCP,Int-LCP,Probabilistic,RBG,Rand-Probabilistic,Rand-RB
 % xtick style={color=black},
 % y grid style={white!69.0196078431373!black},
 ylabel={normalized cost},
-ymin=0.9999, ymax=1.000599,
+ymin=0.99991, ymax=1.000599,
 /pgf/number format/precision=5,
 % ytick style={color=black}
 ]
-\addplot [semithick, black]
+\addplot
 table {%
 0 1.0004967256
 1 1.0000318073999999

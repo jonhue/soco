@@ -1,8 +1,6 @@
 % This file was created by tikzplotlib v0.9.9.
 \begin{tikzpicture}
 
-\definecolor{color0}{rgb}{0.12156862745098,0.466666666666667,0.705882352941177}
-
 \begin{axis}[
 tick align=outside,
 tick pos=left,
@@ -11,11 +9,11 @@ xlabel={time (time slots)},
 xmin=-7.15, xmax=150.15,
 xtick style={color=black},
 y grid style={white!69.0196078431373!black},
-ylabel={load},
+% ylabel={load},
 ymin=0.652554744525547, ymax=21.1430656934307,
 ytick style={color=black}
 ]
-\path [draw=color0, fill=color0, opacity=0.2]
+\path [draw=black, fill=black, opacity=0.2]
 (axis cs:0,10.2636861313869)
 --(axis cs:0,6.14507299270073)
 --(axis cs:1,4.75091240875912)
@@ -308,7 +306,7 @@ ytick style={color=black}
 --(axis cs:0,10.2636861313869)
 --cycle;
 
-\addplot [semithick, color0]
+\addplot [semithick]
 table {%
 0 8.22627737226277
 1 6.4014598540146

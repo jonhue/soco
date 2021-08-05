@@ -3,13 +3,13 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
 \usepackage[sc]{mathpazo}
-\usepackage[ngerman,american]{babel}
+\usepackage[ngerman, american]{babel}
 \usepackage[autostyle]{csquotes}
 \usepackage[%
   backend=biber,
   url=false,
-  sorting=ynt,
-  style=numeric,
+  sorting=anyt,
+  style=alphabetic,
   maxnames=4,
   minnames=3,
   maxbibnames=99,
@@ -37,6 +37,32 @@
 \usepackage[italic]{esdiff}
 \usepackage{subcaption}
 \usepackage{ltablex}
+\usepackage{pdflscape}
+\usepackage[nameinlink]{cleveref}
+
+% reference styling
+% \addto\extrasamerican{%
+%   \renewcommand{\chapterautorefname}{Chapter}%
+%   \renewcommand{\sectionautorefname}{Section}%
+%   \renewcommand{\subsectionautorefname}{Subsection}%
+%   \renewcommand{\subsubsectionautorefname}{Subsubection}%
+%   \renewcommand{\algorithmautorefname}{Algorithm}%
+%   \renewcommand{\equationautorefname}{equation}%
+% }
+% \makeatletter
+%   \AtBeginDocument{%
+%     \let\plain@equationautorefname\equationautorefname
+%     \def\equationautorefname{\plain@equationautorefname\@autoref@insert@tagform}%
+%     \def\@autoref@insert@tagform~#1\null{~(#1\null)}%
+%   }
+% \makeatother
+\crefname{chapter}{Chapter}{Chapters}
+\crefname{section}{Section}{Sections}
+\crefname{subsection}{Subsection}{Subsections}
+\crefname{subsubsection}{Subsubsection}{Subsubsections}
+\crefname{algorithm}{Algorithm}{Algorithms}
+\crefname{equation}{equation}{equations}
+\let\autoref\cref
 
 \keepXColumns
 
@@ -143,4 +169,17 @@
     \algocf@latexcaption{#1}[#2]{#3}%
   }%
 }%
+\makeatother
+
+% Fix algorithm2e nameref
+\makeatletter
+\let\original@algocf@latexcaption\algocf@latexcaption
+\long\def\algocf@latexcaption#1[#2]{%
+  \@ifundefined{NR@gettitle}{%
+    \def\@currentlabelname{#2}%
+  }{%
+    \NR@gettitle{#2}%
+  }%
+  \original@algocf@latexcaption{#1}[{#2}]%
+}
 \makeatother

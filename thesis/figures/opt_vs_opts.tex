@@ -2,26 +2,24 @@
 \begin{tikzpicture}
 
 \begin{axis}[
+legend pos=north west,
+ybar,
 % tick align=outside,
 % tick pos=left,
 % unbounded coords=jump,
 % x grid style={white!69.0196078431373!black},
-xlabel={trace},
+% bar width=0.5cm,
+xlabel={},
 xmin=-0.5, xmax=4.5,
 % xtick style={color=black},
 xtick={0,1,2,3,4},
 xticklabels={FB 09-0,FB 09-1,FB 10,LANL,Alibaba},
 % y grid style={white!69.0196078431373!black},
-ylabel={$OPT_s / OPT$},
+ylabel={$c(OPT_s) / c(OPT)$},
 ymin=0.9, ymax=6.6244902738,
 % ytick style={color=black}
 ]
-% \draw[draw=black,fill=none] (axis cs:-0.4,0) rectangle (axis cs:0.4,1.571471378);
-% \draw[draw=black,fill=none] (axis cs:0.6,0) rectangle (axis cs:1.4,1.414242315);
-% \draw[draw=black,fill=none] (axis cs:1.6,0) rectangle (axis cs:2.4,1.221588301);
-% \draw[draw=black,fill=none] (axis cs:2.6,0) rectangle (axis cs:3.4,4.805223659);
-% \draw[draw=black,fill=none] (axis cs:3.6,0) rectangle (axis cs:4.4,6.309038356);
-\addplot [semithick, black]
+\addplot
 table {%
 0 1.221588301
 1 1.414242315
@@ -29,6 +27,15 @@ table {%
 3 4.805223659
 4 6.309038356
 };
+\addplot
+table {%
+0 1.221588301
+1 1.414242315
+2 1.571471378
+3 4.805223659
+4 6.309038356
+};
+\legend{model 1, model 2}
 \end{axis}
 
 \end{tikzpicture}

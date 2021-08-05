@@ -9,7 +9,7 @@
     $\mathcal{X} \subset \mathbb{R}^d$ & decision space \\
     $m_k \in \mathbb{N}$ & upper bound of dimension $k$ \\
     $M_k \subset \mathbb{N}_0$ & allowed values of dimension $k$ (in the discrete case) \\
-    $\mathcal{M} = \mathbb{X}$ & set of all configurations (in the discrete case) \\
+    $\mathcal{M} = \mathcal{X}$ & set of all configurations (in the discrete case) \\
     $f_t(x) \in \mathbb{R}_{\geq 0}$ & hitting cost of action $x \in \mathcal{X}$ during time slot $t$ \\
     $\beta_k \in \mathbb{R}_{>0}$ & switching cost of dimension $k$ \\
     $\lambda_t \in \mathbb{N}_0^e$ & load profile during time slot $t$ \\
@@ -52,7 +52,7 @@
 \subsection*{Revenue Loss}
 
 \begin{tabularx}{\textwidth}{p{100pt}X}
-    $\gamma \in \mathbb{R}_{\geq 0}$ & revenue loss factor, i.e. lost revenue per unit of delay \\
+    $\gamma \in \mathbb{R}_{\geq 0}$ & revenue loss factor, i.e., lost revenue per unit of delay \\
     $r_{t,i}(d) \in \mathbb{R}_{\geq 0}$ & revenue loss of jobs of type $i$ with an average delay $d$ during time slot $t$ \\
     $d_{t,k,i}(l) \in \mathbb{R}_{\geq 0}$ & average delay of a job of type $i$ processed on a server of type $k$ during time slot $t$ where the total load on the server is $l$ \\
     $\delta_{t,k,i} \in \mathbb{R}_{\geq 0}$ & constant delay when processing a job of type $i$ on a server of type $k$ during time slot $t$ \\
@@ -88,7 +88,9 @@
 
 \begin{tabularx}{\textwidth}{p{100pt}X}
     $\mathcal{O}(C)$ & complexity of computing the hitting costs $f_t$ \\
-    $\mathcal{O}(O_{\epsilon})$ & convergence rate of a convex optimization finding an $\epsilon$-optimal solution \\
+    $\mathcal{O}(O_{\epsilon}^d)$ & convergence rate of a convex optimization finding an $\epsilon$-optimal solution in $d$ dimensions \\
+    $\mathcal{O}(R_{\epsilon})$ & convergence rate of a root finding method finding an $\epsilon$-optimal root \\
+    $\mathcal{O}(I_{\epsilon})$ & convergence rate of a quadrature method finding an $\epsilon$-optimal integral \\
 \end{tabularx}
 
 \section*{Algorithms}
@@ -96,7 +98,7 @@
 \begin{tabularx}{\textwidth}{p{100pt}X}
     $\tau$ & current time slot \\
     $\hat{x}$ & optimal value of $x$ with respect to some optimization \\
-    $X \in \mathcal{X}^t$ & schedule, i.e. sequence of configurations over the time horizon $t$ \\
+    $X \in \mathcal{X}^t$ & schedule, i.e., sequence of configurations over the time horizon $t$ \\
     $x, y \in \mathcal{X}$ & configuration \\
     $i, j \in [m_k]_0$ & value of dimension $k$ \\
     $x_{k \gets j}$ & configuration $x$ after updating dimension $k$ to $j$ \\
@@ -106,6 +108,7 @@
 
 \begin{tabularx}{\textwidth}{p{100pt}X}
     $\chi_{\tau}(t, x) \in \bigcup_{n=1}^{\infty} \mathbb{R}_{\geq 0}^n$ & hitting cost of action $x \in \mathcal{S}$ at time slot $t \in [T]$ given the information from time slot $\tau$ \\
+    $\mathcal{P}_t \in \left(\bigcup_{n=1}^{\infty} \mathbb{N}_0^n\right)^e$ & predicted load profile for time slot $t$, i.e., vector of predicted loads for each job type\\
 \end{tabularx}
 
 \section*{Miscellaneous}
@@ -113,9 +116,9 @@
 \begin{tabularx}{\textwidth}{p{100pt}X}
     $[n] := \{1, \dots, n\}$ & range of natural numbers from $1$ to $n$ \\
     $[n]_0 := \{0\} \cup [n]$ & range of integers from $0$ to $n$ \\
-    $[a : b] := \{a, a+1, \dots, b\}$ & range of integers from $a$ to $b$ \\
-    $(x)_a^b := \max\{a, \min\{b, x\}\}$ & projection of $x \in \mathbb{R}$ onto $[a,b]$ \\
-    $(x)^+ := \max\{0, x\}$ & projection of $x \in \mathbb{R}$ onto $[0, \infty)$ \\
+    $[a : b] :=\newline \{a, a+1, \dots, b\}$ & range of integers from $a$ to $b$ \\
+    $(x)_a^b :=\newline \max\{a, \min\{b, x\}\}$ & uni-dimensional projection of $x \in \mathbb{R}$ onto $[a,b]$ \\
+    $(x)^+ := \max\{0, x\}$ & uni-dimensional projection of $x \in \mathbb{R}$ onto $[0, \infty)$ \\
     $x_{\text{min}}$ & smallest entry of the vector $x$ \\
     $x_{\text{max}}$ & largest entry of the vector $x$ \\
 \end{tabularx}
