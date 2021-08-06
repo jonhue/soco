@@ -86,7 +86,7 @@ Note that for $\alpha = 1$, the $\alpha$-unfair competitive ratio is equivalent 
 
 \section{Problems}
 
-Now that we have an overview of the commonly used performance metrics, we introduce the problems we consider in this work. We initially state the problems as offline problems, but as all problems follow the same structure, their corresponding online variant is obtained by deferring the convex cost functions. All other problem variables --- except for the time horizon $T$ --- such as the switching cost that penalizes movement in the decision space are known from the beginning.
+Now that we have an overview of the commonly used performance metrics, we introduce the problems we consider in this work. We initially state the problems as offline problems, but as all problems follow the same structure, their corresponding online variant is obtained by deferring the convex cost functions. All other problem variables --- except for the time horizon $T$ --- such as the movement cost that penalizes movement in the decision space are known from the beginning.
 
 \subsection{Smoothed Convex Optimization}
 
@@ -99,7 +99,7 @@ Given a time horizon $T \in \mathbb{N}$, a convex decision space $\mathcal{X} \s
 where $X_0 = \mathbf{0}$.
 \end{problem}
 
-In many practical applications of smoothed convex optimization, we seek to find integral solutions minimizing hitting and switching costs. This is especially true within the context of resource allocation, for example, for right-sizing data centers, where our resources are discrete. This observation motivates the definition of the following variant of SCO.
+In many practical applications of smoothed convex optimization, we seek to find integral solutions minimizing hitting and movement costs. This is especially true within the context of resource allocation, for example, for right-sizing data centers, where our resources are discrete. This observation motivates the definition of the following variant of SCO.
 
 \begin{problem}[Integral Smoothed Convex Optimization (Int-SCO)]
 We define integral smoothed convex optimization analogously to SCO with the added restriction that the points $x$ in $d$-dimensional space must be discrete, that is $\mathcal{X} \subset \mathbb{Z}^d$.
@@ -107,15 +107,15 @@ We define integral smoothed convex optimization analogously to SCO with the adde
 
 In this work, we often refer to the convex cost functions of fractional problems as hitting costs, whereas we generally refer to them as operating costs in the context of integral problems.
 
-In \cref{chapter:introduction}, we have seen that metrical task systems subsume Int-SCO. However, it was shown that, in general, the competitiveness of deterministic and randomized algorithms for metrical task systems must be proportional to the size of the decision space~\cite{Blum1992, Borodin1992}. Further, \citeauthor*{Chen2018}~\cite{Chen2018} have shown that the competitiveness of any online algorithm for SCO is lower bounded by $\Omega(\sqrt{d})$. Therefore, many of the online algorithms for SCO that we examine in \cref{chapter:online_algorithms} further restrict hitting and switching costs.
+In \cref{chapter:introduction}, we have seen that metrical task systems subsume Int-SCO. However, it was shown that, in general, the competitiveness of deterministic and randomized algorithms for metrical task systems must be proportional to the size of the decision space~\cite{Blum1992, Borodin1992}. Further, \citeauthor*{Chen2018}~\cite{Chen2018} have shown that the competitiveness of any online algorithm for SCO is lower bounded by $\Omega(\sqrt{d})$. Therefore, many of the online algorithms for SCO that we examine in \cref{chapter:online_algorithms} further restrict hitting and movement costs.
 
-Another similar problem is the ski rental problem. In the \emph{ski rental problem}\index{ski rental problem}, skis can be bought for a cost of $b$ units or rented for a cost of one unit per day. Each day of the ski season, the agent has to decide whether to rent the skis or end the sequence of decisions by buying the skis without knowing how long the ski season will last~\cite{Shah2021}. Consider the uni-dimensional decision space $\{0,b\}$, the $\ell_2$ norm as switching cost, and the sequence of hitting costs $f_t(0) = 1$ and $f_t(b) = 0$. The solution to this instance of SCO is a solution to the corresponding ski rental problem, yielding that the ski rental problem is a special case of SCO. \citeauthor*{Karlin1990}~\cite{Karlin1990} showed that the best competitive ratio attainable by a randomized algorithm is $e/(e-1) \approx 1.58$, giving a lower bound for the competitive ratio of online algorithms for SCO.
+Another similar problem is the ski rental problem. In the \emph{ski rental problem}\index{ski rental problem}, skis can be bought for a cost of $b$ units or rented for a cost of one unit per day. Each day of the ski season, the agent has to decide whether to rent the skis or end the sequence of decisions by buying the skis without knowing how long the ski season will last~\cite{Shah2021}. Consider the uni-dimensional decision space $\{0,b\}$, the $\ell_2$ norm as movement cost, and the sequence of hitting costs $f_t(0) = 1$ and $f_t(b) = 0$. The solution to this instance of SCO is a solution to the corresponding ski rental problem, yielding that the ski rental problem is a special case of SCO. \citeauthor*{Karlin1990}~\cite{Karlin1990} showed that the best competitive ratio attainable by a randomized algorithm is $e/(e-1) \approx 1.58$, giving a lower bound for the competitive ratio of online algorithms for SCO.
 
-\citeauthor*{Goel2019}~\cite{Goel2019} proved that for $m$-strongly convex hitting costs with respect to the $\ell_2$ norm and $\ell_2$-squared switching costs, the optimal competitiveness of any online algorithm is $\mathcal{O}(1/\sqrt{m})$ as $m \downarrow 0$. We discuss hitting costs and switching costs of this shape in greater detail in \cref{section:theory:beyond_convexity}. \citeauthor*{Bansal2015}~\cite{Bansal2015} have shown that in the uni-dimensional setting, the optimal competitive ratio that a deterministic memoryless algorithm for SCO can attain is three.
+\citeauthor*{Goel2019}~\cite{Goel2019} proved that for $\alpha$-strongly convex hitting costs with respect to the $\ell_2$ norm and $\ell_2$-squared movement costs, the optimal competitiveness of any online algorithm is $\mathcal{O}(1/\sqrt{\alpha})$ as $\alpha \downarrow 0$. We discuss hitting costs and movement costs of this shape in greater detail in \cref{section:theory:beyond_convexity}. \citeauthor*{Bansal2015}~\cite{Bansal2015} have shown that in the uni-dimensional setting, the optimal competitive ratio that a deterministic memoryless algorithm for SCO can attain is three.
 
 \subsubsection{Complexity of the Offline Problem}
 
-We now want to examine the complexity of Int-SCO in the offline case. That is, we know all arriving convex cost functions $f_t$ in advance. We prove Int-SCO NP-hard for varying $d$ by giving a polynomial-time reduction from the Knapsack problem. In \cref{section:theory:simplified_smoothed_convex_optimization}, we extend this proof of NP-hardness to the integral simplified smoothed convex optimization problem, further restricting the decision space and switching cost.
+We now want to examine the complexity of Int-SCO in the offline case. That is, we know all arriving convex cost functions $f_t$ in advance. We prove Int-SCO NP-hard for varying $d$ by giving a polynomial-time reduction from the Knapsack problem. In \cref{section:theory:simplified_smoothed_convex_optimization}, we extend this proof of NP-hardness to the integral simplified smoothed convex optimization problem, further restricting the decision space and movement cost.
 
 Given a set of items with an associated value and weight and an upper bound to the total weight, Knapsack is the problem of determining the number of copies of each item that maximizes the total value and conforms to the given upper bound on total weight. Formally we define Knapsack as follows.
 
@@ -353,7 +353,7 @@ In contrast to our definition of SBLO, SLO balances the load implicitly among al
 
 \section{Beyond Convexity}\label{section:theory:beyond_convexity}
 
-We have seen that the optimal competitiveness of online algorithms for smoothed convex optimization is fundamentally limited to be dimension-dependent as long as arbitrary convex hitting costs and arbitrary norms as switching costs are allowed. In the literature, many promising approaches are based on restricting the class of hitting costs (and switching costs) to achieve a dimension-independent competitive ratio. This section focuses mainly on hitting costs, introducing these restrictions, and investigating how they relate to our data center model.
+We have seen that the optimal competitiveness of online algorithms for smoothed convex optimization is fundamentally limited to be dimension-dependent as long as arbitrary convex hitting costs and arbitrary norms as movement costs are allowed. In the literature, many promising approaches are based on restricting the class of hitting costs (and movement costs) to achieve a dimension-independent competitive ratio. This section focuses mainly on hitting costs, introducing these restrictions, and investigating how they relate to our data center model.
 
 \subsection{Continuity and Differentiability}\label{section:theory:beyond_convexity:continuity_and_differentiability}
 
@@ -397,7 +397,7 @@ Intuitively, this ensures that at any point $x \in K$, a quadratic can be fit ab
 
 Intuitively, at any point $x \in K$, a quadratic can be fit under the curve of $f$. In other words, $f$ grows at least quadratically as one moves away from the minimizer. This contrasts our definition of $\beta$-Lipschitz smoothness. When a function is $\alpha$-strongly convex and $\beta$-Lipschitz smooth, descent methods converge quickly as the gradient is large when far away and small when close to the optimal solution.
 
-Note that constant and even linear functions are not strongly convex. Recall that most energy consumption models we discussed in \cref{section:application:operating_cost:energy} were linear in the number of active servers, implying that the overall operating cost of a server is not strongly convex. However, if strong convexity is sought, it suffices to choose a strongly convex (in particular, non-linear) energy consumption model as the energy cost model is assumed to be convex.
+Note that constant and even linear functions are not strongly convex. Recall that the energy consumption models we discussed in \cref{eq:energy_model:1} and \cref{eq:energy_model:2} were linear in the utilization, implying that the overall operating cost of a server is not strongly convex. Even the non-linear energy consumption model from \cref{eq:energy_model:3} is not strongly convex as its first-order derivative is zero for $s = 0$.
 
 \paragraph{Local Polyhedrality} Still, strong convexity represents a significant restriction. A similar but not quite as strong is the property of local polyhedrality.
 

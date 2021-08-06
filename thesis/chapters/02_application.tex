@@ -3,7 +3,7 @@
 
 \chapter{Application: Right-Sizing Data Centers}\label{chapter:application}
 
-In this chapter, we seek to derive models for right-sizing data centers based on smoothed convex optimization. We then use these models to motivate the variations of smoothed convex optimization we discuss in \cref{chapter:theory}. We begin by discussing the general features of server infrastructures. Then, we examine the modeling of \emph{operating costs}\index{operating cost} (i.e., hitting costs) and \emph{switching costs} in detail.
+In this chapter, we seek to derive models for right-sizing data centers based on smoothed convex optimization. We then use these models to motivate the variations of smoothed convex optimization we discuss in \cref{chapter:theory}. We begin by discussing the general features of server infrastructures. Then, we examine the modeling of \emph{operating costs}\index{operating cost} (i.e., hitting costs) and \emph{switching costs}\index{switching cost} (i.e., movement costs) in detail.
 
 Data centers are large-scale, complex systems. Therefore, any model we examine in this chapter is an approximation. Our goal is to find models that generalize well across many data centers. When examining a specific data center, the models we discuss can be extended to yield better approximations.
 
@@ -114,15 +114,15 @@ Our goal is to model the energy cost $e_{t,k}(s)$ of a server of type $k$ during
 
 \paragraph{Energy Consumption} There are a variety of models for energy consumption in a data center. We give an overview of the most common models and reference additional models. To rephrase our objective, we seek to model the energy consumption of a single server based on the utilization (also referred to as speed or frequency) $s$. The energy consumption $\phi_k(s)$ can be calculated as $\delta \Phi_k(s)$ where $\delta$ is the length of a time slot and $\Phi_k(s)$ is the power consumption of a server of type $k$ with utilization $s$~\cite{Dayarathna2016}. Models of power consumption can be categorized into linear and non-linear models~\cite{Ismail2020}. In this work, we mostly restrict our analysis to linear models of which the performance is highly dependent on the chosen parameters~\cite{Ismail2020}. \citeauthor*{Ismail2020}~\cite{Ismail2020} also present more accurate non-linear and machine learning models.
 
-An intuitive model of power consumption is discussed by \citeauthor*{Dayarathna2016}~\cite{Dayarathna2016} and \citeauthor*{Ismail2020}~\cite{Ismail2020} is \begin{align*}
+An intuitive model of power consumption is discussed by \citeauthor*{Dayarathna2016}~\cite{Dayarathna2016} and \citeauthor*{Ismail2020}~\cite{Ismail2020} is \begin{align}\label{eq:energy_model:1}
     \Phi_k(s) = (\Phi_k^{\text{max}} - \Phi_k^{\text{min}})s + \Phi_k^{\text{min}}
-\end{align*} where $\Phi_k^{\text{max}}$ and $\Phi_k^{\text{min}}$ are the power a server of type $k$ consumes at full load and when idling, respectively. In linear power models we distinguish between the \emph{dynamic power}\index{dynamic power}, here the first term $(\Phi_k^{\text{max}} - \Phi_k^{\text{min}})s$, and the \emph{static power}\index{static power} (or leakage power), $\Phi_k^{\text{min}}$. Following the findings of \citeauthor*{Barroso2007}~\cite{Barroso2007}, we can use that generally servers consume half of their peak power when idling to simplify the above model~\cite{Ismail2020}: \begin{align*}
+\end{align} where $\Phi_k^{\text{max}}$ and $\Phi_k^{\text{min}}$ are the power a server of type $k$ consumes at full load and when idling, respectively. In linear power models we distinguish between the \emph{dynamic power}\index{dynamic power}, here the first term $(\Phi_k^{\text{max}} - \Phi_k^{\text{min}})s$, and the \emph{static power}\index{static power} (or leakage power), $\Phi_k^{\text{min}}$. Following the findings of \citeauthor*{Barroso2007}~\cite{Barroso2007}, we can use that generally servers consume half of their peak power when idling to simplify the above model~\cite{Ismail2020}: \begin{align}\label{eq:energy_model:2}
     \Phi_k(s) = \frac{1}{2} \Phi_k^{\text{max}} (1 + s).
-\end{align*}
+\end{align}
 
-The above models of power consumption are linear. Another frequently used model is non-linear and defined as \begin{align*}
+The above models of power consumption are linear. Another frequently used model is non-linear and defined as \begin{align}\label{eq:energy_model:3}
     \Phi_k(s) = \frac{s^{\alpha_k}}{\beta_k} + \Phi_k^{\text{min}}
-\end{align*} where $\alpha_k > 1$ and $\beta_k > 0$ are constants~\cite{Dayarathna2016}. Here, $s^{\alpha_k}/\beta_k$ is the dynamic power and $\Phi_k^{\text{min}}$ is the static power. A variant of this model is used by \citeauthor*{Bansal2015}~\cite{Bansal2015}.
+\end{align} where $\alpha_k > 1$ and $\beta_k > 0$ are constants~\cite{Dayarathna2016}. Here, $s^{\alpha_k}/\beta_k$ is the dynamic power and $\Phi_k^{\text{min}}$ is the static power. A variant of this model is used by \citeauthor*{Bansal2015}~\cite{Bansal2015}.
 
 We observe that all of the above models are convex, increasing, and non-negative.
 

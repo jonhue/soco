@@ -451,7 +451,7 @@ The number of sub time slots $\widetilde{n}_t$ can be determined in $\mathcal{O}
 
 \subsection{Descent Methods}\label{section:online_algorithms:md:descent_methods}
 
-When we seek fractional solutions, and the cost functions are differentiable, a promising method is to descent towards the minimizer of the current cost function. This is an approach that is commonly used in online convex optimization, yielding algorithms with sublinear regret~\cite{Andrew2015}. As mentioned in \cref{section:online_algorithms:ud:rbg} on the Randomly Biased Greedy algorithm, switching costs are not considered in the online convex optimization setting, and the agent picks a point in the decision space before the cost function is revealed. A commonly used algorithm that achieves no-regret in the setting of online convex optimization is \emph{online gradient descent} (OGD).
+When we seek fractional solutions, and the cost functions are differentiable, a promising method is to descent towards the minimizer of the current cost function. This is an approach that is commonly used in online convex optimization, yielding algorithms with sublinear regret~\cite{Andrew2015}. As mentioned in \cref{section:online_algorithms:ud:rbg} on the Randomly Biased Greedy algorithm, movement costs are not considered in the online convex optimization setting, and the agent picks a point in the decision space before the cost function is revealed. A commonly used algorithm that achieves no-regret in the setting of online convex optimization is \emph{online gradient descent} (OGD).
 
 \subsubsection{Online Gradient Descent}
 
@@ -465,13 +465,13 @@ Online gradient descent works by selecting an arbitrary initial point $X_1 \in \
     \Return $X_{\tau}$\;
 \end{algorithm}
 
-With appropriate learning rates OGD achieves no-regret for online convex otpimization. For example, OGD obtains $\mathcal{O}(\sqrt{T})$-regret for $\eta_t \in \Theta(1 / \sqrt{t})$~\cite{Andrew2015}. \citeauthor*{Andrew2015}~\cite{Andrew2015} showed that an OGD algorithm with $\mathcal{O}(\rho_2(T))$-regret in the online convex optimization setting, and $\sum_{t=1}^T \eta_t \in \mathcal{O}(\rho_1(T))$, achieves $\mathcal{O}(\rho_1(T) + \rho_2(T))$-regret in the online smoothed convex otpimization setting. In particular, for learning rates $\eta_t \in \Theta(1 / \sqrt{t})$, OGD obtains $\mathcal{O}(\sqrt{T})$-regret when switching costs are considered and the agent picks a point after the hitting costs were revealed~\cite{Andrew2015}.
+With appropriate learning rates OGD achieves no-regret for online convex otpimization. For example, OGD obtains $\mathcal{O}(\sqrt{T})$-regret for $\eta_t \in \Theta(1 / \sqrt{t})$~\cite{Andrew2015}. \citeauthor*{Andrew2015}~\cite{Andrew2015} showed that an OGD algorithm with $\mathcal{O}(\rho_2(T))$-regret in the online convex optimization setting, and $\sum_{t=1}^T \eta_t \in \mathcal{O}(\rho_1(T))$, achieves $\mathcal{O}(\rho_1(T) + \rho_2(T))$-regret in the online smoothed convex otpimization setting. In particular, for learning rates $\eta_t \in \Theta(1 / \sqrt{t})$, OGD obtains $\mathcal{O}(\sqrt{T})$-regret when movement costs are considered and the agent picks a point after the hitting costs were revealed~\cite{Andrew2015}.
 
 Using finite difference methods, $\nabla f_{\tau-1}(X_{\tau-1})$ can be computed in $\mathcal{O}(d C)$ time. The euclidean projection can be computed $\epsilon$-optimally in $\mathcal{O}(O_{\epsilon}^d)$ time. Thus, the overall asymptotic time complexity of OGD is $\mathcal{O}(d C O_{\epsilon}^d)$.
 
 \subsubsection{Online Mirror Descent}\label{section:online_algorithms:md:descent_methods:omd}
 
-Thus, concerning regret, where algorithms seek to minimize the hitting cost immediately, the smoothing property of SCO does not require the development of new algorithms. In contrast, competitive algorithms need to wait before moving to the minimizer of the hitting cost until the switching costs are amortized. In other words, in each step, a competitive algorithm has to decide how far to move into the direction of the minimizer to balance hitting cost and switching cost. Crucially, where to move depends on the geometry of the cost function. As is shown in \cref{fig:level_sets_of_the_hitting_costs}, rather than moving towards the minimizer directly, it is advantageous to move to a projection on some level set of the cost function. This approach minimizes the switching costs that are required to reach a point with the same hitting cost. This approach can balance hitting costs and switching costs and is discussed in \cref{section:online_algorithms:md:descent_methods:obd}, where we introduce the online balanced descent framework.
+Thus, concerning regret, where algorithms seek to minimize the hitting cost immediately, the smoothing property of SCO does not require the development of new algorithms. In contrast, competitive algorithms need to wait before moving to the minimizer of the hitting cost until the movement costs are amortized. In other words, in each step, a competitive algorithm has to decide how far to move into the direction of the minimizer to balance hitting cost and movement cost. Crucially, where to move depends on the geometry of the cost function. As is shown in \cref{fig:level_sets_of_the_hitting_costs}, rather than moving towards the minimizer directly, it is advantageous to move to a projection on some level set of the cost function. This approach minimizes the movement costs that are required to reach a point with the same hitting cost. This approach can balance hitting costs and movement costs and is discussed in \cref{section:online_algorithms:md:descent_methods:obd}, where we introduce the online balanced descent framework.
 
 \begin{figure}
     \centering
@@ -543,7 +543,7 @@ For $h(x) = \frac{1}{2} \norm{x}_2^2$ the mirror map and its inverse are the ide
 
 Note that when $h$ is the squared $\ell_2$ norm, the Bregman projection is equivalent to the Euclidean projection. Using finite difference methods, the Bregman projection can be computed similarly to the Euclidean projection, $\epsilon$-optimally in $\mathcal{O}(O_{\epsilon}^d)$ time, assuming the runtime of $h$ is constant.
 
-Next, we describe how the ideas from mirror descent are adapted for the smoothed online convex optimization setting, where agents operate with lookahead $1$ and switching costs need to be considered.
+Next, we describe how the ideas from mirror descent are adapted for the smoothed online convex optimization setting, where agents operate with lookahead $1$ and movement costs need to be considered.
 
 \subsubsection{Online Balanced Descent}\label{section:online_algorithms:md:descent_methods:obd}
 
@@ -556,7 +556,7 @@ The online balanced descent (OBD) algorithms were developed by \citeauthor*{Goel
     \label{fig:comparison_of_an_update_of_omd_and_obd}
 \end{figure}
 
-The algorithmic framework for OBD can roughly be divided into two parts. First, the projection of the previous point onto some level set of the cost function.  Second, the strategies to choose the specific level set and geometry to balance hitting costs and switching costs. The algorithm for (1) is also called the \emph{meta} algorithm as it is parametrized with a concrete level set and geometry (i.e., mirror map).
+The algorithmic framework for OBD can roughly be divided into two parts. First, the projection of the previous point onto some level set of the cost function.  Second, the strategies to choose the specific level set and geometry to balance hitting costs and movement costs. The algorithm for (1) is also called the \emph{meta} algorithm as it is parametrized with a concrete level set and geometry (i.e., mirror map).
 
 \subsubsection{Meta Algorithm}
 
@@ -564,7 +564,7 @@ Similar to OMD, the meta algorithm of OBD chooses the next point $X_{\tau}$ in t
     \nabla h(X_{\tau}) = \nabla h(X_{\tau-1}) - \eta_{\tau} \nabla f_{\tau}(X_{\tau})
 \end{align} must be satisfied by $X_{\tau}$ where $\eta_{\tau}$ is the optimal slack of the inequality constraint $f_{\tau}(x) \leq l$~\cite{Goel2018}. Note that this corresponds to a variant of OMD with lookahead $1$.
 
-OBD requires $h$ to be $\alpha$-strongly convex and $\beta$-Lipschitz smooth in the norm $\norm{\cdot}$ that is used to obtain the switching costs. The meta algorithm is described in \cref{alg:md:obd}.
+OBD requires $h$ to be $\alpha$-strongly convex and $\beta$-Lipschitz smooth in the norm $\norm{\cdot}$ that is used to obtain the movement costs. The meta algorithm is described in \cref{alg:md:obd}.
 
 \begin{algorithm}
     \caption{Online Balanced Descent (meta algorithm)~\cite{Goel2018}}\label{alg:md:obd}
@@ -578,11 +578,11 @@ As an example, we consider the Euclidean space with the $\ell_2$ norm. In this s
     X_{\tau} = X_{\tau-1} - \eta_{\tau} \nabla f_{\tau}(X_{\tau})
 \end{align*} corresponding to OGD with lookahead $1$.
 
-We can generally choose $h$ to either perform well for the competitive ratio or regret. In their initial paper, \citeauthor*{Goel2018}~\cite{Goel2018} propose two algorithms that balance hitting and switching costs in the primal and dual space and perform well concerning the competitive ratio and regret, respectively.
+We can generally choose $h$ to either perform well for the competitive ratio or regret. In their initial paper, \citeauthor*{Goel2018}~\cite{Goel2018} propose two algorithms that balance hitting and movement costs in the primal and dual space and perform well concerning the competitive ratio and regret, respectively.
 
 \subsubsection{Primal Algorithm}
 
-\emph{Primal online balanced descent} (P-OBD) balances hitting and switching costs in the primal space. Let $\hat{x} = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$ and $x(l) = \text{Meta-OBD}(\mathcal{I}, l, h) = \Pi_{K_l}^h(X_{\tau-1})$. Given some $\beta > 0$, the balance parameter $l$ is chosen such that a balance condition $g(l) = \norm{x(l) - X_{\tau-1}} \leq \beta l$ is satisfied. More formally, $l$ is chosen such that either $x(l) = \hat{x}$ and $g(l) < \beta l$ or $g(l) = \beta l$ hold~\cite{Goel2018}.
+\emph{Primal online balanced descent} (P-OBD) balances hitting and movement costs in the primal space. Let $\hat{x} = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$ and $x(l) = \text{Meta-OBD}(\mathcal{I}, l, h) = \Pi_{K_l}^h(X_{\tau-1})$. Given some $\beta > 0$, the balance parameter $l$ is chosen such that a balance condition $g(l) = \norm{x(l) - X_{\tau-1}} \leq \beta l$ is satisfied. More formally, $l$ is chosen such that either $x(l) = \hat{x}$ and $g(l) < \beta l$ or $g(l) = \beta l$ hold~\cite{Goel2018}.
 
 \citeauthor*{Goel2018}~\cite{Goel2018} show that the balance function $g(l)$ is continuous in $l$. We observe that $l$ is lower bounded by $f_{\tau}(\hat{x})$. As we assume that $\hat{x}$ is unique, $x(l) = \hat{x}$ iff $l = f_{\tau}(\hat{x})$ and the first condition is fulfilled if and only if $g(f_{\tau}(\hat{x})) < \beta f_{\tau}(\hat{x})$. If the first condition is not satisfied, we can efficiently determine an $l$ fulfilling the second condition using a bracketed root finding method on $g(l) - \beta l$ within the interval $[f_{\tau}(\hat{x}), \gamma]$. Here, it suffices to choose $\gamma$ ``large enough'' to ensure that $g(\gamma) \leq \beta \gamma$. Observe that for $\gamma = f_{\tau}(X_{\tau-1})$, this is trivially satisfied, as $x(\gamma) = X_{\tau-1}$ and as such $g(\gamma) = 0$. The algorithm is described in \cref{alg:md:pobd}.
 
@@ -600,13 +600,13 @@ We can generally choose $h$ to either perform well for the competitive ratio or 
 
 The balancing is chosen such that the movement cost is upper bounded by the constant $\beta$ times the hitting cost~\cite{Goel2018}.
 
-\citeauthor*{Goel2018}~\cite{Goel2018} show that P-OBD attains a competitive ratio of at most $3 + \mathcal{O}(1 / \alpha)$ for some $\beta > 0$, $\alpha$-locally polyhedral cost functions, and the $\ell_2$ norm as switching cost. They also show that local polyhedrality is useful when other norms like the $l_{\infty}$ norm are used. Note that the algorithm is memoryless and, therefore, nearly optimal, as \citeauthor*{Bansal2015}~\cite{Bansal2015} showed in the uni-dimensional setting that no memoryless algorithm can attain a better competitive ratio than $3$ (which also holds for locally polyhedral cost functions)~\cite{Goel2018}. When used with the $\ell_1$ norm, which is relevant in the application of right-sizing data centers, P-OBD attains a competitive ratio of $\mathcal{O}(\sqrt{d})$ if $\alpha$ is fixed~\cite{Goel2018}. The memoryless algorithm (\cref{alg:ud:memoryless}) of \citeauthor*{Bansal2015}~\cite{Bansal2015} can be seen as a special case of P-OBD for $d = 1$ and $\beta = \frac{1}{2}$~\cite{Goel2018}.
+\citeauthor*{Goel2018}~\cite{Goel2018} show that P-OBD attains a competitive ratio of at most $3 + \mathcal{O}(1 / \alpha)$ for some $\beta > 0$, $\alpha$-locally polyhedral cost functions, and the $\ell_2$ norm as movement cost. They also show that local polyhedrality is useful when other norms like the $l_{\infty}$ norm are used. Note that the algorithm is memoryless and, therefore, nearly optimal, as \citeauthor*{Bansal2015}~\cite{Bansal2015} showed in the uni-dimensional setting that no memoryless algorithm can attain a better competitive ratio than $3$ (which also holds for locally polyhedral cost functions)~\cite{Goel2018}. When used with the $\ell_1$ norm, which is relevant in the application of right-sizing data centers, P-OBD attains a competitive ratio of $\mathcal{O}(\sqrt{d})$ if $\alpha$ is fixed~\cite{Goel2018}. The memoryless algorithm (\cref{alg:ud:memoryless}) of \citeauthor*{Bansal2015}~\cite{Bansal2015} can be seen as a special case of P-OBD for $d = 1$ and $\beta = \frac{1}{2}$~\cite{Goel2018}.
 
 The minimizer can be found $\epsilon$-optimally in $\mathcal{O}(C O_{\epsilon}^d)$ time. Assuming the runtime of $h$ is constant, the balance parameter $l$ can be determined $\epsilon$-optimally in $\mathcal{O}(O_{\epsilon}^d R_{\epsilon})$ time. Overall, P-OBD runs in $\mathcal{O}(C O_{\epsilon}^d + O_{\epsilon}^d R_{\epsilon})$ time.
 
 \subsubsection{Dual Algorithm}
 
-\citeauthor*{Goel2018}~\cite{Goel2018} also developed an algorithm called \emph{dual online balanced descent} (D-OBD), which balances the switching cost in the dual space with the gradient of the hitting cost (which is also in the dual space). Before describing the algorithm, we must first describe how the switching cost can be represented in the dual space. We thus introduce the notion of a \emph{dual norm}.
+\citeauthor*{Goel2018}~\cite{Goel2018} also developed an algorithm called \emph{dual online balanced descent} (D-OBD), which balances the movement cost in the dual space with the gradient of the hitting cost (which is also in the dual space). Before describing the algorithm, we must first describe how the movement cost can be represented in the dual space. We thus introduce the notion of a \emph{dual norm}.
 
 \begin{definition}\index{dual norm}
 \cite{Gupta2020} Given some norm $\norm{\cdot}$ on $\mathbb{R}^d$, its dual norm $\norm{\cdot}_*$ is defined as \begin{align*}
@@ -638,9 +638,9 @@ An evaluation of the dual norm can be computed $\epsilon$-optimally in $\mathcal
 
 \subsubsection{Greedy and Regularized Algorithm}
 
-Later, \citeauthor*{Goel2019}~\cite{Goel2019} proposed two additional algorithms using the OBD framework, \emph{greedy online balanced descent} (G-OBD) and \emph{regularized online balanced descent} (R-OBD). Both algorithms yield strong guarantees for the competitive ratio in the setting of squared $\ell_2$ norm movement costs and $\alpha$-strongly convex hitting costs.
+Later, \citeauthor*{Goel2019}~\cite{Goel2019} proposed two additional algorithms using the OBD framework, \emph{greedy online balanced descent} (G-OBD) and \emph{regularized online balanced descent} (R-OBD). Both algorithms yield strong guarantees for the competitive ratio in the setting of squared $\ell_2$ norm movement costs and $\alpha$-strongly convex hitting costs where the optimal competitive ratio is $\mathcal{O}(1 / \sqrt{\alpha})$ as $\alpha$ approaches zero. G-OBD achieves this competitive ratio for quasiconvex\footnote{A function is quasiconvex iff it has a unique global minimum.} hitting costs that are $\alpha$-strongly convex around their minimizer and squared $\ell_2$ norm movement costs. R-OBD achieves this competitive ratio for $\alpha$-strongly convex hitting costs and arbitrary Bregman divergences as movement costs.
 
-G-OBD works by first taking a regular P-OBD step towards the minimizer of the hitting cost. Then, it takes an additional step towards the minimizer with a step size based on the convexity parameter $\alpha$. In contrast, R-OBD picks the next point by minimizing a weighted sum of hitting and switching costs. It uses an additional regularization term that encourages the algorithm to pick a point closer to the minimizer of the hitting cost~\cite{Goel2019}. We do not discuss G-OBD and R-OBD in more detail, as their theoretical guarantees do not cover the application of right-sizing data centers, but we provide implementations of them.
+Both algorithms take an additional step of size $\mathcal{\sqrt{\alpha}}$ towards the minimizer of the hitting cost. G-OBD works by first taking a regular P-OBD step to some level set of the hitting cost. Then, it takes an additional step towards the minimizer of the hitting cost with a step size based on the convexity parameter $\alpha$. In contrast, R-OBD picks the next point by minimizing a weighted sum of hitting and movement costs. It uses an additional regularization term that encourages the algorithm to pick a point closer to the minimizer of the hitting cost~\cite{Goel2019}. We do not discuss G-OBD and R-OBD in more detail, as their theoretical guarantees do not cover the application of right-sizing data centers, but we provide implementations of them.
 
 \section{Predicting}\label{section:online_algorithms:md:predictions}
 
