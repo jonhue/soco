@@ -1,7 +1,6 @@
-use super::DistanceGeneratingFn;
 use crate::algorithms::online::{FractionalStep, OnlineAlgorithm, Step};
 use crate::config::Config;
-use crate::norm::dual;
+use crate::distance::{DistanceGeneratingFn, dual_norm, euclidean, negative_entropy, norm_squared};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::roots::find_root;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
@@ -16,7 +15,6 @@ use crate::{
 };
 use finitediff::FiniteDiff;
 use pyo3::prelude::*;
-use std::sync::Arc;
 
 #[pyclass]
 #[derive(Clone)]
@@ -24,7 +22,7 @@ pub struct Options {
     /// Balance parameter. `eta > 0`.
     pub eta: f64,
     /// Distance-generating function.
-    pub h: DistanceGeneratingFn,
+    pub h: DistanceGeneratingFn<f64>,
 }
 impl Default for Options {
     fn default() -> Self {
@@ -33,18 +31,19 @@ impl Default for Options {
 }
 #[pymethods]
 impl Options {
-    #[new]
-    fn constructor(eta: f64, h: Py<PyAny>) -> Self {
+    #[staticmethod]
+    pub fn euclidean_squared(eta: f64) -> Self {
         Options {
             eta,
-            h: Arc::new(move |x| {
-                Python::with_gil(|py| {
-                    h.call1(py, (x,))
-                        .expect("options `h` method invalid")
-                        .extract(py)
-                        .expect("options `h` method invalid")
-                })
-            }),
+            h: norm_squared(euclidean()),
+        }
+    }
+
+    #[staticmethod]
+    pub fn negative_entropy(eta: f64) -> Self {
+        Options {
+            eta,
+            h: negative_entropy(),
         }
     }
 }
@@ -80,14 +79,14 @@ where
             .unwrap();
         let f =
             |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).cost.raw();
-        let h_ = |x: &Vec<f64>| h(Config::new(x.clone()));
-        let distance = dual(&o.p.switching_cost)(
+        let h_ = |x: &Vec<f64>| h(Config::new(x.clone())).raw();
+        let distance = dual_norm(o.p.switching_cost.clone())(
             Config::new(x.to_vec().central_diff(&h_))
                 - Config::new(prev_x.to_vec().central_diff(&h_)),
         )
         .raw();
         let hitting_cost =
-            dual(&o.p.switching_cost)(Config::new(x.to_vec().central_diff(&f)))
+        dual_norm(o.p.switching_cost.clone())(Config::new(x.to_vec().central_diff(&f)))
                 .raw();
         distance - eta * hitting_cost
     })

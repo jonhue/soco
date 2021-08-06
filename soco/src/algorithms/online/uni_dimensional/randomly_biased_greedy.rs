@@ -1,7 +1,7 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::norm::NormFn;
+use crate::distance::NormFn;
 use crate::numerics::convex_optimization::{find_minimizer, WrappedObjective};
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
@@ -109,9 +109,9 @@ where
 }
 
 #[derive(Clone)]
-struct WorkObjectiveData<'a> {
+struct WorkObjectiveData {
     bounds: Vec<(f64, f64)>,
-    switching_cost: NormFn<'a, f64>,
+    switching_cost: NormFn<f64>,
     t: i32,
     theta: f64,
     x: FractionalConfig,
@@ -120,7 +120,7 @@ struct WorkObjectiveData<'a> {
 cached_key! {
     WORK: SizedCache<String, N64> = SizedCache::with_size(1_000);
     Key = { format!("{}-{:?}", t, x) };
-    fn w(bounds: &Vec<(f64, f64)>, hitting_cost: &impl Fn(i32, FractionalConfig) -> N64, switching_cost: &NormFn<'_, f64>, t: i32, theta: f64, x: FractionalConfig) -> N64 = {
+    fn w(bounds: &Vec<(f64, f64)>, hitting_cost: &impl Fn(i32, FractionalConfig) -> N64, switching_cost: &NormFn<f64>, t: i32, theta: f64, x: FractionalConfig) -> N64 = {
         if t == 0 {
             n64(theta) * switching_cost(x)
         } else {

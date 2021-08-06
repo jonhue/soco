@@ -5,7 +5,7 @@ mod rbg {
     use soco::algorithms::online::uni_dimensional::randomly_biased_greedy::{
         rbg, Options,
     };
-    use soco::norm::manhattan;
+    use soco::distance::manhattan;
     use soco::problem::{Online, Problem, SmoothedConvexOptimization};
 
     #[test]

@@ -1,6 +1,6 @@
-use super::DistanceGeneratingFn;
 use crate::algorithms::online::{FractionalStep, OnlineAlgorithm, Step};
 use crate::config::Config;
+use crate::distance::{DistanceGeneratingFn, euclidean, negative_entropy, norm_squared};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::roots::find_root;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
@@ -14,7 +14,6 @@ use crate::{
     model::{ModelOutputFailure, ModelOutputSuccess},
 };
 use pyo3::prelude::*;
-use std::sync::Arc;
 
 #[pyclass]
 #[derive(Clone)]
@@ -22,7 +21,7 @@ pub struct Options {
     /// The movement cost is at most `beta` times the hitting cost. `beta > 0`.
     pub beta: f64,
     /// Distance-generating function.
-    pub h: DistanceGeneratingFn,
+    pub h: DistanceGeneratingFn<f64>,
 }
 impl Default for Options {
     fn default() -> Self {
@@ -31,18 +30,19 @@ impl Default for Options {
 }
 #[pymethods]
 impl Options {
-    #[new]
-    fn constructor(beta: f64, h: Py<PyAny>) -> Self {
+    #[staticmethod]
+    pub fn euclidean_squared(beta: f64) -> Self {
         Options {
             beta,
-            h: Arc::new(move |x| {
-                Python::with_gil(|py| {
-                    h.call1(py, (x,))
-                        .expect("options `h` method invalid")
-                        .extract(py)
-                        .expect("options `h` method invalid")
-                })
-            }),
+            h: norm_squared(euclidean()),
+        }
+    }
+
+    #[staticmethod]
+    pub fn negative_entropy(beta: f64) -> Self {
+        Options {
+            beta,
+            h: negative_entropy(),
         }
     }
 }

@@ -67,20 +67,6 @@ where
     minimize(objective, bounds, None, Vec::<WrappedObjective<()>>::new())
 }
 
-/// Determines the minimizer of a convex function `f` in `d` dimensions with `constraints`.
-pub fn find_unbounded_minimizer<C, D>(
-    objective: WrappedObjective<C>,
-    d: i32,
-    constraints: Vec<WrappedObjective<D>>,
-) -> OptimizationResult
-where
-    C: Clone,
-    D: Clone,
-{
-    let (bounds, init) = build_empty_bounds(d);
-    minimize(objective, bounds, Some(init), constraints)
-}
-
 /// Determines the maximizer of a convex function `f` in `d` dimensions with `constraints`.
 pub fn find_unbounded_maximizer<C, D>(
     objective: WrappedObjective<C>,

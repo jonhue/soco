@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use crate::distance::{DistanceGeneratingFn, euclidean, negative_entropy, norm_squared};
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::algorithms::online::multi_dimensional::online_balanced_descent::primal::{pobd, Options as PrimalOptions};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
@@ -9,7 +9,6 @@ use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
 use pyo3::prelude::*;
-use super::DistanceGeneratingFn;
 
 #[pyclass]
 #[derive(Clone)]
@@ -21,7 +20,7 @@ pub struct Options {
     /// Balance parameter in OBD. `gamma > 0`. Defaults to `1`.
     pub gamma: f64,
     /// Distance-generating function.
-    pub h: DistanceGeneratingFn,
+    pub h: DistanceGeneratingFn<f64>,
 }
 impl Default for Options {
     fn default() -> Self {
@@ -30,20 +29,23 @@ impl Default for Options {
 }
 #[pymethods]
 impl Options {
-    #[new]
-    fn constructor(m: f64, mu: f64, gamma: f64, h: Py<PyAny>) -> Self {
+    #[staticmethod]
+    pub fn euclidean_squared(m: f64, mu: f64, gamma: f64) -> Self {
         Options {
             m,
             mu,
             gamma,
-            h: Arc::new(move |x| {
-                Python::with_gil(|py| {
-                    h.call1(py, (x,))
-                        .expect("options `h` method invalid")
-                        .extract(py)
-                        .expect("options `h` method invalid")
-                })
-            }),
+            h: norm_squared(euclidean()),
+        }
+    }
+
+    #[staticmethod]
+    pub fn negative_entropy(m: f64, mu: f64, gamma: f64) -> Self {
+        Options {
+            m,
+            mu,
+            gamma,
+            h: negative_entropy(),
         }
     }
 }

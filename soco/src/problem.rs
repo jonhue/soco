@@ -11,7 +11,7 @@ use crate::model::data_center::{
     DataCenterObjective, IntermediateObjective,
 };
 use crate::model::{ModelOutput, ModelOutputFailure, ModelOutputSuccess};
-use crate::norm::NormFn;
+use crate::distance::NormFn;
 use crate::result::Result;
 use crate::schedule::Schedule;
 use crate::utils::pos;
@@ -246,7 +246,7 @@ pub struct SmoothedConvexOptimization<'a, T, C, D> {
     pub bounds: Vec<(T, T)>,
     /// Norm function.
     #[derivative(Debug = "ignore")]
-    pub switching_cost: NormFn<'a, T>,
+    pub switching_cost: NormFn<T>,
     /// Non-negative convex cost functions.
     #[derivative(Debug = "ignore")]
     pub hitting_cost: CostFn<'a, Config<T>, C, D>,

@@ -10,7 +10,7 @@ mod co {
     };
     use soco::config::Config;
     use soco::convert::{CastableSchedule, DiscretizableSchedule};
-    use soco::norm::{euclidean, manhattan_scaled, norm_squared};
+    use soco::distance::{euclidean, manhattan_scaled, norm_squared};
     use soco::problem::{Problem, SmoothedConvexOptimization};
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
@@ -74,8 +74,6 @@ mod co {
     fn _3() {
         init();
 
-        let euclidean_ = euclidean();
-
         let d = 4;
         let t_end = 10;
         let p = SmoothedConvexOptimization {
@@ -90,7 +88,7 @@ mod co {
                     )
                 })
                 .collect(),
-            switching_cost: norm_squared(&euclidean_),
+            switching_cost: norm_squared(euclidean()),
             hitting_cost: inv_e(),
         };
         p.verify().unwrap();
@@ -106,7 +104,6 @@ mod co {
     fn _4() {
         init();
 
-        let euclidean_ = euclidean();
         let epsilon = 1e-4;
 
         let d = 4;
@@ -123,7 +120,7 @@ mod co {
                     )
                 })
                 .collect(),
-            switching_cost: norm_squared(&euclidean_),
+            switching_cost: norm_squared(euclidean()),
             hitting_cost: inv_e(),
         };
         p.verify().unwrap();

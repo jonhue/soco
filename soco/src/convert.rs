@@ -6,7 +6,7 @@ use crate::model::data_center::{
     DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
 };
 use crate::model::{ModelOutput, ModelOutputFailure, ModelOutputSuccess};
-use crate::norm::manhattan_scaled;
+use crate::distance::manhattan_scaled;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
     IntegralSimplifiedSmoothedConvexOptimization, Online, Problem,

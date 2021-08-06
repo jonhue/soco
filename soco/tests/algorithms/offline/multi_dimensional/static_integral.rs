@@ -9,7 +9,7 @@ mod static_integral {
         OfflineAlgorithm, OfflineOptions, OfflineResult,
     };
     use soco::config::IntegralConfig;
-    use soco::norm::manhattan_scaled;
+    use soco::distance::manhattan_scaled;
     use soco::problem::{Problem, SmoothedConvexOptimization};
     use soco::verifiers::VerifiableProblem;
 
