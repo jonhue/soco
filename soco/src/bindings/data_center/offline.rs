@@ -1,33 +1,19 @@
-use crate::{
-    algorithms::offline::{
-        multi_dimensional::{
-            approx_graph_search::{
+use crate::{algorithms::{offline::{OfflineOptions, graph_search::{Cache, CachedPath}, multi_dimensional::{Vertice, approx_graph_search::{
                 approx_graph_search, Options as ApproxGraphSearchOptions,
-            },
-            convex_optimization::co,
-            optimal_graph_search::{
+            }, convex_optimization::co, optimal_graph_search::{
                 optimal_graph_search, Options as OptimalGraphSearchOptions,
-            },
-            static_fractional::static_fractional,
-            static_integral::static_integral,
-        },
-        uni_dimensional::{
+            }, static_fractional::static_fractional, static_integral::static_integral}, uni_dimensional::{
             capacity_provisioning::brcp,
             optimal_graph_search::{
                 optimal_graph_search as optimal_graph_search_1d,
                 Options as OptimalGraphSearch1dOptions,
             },
-        },
-        OfflineOptions,
-    },
-    bindings::DataCenterCost,
-    model::data_center::model::{DataCenterModel, DataCenterOfflineInput},
-    streaming::offline,
-};
+        }}}, bindings::DataCenterCost, cost::Cost, model::{ data_center::{DataCenterModelOutputFailure, model::{DataCenterModel, DataCenterOfflineInput}}}, problem::{IntegralSmoothedBalancedLoadOptimization, IntegralSmoothedLoadOptimization}, result::Result, streaming::offline};
 use log::info;
 use pyo3::prelude::*;
 
 type Response<T> = (Vec<Vec<T>>, DataCenterCost, u128);
+type SLOResponse<T> = (Vec<Vec<T>>, Cost<(), DataCenterModelOutputFailure>, u128);
 
 /// Backward-Recurrent Capacity Provisioning
 #[pyfunction]
@@ -94,6 +80,54 @@ fn optimal_graph_search_py(
     })
 }
 
+/// Graph-Based Optimal Algorithm for SLO
+#[pyfunction]
+#[pyo3(name = "optimal_graph_search_slo")]
+fn optimal_graph_search_slo_py(
+    py: Python,
+    model: DataCenterModel,
+    input: DataCenterOfflineInput,
+    options: OptimalGraphSearchOptions,
+    offline_options: OfflineOptions,
+) -> PyResult<SLOResponse<i32>> {
+    py.allow_threads(|| {
+        info!("Graph Search for SLO");
+        let (xs, cost, runtime) = offline::solve(
+            &model,
+            &optimal_graph_search_slo,
+            options,
+            offline_options,
+            input,
+        )
+        .unwrap();
+        Ok((xs.to_vec(), cost, runtime))
+    })
+}
+
+/// Graph-Based Optimal Algorithm for SBLO
+#[pyfunction]
+#[pyo3(name = "optimal_graph_search_sblo")]
+fn optimal_graph_search_sblo_py(
+    py: Python,
+    model: DataCenterModel,
+    input: DataCenterOfflineInput,
+    options: OptimalGraphSearchOptions,
+    offline_options: OfflineOptions,
+) -> PyResult<Response<i32>> {
+    py.allow_threads(|| {
+        info!("Graph Search for SBLO");
+        let (xs, cost, runtime) = offline::solve(
+            &model,
+            &optimal_graph_search_sblo,
+            options,
+            offline_options,
+            input,
+        )
+        .unwrap();
+        Ok((xs.to_vec(), cost, runtime))
+    })
+}
+
 /// Graph-Based Polynomial-Time Approximation Scheme
 #[pyfunction]
 #[pyo3(name = "approx_graph_search")]
@@ -109,6 +143,54 @@ fn approx_graph_search_py(
         let (xs, cost, runtime) = offline::solve(
             &model,
             &approx_graph_search,
+            options,
+            offline_options,
+            input,
+        )
+        .unwrap();
+        Ok((xs.to_vec(), cost, runtime))
+    })
+}
+
+/// Graph-Based Polynomial-Time Approximation Scheme for SLO
+#[pyfunction]
+#[pyo3(name = "approx_graph_search_slo")]
+fn approx_graph_search_slo_py(
+    py: Python,
+    model: DataCenterModel,
+    input: DataCenterOfflineInput,
+    options: ApproxGraphSearchOptions,
+    offline_options: OfflineOptions,
+) -> PyResult<SLOResponse<i32>> {
+    py.allow_threads(|| {
+        info!("Approximate Graph Search for SLO");
+        let (xs, cost, runtime) = offline::solve(
+            &model,
+            &approx_graph_search_slo,
+            options,
+            offline_options,
+            input,
+        )
+        .unwrap();
+        Ok((xs.to_vec(), cost, runtime))
+    })
+}
+
+/// Graph-Based Polynomial-Time Approximation Scheme for SBLO
+#[pyfunction]
+#[pyo3(name = "approx_graph_search_sblo")]
+fn approx_graph_search_sblo_py(
+    py: Python,
+    model: DataCenterModel,
+    input: DataCenterOfflineInput,
+    options: ApproxGraphSearchOptions,
+    offline_options: OfflineOptions,
+) -> PyResult<Response<i32>> {
+    py.allow_threads(|| {
+        info!("Approximate Graph Search for SBLO");
+        let (xs, cost, runtime) = offline::solve(
+            &model,
+            &approx_graph_search_sblo,
             options,
             offline_options,
             input,
@@ -190,9 +272,13 @@ pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<OptimalGraphSearch1dOptions>()?;
 
     m.add_function(wrap_pyfunction!(optimal_graph_search_py, m)?)?;
+    m.add_function(wrap_pyfunction!(optimal_graph_search_slo_py, m)?)?;
+    m.add_function(wrap_pyfunction!(optimal_graph_search_sblo_py, m)?)?;
     m.add_class::<OptimalGraphSearchOptions>()?;
 
     m.add_function(wrap_pyfunction!(approx_graph_search_py, m)?)?;
+    m.add_function(wrap_pyfunction!(approx_graph_search_slo_py, m)?)?;
+    m.add_function(wrap_pyfunction!(approx_graph_search_sblo_py, m)?)?;
     m.add_class::<ApproxGraphSearchOptions>()?;
 
     m.add_function(wrap_pyfunction!(convex_optimization_py, m)?)?;
@@ -202,4 +288,40 @@ pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(static_integral_py, m)?)?;
 
     Ok(())
+}
+
+fn optimal_graph_search_slo(
+    p: IntegralSmoothedLoadOptimization,
+    options: OptimalGraphSearchOptions,
+    offline_options: OfflineOptions,
+) -> Result<CachedPath<Cache<Vertice>>>
+{
+    optimal_graph_search_sblo(p.into_sblo(), options, offline_options)
+}
+
+fn approx_graph_search_slo(
+    p: IntegralSmoothedLoadOptimization,
+    options: ApproxGraphSearchOptions,
+    offline_options: OfflineOptions,
+) -> Result<CachedPath<Cache<Vertice>>>
+{
+    approx_graph_search_sblo(p.into_sblo(), options, offline_options)
+}
+
+fn optimal_graph_search_sblo(
+    p: IntegralSmoothedBalancedLoadOptimization,
+    options: OptimalGraphSearchOptions,
+    offline_options: OfflineOptions,
+) -> Result<CachedPath<Cache<Vertice>>>
+{
+    optimal_graph_search(p.into_ssco(), options, offline_options)
+}
+
+fn approx_graph_search_sblo(
+    p: IntegralSmoothedBalancedLoadOptimization,
+    options: ApproxGraphSearchOptions,
+    offline_options: OfflineOptions,
+) -> Result<CachedPath<Cache<Vertice>>>
+{
+    approx_graph_search(p.into_ssco(), options, offline_options)
 }

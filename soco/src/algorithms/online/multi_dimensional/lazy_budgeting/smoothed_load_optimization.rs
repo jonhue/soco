@@ -67,6 +67,7 @@ pub type Lanes = Vec<i32>;
 /// Maps each lane to a finite time horizon it stays "active" for unless replaced by another dimension.
 pub type Horizons = Vec<i32>;
 
+#[pyclass]
 #[derive(Clone)]
 pub struct Options {
     /// Whether to use the randomized variant of the algorithm.
@@ -75,6 +76,13 @@ pub struct Options {
 impl Default for Options {
     fn default() -> Self {
         Options { randomized: false }
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(randomized: bool) -> Self {
+        Options { randomized }
     }
 }
 
