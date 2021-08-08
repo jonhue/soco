@@ -207,7 +207,10 @@ def build_model(
             {DEFAULT_KEY: (revenue_loss, 2.5 * delta / 2)},
             {
                 DEFAULT_KEY: SwitchingCost.from_normalized(
-                    delta, normalized_switching_cost, energy_cost, energy_model["phi_min"]
+                    delta,
+                    normalized_switching_cost,
+                    energy_cost,
+                    energy_model["phi_min"],
                 )
             },
         )
@@ -224,7 +227,10 @@ def build_model(
             {DEFAULT_KEY: (revenue_loss, 2.5 * delta / 2)},
             {
                 DEFAULT_KEY: SwitchingCost.from_normalized(
-                    delta, normalized_switching_cost, energy_cost, energy_model["phi_min"]
+                    delta,
+                    normalized_switching_cost,
+                    energy_cost,
+                    energy_model["phi_min"],
                 )
             },
         )
@@ -253,11 +259,17 @@ def build_model(
             {DEFAULT_KEY: (revenue_loss, 2.5 * delta / 2)},
             {
                 GPU2: SwitchingCost.from_normalized(
-                    delta, normalized_switching_cost, energy_cost, energy_model["phi_min"]
+                    delta,
+                    normalized_switching_cost,
+                    energy_cost,
+                    energy_model["phi_min"],
                 ),
                 GPU8: SwitchingCost.from_normalized(
-                    delta, 10 * normalized_switching_cost, energy_cost, energy_model["phi_min"]
-                )
+                    delta,
+                    10 * normalized_switching_cost,
+                    energy_cost,
+                    energy_model["phi_min"],
+                ),
             },
         )
     if trace == ALIBABA:
@@ -289,7 +301,10 @@ def build_model(
             },
             {
                 DEFAULT_KEY: SwitchingCost.from_normalized(
-                    delta, normalized_switching_cost, energy_cost, energy_model["phi_min"]
+                    delta,
+                    normalized_switching_cost,
+                    energy_cost,
+                    energy_model["phi_min"],
                 )
             },
         )
