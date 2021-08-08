@@ -22,9 +22,8 @@ We begin by returning to the notion of capacity provisioning that we introduced 
 
 \begin{figure}
     \centering
-    [TODO]
-
-    \caption{Backward-Recurrent Capacity Provisioning vs Lazy Capacity Provisioning}
+    \input{thesis/figures/brcp_vs_lcp}
+    \caption{Backward-Recurrent Capacity Provisioning vs. Lazy Capacity Provisioning. LCP stays within the bounds ``lazily'' moving forwards in time. The optimal solution stays within the bounds moving backwards in time.}
     \label{fig:backward_recurrent_capacity_provisioing_vs_lazy_capacity_provisioning}
 \end{figure}
 
@@ -60,7 +59,7 @@ While not changing the worst-case complexity, this significantly improves the pr
 
 \citeauthor*{Bansal2015}~\cite{Bansal2015} showed that for SSCO, a competitive ratio of $3$ can also be attained by a memoryless algorithm. In a memoryless online algorithm for smoothed convex optimization, the configuration $X_{\tau}$ only depends on the preceding configuration $X_{\tau-1}$ and the current hitting cost $f_{\tau}$. This generally allows for a more space and time-efficient algorithm, which is important when choosing a small time slot length $\delta$ to be more responsive to changes in load.
 
-The algorithm proposed by \citeauthor*{Bansal2015}~\cite{Bansal2015} works as follows. Let $x_m$ be the minimizer of $f_{\tau}(x)$, i.e. $x_m = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. The algorithm moves into the direction of the minimizer until it either reaches $x_m$, or it reaches a configuration $x$ where its switching cost equals twice the hitting cost of $x$. \Cref{fig:memoryless_algorithm} gives an example of a step of the algorithm. We observe that this is equivalent to the following convex optimization: \begin{align}\label{eq:ud:memoryless}\begin{aligned}
+The algorithm proposed by \citeauthor*{Bansal2015}~\cite{Bansal2015} works as follows. Let $\hat{x}$ be the minimizer of $f_{\tau}(x)$, i.e. $\hat{x} = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. The algorithm moves into the direction of the minimizer until it either reaches $\hat{x}$, or it reaches a configuration $x$ where its switching cost equals twice the hitting cost of $x$. \Cref{fig:memoryless_algorithm} gives an example of a step of the algorithm. We observe that this is equivalent to the following convex optimization: \begin{align}\label{eq:ud:memoryless}\begin{aligned}
     &\min_{x \in \mathcal{X}} &&f_{\tau}(x) \\
     &\text{subject to}        &&\beta |x - X_{\tau-1}| \leq \frac{f_{\tau}(x)}{2}.
 \end{aligned}\end{align} Originally, \citeauthor*{Bansal2015}~\cite{Bansal2015} proposed this algorithm for a restricted variant of uni-dimensional SSCO where the decision space is unbounded, i.e., $\mathcal{X} = \mathbb{R}$, and the switching costs are given by the $\ell_1$ norm. In particular, they choose $\beta = 1$. First, it is easy to see that we can adapt the algorithm for a bounded decision space by bounding the feasible region of the optimization problem in \cref{eq:ud:memoryless}. Second, we observe that $\beta$ can simply be interpreted as the weight that we associate with smoothing (i.e., minimizing movement) instead of minimizing hitting costs. This is shown by the following equation, which is obtained by dividing the cost of \cref{eq:simplified_smoothed_convex_optimization} by $\beta$: \begin{align}\label{eq:simplified_smoothed_convex_optimization:without_beta}
@@ -77,9 +76,8 @@ The resulting algorithm is simply given by determining $\hat{x}$ based on the co
 
 \begin{figure}
     \centering
-    [TODO: depict search space of optimization]
-
-    \caption{Memoryless Algorithm}
+    \input{thesis/figures/memoryless}
+    \caption{The memoryless algorithm moves towards the minimizer of the hitting cost, balancing hitting and movement costs.}
     \label{fig:memoryless_algorithm}
 \end{figure}
 
@@ -113,7 +111,7 @@ Hence, we have seen that a deterministic algorithm can be obtained from a random
 
 \subsubsection{Assumptions}
 
-In the description of their algorithm, \citeauthor*{Bansal2015}~\cite{Bansal2015} consider a restricted variant of uni-dimensional SSCO. Similar to their memoryless algorithm, which we discussed in \cref{section:online_algorithms:ud:memoryless}, they consider an unbounded decision space, i.e., $\mathcal{X} = \mathbb{R}$, and the $\ell_1$ norm as switching costs. Further, for their description of this probabilistic algorithm, they assume that the minimizer $x_m$ of $f_{\tau}$ is unique and bounded and that the hitting costs $f_{\tau}$ are continuous and smooth, i.e., is infinitely many times continuously differentiable. In particular, they assume the first-order and second-order derivatives of $f_{\tau}$ are well-defined and continuous. In \cref{section:theory:beyond_convexity}, we discussed the assumption of differentiability and how it relates to our data center model.
+In the description of their algorithm, \citeauthor*{Bansal2015}~\cite{Bansal2015} consider a restricted variant of uni-dimensional SSCO. Similar to their memoryless algorithm, which we discussed in \cref{section:online_algorithms:ud:memoryless}, they consider an unbounded decision space, i.e., $\mathcal{X} = \mathbb{R}$, and the $\ell_1$ norm as switching costs. Further, for their description of this probabilistic algorithm, they assume that the minimizer $\hat{x}$ of $f_{\tau}$ is unique and bounded and that the hitting costs $f_{\tau}$ are continuous and smooth, i.e., is infinitely many times continuously differentiable. In particular, they assume the first-order and second-order derivatives of $f_{\tau}$ are well-defined and continuous. In \cref{section:theory:beyond_convexity}, we discussed the assumption of differentiability and how it relates to our data center model.
 
 Our implementation generalizes their algorithm to instances of SSCO with a bounded decision space $\mathcal{X}$, variable switching costs $\beta$, and piecewise linear functions. The second assumption, namely that the minimizer of the hitting cost is bounded, is natural in a data center setting as revenue loss increases for small configurations, whereas energy costs increase for large configurations.
 
@@ -121,42 +119,41 @@ In summary, the final algorithm is $2$-competitive for arbitrary instances of un
 
 \subsubsection{The Probability Distribution}
 
-For any time $\tau$, the algorithm maintains a probability distribution $p_{\tau}$ over configurations $x \in \mathcal{X}$. So $\int_a^b p_{\tau}(x) \,dx$ represents the probability that $X_{\tau} \in [a,b]$ for any two $a, b \in \mathcal{X}$. At each time step $\tau$ we first find the minimizer of $f_{\tau}$, $x_m = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. Then, we find a point $x_r \geq x_m$ such that \begin{align}\label{eq:ud:probabilistic:right}
-    \frac{1}{2} \int_{x_m}^{x_r} \diff[2]{f_{\tau}}{y}(y) \,dy = \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy
-\end{align} and a point $x_l \leq x_m$ such that \begin{align}\label{eq:ud:probabilistic:left}
-    \frac{1}{2} \int_{x_l}^{x_m} \diff[2]{f_{\tau}}{y}(y) \,dy = \beta \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy.
+For any time $\tau$, the algorithm maintains a probability distribution $p_{\tau}$ over configurations $x \in \mathcal{X}$. So $\int_a^b p_{\tau}(x) \,dx$ represents the probability that $X_{\tau} \in [a,b]$ for any two $a, b \in \mathcal{X}$. At each time step $\tau$ we first find the minimizer of $f_{\tau}$, $\hat{x} = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$. Then, we find a point $x_r \geq \hat{x}$ such that \begin{align}\label{eq:ud:probabilistic:right}
+    \frac{1}{2} \int_{\hat{x}}^{x_r} \diff[2]{f_{\tau}}{y}(y) \,dy = \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy
+\end{align} and a point $x_l \leq \hat{x}$ such that \begin{align}\label{eq:ud:probabilistic:left}
+    \frac{1}{2} \int_{x_l}^{\hat{x}} \diff[2]{f_{\tau}}{y}(y) \,dy = \beta \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy.
 \end{align} Note that we use \cref{lemma:switching_cost_absolute_vs_positive_movement} to linearly scale the hitting cost $f_{\tau}$ by $1 / \beta$ to allow for $\beta \neq 1$. We then simply moved the constant factor outside of the derivative and integral. The probability distribution is updated as follows: \begin{align}\label{eq:ud:probabilistic:update}
     p_{\tau}(x) = \begin{cases}
         p_{\tau-1}(x) + \frac{1}{2 \beta} \diff[2]{f_{\tau}}{x}(x) & x \in [x_l,x_r] \\
         0 & \text{otherwise}
     \end{cases}
-\end{align} where $p_0$ is a discrete distribution concentrating all probability mass in the point $0$. Note that \citeauthor*{Bansal2015}~\cite{Bansal2015} do not assume any particular initial distribution, yet in our original problem statement we assumed $X_0 = \mathbf{0}$. The continuous extension of this distribution can be approximated as $p_0 \sim \text{Unif}(0, \epsilon)$ for a suitably small $\epsilon > 0$. In our implementation we choose $\epsilon = 10^{-5}$. An example for a probability distribution is given in \cref{fig:probability_distribution_of_probabilistic_algorithm}.
-
-\begin{figure}
-    \centering
-    [TODO]
-
-    \caption{Probability Distribution of Probabilistic Algorithm}
-    \label{fig:probability_distribution_of_probabilistic_algorithm}
-\end{figure}
+\end{align} where $p_0$ is a discrete distribution concentrating all probability mass in the point $0$. Note that \citeauthor*{Bansal2015}~\cite{Bansal2015} do not assume any particular initial distribution, yet in our original problem statement we assumed $X_0 = \mathbf{0}$. The continuous extension of this distribution can be approximated as $p_0 \sim \text{Unif}(0, \epsilon)$ for a suitably small $\epsilon > 0$. In our implementation we choose $\epsilon = 10^{-5}$.
 
 \subsubsection{The Algorithm}
 
-To begin with, recall that the algorithm developed by \citeauthor*{Bansal2015}~\cite{Bansal2015} operates on an unbounded decision space. To translate the algorithm to a setting with a bounded decision space, it is easy to see that we need to ensure that the underlying probability distribution does not assign positive probability to $x \not\in \mathcal{X}$. This can be achieved by introducing the additional restrictions $0 \leq x_l$ and $x_r \leq m$ which requires the assumption $x_m \in [0,m]$. This is not a restriction as we simply define $x_m$ as the minimizer of the hitting cost $f_{\tau}$ with respect to the decision space $\mathcal{X}$.
+To begin with, recall that the algorithm developed by \citeauthor*{Bansal2015}~\cite{Bansal2015} operates on an unbounded decision space. To translate the algorithm to a setting with a bounded decision space, it is easy to see that we need to ensure that the underlying probability distribution does not assign positive probability to $x \not\in \mathcal{X}$. This can be achieved by introducing the additional restrictions $0 \leq x_l$ and $x_r \leq m$ which requires the assumption $\hat{x} \in [0,m]$. This is not a restriction as we simply define $\hat{x}$ as the minimizer of the hitting cost $f_{\tau}$ with respect to the decision space $\mathcal{X}$.
 
-We use a convex optimization (as described in \cref{section:offline_algorithms:convex_optimization}) to find the minimizer of the hitting cost $x_m$. To determine $x_l$ and $x_r$, we use Brent's method with suitably defined functions and intervals to find a root. We will define these intervals and functions and describe how they can be computed in the following. Before beginning their description, note that we can only use a bracketed root finding method as we assumed that our decision space is bounded. If the decision space was not bounded, $x_l$ could be determined using a search for a local optimum minimizing $x$ starting from $x_m$ under the equality constraint given in \cref{eq:ud:probabilistic:left}. This works because the equality constraint reduces the dimensionality of the optimization to $0$, resulting in a single feasible point. The analogous approach can be used to determine $x_r$.
+We use a convex optimization (as described in \cref{section:offline_algorithms:convex_optimization}) to find the minimizer of the hitting cost $\hat{x}$. To determine $x_l$ and $x_r$, we use Brent's method with suitably defined functions and intervals to find a root. We will define these intervals and functions and describe how they can be computed in the following. Before beginning their description, note that we can only use a bracketed root finding method as we assumed that our decision space is bounded. If the decision space was not bounded, $x_l$ could be determined using a search for a local optimum minimizing $x$ starting from $\hat{x}$ under the equality constraint given in \cref{eq:ud:probabilistic:left}. This works because the equality constraint reduces the dimensionality of the optimization to $0$, resulting in a single feasible point. The analogous approach can be used to determine $x_r$.
 
-We begin by describing how $x_r$ can be determined by a local search for a root. First, note that $x_r \in [x_m,m]$. Next, we restate \cref{eq:ud:probabilistic:right} as a function of $x_r$: \begin{align*}
-    && \frac{1}{2} \int_{x_m}^{x_r} \diff[2]{f_{\tau}}{y}(y) \,dy =&\ \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy \\
-    \iff&& \left(\diff{f_{\tau}}{x}(x_r) - \diff{f_{\tau}}{x}(x_m)\right) =&\ 2 \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy \\
+We begin by describing how $x_r$ can be determined by a local search for a root. First, note that $x_r \in [\hat{x},m]$. Next, we restate \cref{eq:ud:probabilistic:right} as a function of $x_r$: \begin{align*}
+    && \frac{1}{2} \int_{\hat{x}}^{x_r} \diff[2]{f_{\tau}}{y}(y) \,dy =&\ \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy \\
+    \iff&& \left(\diff{f_{\tau}}{x}(x_r) - \diff{f_{\tau}}{x}(\hat{x})\right) =&\ 2 \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy \\
     \iff&& g(x_r) := \diff{f_{\tau}}{x}(x_r) - 2 \beta \int_{x_r}^{\infty} p_{\tau-1}(y) \,dy =&\ 0.
-\end{align*} Here, we used the fundamental theorem of calculus and that the first order derivative of $f_{\tau}$ at $x_m$ is $0$ as $x_m$ is the minimizer of $f_{\tau}$. We observe that $g(x_m) \leq 0$ and $g(m) \geq 0$. As $g$ is continuous, we know that we can be sure to find a root $x_r$ of $g$ on the interval $[x_m,m]$.
+\end{align*} Here, we used the fundamental theorem of calculus and that the first order derivative of $f_{\tau}$ at $\hat{x}$ is $0$ as $\hat{x}$ is the minimizer of $f_{\tau}$. We observe that $g(\hat{x}) \leq 0$ and $g(m) \geq 0$. As $g$ is continuous, we know that we can be sure to find a root $x_r$ of $g$ on the interval $[\hat{x},m]$.
 
-We take the analogous approach to determine $x_l \in [0,x_m]$. Using \cref{eq:ud:probabilistic:left}, we obtain: \begin{align*}
-    && \frac{1}{2} \int_{x_l}^{x_m} \diff[2]{f_{\tau}}{y}(y) \,dy =&\ \beta \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy \\
-    \iff&& \left(\diff{f_{\tau}}{x}(x_m) - \diff{f_{\tau}}{x}(x_l)\right) =&\ 2 \beta \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy \\
+We take the analogous approach to determine $x_l \in [0,\hat{x}]$. Using \cref{eq:ud:probabilistic:left}, we obtain: \begin{align*}
+    && \frac{1}{2} \int_{x_l}^{\hat{x}} \diff[2]{f_{\tau}}{y}(y) \,dy =&\ \beta \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy \\
+    \iff&& \left(\diff{f_{\tau}}{x}(\hat{x}) - \diff{f_{\tau}}{x}(x_l)\right) =&\ 2 \beta \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy \\
     \iff&& h(x_l) := 2 \beta \int_{-\infty}^{x_l} p_{\tau-1}(y) \,dy - \diff{f_{\tau}}{x}(x_l) =&\ 0.
-\end{align*} Again, we observe that $h(0) \leq 0$, $h(x_m) \geq 0$, and $h$ is continuous, implying that we can be sure to find a root $x_l$ of $h$ on the interval $[0,x_m]$.
+\end{align*} Again, we observe that $h(0) \leq 0$, $h(\hat{x}) \geq 0$, and $h$ is continuous, implying that we can be sure to find a root $x_l$ of $h$ on the interval $[0,\hat{x}]$. \Cref{fig:probabilistic_algorithm} illustrates the choice of $x_l$ and $x_r$.
+
+\begin{figure}
+    \centering
+    \input{thesis/figures/probabilistic}
+    \caption{Visualization of the choice of $x_l$ and $x_r$ of the probabilistic algorithm.}
+    \label{fig:probabilistic_algorithm}
+\end{figure}
 
 \paragraph{Root Finding} The previous arguments show that a bracketed root finding method can be used to find $x_l$ and $x_r$. We use \emph{Brent's method}\index{Brent's method} for root finding. Brent's method combines the bisection method with higher-order methods to guarantee convergence to the root, yet at a higher rate than if only bisection were used~\cite{Press2007}. \citeauthor*{Press2007}~\cite{Press2007} ``recommend it as the method of choice for general one-dimensional
 root finding where a function’s values only (and not its derivative or functional form)
@@ -197,7 +194,7 @@ Let $B_{p_{\tau}}^I := B_{p_{\tau}} \cap I$. The integral of $p_{\tau}$ over $I 
     \caption{Probabilistic algorithm~\cite{Bansal2015}}\label{alg:ud:probabilistic}
     \SetKwInOut{Input}{Input}
     \Input{$\mathcal{I}_{\text{SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau})$}
-    $x_m \gets \argmin_{x \in \mathcal{X}} f_{\tau}(x)$\;
+    $\hat{x} \gets \argmin_{x \in \mathcal{X}} f_{\tau}(x)$\;
     find $x_r$ using the optimization described by \cref{eq:ud:probabilistic:right} subject to $x \in \mathcal{X}$\;
     find $x_l$ using the optimization described by \cref{eq:ud:probabilistic:left} subject to $x \in \mathcal{X}$\;
     set $p_{\tau}$ based on the update rule in \cref{eq:ud:probabilistic:update}\;
@@ -471,12 +468,12 @@ Using finite difference methods, $\nabla f_{\tau-1}(X_{\tau-1})$ can be computed
 
 \subsubsection{Online Mirror Descent}\label{section:online_algorithms:md:descent_methods:omd}
 
-Thus, concerning regret, where algorithms seek to minimize the hitting cost immediately, the smoothing property of SCO does not require the development of new algorithms. In contrast, competitive algorithms need to wait before moving to the minimizer of the hitting cost until the movement costs are amortized. In other words, in each step, a competitive algorithm has to decide how far to move into the direction of the minimizer to balance hitting cost and movement cost. Crucially, where to move depends on the geometry of the cost function. As is shown in \cref{fig:level_sets_of_the_hitting_costs}, rather than moving towards the minimizer directly, it is advantageous to move to a projection on some level set of the cost function. This approach minimizes the movement costs that are required to reach a point with the same hitting cost. This approach can balance hitting costs and movement costs and is discussed in \cref{section:online_algorithms:md:descent_methods:obd}, where we introduce the online balanced descent framework.
+Thus, concerning regret, where algorithms seek to minimize the hitting cost immediately, the smoothing property of SCO does not require the development of new algorithms. In contrast, competitive algorithms need to wait before moving to the minimizer of the hitting cost until the movement costs are amortized. In other words, in each step, a competitive algorithm has to decide how far to move into the direction of the minimizer to balance hitting cost and movement cost. Crucially, where to move depends on the geometry of the cost function. As is shown in \cref{fig:level_sets_of_the_hitting_costs}, rather than moving towards the minimizer directly, it is advantageous to move to a projection onto some sub-level set of the cost function. This approach minimizes the movement costs that are required to reach a point with the same hitting cost. This approach can balance hitting costs and movement costs and is discussed in \cref{section:online_algorithms:md:descent_methods:obd}, where we introduce the online balanced descent framework.
 
 \begin{figure}
     \centering
-    [TODO]
-    \caption{Level sets of the hitting costs}
+    \input{thesis/figures/level_sets}
+    \caption{Level sets of $f_{\tau}$ in two dimensions. The blue arrows show projections of $X_{\tau-1}$ onto some level set. The red line visualizes the projection of $X_{\tau-1}$ onto all level sets $\{x \in \mathbb{R}^2 \mid f_{\tau}(x) = l\}$ for $l \in [\hat{x}, f_{\tau}(X_{\tau-1})]$. The step in the direction of the minimizer of $f_{\tau}$ is shown in black. Note that it is not optimal to move directly in the direction of the minimizer as there likely exists a closer point on the same level set. Online balanced descent picks a point on the red line.}
     \label{fig:level_sets_of_the_hitting_costs}
 \end{figure}
 
@@ -488,14 +485,14 @@ The mirror descent framework is an extension of gradient descent, allowing to ad
 
 \begin{definition}\index{Bregman divergence}
 \cite{Goel2018} The Bregman divergence from a point $x$ to a point $y$ with respect to a strictly convex function $h$ is given as \begin{align*}
-    D_h(x,y) = h(x) - h(y) - \langle\nabla h(x), x - y\rangle.
+    D_h(x,y) = h(x) - h(y) - \langle\nabla h(y), x - y\rangle.
 \end{align*}
 \end{definition}
 
 \begin{figure}
     \centering
-    [TODO]
-    \caption{Bregman Divergence}
+    \input{thesis/figures/bregman_divergence}
+    \caption{Bregman Divergence $D_h(x,y)$ for a function $h : \mathbb{R} \to \mathbb{R}$ \cite{Goel2018}. The Bregman divergence measures how much a function differs at $x$ from its linear approximation at $y$.}
     \label{fig:bregman_divergence}
 \end{figure}
 
@@ -513,8 +510,8 @@ Instead of adding elements from the dual space to elements from the primal space
 
 \begin{figure}
     \centering
-    [TODO]
-    \caption{Mirror Descent}
+    \input{thesis/figures/mirror_descent}
+    \caption{Visualization of a step of Mirror Descent. The previous point $X_{\tau-1}$ is first mapped to the dual space, $\theta_{\tau-1}$. Then, a step is taken into the direction of the gradient, $\theta_{\tau}$, and the resulting point is mapped back to the primal space. Finally, the resulting point $X'_{\tau}$ is projected back onto the feasible region $K$, resulting in the next point $X_{\tau}$ \cite{Gupta2020}.}
     \label{fig:mirror_descent}
 \end{figure}
 
@@ -550,9 +547,18 @@ Next, we describe how the ideas from mirror descent are adapted for the smoothed
 The online balanced descent (OBD) algorithms were developed by \citeauthor*{Goel2018}~\cite{Goel2018} are a special case of online mirror descent (OMD) with lookahead $1$. In practice, to achieve the one-step lookahead, OBD moves to a point $X_{\tau}$ on a level set of $f_{\tau}(\cdot)$ such that the step is normal to the contour line of $f_{\tau-1}$. In contrast, OMD steps into a direction that is normal to the contour line of $f_{\tau-1}(X_{\tau-1})$. In other words, OMD takes a step with respect to its starting point on some level set, whereas OBD takes a step with respect to its destination on some level set. \Cref{fig:comparison_of_an_update_of_omd_and_obd} shows how these updates compare.
 
 \begin{figure}
+    \begin{subfigure}[b]{\textwidth}
     \centering
-    [TODO]
-    \caption{Comparison of an update of OMD and OBD}
+    \input{thesis/figures/level_sets_omd}
+    \caption{Update of OMD. The contour lines represent level sets of $f_{\tau-1}$.}
+    \end{subfigure}
+    \par\bigskip
+    \begin{subfigure}[b]{\textwidth}
+    \centering
+    \input{thesis/figures/level_sets_obd}
+    \caption{Update of OBD. The contour lines represent level sets of $f_{\tau}$.}
+    \end{subfigure}
+    \caption{Comparison of an update of OMD and OBD in two dimensions assuming the distance-generating function $h(x) = \frac{1}{2} \norm{x}_2^2$. OMD (red) takes a step in a direction normal to the contour line of $f_{\tau-1}$ at $X_{\tau-1}$. OBD (blue) takes a step in a direction normal to the contour line of $f_{\tau}$ at $X_{\tau}$ \cite{Goel2018}. The step in the direction of the minimizer of $f_{\tau}$ is shown in black. Note that it is not optimal to move in the direction of the minimizer to a point on some level set as there likely exists a closer point on the same level set.}
     \label{fig:comparison_of_an_update_of_omd_and_obd}
 \end{figure}
 
@@ -560,7 +566,7 @@ The algorithmic framework for OBD can roughly be divided into two parts. First, 
 
 \subsubsection{Meta Algorithm}
 
-Similar to OMD, the meta algorithm of OBD chooses the next point $X_{\tau}$ in the dual space. However, whereas OMD takes an arbitrary step into the direction of the gradient, OBD takes the shortest step into some sublevel set $K_l = \{x \mid f_{\tau}(x) \leq l\}$ of the revealed hitting cost $f_{\tau}$. In other words, we seek to find the Bregman projection of $X_{\tau-1}$ onto the sublevel set $K_l$. The first-order condition of the corresponding optimization in the dual space implies that \begin{align}\label{eq:pbd:first_order_condition}
+Similar to OMD, the meta algorithm of OBD chooses the next point $X_{\tau}$ in the dual space. However, whereas OMD takes an arbitrary step into the direction of the gradient, OBD takes the shortest step into some sub-level set $K_l = \{x \in \mathcal{X} \mid f_{\tau}(x) \leq l\}$ of the revealed hitting cost $f_{\tau}$. In other words, we seek to find the Bregman projection of $X_{\tau-1}$ onto the sub-level set $K_l$. The first-order condition of the corresponding optimization in the dual space implies that \begin{align}\label{eq:pbd:first_order_condition}
     \nabla h(X_{\tau}) = \nabla h(X_{\tau-1}) - \eta_{\tau} \nabla f_{\tau}(X_{\tau})
 \end{align} must be satisfied by $X_{\tau}$ where $\eta_{\tau}$ is the optimal slack of the inequality constraint $f_{\tau}(x) \leq l$~\cite{Goel2018}. Note that this corresponds to a variant of OMD with lookahead $1$.
 
@@ -640,7 +646,7 @@ An evaluation of the dual norm can be computed $\epsilon$-optimally in $\mathcal
 
 Later, \citeauthor*{Goel2019}~\cite{Goel2019} proposed two additional algorithms using the OBD framework, \emph{greedy online balanced descent} (G-OBD) and \emph{regularized online balanced descent} (R-OBD). Both algorithms yield strong guarantees for the competitive ratio in the setting of squared $\ell_2$ norm movement costs and $\alpha$-strongly convex hitting costs where the optimal competitive ratio is $\mathcal{O}(1 / \sqrt{\alpha})$ as $\alpha$ approaches zero. G-OBD achieves this competitive ratio for quasiconvex\footnote{A function is quasiconvex iff it has a unique global minimum.} hitting costs that are $\alpha$-strongly convex around their minimizer and squared $\ell_2$ norm movement costs. R-OBD achieves this competitive ratio for $\alpha$-strongly convex hitting costs and arbitrary Bregman divergences as movement costs.
 
-Both algorithms take an additional step of size $\mathcal{\sqrt{\alpha}}$ towards the minimizer of the hitting cost. G-OBD works by first taking a regular P-OBD step to some level set of the hitting cost. Then, it takes an additional step towards the minimizer of the hitting cost with a step size based on the convexity parameter $\alpha$. In contrast, R-OBD picks the next point by minimizing a weighted sum of hitting and movement costs. It uses an additional regularization term that encourages the algorithm to pick a point closer to the minimizer of the hitting cost~\cite{Goel2019}. We do not discuss G-OBD and R-OBD in more detail, as their theoretical guarantees do not cover the application of right-sizing data centers, but we provide implementations of them.
+Both algorithms take an additional step of size $\mathcal{O}(\sqrt{\alpha})$ towards the minimizer of the hitting cost. G-OBD works by first taking a regular P-OBD step to some level set of the hitting cost. Then, it takes an additional step towards the minimizer of the hitting cost with a step size based on the convexity parameter $\alpha$. In contrast, R-OBD picks the next point by minimizing a weighted sum of hitting and movement costs. It uses an additional regularization term that encourages the algorithm to pick a point closer to the minimizer of the hitting cost~\cite{Goel2019}. We do not discuss G-OBD and R-OBD in more detail, as their theoretical guarantees do not cover the application of right-sizing data centers, but we provide implementations of them.
 
 \section{Predicting}\label{section:online_algorithms:md:predictions}
 

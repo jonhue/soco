@@ -3,7 +3,7 @@
 
 Here, we give an overview of the algorithms that were discussed in this chapter. The first table includes online algorithms for the one dimensional setting. The latter table includes online algorithms for the general setting.
 
-\begin{table}[!h]
+\begin{table}[!ht]
     \centering
     \begin{tabularx}{\textheight}{l|l|X|l}
         name & problem & performance & time complexity \\\hline
@@ -15,10 +15,10 @@ Here, we give an overview of the algorithms that were discussed in this chapter.
         \hyperref[alg:ud:randomized]{Rand-Probabilistic} & \hyperref[problem:simplified_smoothed_convex_optimization]{Int-SSCO} & 2-competitive & $\mathcal{O}(\tau^2 m C I_{\epsilon} R_{\epsilon} O_{\epsilon}^1)$ \\
         \hyperref[alg:ud:randomized]{Rand-RBG} & \hyperref[problem:smoothed_convex_optimization]{Int-SCO} & 2-competitive & $\mathcal{O}(C (O_{\epsilon}^1)^{\tau+1})$ \\
     \end{tabularx}
-    \caption{Taxonomy of online algorithms.}
+    \caption{Taxonomy of uni-dimensional online algorithms.}
 \end{table}
 
-\begin{table}[!h]
+\begin{table}[!ht]
     \centering
     \begin{tabularx}{\textheight}{l|l|X|l}
         name & problem & performance & time complexity \\\hline
@@ -29,9 +29,9 @@ Here, we give an overview of the algorithms that were discussed in this chapter.
         \hyperref[alg:md:obd]{OBD} & \hyperref[problem:smoothed_convex_optimization]{SCO} & - & $\mathcal{O}(O_{\epsilon}^d)$ \\
         \hyperref[alg:md:pobd]{P-OBD} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $3 + \mathcal{O}(1 / \alpha)$-competitive & $\mathcal{O}(C O_{\epsilon}^d + O_{\epsilon}^d R_{\epsilon})$ \\
         \hyperref[alg:md:dobd]{D-OBD} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $\mathcal{O}(\sqrt{T})$-regret & $\mathcal{O}(C O_{\epsilon}^d + (O_{\epsilon}^d)^2 R_{\epsilon})$ \\
-        \hyperref[alg:predictions:rhc]{\nameref{alg:predictions:rhc}} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $(1 + \mathcal{O}(1/w))$-competitive in one dimension; otherwise $(1 + \max_{k \in [d]} \beta_k / e_k(0))$-competitive & $\mathcal{O}(C O_{\epsilon}^{dw})$ \\
-        \hyperref[alg:predictions:afhc]{\nameref{alg:predictions:afhc}} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $(1 + \max_{k \in [d]} \frac{\beta_k}{(w+1) e_k(0)})$-competitive, i.e., $(1 + \mathcal{O}(1/w))$-competitive & $\mathcal{O}(w C O_{\epsilon}^{dw})$ \\
+        \hyperref[alg:predictions:rhc]{RHC} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $(1 + \mathcal{O}(1/w))$-competitive in one dimension; otherwise $(1 + \max_{k \in [d]} \beta_k / e_k(0))$-competitive & $\mathcal{O}(C O_{\epsilon}^{dw})$ \\
+        \hyperref[alg:predictions:afhc]{AFHC} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $(1 + \max_{k \in [d]} \frac{\beta_k}{(w+1) e_k(0)})$-competitive, i.e., $(1 + \mathcal{O}(1/w))$-competitive & $\mathcal{O}(w C O_{\epsilon}^{dw})$ \\
     \end{tabularx}
-    \caption{Taxonomy of online algorithms.}
+    \caption{Taxonomy of multi-dimensional online algorithms.}
 \end{table}
 \end{landscape}

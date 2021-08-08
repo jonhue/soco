@@ -1,0 +1,85 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+legend pos=north east,
+tick align=outside,
+tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xlabel={time (hours)},
+xmin=1, xmax=23,
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+% ylabel={number of servers},
+ymin=0, ymax=800,
+% ytick style={color=black}
+]
+\addplot [semithick, black, const plot mark left]
+table {%
+1 334
+2 506
+3 506
+4 484
+5 484
+6 422
+7 422
+8 422
+9 422
+10 422
+11 328
+12 328
+13 328
+14 328
+15 328
+16 328
+17 328
+18 370
+19 352
+20 352
+21 352
+22 352
+23 352
+};
+\addlegendentry{$OPT$}
+
+\draw[dashed, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},424) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},424);
+\addlegendimage{dashed, color=black}
+\addlegendentry{$OPT_s$}
+\end{axis}
+
+\begin{axis}[
+axis y line*=right,
+axis x line=none,
+xmin=1, xmax=23,
+ymin=0, ymax=750,
+% ylabel=load
+]
+\addplot [semithick, red, const plot mark left]
+table {%
+1 246
+2 441
+3 552
+4 235
+5 437
+6 241
+7 216
+8 246
+9 378
+10 425
+11 202
+12 203
+13 178
+14 217
+15 258
+16 252
+17 198
+18 418
+19 210
+20 212
+21 283
+22 241
+23 349
+};
+\end{axis}
+
+\end{tikzpicture}

@@ -20,12 +20,12 @@
 \usepackage{listings}
 \usepackage{lstautogobble}
 \usepackage{tikz}
+\usetikzlibrary{patterns}
 \usepackage{pgfplots}
 \usepackage{pgfplotstable}
 \usepackage{booktabs}
 \usepackage[final]{microtype}
 \usepackage{caption}
-\usepackage[hidelinks]{hyperref} % hidelinks removes colored boxes around references and links
 \usepackage{amsmath}
 \usepackage{mathtools}
 \usepackage{amsthm,thmtools}
@@ -38,31 +38,17 @@
 \usepackage{subcaption}
 \usepackage{ltablex}
 \usepackage{pdflscape}
+\usepackage[hidelinks]{hyperref} % hidelinks removes colored boxes around references and links
 \usepackage[nameinlink]{cleveref}
 
-% reference styling
-% \addto\extrasamerican{%
-%   \renewcommand{\chapterautorefname}{Chapter}%
-%   \renewcommand{\sectionautorefname}{Section}%
-%   \renewcommand{\subsectionautorefname}{Subsection}%
-%   \renewcommand{\subsubsectionautorefname}{Subsubection}%
-%   \renewcommand{\algorithmautorefname}{Algorithm}%
-%   \renewcommand{\equationautorefname}{equation}%
-% }
-% \makeatletter
-%   \AtBeginDocument{%
-%     \let\plain@equationautorefname\equationautorefname
-%     \def\equationautorefname{\plain@equationautorefname\@autoref@insert@tagform}%
-%     \def\@autoref@insert@tagform~#1\null{~(#1\null)}%
-%   }
-% \makeatother
 \crefname{chapter}{Chapter}{Chapters}
 \crefname{section}{Section}{Sections}
 \crefname{subsection}{Subsection}{Subsections}
 \crefname{subsubsection}{Subsubsection}{Subsubsections}
 \crefname{algorithm}{Algorithm}{Algorithms}
+\crefname{figure}{Figure}{Figures}
+\crefname{table}{Table}{Tables}
 \crefname{equation}{equation}{equations}
-\let\autoref\cref
 
 \keepXColumns
 
@@ -184,3 +170,6 @@
   \original@algocf@latexcaption{#1}[{#2}]%
 }
 \makeatother
+
+\addto\captionsamerican{%
+  \renewcommand\listfigurename{L\lowercase{ist of} F\lowercase{igures}}}

@@ -32,6 +32,7 @@ def evaluate(
     runtimes = []
     initial_xs = integral[0]
     xs = initial_xs.copy()
+    ms = []
     for i in tqdm(range(len(online_inp))):
         fractional, integral, m, runtime = alg.next(ADDR, online_inp[i])
         cost = fractional[1][0]
@@ -40,6 +41,7 @@ def evaluate(
         revenue_loss = integral[1][1].revenue_loss
         assert int_cost >= energy_cost + revenue_loss
         xs.append(integral[0])
+        ms.append(m)
         runtimes.append(runtime)
     stop(ADDR)
 
@@ -58,6 +60,7 @@ def evaluate(
         switching_cost,
         initial_runtime,
         runtimes,
+        ms,
     )
 
 

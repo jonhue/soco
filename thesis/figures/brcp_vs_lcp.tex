@@ -1,0 +1,129 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+legend pos=south east,
+tick align=outside,
+tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xlabel={time (hours)},
+xmin=1, xmax=24,
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+ylabel={number of servers},
+ymin=0, ymax=750,
+% ytick style={color=black}
+]
+\addplot [semithick, black, const plot mark left]
+table {%
+1 115
+2 242
+3 272
+4 283
+5 353
+6 353
+7 585
+8 585
+9 629
+10 629
+11 629
+12 629
+13 629
+14 629
+15 629
+16 629
+17 629
+18 629
+19 629
+20 629
+21 629
+22 629
+23 629
+24 629
+};
+\addlegendentry{$OPT$}
+\addplot [ultra thick, black, const plot mark left]
+table {%
+1 75
+2 158
+3 177
+4 242
+5 320
+6 320
+7 491
+8 491
+9 491
+10 491
+11 491
+12 491
+13 491
+14 491
+15 491
+16 491
+17 491
+18 491
+19 586
+20 586
+21 586
+22 586
+23 629
+24 629
+};
+\addlegendentry{$LCP$}
+\addplot [dashed, black, const plot mark left]
+table {%
+1 75
+2 158
+3 177
+4 242
+5 320
+6 283
+7 491
+8 381
+9 304
+10 301
+11 160
+12 90
+13 163
+14 464
+15 215
+16 210
+17 207
+18 411
+19 586
+20 576
+21 410
+22 180
+23 629
+24 629
+};
+\addplot [dashed, black, const plot mark left]
+table {%
+1 115
+2 242
+3 272
+4 283
+5 491
+6 353
+7 629
+8 585
+9 629
+10 629
+11 629
+12 629
+13 629
+14 629
+15 629
+16 629
+17 629
+18 629
+19 629
+20 629
+21 629
+22 629
+23 734
+24 734
+};
+\end{axis}
+
+\end{tikzpicture}

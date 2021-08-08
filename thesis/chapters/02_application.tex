@@ -166,7 +166,7 @@ The switching cost can be understood as the cost associated with transitioning a
 
 When only (1) and (2) are considered, $\beta_k$ is on the order of migrating network state~\cite{Chen2008}, storage state~\cite{Thereska2009}, or a large virtual machine~\cite{Clark2005} which roughly translates to the cost of operating a server of type $k$ for a few seconds to several minutes~\cite{Lin2011}. Including (3) increases $\beta_k$ to the order of operating a server of type $k$ for an hour~\cite{Bodik2008}. Our model of risk associated with toggling a server is the vaguest. \citeauthor*{Lin2011}~\cite{Lin2011} suggest that if this risk is included, $\beta_k$ is on the order of operating a server of type $k$ for several hours.
 
-We call $\xi_k := \beta_k / e_k(0)$ the \emph{normalized switching cost}\index{normalized switching cost} where $e_k(0) = c_k \Phi_k^{\text{min}}$ is the average energy cost of an idling server of type $k$ in a single time slot. Hence, $\xi_k$ approximately measures the minimum duration a server must be asleep to outweigh the switching cost. Competitive algorithms typically wait until this cost is amortized before taking action. Therefore, the normalized switching cost can be used to review how a chosen switching cost relates to the remainder of the model.
+We call $\xi_k := \beta_k / e_k(0)$ the \emph{normalized switching cost}\index{normalized switching cost} where $e_k(0) = c_k \delta \Phi_k^{\text{min}}$ is the average energy cost of an idling server of type $k$ in a single time slot. Hence, $\xi_k$ approximately measures the minimum duration a server must be asleep to outweigh the switching cost. Competitive algorithms typically wait until this cost is amortized before taking action. Therefore, the normalized switching cost can be used to review how a chosen switching cost relates to the remainder of the model.
 
 \section{Dynamic Routing}\label{section:application:dynamic_routing}
 
@@ -180,29 +180,35 @@ In some scenarios, job types may incur not only different costs (as covered in \
 
 If this were not the case, we could not guarantee that the jobs of this type finish in time on some server before servers are assigned to a new set of jobs at the beginning of the next time slot. This model can be extended to support jobs that reach across multiple time slots by keeping track of when jobs will be finished and extending each newly arriving load profile with all unfinished jobs. It can then be enforced that those jobs must be processed on the same server type throughout their lifetime by setting the hitting cost appropriately.
 
-\paragraph{Sub-Time Jobs} To translate the problem that considers dynamic job durations to the problem discussed in \cref{section:application:dispatching:multiple_load_types}, we interpret the length of time during which a server operates at full utilization to process its assigned jobs as the (fractional) number of \emph{sub-time jobs}\index{sub-time jobs}. During time slot $t$ for a server of type $k$ with $x$ active servers, the number of sub time jobs that are processed on a single server of type $k$ is given as $\sum_{i=1}^e l_{t,k,i} \eta_{k,i}$. Note that this is similar to our previous definition of $l_{t,k}$ but is scaled with the time jobs take to be processed. \Cref{fig:dynamic_job_duration} shows how an assignment of sub-time jobs to a server relates to an assignment of jobs.
+\paragraph{Sub-Time Jobs} To translate the problem that considers dynamic job durations to the problem discussed in \cref{section:application:dispatching:multiple_load_types}, we interpret the length of time during which a server operates at full utilization to process its assigned jobs as the (fractional) number of \emph{sub-time jobs}\index{sub-time jobs}. During time slot $t$ for a server type $k$ with $x$ active servers, the number of sub-time jobs that are processed on a single server of type $k$ is given as $\sum_{i=1}^e l_{t,k,i} \eta_{k,i}$. Note that this is similar to our previous definition of $l_{t,k}$ but is scaled with the time jobs take to be processed. \Cref{fig:dynamic_job_duration} shows how an assignment of sub-time jobs to a server relates to an assignment of jobs.
 
 \begin{figure}
     \centering
-    [TODO]
-
-    The figure shows that the number of sub-time jobs is proportional to the processing time of a job. As servers are assumed to be dynamically speed-scalable, the utilization of a server during some time slot is proportional to the number of sub-time jobs it is assigned to.
-    \caption{Relationship of Jobs and Sub Time Jobs}
+    \input{thesis/figures/sub_time_jobs}
+    \caption{Relationship of jobs and sub-time jobs. Shown is an assignment of four jobs with equal runtime to a server with $l_{\text{max}} = 5$. For some fixed $\delta$, the jobs are translated to sub-time jobs by setting $\eta = \delta / l_{\text{max}}$. Jobs are visualized by the upper bar, their corresponding sub-time jobs are displayed by the lower bar. The figure shows that the number of sub-time jobs is proportional to the processing time of a job. As servers are assumed to be dynamically speed-scalable, the utilization of a server during some time slot is proportional to the number of sub-time jobs it is assigned to.}
     \label{fig:dynamic_job_duration}
 \end{figure}
 
-\paragraph{Utilization} The utilization of a server of type $k$ given an assignment of $l$ sub time jobs is given as $l / \delta$. We set $g_{t,k}(l) = \infty$ if $l > \delta$. We also add the processing time to the perceived delay until a job is finished by increasing $\delta_{t,k,i}$ by $\eta_{k,i}$.
+\paragraph{Utilization} The utilization of a server of type $k$ given an assignment of $l$ sub-time jobs is given as $l / \delta$. We set $g_{t,k}(l) = \infty$ if $l > \delta$. We also add the processing time to the perceived delay until a job is finished by increasing $\delta_{t,k,i}$ by $\eta_{k,i}$.
 
-\paragraph{Delay} To model the average delay, we use the average job duration to determine the service rate. Formally, we set $\mu$ from \cref{eq:avg_delay} to $\mu = 1 / E Y$ where the expected duration of a job on a server of type $k$ during time slot $t$ is $E Y = \sum_{i=1}^e l_{t,k,i} \eta_{k,i} / \sum_{i=1}^e l_{t,k,i}$. Note that we normalized the service rate to unit time. The arrival rate is therefore given as the number of jobs handled on a server of type $k$ divided by the length of a time slot, i.e. $\lambda = \sum_{i=1}^e l_{t,k,i} / \delta X_{t,k}$. Overall, we obtain the average delay of jobs on a server of type $k$ during time slot $t$ across all job types as \begin{align*}
-    d_{t,k} := \frac{1}{\frac{1}{E Y} - \lambda} = \frac{1}{\frac{\sum_{i=1}^e l_{t,k,i}}{\sum_{i=1}^e l_{t,k,i} \eta_{k,i}} - \frac{\sum_{i=1}^e l_{t,k,i}}{\delta X_{t,k}}} = \frac{1}{\sum_{i=1}^e l_{t,k,i} \cdot \left(\frac{1}{\sum_{i=1}^e l_{t,k,i} \eta_{k,i}} - \frac{1}{\delta X_{t,k}}\right)}.
-\end{align*} Note that for $\eta_{k,i} \to \delta$ for some server type $k$ and job type $i$ the average delay will go to infinity as the build-up of long job queues becomes more likely.
+\paragraph{Delay} To model the average delay, we use the average job duration to determine the service rate. Formally, we set $\mu$ from \cref{eq:avg_delay} to $\mu = 1 / E Y$ where the expected duration of a job on a server of type $k$ during time slot $t$ is \begin{align*}
+    E Y = \begin{cases}
+        \sum_{i=1}^e l_{t,k,i} \eta_{k,i} / \sum_{i=1}^e l_{t,k,i} & \sum_{i=1}^e l_{t,k,i} > 0 \\
+        0 & \text{otherwise}.
+    \end{cases}
+\end{align*} Note that we normalized the service rate to unit time. The arrival rate is therefore given as the number of jobs handled on a single server of type $k$ divided by the length of a time slot, i.e. $\lambda = \frac{1}{\delta} \sum_{i=1}^e l_{t,k,i} / X_{t,k}$. When servers of type $k$ receive no load, i.e., $\sum_{i=1}^e l_{t,k,i} = 0$, we set their associated delay to zero. For $\sum_{i=1}^e l_{t,k,i} > 0$ and using our original model from \cref{eq:delay}, we obtain the average delay across all jobs processed on a server of type $k$ during time slot $t$ as \begin{align*}
+    d_{t,k} := \begin{cases}
+        1 / \left(\frac{1}{E Y} - \lambda\right) & \frac{1}{E Y} > \lambda \\
+        \infty & \text{otherwise}.
+    \end{cases}
+\end{align*} Here, we use our assumption that any job can be processed within a single time slot on servers of some type. Note that if $\eta_{k,i} \to \delta$ for some server type $k$ and job type $i$ the average delay will go to infinity as the build-up of long job queues becomes more likely.
 
-\paragraph{Prohibitions} If we want to prohibit altogether that jobs of type $i$ are processed on servers of type $k$, then it suffices to set $\delta_{t,k,i} = \infty$ as the revenue loss $r_{t,i}$ is assumed to be convex.
+\paragraph{Prohibitions} If we want to prohibit altogether that jobs of type $i$ are processed on servers of type $k$, it suffices to set $\delta_{t,k,i} = \infty$ as the revenue loss $r_{t,i}$ is assumed to be convex.
 
 \section{Energy Quotas}\label{section:application:energy_quotas}
 
 We motivated energy quotas in \cref{section:application:operating_cost:energy} and are now ready to present a model that allows for the required flexibility when modeling energy cost. To be as general as possible, we continue to assume a network of $\iota$ data centers with $d$ server types, resulting in a total of $\iota \cdot d$ dimensions. We also continue to examine $\zeta \cdot e$ load types where $\zeta$ is the number of geographically centered job sources and $e$ is the number of job types. We now extend our model from \cref{eq:multiple_load_types_load_balancing} to \begin{align*}
-    f_t(x) := \min_{z \in \mathcal{Z}_t} \sum_{j=1}^{\iota} e_{t,j}(x_{(j,\cdot)},z_{(j,\cdot)}) + \sum_{k=1}^{d} h_{t,(j,k)}(x_{(j,k)},z_{(j,k)})
+    f_t(x) := \min_{z \in \mathcal{Z}_t} \sum_{j=1}^{\iota} \left(e_{t,j}(x,z) + \sum_{k=1}^{d} h_{t,(j,k)}(x_{(j,k)},z_{(j,k)})\right)
 \end{align*} where $e_{t,j}(x,z)$ is the total energy cost of data center $j$ during time slot $t$. $h_{t,(j,k)}(x,z)$ reduces to \begin{align*}
     \sum_{s=1}^{\zeta} \sum_{i=1}^e l_{t,(j,k),(s,i)} q_{t,(j,k),(s,i)}\left(\frac{l_{t,(j,k)}}{x}\right)
 \end{align*} for $x > 0$ where $l_{t,(j,k),(s,i)} = \lambda_{t,(s,i)} z_{(s,i)}$ and $l_{t,(j,k)} = \sum_{s=1}^{\zeta} \sum_{i=1}^e l_{t,(j,k),(s,i)} \eta_{(j,k),(s,i)}$. The other cases remain as described in \cref{eq:multiple_load_types_load_balancing_unit}. Note that these definitions of $f_t$ and $h_{t,(j,k)}$ are simply adaptations of our previous definitions from \cref{section:application:dispatching} and, in particular, are convex, increasing, and non-negative.

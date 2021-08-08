@@ -1,0 +1,31 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+legend pos=south east,
+xlabel={$c(OPT_s) / c(OPT)$},
+xmin=0.9, xmax=3.6,
+ymin=0.9, ymax=2.4,
+ylabel=normalized cost
+]
+\addplot[mark=x, color=blue]
+table {%
+1.0479312893570394 1.2671798400328924
+1.1540470009508415 1.2642292659819283
+1.1862049328218298 1.2169836478960114
+2.4294509720294735 1.793602785086651
+3.463604774571692 2.25932497906579
+};
+\addlegendentry{model 1}
+\addplot[mark=x, color=red]
+table {%
+1 1.0425927616781598
+1.0433664197908732 1.2060973554528764
+1.071842679781245 1.157784554010483
+1.9200838991565596 1.4791668784607714
+2.0882736330081575 1.4901258623422022
+};
+\addlegendentry{model 2}
+\end{axis}
+
+\end{tikzpicture}

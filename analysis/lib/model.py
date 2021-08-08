@@ -200,14 +200,17 @@ def build_model(
         return linear_energy_cost(
             delta,
             [server_type],
-            {DEFAULT_KEY: 600},
+            {DEFAULT_KEY: 1000 if trace == FACEBOOK_2010 else 600},
             [job_type],
             energy_cost,
             {DEFAULT_KEY: (energy_model["phi_min"], energy_model["phi_max"])},
             {DEFAULT_KEY: (revenue_loss, 2.5 * delta / 2)},
             {
                 DEFAULT_KEY: SwitchingCost.from_normalized(
-                    normalized_switching_cost, energy_cost, energy_model["phi_min"]
+                    delta,
+                    normalized_switching_cost,
+                    energy_cost,
+                    energy_model["phi_min"],
                 )
             },
         )
@@ -224,7 +227,10 @@ def build_model(
             {DEFAULT_KEY: (revenue_loss, 2.5 * delta / 2)},
             {
                 DEFAULT_KEY: SwitchingCost.from_normalized(
-                    normalized_switching_cost, energy_cost, energy_model["phi_min"]
+                    delta,
+                    normalized_switching_cost,
+                    energy_cost,
+                    energy_model["phi_min"],
                 )
             },
         )
@@ -235,7 +241,7 @@ def build_model(
         gpu8 = ServerType(GPU8, 1)
         job_type = JobType(
             DEFAULT_KEY,
-            lambda server_type: delta / 2 if server_type == GPU8 else delta / (2 * 4),
+            lambda server_type: delta / 2 if server_type == GPU2 else delta / (2 * 4),
         )
         return linear_energy_cost(
             delta,
@@ -246,15 +252,24 @@ def build_model(
             {
                 GPU2: (energy_model["phi_min"], energy_model["phi_max"]),
                 GPU8: (
-                    3.75 * energy_model["phi_min"],
-                    3.75 * energy_model["phi_max"],
+                    4 * energy_model["phi_min"],
+                    4 * energy_model["phi_max"],
                 ),
             },
             {DEFAULT_KEY: (revenue_loss, 2.5 * delta / 2)},
             {
-                DEFAULT_KEY: SwitchingCost.from_normalized(
-                    normalized_switching_cost, energy_cost, energy_model["phi_min"]
-                )
+                GPU2: SwitchingCost.from_normalized(
+                    delta,
+                    normalized_switching_cost,
+                    energy_cost,
+                    energy_model["phi_min"],
+                ),
+                GPU8: SwitchingCost.from_normalized(
+                    delta,
+                    10 * normalized_switching_cost,
+                    energy_cost,
+                    energy_model["phi_min"],
+                ),
             },
         )
     if trace == ALIBABA:
@@ -286,7 +301,10 @@ def build_model(
             },
             {
                 DEFAULT_KEY: SwitchingCost.from_normalized(
-                    normalized_switching_cost, energy_cost, energy_model["phi_min"]
+                    delta,
+                    normalized_switching_cost,
+                    energy_cost,
+                    energy_model["phi_min"],
                 )
             },
         )

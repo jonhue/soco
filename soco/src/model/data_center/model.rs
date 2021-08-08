@@ -115,7 +115,7 @@ impl JobType {
             processing_time_on: Arc::new(move |server_type| {
                 Python::with_gil(|py| {
                     processing_time_on
-                        .call1(py, (server_type.clone(),))
+                        .call1(py, (server_type.key.clone(),))
                         .expect("job type `processing_time_on` method invalid")
                         .extract(py)
                         .expect("job type `processing_time_on` method invalid")
@@ -157,7 +157,7 @@ impl Source {
             routing_delay_to: Arc::new(move |t, location| {
                 Python::with_gil(|py| {
                     routing_delay_to
-                        .call1(py, (t, location.clone()))
+                        .call1(py, (t, location.key.clone()))
                         .expect("source `routing_delay_to` method invalid")
                         .extract(py)
                         .expect("source `routing_delay_to` method invalid")
