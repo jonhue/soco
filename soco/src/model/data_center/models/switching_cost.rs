@@ -143,7 +143,9 @@ impl SwitchingCostModel {
         server_types
             .iter()
             .map(|server_type| {
-                self.model(server_type).normalized_switching_cost(delta).raw()
+                self.model(server_type)
+                    .normalized_switching_cost(delta)
+                    .raw()
             })
             .collect()
     }
