@@ -1,6 +1,8 @@
 use crate::algorithms::online::{FractionalStep, OnlineAlgorithm, Step};
 use crate::config::Config;
-use crate::distance::{DistanceGeneratingFn, dual_norm, euclidean, negative_entropy, norm_squared};
+use crate::distance::{
+    dual_norm, euclidean, negative_entropy, norm_squared, DistanceGeneratingFn,
+};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::roots::find_root;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
@@ -85,9 +87,10 @@ where
                 - Config::new(prev_x.to_vec().central_diff(&h_)),
         )
         .raw();
-        let hitting_cost =
-        dual_norm(o.p.switching_cost.clone())(Config::new(x.to_vec().central_diff(&f)))
-                .raw();
+        let hitting_cost = dual_norm(o.p.switching_cost.clone())(Config::new(
+            x.to_vec().central_diff(&f),
+        ))
+        .raw();
         distance - eta * hitting_cost
     })
     .raw();

@@ -1,19 +1,46 @@
-use crate::{algorithms::{offline::{OfflineOptions, graph_search::{Cache, CachedPath}, multi_dimensional::{Vertice, approx_graph_search::{
+use crate::{
+    algorithms::offline::{
+        graph_search::{Cache, CachedPath},
+        multi_dimensional::{
+            approx_graph_search::{
                 approx_graph_search, Options as ApproxGraphSearchOptions,
-            }, convex_optimization::co, optimal_graph_search::{
+            },
+            convex_optimization::co,
+            optimal_graph_search::{
                 optimal_graph_search, Options as OptimalGraphSearchOptions,
-            }, static_fractional::static_fractional, static_integral::static_integral}, uni_dimensional::{
+            },
+            static_fractional::static_fractional,
+            static_integral::static_integral,
+            Vertice,
+        },
+        uni_dimensional::{
             capacity_provisioning::brcp,
             optimal_graph_search::{
                 optimal_graph_search as optimal_graph_search_1d,
                 Options as OptimalGraphSearch1dOptions,
             },
-        }}}, bindings::DataCenterCost, cost::Cost, model::{ data_center::{DataCenterModelOutputFailure, model::{DataCenterModel, DataCenterOfflineInput}}}, problem::{IntegralSmoothedBalancedLoadOptimization, IntegralSmoothedLoadOptimization}, result::Result, streaming::offline};
+        },
+        OfflineOptions,
+    },
+    bindings::DataCenterCost,
+    cost::Cost,
+    model::data_center::{
+        model::{DataCenterModel, DataCenterOfflineInput},
+        DataCenterModelOutputFailure,
+    },
+    problem::{
+        IntegralSmoothedBalancedLoadOptimization,
+        IntegralSmoothedLoadOptimization,
+    },
+    result::Result,
+    streaming::offline,
+};
 use log::info;
 use pyo3::prelude::*;
 
 type Response<T> = (Vec<Vec<T>>, DataCenterCost, u128);
-type SLOResponse<T> = (Vec<Vec<T>>, Cost<(), DataCenterModelOutputFailure>, u128);
+type SLOResponse<T> =
+    (Vec<Vec<T>>, Cost<(), DataCenterModelOutputFailure>, u128);
 
 /// Backward-Recurrent Capacity Provisioning
 #[pyfunction]
@@ -294,8 +321,7 @@ fn optimal_graph_search_slo(
     p: IntegralSmoothedLoadOptimization,
     options: OptimalGraphSearchOptions,
     offline_options: OfflineOptions,
-) -> Result<CachedPath<Cache<Vertice>>>
-{
+) -> Result<CachedPath<Cache<Vertice>>> {
     optimal_graph_search_sblo(p.into_sblo(), options, offline_options)
 }
 
@@ -303,8 +329,7 @@ fn approx_graph_search_slo(
     p: IntegralSmoothedLoadOptimization,
     options: ApproxGraphSearchOptions,
     offline_options: OfflineOptions,
-) -> Result<CachedPath<Cache<Vertice>>>
-{
+) -> Result<CachedPath<Cache<Vertice>>> {
     approx_graph_search_sblo(p.into_sblo(), options, offline_options)
 }
 
@@ -312,8 +337,7 @@ fn optimal_graph_search_sblo(
     p: IntegralSmoothedBalancedLoadOptimization,
     options: OptimalGraphSearchOptions,
     offline_options: OfflineOptions,
-) -> Result<CachedPath<Cache<Vertice>>>
-{
+) -> Result<CachedPath<Cache<Vertice>>> {
     optimal_graph_search(p.into_ssco(), options, offline_options)
 }
 
@@ -321,7 +345,6 @@ fn approx_graph_search_sblo(
     p: IntegralSmoothedBalancedLoadOptimization,
     options: ApproxGraphSearchOptions,
     offline_options: OfflineOptions,
-) -> Result<CachedPath<Cache<Vertice>>>
-{
+) -> Result<CachedPath<Cache<Vertice>>> {
     approx_graph_search(p.into_ssco(), options, offline_options)
 }

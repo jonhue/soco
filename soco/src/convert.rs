@@ -2,11 +2,11 @@
 
 use crate::config::{Config, FractionalConfig, IntegralConfig};
 use crate::cost::{Cost, CostFn, FailableCost, SingleCostFn};
+use crate::distance::manhattan_scaled;
 use crate::model::data_center::{
     DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
 };
 use crate::model::{ModelOutput, ModelOutputFailure, ModelOutputSuccess};
-use crate::distance::manhattan_scaled;
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization,
     IntegralSimplifiedSmoothedConvexOptimization, Online, Problem,

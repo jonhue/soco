@@ -63,10 +63,7 @@ where
 /// Mahalanobis distance square. This norm is `1`-strongly convex and `1`-Lipschitz smooth.
 ///
 /// For `Q` positive semi-definite.
-pub fn mahalanobis<'a, T>(
-    q: &DMatrix<T>,
-    mean: Config<T>,
-) -> Result<NormFn<T>>
+pub fn mahalanobis<'a, T>(q: &DMatrix<T>, mean: Config<T>) -> Result<NormFn<T>>
 where
     T: RealField + Value<'a>,
 {
@@ -102,16 +99,19 @@ pub fn dual_norm<'a>(norm: NormFn<f64>) -> NormFn<f64> {
 }
 
 /// Norm squared. `1`-strongly convex and `1`-Lipschitz smooth for the Euclidean norm and the Mahalanobis distance.
-pub fn norm_squared(norm: NormFn<f64>) -> DistanceGeneratingFn<f64>
-{
+pub fn norm_squared(norm: NormFn<f64>) -> DistanceGeneratingFn<f64> {
     Arc::new(move |x: FractionalConfig| norm(x).powi(2) / n64(2.))
 }
 
 /// Negative entropy. `1 / (2 ln 2)`-strongly convex and `1 / (\delta ln 2)`-smooth in the `\delta`-interior of the simplex where dimensions sum to `1`. For the l1-norm.
-pub fn negative_entropy() -> DistanceGeneratingFn<f64>
-{
-    Arc::new(move |x: FractionalConfig| n64(x.iter().map(|&j| {
-        assert!(j > 0.);
-        j * j.log2()
-    }).sum()))
+pub fn negative_entropy() -> DistanceGeneratingFn<f64> {
+    Arc::new(move |x: FractionalConfig| {
+        n64(x
+            .iter()
+            .map(|&j| {
+                assert!(j > 0.);
+                j * j.log2()
+            })
+            .sum())
+    })
 }

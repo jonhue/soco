@@ -1,9 +1,11 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
 use crate::cost::CostFn;
-use crate::distance::{DistanceGeneratingFn, euclidean, negative_entropy, norm_squared};
+use crate::distance::{
+    euclidean, negative_entropy, norm_squared, DistanceGeneratingFn,
+};
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::numerics::convex_optimization::{WrappedObjective, minimize};
+use crate::numerics::convex_optimization::{minimize, WrappedObjective};
 use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;

@@ -1,10 +1,16 @@
-use crate::{bindings::{utils::make_package, DataCenterCost}, cost::Cost, model::data_center::{
+use crate::{
+    bindings::{utils::make_package, DataCenterCost},
+    cost::Cost,
+    model::data_center::{
         DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
-    }, problem::{
+    },
+    problem::{
         FractionalSimplifiedSmoothedConvexOptimization,
         FractionalSmoothedConvexOptimization,
         IntegralSimplifiedSmoothedConvexOptimization,
-    }, streaming::online};
+    },
+    streaming::online,
+};
 use pyo3::prelude::*;
 
 mod multi_dimensional;

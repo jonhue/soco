@@ -2,6 +2,7 @@
 
 use crate::config::Config;
 use crate::cost::{Cost, CostFn, FailableCost, FailableCostFn, RawCost};
+use crate::distance::NormFn;
 use crate::model::data_center::loads::{
     apply_loads_over_time, LoadFractions, LoadProfile,
 };
@@ -11,7 +12,6 @@ use crate::model::data_center::{
     DataCenterObjective, IntermediateObjective,
 };
 use crate::model::{ModelOutput, ModelOutputFailure, ModelOutputSuccess};
-use crate::distance::NormFn;
 use crate::result::Result;
 use crate::schedule::Schedule;
 use crate::utils::pos;

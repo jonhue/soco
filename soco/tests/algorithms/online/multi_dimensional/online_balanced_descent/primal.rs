@@ -25,7 +25,9 @@ mod meta {
         o.verify().unwrap();
 
         let t_end = 5;
-        let result = o.offline_stream(&pobd, t_end, Options::euclidean_squared(0.5)).unwrap();
+        let result = o
+            .offline_stream(&pobd, t_end, Options::euclidean_squared(0.5))
+            .unwrap();
         result
             .0
             .verify(o.p.t_end, &upper_bounds(&o.p.bounds))

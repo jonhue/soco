@@ -1,11 +1,18 @@
-use crate::{algorithms::online::multi_dimensional::online_balanced_descent::dual::{
+use crate::{
+    algorithms::online::multi_dimensional::online_balanced_descent::dual::{
         dobd, Options,
-    }, bindings::data_center::online::{DataCenterFractionalSmoothedConvexOptimization, Response, StepResponse}, model::data_center::{
+    },
+    bindings::data_center::online::{
+        DataCenterFractionalSmoothedConvexOptimization, Response, StepResponse,
+    },
+    model::data_center::{
         model::{
             DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
         },
         DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
-    }, streaming::online::{self, OfflineResponse}};
+    },
+    streaming::online::{self, OfflineResponse},
+};
 use pyo3::{exceptions::PyAssertionError, prelude::*};
 
 /// Starts backend in a new thread.

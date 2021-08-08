@@ -1,6 +1,8 @@
 use crate::algorithms::online::{FractionalStep, OnlineAlgorithm, Step};
 use crate::config::Config;
-use crate::distance::{DistanceGeneratingFn, euclidean, negative_entropy, norm_squared};
+use crate::distance::{
+    euclidean, negative_entropy, norm_squared, DistanceGeneratingFn,
+};
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
 use crate::numerics::roots::find_root;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};

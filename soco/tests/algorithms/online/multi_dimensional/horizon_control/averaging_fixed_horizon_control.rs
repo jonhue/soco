@@ -24,11 +24,9 @@ mod afhc {
         o.verify().unwrap();
 
         let t_end = 10;
-        let result = o.offline_stream(&afhc, t_end, Default::default()).unwrap();
-        result
-            .0
-            .verify(o.p.t_end, &o.p.bounds)
-            .unwrap();
+        let result =
+            o.offline_stream(&afhc, t_end, Default::default()).unwrap();
+        result.0.verify(o.p.t_end, &o.p.bounds).unwrap();
 
         assert!(p.objective_function(&result.0).unwrap().cost.is_finite());
         assert_eq!(

@@ -1,7 +1,7 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
-use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::distance::NormFn;
+use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::convex_optimization::{find_minimizer, WrappedObjective};
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};

@@ -1,5 +1,5 @@
-use pyo3::prelude::*;
 use crate::bindings::utils::make_package;
+use pyo3::prelude::*;
 
 mod lazy_capacity_provisioning;
 mod memoryless;
@@ -20,17 +20,29 @@ pub fn submodule(py: Python, m: &PyModule) -> PyResult<()> {
 
     let memoryless = PyModule::new(py, "memoryless")?;
     memoryless::submodule(py, memoryless)?;
-    make_package(py, memoryless, "soco.data_center.online.uni_dimensional.memoryless");
+    make_package(
+        py,
+        memoryless,
+        "soco.data_center.online.uni_dimensional.memoryless",
+    );
     m.add_submodule(memoryless)?;
 
     let probabilistic = PyModule::new(py, "probabilistic")?;
     probabilistic::submodule(py, probabilistic)?;
-    make_package(py, probabilistic, "soco.data_center.online.uni_dimensional.probabilistic");
+    make_package(
+        py,
+        probabilistic,
+        "soco.data_center.online.uni_dimensional.probabilistic",
+    );
     m.add_submodule(probabilistic)?;
 
     let randomized = PyModule::new(py, "randomized")?;
     randomized::submodule(py, randomized)?;
-    make_package(py, randomized, "soco.data_center.online.uni_dimensional.randomized");
+    make_package(
+        py,
+        randomized,
+        "soco.data_center.online.uni_dimensional.randomized",
+    );
     m.add_submodule(randomized)?;
 
     let randomly_biased_greedy = PyModule::new(py, "randomly_biased_greedy")?;
