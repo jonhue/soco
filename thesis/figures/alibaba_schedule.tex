@@ -1,0 +1,173 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+legend style={at={(axis cs:23.3,3500)},anchor=north east},
+tick align=outside,
+tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xlabel={time (hours)},
+xmin=1, xmax=24,
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+% ylabel={proportion of iterations},
+ymin=0, ymax=6000,
+% ytick style={color=black}
+]
+\addplot [semithick, black, const plot mark left]
+table {%
+1 4000
+2 4000
+3 4000
+4 2223
+5 1
+6 1
+7 1
+8 1
+9 1
+10 1
+11 1
+12 1
+13 1
+14 0
+15 0
+16 0
+17 0
+18 0
+19 0
+20 0
+21 0
+22 1
+23 1
+24 1
+};
+\addlegendentry{$OPT$}
+
+\draw[dashed, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},4000) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},4000);
+\addlegendimage{dashed, color=black}
+\addlegendentry{$OPT_s$}
+\end{axis}
+
+\begin{axis}[
+legend pos=north east,
+axis y line*=right,
+axis x line=none,
+xmin=1, xmax=24,
+ymin=0, ymax=110000,
+ylabel=load
+]
+\addplot [semithick, red, const plot mark left]
+table {%
+1 77680
+2 102062
+3 71522
+4 24183
+5 2
+6 4
+7 0
+8 2
+9 1
+10 0
+11 1
+12 3
+13 1
+14 0
+15 0
+16 0
+17 0
+18 0
+19 0
+20 0
+21 0
+22 1
+23 0
+24 1
+};
+\addlegendentry{short}
+\addplot [semithick, blue, const plot mark left]
+table {%
+1 12362
+2 13705
+3 10655
+4 3024
+5 0
+6 0
+7 0
+8 0
+9 0
+10 0
+11 0
+12 0
+13 0
+14 0
+15 0
+16 0
+17 0
+18 0
+19 0
+20 0
+21 0
+22 0
+23 0
+24 0
+};
+\addlegendentry{medium}
+\addplot [semithick, green, const plot mark left]
+table {%
+1 105
+2 628
+3 164
+4 33
+5 0
+6 0
+7 0
+8 0
+9 0
+10 0
+11 0
+12 0
+13 0
+14 0
+15 0
+16 0
+17 0
+18 0
+19 0
+20 0
+21 0
+22 0
+23 0
+24 0
+};
+\addlegendentry{long}
+\addplot [semithick, cyan, const plot mark left]
+table {%
+1 2319
+2 6870
+3 550
+4 3440
+5 0
+6 0
+7 0
+8 0
+9 0
+10 0
+11 0
+12 0
+13 0
+14 0
+15 0
+16 0
+17 0
+18 0
+19 0
+20 0
+21 0
+22 0
+23 0
+24 0
+};
+\addlegendentry{very long}
+\end{axis}
+
+\end{tikzpicture}

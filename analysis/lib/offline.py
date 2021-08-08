@@ -20,15 +20,19 @@ def evaluate_1d(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, fl
     options = OfflineOptions(False, 1, None)
 
     # _, cost_brcp, runtime_brcp = brcp(model, inp, options)
-    (
-        _,
-        cost_optimal_graph_search_1d,
-        runtime_optimal_graph_search_1d,
-    ) = optimal_graph_search_1d(model, inp, OptimalGraphSearch1dOptions(0), options)
-    # _, cost_optimal_graph_search, runtime_optimal_graph_search = optimal_graph_search(
-    #     model, inp, OptimalGraphSearchOptions(), options
+    # (
+    #     xs,
+    #     cost_optimal_graph_search_1d,
+    #     runtime_optimal_graph_search_1d,
+    # ) = optimal_graph_search_1d(model, inp, OptimalGraphSearch1dOptions(0), options)
+    xs, cost_optimal_graph_search, runtime_optimal_graph_search = optimal_graph_search(
+        model, inp, OptimalGraphSearchOptions(), options
+    )
+    # xs, cost_optimal_graph_search, runtime_optimal_graph_search = approx_graph_search(
+    #     model, inp, ApproxGraphSearchOptions(1.1), options
     # )
-    _, cost_co, runtime_co = convex_optimization(model, inp, options)
+    _, cost_co, runtime_co = (0, (1,),0)#convex_optimization(model, inp, options)
+    print(xs, cost_optimal_graph_search[1].energy_cost, cost_optimal_graph_search[1].revenue_loss)
 
     # sanity checks
     # assert cost_optimal_graph_search_1d == cost_optimal_graph_search
@@ -37,9 +41,9 @@ def evaluate_1d(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, fl
 
     return (
         cost_co[0],
-        cost_optimal_graph_search_1d[0],
+        cost_optimal_graph_search[0],
         runtime_co,
-        runtime_optimal_graph_search_1d,
+        runtime_optimal_graph_search,
     )
 
 
@@ -48,10 +52,11 @@ def evaluate_static(
 ) -> Tuple[float, float]:
     options = OfflineOptions(False, 1, 0)
 
-    _, cost_fractional, runtime_static_fractional = static_fractional(
-        model, inp, options
-    )
-    _, cost_integral, runtime_static_integral = static_integral(model, inp, options)
+    _, cost_fractional, runtime_static_fractional = (0, (1,),0)#static_fractional(
+    #     model, inp, options
+    # )
+    x, cost_integral, runtime_static_integral = static_integral(model, inp, options)
+    print(x)
 
     # sanity checks
     # assert cost_fractional <= cost_integral
@@ -62,14 +67,6 @@ def evaluate_static(
         runtime_static_fractional,
         runtime_static_integral,
     )
-
-
-# def evaluate(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, float]:
-#     _, cost_optimal_graph_search = optimal_graph_search(model, inp, False)
-#     _, cost_co = convex_optimization(model, inp, False)
-
-#     # sanity checks
-#     assert cost_co <= cost_optimal_graph_search
 
 
 def evaluate_approx_graph_search(

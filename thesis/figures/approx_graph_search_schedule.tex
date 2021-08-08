@@ -1,0 +1,73 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+legend pos=south east,
+tick align=outside,
+tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xlabel={time (hours)},
+xmin=1, xmax=23,
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+ylabel={number of servers},
+ymin=0, ymax=600,
+% ytick style={color=black}
+]
+\addplot [semithick, black, const plot mark left]
+table {%
+1 114
+2 242
+3 272
+4 283
+5 400
+6 400
+7 445
+8 445
+9 328
+10 328
+11 328
+12 328
+13 328
+14 328
+15 328
+16 328
+17 328
+18 411
+19 473
+20 473
+21 473
+22 473
+23 479
+};
+\addlegendentry{$OPT$}
+\addplot [ultra thick, black, const plot mark left]
+table {%
+1 128
+2 256
+3 256
+4 256
+5 512
+6 512
+7 512
+8 512
+9 256
+10 256
+11 256
+12 256
+13 256
+14 256
+15 256
+16 256
+17 256
+18 512
+19 512
+20 512
+21 512
+22 512
+23 512
+};
+\addlegendentry{$\gamma = 2$}
+\end{axis}
+
+\end{tikzpicture}

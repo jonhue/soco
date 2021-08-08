@@ -47,10 +47,8 @@ However, \citeauthor*{Andrew2015}~\cite{Andrew2015} proved that no online algori
 
 \begin{figure}
     \centering
-    [TODO]
-
-    One dimension with a periodic sequence of two linear cost functions.
-    \caption{Incompatibility of Competitive Ratio and Regret}
+    \input{thesis/figures/incompatibility_of_competitive_ratio_and_regret}
+    \caption{Incompatibility of competitive ratio and regret in one dimension. Consider an adversary playing two linear cost functions $f_1$ and $f_2$ with different minimizers. Then, the dynamic optimum oscillates between the two minimizers while the the static optimum is given by the intersection of the two cost functions. Therefore, a no-regret algorithm may be arbitrarily far away from the dynamic offline optimum. In contrast, a competitive algorithm which sticks to either end of the decision space may exceed the static offline optimum by a delta that is not in $\mathcal{O}(T)$ \cite{Wierman2019}.}
     \label{fig:incompatibility_of_competitive_ratio_and_regret}
 \end{figure}
 

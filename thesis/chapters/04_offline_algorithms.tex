@@ -70,8 +70,8 @@ We now turn to the uni-dimensional integral case of simplified smoothed convex o
 
 \begin{figure}
     \centering
-    [TODO]
-    \caption{Underlying Graph of Uni-Dimensional Integral Offline Algorithm}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/graph_1d}}
+    \caption{Underlying graph of uni-dimensional integral offline algorithm. The algorithm finds a shortest path from $v_{0,0}$ (red) to $v_{T+1,0}$ (blue).}
     \label{fig:underlying_graph_of_uni_dimensional_integral_offline_algorithm}
 \end{figure}
 
@@ -129,8 +129,8 @@ In our graph we have edges $e_{t,x,k}^{\uparrow}$ representing the powering-up o
 
 \begin{figure}
     \centering
-    [TODO]
-    \caption{Underlying Graph of the Multi-Dimensional Integral Offline Algorithm}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/graph_md}}
+    \caption{Underlying graph of the multi-dimensional integral offline algorithm. In this example, $T = 2$, $d = 2$, $m_1 = 2$, and $m_2 = 1$. The algorithm finds a shortest path from $v_{1,\mathbf{0}}^{\uparrow}$ (red) to $v_{2,\mathbf{0}}^{\downarrow}$ (blue). A shortest path corresponding to the optimal schedule $X_1 = (2,0)$ and $X_2 = (1,1)$ is shown in green \cite{Albers2021_2}.}
     \label{fig:underlying_graph_of_the_multi_dimensional_integral_offline_algorithm}
 \end{figure}
 
@@ -201,14 +201,7 @@ $x_{k \gets j}$ denotes the update of configuration $x$ in dimension $k$ to the 
     \Return $(\hat{X}, \hat{c})$\;
 \end{function}
 
-The \cref{proc:md:optimal_graph_search:update_paths} determines the shortest path to $v$ through its predecessors $E$ and updates the optimal schedule $\hat{X}^v$ (if necessary) and optimal cost $\hat{c}^v$. \Cref{fig:an_optimal_schedule_found_by_the_multi_dimensional_integral_offline_algorithm} shows an example for a shortest path in the underlying graph.
-
-\begin{figure}
-    \centering
-    [TODO]
-    \caption{An Optimal Schedule found by the Multi-Dimensional Integral Offline Algorithm}
-    \label{fig:an_optimal_schedule_found_by_the_multi_dimensional_integral_offline_algorithm}
-\end{figure}
+The \cref{proc:md:optimal_graph_search:update_paths} determines the shortest path to $v$ through its predecessors $E$ and updates the optimal schedule $\hat{X}^v$ (if necessary) and optimal cost $\hat{c}^v$. \Cref{fig:underlying_graph_of_the_multi_dimensional_integral_offline_algorithm} shows an example for a shortest path in the underlying graph.
 
 \ref{proc:md:optimal_graph_search:update_paths} runs in $\mathcal{O}(|E|)$ time. Due to the structure of the graph, we can follow $|E| \in \mathcal{O}(d)$ and thus \ref{proc:md:optimal_graph_search:handle_first_layer} runs in $\mathcal{O}(|\mathcal{M}| d)$ time while \ref{proc:md:optimal_graph_search:handle_second_layer} runs in $\mathcal{O}(|\mathcal{M}| C d)$ time. Therefore, the overall time complexity of \cref{alg:md:optimal_graph_search} is in $\mathcal{O}(T |\mathcal{M}| C d)$ where $\mathcal{O}(T |\mathcal{M}|)$ is the size of the underlying graph. Note, that this running time is not polynomial in the size of the problem instance which is given by $\mathcal{O}(T + \sum_{k=1}^d \log_2 m_k)$ even when $d$ is assumed a constant as $|\mathcal{M}| \in \mathcal{O}(\prod_{k=1}^d m_k)$. For this reason, \citeauthor*{Albers2021_2}~\cite{Albers2021_2} developed an approximation algorithm which we discuss next.
 
@@ -221,18 +214,14 @@ The \cref{proc:md:optimal_graph_search:update_paths} determines the shortest pat
 
 \begin{figure}
     \centering
-    [TODO]
-
-    A comparison of the optimal schedule and a schedule found by the approximation algorithm with $\gamma = 2$.
-    \caption{A Schedule found by the Multi-Dimensional Integral Offline Approximation Algorithm}
+    \input{thesis/figures/approx_graph_search_schedule}
+    \caption{A comparison of the optimal schedule and a schedule found by the approximation algorithm with $\gamma = 2$. The example uses the Facebook 2009-0 trace under our second model. Note that the approximation algorithm is limited to server configurations that are powers of two.}
     \label{fig:a_schedule_found_by_the_multi_dimensional_integral_offline_approximation_algorithm}
 \end{figure}
 
 Let $G^{\gamma}$ be the described graph parametrized by $\gamma > 1$. \citeauthor*{Albers2021_2}~\cite{Albers2021_2} show that, assuming we are given an instance of SBLO, given a shortest path $P^{\gamma}$ in $G^{\gamma}$, its induced schedule $X^{P^{\gamma}}$ is a $(2\gamma + 1)$-approximation of the optimal schedule $\hat{x}$. Further, the total number of vertices in $G^{\gamma}$ is \begin{align*}
     \mathcal{O}(T |\mathcal{M}|^{\gamma}) = \mathcal{O}(T \prod_{k=1}^d \log_{1+\epsilon} m_k)
 \end{align*} as $|M_k^{\gamma}| \in \mathcal{O}(\log_{\gamma} m_k) = \mathcal{O}(\log_{1 + \epsilon} m_k)$. Using the same graph search algorithm that was described in the previous section we are able to find $X^{P^{\gamma}}$ in $\mathcal{O}(T C d \prod_{k=1}^d \log_{1 + \epsilon} m_k)$ time. Hence, setting $\gamma = 1 + \epsilon / 2$ for some $\epsilon > 0$ yields a $(1+\epsilon)$-approximation. The algorithm is described in \cref{alg:md:approximate_graph_search}.
-
-[TODO: describe/reference empirical performance with non-SBLO instances]
 
 \begin{algorithm}
     \caption{Multi-Dimensional Approximate Graph Search~\cite{Albers2021_2}}\label{alg:md:approximate_graph_search}
@@ -255,7 +244,7 @@ One important question regarding the approximation algorithm remains. Namely, ho
     \resizebox{\textwidth}{!}{\input{thesis/figures/approx_graph_search_runtime}}
     \caption{Runtime}\label{fig:approx_graph_search:runtime}
     \end{subfigure}
-    \caption{Normalized cost and runtime of the approximate graph search algorithm for the Facebook 2009-1 trace}
+    \caption{Normalized cost and runtime of the approximate graph search algorithm for the Facebook 2009-1 trace.}
 \end{figure}
 
 In practice, we observe that cost grows linearly with $\gamma$. The normalized cost when used with the Facebook 2009-1 trace is shown in \cref{fig:approx_graph_search:cost}. In contrast, the most significant decrease in runtime occurs for $\gamma \in (1, 2]$ as shown in \cref{fig:approx_graph_search:runtime}.
