@@ -383,22 +383,18 @@ impl DataCenterModel {
         number_of_jobs: N64,
         mean_job_duration: N64,
     ) -> IntermediateResult {
-        if number_of_jobs > 0. && mean_job_duration > 0. {
-            let delay =
-                average_delay(self.delta, number_of_jobs, mean_job_duration)
-                    + source.routing_delay_to(t, location)
-                    + job_type.processing_time_on(server_type);
-            if delay.is_infinite() {
-                Err(DataCenterModelOutputFailure::InfiniteDelay {
-                    server_type: server_type.key.clone(),
-                    number_of_jobs: number_of_jobs.raw(),
-                    mean_job_duration: mean_job_duration.raw(),
-                })
-            } else {
-                Ok(self.revenue_loss_model.loss(t, job_type, delay))
-            }
+        let delay =
+            average_delay(self.delta, number_of_jobs, mean_job_duration)
+                + source.routing_delay_to(t, location)
+                + job_type.processing_time_on(server_type);
+        if delay.is_infinite() {
+            Err(DataCenterModelOutputFailure::InfiniteDelay {
+                server_type: server_type.key.clone(),
+                number_of_jobs: number_of_jobs.raw(),
+                mean_job_duration: mean_job_duration.raw(),
+            })
         } else {
-            Ok(n64(0.))
+            Ok(self.revenue_loss_model.loss(t, job_type, delay))
         }
     }
 
