@@ -74,12 +74,20 @@ pub fn submodule(py: Python, m: &PyModule) -> PyResult<()> {
 
     let multi_dimensional = PyModule::new(py, "multi_dimensional")?;
     multi_dimensional::submodule(py, multi_dimensional)?;
-    make_package(py, multi_dimensional, "soco.data_center.multi_dimensional");
+    make_package(
+        py,
+        multi_dimensional,
+        "soco.data_center.online.multi_dimensional",
+    );
     m.add_submodule(multi_dimensional)?;
 
     let uni_dimensional = PyModule::new(py, "uni_dimensional")?;
     uni_dimensional::submodule(py, uni_dimensional)?;
-    make_package(py, uni_dimensional, "soco.data_center.uni_dimensional");
+    make_package(
+        py,
+        uni_dimensional,
+        "soco.data_center.online.uni_dimensional",
+    );
     m.add_submodule(uni_dimensional)?;
 
     Ok(())

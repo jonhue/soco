@@ -123,6 +123,27 @@ impl JobType {
             }),
         }
     }
+
+    #[staticmethod]
+    pub fn from_cached(
+        key: String,
+        processing_time_on: HashMap<String, f64>,
+    ) -> Self {
+        JobType {
+            key,
+            processing_time_on: Arc::new(move |server_type| {
+                processing_time_on[&server_type.key]
+            }),
+        }
+    }
+
+    #[staticmethod]
+    pub fn from_const(key: String, processing_time: f64) -> Self {
+        JobType {
+            key,
+            processing_time_on: Arc::new(move |_server_type| processing_time),
+        }
+    }
 }
 
 /// Geographical source of jobs.
@@ -163,6 +184,27 @@ impl Source {
                         .expect("source `routing_delay_to` method invalid")
                 })
             }),
+        }
+    }
+
+    #[staticmethod]
+    pub fn from_cached(
+        key: String,
+        routing_delay_to: HashMap<String, f64>,
+    ) -> Self {
+        Source {
+            key,
+            routing_delay_to: Arc::new(move |_t, location| {
+                routing_delay_to[&location.key]
+            }),
+        }
+    }
+
+    #[staticmethod]
+    pub fn from_const(key: String, routing_delay: f64) -> Self {
+        Source {
+            key,
+            routing_delay_to: Arc::new(move |_t, _location| routing_delay),
         }
     }
 }
@@ -341,14 +383,22 @@ impl DataCenterModel {
         number_of_jobs: N64,
         mean_job_duration: N64,
     ) -> IntermediateResult {
-        let delay =
-            average_delay(self.delta, number_of_jobs, mean_job_duration)
-                + source.routing_delay_to(t, location)
-                + job_type.processing_time_on(server_type);
-        if delay.is_infinite() {
-            Err(DataCenterModelOutputFailure::InfiniteDelay)
+        if number_of_jobs > 0. && mean_job_duration > 0. {
+            let delay =
+                average_delay(self.delta, number_of_jobs, mean_job_duration)
+                    + source.routing_delay_to(t, location)
+                    + job_type.processing_time_on(server_type);
+            if delay.is_infinite() {
+                Err(DataCenterModelOutputFailure::InfiniteDelay {
+                    server_type: server_type.key.clone(),
+                    number_of_jobs: number_of_jobs.raw(),
+                    mean_job_duration: mean_job_duration.raw(),
+                })
+            } else {
+                Ok(self.revenue_loss_model.loss(t, job_type, delay))
+            }
         } else {
-            Ok(self.revenue_loss_model.loss(t, job_type, delay))
+            Ok(n64(0.))
         }
     }
 
@@ -370,7 +420,7 @@ impl DataCenterModel {
 
         // calculates the mean duration of jobs on a server of some type under the load profile `loads`
         let number_of_jobs = loads.iter().sum();
-        let mean_job_duration = if number_of_jobs == n64(0.) {
+        let mean_job_duration = if number_of_jobs == 0. {
             n64(0.)
         } else {
             total_load / number_of_jobs
@@ -720,7 +770,7 @@ where
                 CostFn::new(
                     1,
                     SingleCostFn::certain(move |t, l| {
-                        let s = n64(l) / delta;
+                        let s = n64(l);
                         let p = server_type.limit_utilization(s, || {
                             energy_consumption_model.consumption(
                                 delta,
@@ -805,17 +855,21 @@ where
             .server_types
             .iter()
             .map(move |server_type| {
-                (0..t_end)
-                    .map(|t| -> f64 {
-                        let p = self.energy_consumption_model.consumption(
-                            self.delta,
-                            server_type,
-                            n64(1.),
-                        );
-                        self.energy_cost_model.cost(t, location, p).raw()
-                    })
-                    .sum::<f64>()
-                    / t_end as f64
+                let p = self.energy_consumption_model.consumption(
+                    self.delta,
+                    server_type,
+                    n64(1.),
+                );
+                if t_end > 0 {
+                    (0..t_end)
+                        .map(|t| {
+                            self.energy_cost_model.cost(t, location, p).raw()
+                        })
+                        .sum::<f64>()
+                        / t_end as f64
+                } else {
+                    self.energy_cost_model.cost(1, location, p).raw()
+                }
             })
             .collect();
         let load = loads

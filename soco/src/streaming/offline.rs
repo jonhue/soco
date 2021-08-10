@@ -41,8 +41,8 @@ where
     }));
 
     let p = model.to(input);
-    p.verify()?;
     info!("Generated a problem instance: {:?}", p);
+    p.verify()?;
 
     info!("Simulating until time slot {}.", p.t_end());
     let start = Instant::now();

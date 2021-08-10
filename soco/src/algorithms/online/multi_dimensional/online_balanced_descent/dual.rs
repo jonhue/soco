@@ -4,6 +4,7 @@ use crate::distance::{
     dual_norm, euclidean, negative_entropy, norm_squared, DistanceGeneratingFn,
 };
 use crate::numerics::convex_optimization::find_minimizer_of_hitting_cost;
+use crate::numerics::finite_differences::gradient;
 use crate::numerics::roots::find_root;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
@@ -15,7 +16,6 @@ use crate::{
     },
     model::{ModelOutputFailure, ModelOutputSuccess},
 };
-use finitediff::FiniteDiff;
 use pyo3::prelude::*;
 
 #[pyclass]
@@ -75,25 +75,27 @@ where
 
     let a = opt;
     let b = o.p.hit_cost(t, prev_x.clone()).cost.raw();
-    let l = find_root((a, b), |l: f64| {
-        let Step(x, _) = obd
-            .next(o.clone(), xs, None, MetaOptions { l, h: h.clone() })
-            .unwrap();
-        let f =
-            |x: &Vec<f64>| o.p.hit_cost(t, Config::new(x.clone())).cost.raw();
-        let h_ = |x: &Vec<f64>| h(Config::new(x.clone())).raw();
-        let distance = dual_norm(o.p.switching_cost.clone())(
-            Config::new(x.to_vec().central_diff(&h_))
-                - Config::new(prev_x.to_vec().central_diff(&h_)),
-        )
+    let l =
+        find_root((a, if b.is_finite() { b } else { 1_000. * a }), |l: f64| {
+            let Step(x, _) = obd
+                .next(o.clone(), xs, None, MetaOptions { l, h: h.clone() })
+                .unwrap();
+            let f = |x: &Vec<f64>| {
+                o.p.hit_cost(t, Config::new(x.clone())).cost.raw()
+            };
+            let h_ = |x: &Vec<f64>| h(Config::new(x.clone())).raw();
+            let distance = dual_norm(o.p.switching_cost.clone())(
+                Config::new(gradient(&h_, x.to_vec()))
+                    - Config::new(gradient(&h_, prev_x.to_vec())),
+            )
+            .raw();
+            let hitting_cost = dual_norm(o.p.switching_cost.clone())(
+                Config::new(gradient(&f, x.to_vec())),
+            )
+            .raw();
+            distance - eta * hitting_cost
+        })
         .raw();
-        let hitting_cost = dual_norm(o.p.switching_cost.clone())(Config::new(
-            x.to_vec().central_diff(&f),
-        ))
-        .raw();
-        distance - eta * hitting_cost
-    })
-    .raw();
 
     obd.next(o, xs, None, MetaOptions { l, h })
 }

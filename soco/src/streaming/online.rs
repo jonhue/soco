@@ -110,8 +110,8 @@ where
         p.set_t_end(1);
     }
     let mut o = Online { p, w };
-    o.verify()?;
     info!("Generated a problem instance: {:?}", o);
+    o.verify()?;
 
     info!("Simulating until time slot {}.", t_end);
     let start = Instant::now();

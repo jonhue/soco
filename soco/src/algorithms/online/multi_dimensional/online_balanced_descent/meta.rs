@@ -5,12 +5,14 @@ use crate::distance::{
     euclidean, negative_entropy, norm_squared, DistanceGeneratingFn,
 };
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::numerics::convex_optimization::{minimize, WrappedObjective};
+use crate::numerics::convex_optimization::{
+    find_minimizer_of_hitting_cost, minimize, WrappedObjective,
+};
+use crate::numerics::finite_differences::gradient;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
-use finitediff::FiniteDiff;
 use noisy_float::prelude::*;
 use pyo3::prelude::*;
 
@@ -59,9 +61,11 @@ where
     D: ModelOutputFailure,
 {
     assert(o.w == 0, Failure::UnsupportedPredictionWindow(o.w))?;
+    assert!(l.is_finite());
 
     let prev_x = xs.now_with_default(Config::repeat(0., o.p.d));
-    let x = bregman_projection(h, l, o.p.bounds, o.p.hitting_cost, t, prev_x);
+    let x =
+        bregman_projection(h, n64(l), o.p.bounds, o.p.hitting_cost, t, prev_x);
     Ok(Step(x, None))
 }
 
@@ -75,7 +79,7 @@ struct ObjectiveData {
 struct ConstraintData<'a, C, D> {
     f: CostFn<'a, FractionalConfig, C, D>,
     t: i32,
-    l: f64,
+    l: N64,
 }
 
 /// Bregman projection of `x` onto a convex `l`-sublevel set `K` of `f`.
@@ -83,7 +87,7 @@ struct ConstraintData<'a, C, D> {
 /// `h` must be `m`-strongly convex and `M`-Lipschitz smooth for the norm function with fixed `m` and `M`.
 fn bregman_projection<C, D>(
     h: DistanceGeneratingFn<f64>,
-    l: f64,
+    l: N64,
     bounds: Vec<(f64, f64)>,
     f: CostFn<'_, FractionalConfig, C, D>,
     t: i32,
@@ -93,18 +97,28 @@ where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
+    let (v, _) = find_minimizer_of_hitting_cost(t, f.clone(), bounds.clone());
+
     let objective = WrappedObjective::new(ObjectiveData { h, x }, |y, data| {
         bregman_divergence(&data.h, Config::new(y.to_vec()), data.x.clone())
     });
     // `l`-sublevel set of `f`
-    let constraint =
-        WrappedObjective::new(ConstraintData { f, t, l }, |y, data| {
-            data.f.call_certain(data.t, Config::new(y.to_vec())).cost
-                - n64(data.l)
-        });
+    let constraint = WrappedObjective::new(
+        ConstraintData { f: f.clone(), t, l },
+        |y, data| {
+            let v = data.f.call_certain(data.t, Config::new(y.to_vec())).cost;
+            v - data.l
+        },
+    );
 
-    let (y, _) = minimize(objective, bounds, None, vec![constraint]);
-    Config::new(y)
+    let (y, _) = minimize(objective, bounds, Some(v.clone()), vec![constraint]);
+
+    if f.call_certain(t, Config::new(y.clone())).cost > l {
+        // distance minimization failed
+        Config::new(v)
+    } else {
+        Config::new(y)
+    }
 }
 
 /// Bregman divergence between `x` and `y`.
@@ -116,6 +130,7 @@ fn bregman_divergence(
     let m = |x: &Vec<f64>| h(Config::new(x.clone())).raw();
     let mx = h(x.clone()).raw();
     let my = h(y.clone()).raw();
-    let grad = Config::new(y.to_vec().central_diff(&m));
-    n64(mx - my - grad * (x - y))
+    let grad = Config::new(gradient(&m, y.to_vec()));
+    let d = mx - my - grad * (x - y);
+    n64(d)
 }

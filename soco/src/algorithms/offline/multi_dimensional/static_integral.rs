@@ -1,3 +1,5 @@
+use log::debug;
+
 use crate::algorithms::offline::{OfflineOptions, PureOfflineResult};
 use crate::config::IntegralConfig;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
@@ -41,6 +43,7 @@ where
     D: ModelOutputFailure,
 {
     if k < p.d as usize {
+        debug!("Checking dimension {}.", k + 1);
         let mut picked_config = base_config.clone();
         let mut picked_cost = f64::INFINITY;
         for j in p.bounds[k].0..=p.bounds[k].1 {
@@ -50,18 +53,21 @@ where
             if cost < picked_cost {
                 picked_config = config;
                 picked_cost = cost;
+            } else if cost > picked_cost {
+                break;
             }
         }
         Ok((picked_config, picked_cost))
     } else {
-        Ok((
-            base_config.clone(),
-            p.objective_function(&IntegralSchedule::new(vec![
-                base_config;
+        let cost = p
+            .objective_function(&IntegralSchedule::new(vec![
+                base_config
+                    .clone();
                 p.t_end as usize
             ]))?
             .cost
-            .raw(),
-        ))
+            .raw();
+        debug!("Config {:?} has associated cost {:?}.", base_config, cost);
+        Ok((base_config, cost))
     }
 }

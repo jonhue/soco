@@ -78,14 +78,16 @@ where
     }
 
     let a = opt;
+    assert!(a.is_finite());
     let b = o.p.hit_cost(t, prev_x.clone()).cost.raw();
-    let l = find_root((a, b), |l: f64| {
-        let Step(x, _) = obd
-            .next(o.clone(), xs, None, MetaOptions { l, h: h.clone() })
-            .unwrap();
-        (o.p.switching_cost)(x - prev_x.clone()).raw() - beta * l
-    })
-    .raw();
+    let l =
+        find_root((a, if b.is_finite() { b } else { 1_000. * a }), |l: f64| {
+            let Step(x, _) = obd
+                .next(o.clone(), xs, None, MetaOptions { l, h: h.clone() })
+                .unwrap();
+            (o.p.switching_cost)(x - prev_x.clone()).raw() - beta * l
+        })
+        .raw();
 
     obd.next(o, xs, None, MetaOptions { l, h })
 }

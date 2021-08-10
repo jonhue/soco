@@ -30,6 +30,12 @@ pub fn find_root(interval: (f64, f64), f: impl Fn(f64) -> f64) -> N64 {
             n64(interval.1)
         }
     } else {
-        n64(brent(interval, f, TOLERANCE).unwrap().apply_precision())
+        n64(brent(
+            interval,
+            |x| if x.is_nan() { f64::NAN } else { f(x) },
+            TOLERANCE,
+        )
+        .unwrap()
+        .apply_precision())
     }
 }

@@ -79,7 +79,7 @@ where
 }
 
 /// Computes the dual norm of `x` given some `norm`.
-pub fn dual_norm<'a>(norm: NormFn<f64>) -> NormFn<f64> {
+pub fn dual_norm(norm: NormFn<f64>) -> NormFn<f64> {
     Arc::new(move |x: FractionalConfig| {
         if x.iter().any(|&j| j.is_infinite()) {
             n64(f64::INFINITY)

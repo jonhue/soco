@@ -67,7 +67,11 @@ pub enum DataCenterModelOutputFailure {
     #[error("The configuration is unable to support the given load profile.")]
     DemandExceedingSupply,
     #[error("The delay is infinite. The arrival rate is too close to (or larger than) the service rate.")]
-    InfiniteDelay,
+    InfiniteDelay {
+        server_type: String,
+        number_of_jobs: f64,
+        mean_job_duration: f64,
+    },
     #[error("A positive load was assigned to a server type without any active servers.")]
     LoadToInactiveServer,
     #[error("The configuration is outside the decision space.")]

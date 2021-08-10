@@ -535,6 +535,7 @@ where
                 revenue_loss,
             } = objective(data.t, &data.x, &data.lambda, &zs)
                 .unwrap_or_else(DataCenterObjective::failure);
+            // debug!("=> {:?} ==> {:?}", zs, energy_cost + revenue_loss);
             energy_cost + revenue_loss
         },
     );

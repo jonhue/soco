@@ -60,10 +60,7 @@ where
 pub fn find_minimizer<C>(
     objective: WrappedObjective<C>,
     bounds: Vec<(f64, f64)>,
-) -> OptimizationResult
-where
-    C: Clone,
-{
+) -> OptimizationResult {
     minimize(objective, bounds, None, Vec::<WrappedObjective<()>>::new())
 }
 
@@ -72,11 +69,7 @@ pub fn find_unbounded_maximizer<C, D>(
     objective: WrappedObjective<C>,
     d: i32,
     constraints: Vec<WrappedObjective<D>>,
-) -> OptimizationResult
-where
-    C: Clone,
-    D: Clone,
-{
+) -> OptimizationResult {
     let (bounds, init) = build_empty_bounds(d);
     maximize(objective, bounds, Some(init), constraints)
 }
@@ -86,11 +79,7 @@ pub fn minimize<C, D>(
     bounds: Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
     constraints: Vec<WrappedObjective<D>>,
-) -> OptimizationResult
-where
-    C: Clone,
-    D: Clone,
-{
+) -> OptimizationResult {
     optimize(Direction::Minimize, objective, bounds, init, constraints)
 }
 
@@ -99,11 +88,7 @@ pub fn maximize<C, D>(
     bounds: Vec<(f64, f64)>,
     init: Option<Vec<f64>>,
     constraints: Vec<WrappedObjective<D>>,
-) -> OptimizationResult
-where
-    C: Clone,
-    D: Clone,
-{
+) -> OptimizationResult {
     optimize(Direction::Maximize, objective, bounds, init, constraints)
 }
 
@@ -175,7 +160,10 @@ fn optimize<C, D>(
             nlopt::SuccessState::MaxEvalReached
             | nlopt::SuccessState::MaxTimeReached => {
                 warn!("Convex optimization timed out. Assuming solution to be infinity.");
-                f64::INFINITY
+                match dir {
+                    Direction::Maximize => f64::NEG_INFINITY,
+                    Direction::Minimize => f64::INFINITY,
+                }
             }
             _ => opt,
         }),
@@ -223,10 +211,11 @@ fn build_empty_bounds(d: i32) -> (Vec<(f64, f64)>, Vec<f64>) {
 
 /// It appears that NLOpt sometimes produces NaN values for no reason.
 /// This is to ensure that NaN values are not chosen.
-fn evaluate<D>(xs: &[f64], data: &mut D, f: &ObjectiveFn<D>) -> f64 {
-    if xs.iter().any(|&x| x.is_nan()) {
+fn evaluate<D>(xs_: &[f64], data: &mut D, f: &ObjectiveFn<D>) -> f64 {
+    let xs: Vec<f64> = xs_.iter().map(|&x| x.apply_precision()).collect();
+    if xs.iter().any(|x| x.is_nan()) {
         f64::NAN
     } else {
-        f(xs, data).raw()
+        f(&xs, data).raw()
     }
 }

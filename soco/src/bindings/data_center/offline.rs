@@ -20,7 +20,7 @@ use crate::{
                 Options as OptimalGraphSearch1dOptions,
             },
         },
-        OfflineOptions,
+        OfflineOptions, PureOfflineResult,
     },
     bindings::DataCenterCost,
     cost::Cost,
@@ -290,6 +290,52 @@ fn static_integral_py(
     })
 }
 
+/// Static integral optimum for SLO
+#[pyfunction]
+#[pyo3(name = "static_integral_slo")]
+fn static_integral_slo_py(
+    py: Python,
+    model: DataCenterModel,
+    input: DataCenterOfflineInput,
+    offline_options: OfflineOptions,
+) -> PyResult<SLOResponse<i32>> {
+    py.allow_threads(|| {
+        info!("Static Integral for SLO");
+        let (xs, cost, runtime) = offline::solve(
+            &model,
+            &static_integral_slo,
+            (),
+            offline_options,
+            input,
+        )
+        .unwrap();
+        Ok((xs.to_vec(), cost, runtime))
+    })
+}
+
+/// Static integral optimum for SBLO
+#[pyfunction]
+#[pyo3(name = "static_integral_sblo")]
+fn static_integral_sblo_py(
+    py: Python,
+    model: DataCenterModel,
+    input: DataCenterOfflineInput,
+    offline_options: OfflineOptions,
+) -> PyResult<Response<i32>> {
+    py.allow_threads(|| {
+        info!("Static Integral for SBLO");
+        let (xs, cost, runtime) = offline::solve(
+            &model,
+            &static_integral_sblo,
+            (),
+            offline_options,
+            input,
+        )
+        .unwrap();
+        Ok((xs.to_vec(), cost, runtime))
+    })
+}
+
 pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_class::<OfflineOptions>()?;
 
@@ -313,6 +359,8 @@ pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(static_fractional_py, m)?)?;
 
     m.add_function(wrap_pyfunction!(static_integral_py, m)?)?;
+    m.add_function(wrap_pyfunction!(static_integral_slo_py, m)?)?;
+    m.add_function(wrap_pyfunction!(static_integral_sblo_py, m)?)?;
 
     Ok(())
 }
@@ -333,6 +381,14 @@ fn approx_graph_search_slo(
     approx_graph_search_sblo(p.into_sblo(), options, offline_options)
 }
 
+fn static_integral_slo(
+    p: IntegralSmoothedLoadOptimization,
+    options: (),
+    offline_options: OfflineOptions,
+) -> Result<PureOfflineResult<i32>> {
+    static_integral_sblo(p.into_sblo(), options, offline_options)
+}
+
 fn optimal_graph_search_sblo(
     p: IntegralSmoothedBalancedLoadOptimization,
     options: OptimalGraphSearchOptions,
@@ -347,4 +403,12 @@ fn approx_graph_search_sblo(
     offline_options: OfflineOptions,
 ) -> Result<CachedPath<Cache<Vertice>>> {
     approx_graph_search(p.into_ssco(), options, offline_options)
+}
+
+fn static_integral_sblo(
+    p: IntegralSmoothedBalancedLoadOptimization,
+    options: (),
+    offline_options: OfflineOptions,
+) -> Result<PureOfflineResult<i32>> {
+    static_integral(p.into_ssco().into_sco(), options, offline_options)
 }

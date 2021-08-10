@@ -109,6 +109,13 @@ impl LinearEnergyCostModel {
             }),
         }
     }
+
+    #[staticmethod]
+    pub fn from_const(cost: f64) -> Self {
+        LinearEnergyCostModel {
+            cost: Arc::new(move |_t| cost),
+        }
+    }
 }
 
 #[pyclass]
