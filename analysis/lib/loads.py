@@ -27,17 +27,17 @@ def convert_offline_to_online_input(
     return [[[load_profile]] for load_profile in loads]
 
 
-def select_load_from_last_day(
-    loads: List[List[int]], time_slot_length: int
+def select_load_from_nth_last_day(
+    loads: List[List[int]], time_slot_length: int, n: int
 ) -> List[List[int]]:
     """
-    Selects all load profiles for time slots belonging to the last day.
+    Selects all load profiles for time slots belonging to the nth last day.
     """
     time_slots_per_day = int(SECONDS_PER_DAY / time_slot_length)
-    a = -time_slots_per_day
-    b = -1
+    a = -(time_slots_per_day * n)
+    b = -(time_slots_per_day * (n - 1)) - 1
     result = loads[a:b]
-    result.append(loads[len(loads) - 1])
+    result.append(loads[len(loads) + b])
     return result
 
 

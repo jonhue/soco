@@ -5,12 +5,17 @@ from soco.data_center.offline import (
     optimal_graph_search_1d,
     OptimalGraphSearch1dOptions,
     optimal_graph_search,
+    optimal_graph_search_slo,
     OptimalGraphSearchOptions,
     approx_graph_search,
+    approx_graph_search_slo,
+    approx_graph_search_sblo,
     ApproxGraphSearchOptions,
     convex_optimization,
     static_fractional,
     static_integral,
+    static_integral_slo,
+    static_integral_sblo,
 )
 from soco.data_center.model import DataCenterModel
 import numpy as np
@@ -22,20 +27,23 @@ def evaluate_1d(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, fl
     # _, cost_brcp, runtime_brcp = brcp(model, inp, options)
     # (
     #     xs,
-    #     cost_optimal_graph_search_1d,
-    #     runtime_optimal_graph_search_1d,
+    #     cost_optimal_graph_search,
+    #     runtime_optimal_graph_search,
     # ) = optimal_graph_search_1d(model, inp, OptimalGraphSearch1dOptions(0), options)
-    xs, cost_optimal_graph_search, runtime_optimal_graph_search = optimal_graph_search(
-        model, inp, OptimalGraphSearchOptions(), options
-    )
-    # xs, cost_optimal_graph_search, runtime_optimal_graph_search = approx_graph_search(
-    #     model, inp, ApproxGraphSearchOptions(1.1), options
+    # xs, cost_optimal_graph_search, runtime_optimal_graph_search = optimal_graph_search(
+    #     model, inp, OptimalGraphSearchOptions(), options
     # )
+    (
+        xs,
+        cost_optimal_graph_search,
+        runtime_optimal_graph_search,
+    ) = approx_graph_search(model, inp, ApproxGraphSearchOptions(1.1), options)
     _, cost_co, runtime_co = (0, (1,), 0)  # convex_optimization(model, inp, options)
     print(
         xs,
-        cost_optimal_graph_search[1].energy_cost,
-        cost_optimal_graph_search[1].revenue_loss,
+        cost_optimal_graph_search[0],
+        # cost_optimal_graph_search[1].energy_cost,
+        # cost_optimal_graph_search[1].revenue_loss,
     )
 
     # sanity checks
