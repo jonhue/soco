@@ -43,9 +43,9 @@ where
         ObjectiveData {
             k,
             t_start,
-            o: o.clone(),
+            o,
             t,
-            prev_x: prev_x.clone(),
+            prev_x,
         },
         |raw_xs, data| {
             let xs = Schedule::from_raw(data.o.p.d, data.o.w + 1, raw_xs);
