@@ -27,7 +27,7 @@ where
         t_start: i32,
         x_start: T,
     ) -> Result<T> {
-        self.find_alpha_unfair_lower_bound(1., w, t, t_start, x_start.clone())
+        self.find_alpha_unfair_lower_bound(1., w, t, t_start, x_start)
     }
 
     /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the lowest possible cost.
@@ -47,7 +47,7 @@ where
         t_start: i32,
         x_start: T,
     ) -> Result<T> {
-        self.find_alpha_unfair_upper_bound(1., w, t, t_start, x_start.clone())
+        self.find_alpha_unfair_upper_bound(1., w, t, t_start, x_start)
     }
 
     /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the highest possible cost.
