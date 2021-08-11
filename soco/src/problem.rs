@@ -379,7 +379,7 @@ where
             loads,
             1,
         )
-        .call_mean_within_bounds(t, x, &bounds)
+        .call_certain_within_bounds(t, x, &bounds)
     }
 
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64 {
