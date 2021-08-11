@@ -426,8 +426,13 @@ where
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T, C, D> {
         CostFn::new(
             1,
-            SingleCostFn::certain(move |t, j| {
-                self.call_certain(shift_time(t, t_start + 1), j)
+            SingleCostFn::predictive(move |t, j| {
+                let shifted_t = shift_time(t, t_start + 1);
+                if shifted_t >= 1 {
+                    self.call_predictive(shifted_t, j)
+                } else {
+                    vec![Default::default()]
+                }
             }),
         )
     }

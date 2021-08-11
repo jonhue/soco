@@ -1,3 +1,5 @@
+use log::debug;
+
 use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
     optimal_graph_search, Options as OptimalGraphSearchOptions,
 };
@@ -15,28 +17,46 @@ use crate::problem::{
 use crate::result::{Failure, Result};
 use crate::utils::assert;
 
-pub trait Bounded<T> {
-    fn find_lower_bound(&self, t: i32, t_start: i32, x_start: T) -> Result<T> {
-        self.find_alpha_unfair_lower_bound(1., t, t_start, x_start)
+pub trait Bounded<T>
+where
+    T: std::fmt::Debug + Clone,
+    Self: std::fmt::Debug,
+{
+    fn find_lower_bound(
+        &self,
+        w: i32,
+        t: i32,
+        t_start: i32,
+        x_start: T,
+    ) -> Result<T> {
+        self.find_alpha_unfair_lower_bound(1., w, t, t_start, x_start.clone())
     }
 
     /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the lowest possible cost.
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
+        w: i32,
         t: i32,
         t_start: i32,
         x_start: T,
     ) -> Result<T>;
 
-    fn find_upper_bound(&self, t: i32, t_start: i32, x_start: T) -> Result<T> {
-        self.find_alpha_unfair_upper_bound(1., t, t_start, x_start)
+    fn find_upper_bound(
+        &self,
+        w: i32,
+        t: i32,
+        t_start: i32,
+        x_start: T,
+    ) -> Result<T> {
+        self.find_alpha_unfair_upper_bound(1., w, t, t_start, x_start.clone())
     }
 
     /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the highest possible cost.
     fn find_alpha_unfair_upper_bound(
         &self,
         alpha: f64,
+        w: i32,
         t: i32,
         t_start: i32,
         x_start: T,
@@ -52,21 +72,23 @@ where
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
+        w: i32,
         t: i32,
         t_start: i32,
         x_start: f64,
     ) -> Result<f64> {
-        self.find_bound(alpha, false, t, t_start, x_start)
+        self.find_bound(alpha, false, w, t, t_start, x_start)
     }
 
     fn find_alpha_unfair_upper_bound(
         &self,
         alpha: f64,
+        w: i32,
         t: i32,
         t_start: i32,
         x_start: f64,
     ) -> Result<f64> {
-        self.find_bound(alpha, true, t, t_start, x_start)
+        self.find_bound(alpha, true, w, t, t_start, x_start)
     }
 }
 
@@ -87,18 +109,20 @@ where
         &self,
         alpha: f64,
         inverted: bool,
+        w: i32,
         t: i32,
         t_start: i32,
         x_start: f64,
     ) -> Result<f64> {
-        assert!(t <= self.t_end);
+        assert!(t <= self.t_end + w);
         assert(self.d == 1, Failure::UnsupportedProblemDimension(self.d))?;
 
         if t <= 0 {
             return Ok(0.);
         }
 
-        let p = self.reset(t_start);
+        let mut p = self.reset(t_start);
+        p.t_end += w;
         let objective = WrappedObjective::new(
             ObjectiveData {
                 p: p.clone(),
@@ -120,6 +144,7 @@ where
         );
         let bounds = vec![(0., p.bounds[0]); p.t_end as usize];
         let (xs, _) = find_minimizer(objective, bounds);
+        debug!("{:?}", xs);
         Ok(xs[(t - t_start) as usize - 1])
     }
 }
@@ -133,21 +158,23 @@ where
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
+        w: i32,
         t: i32,
         t_start: i32,
         x_start: i32,
     ) -> Result<i32> {
-        self.find_bound(alpha, false, t, t_start, x_start)
+        self.find_bound(alpha, false, w, t, t_start, x_start)
     }
 
     fn find_alpha_unfair_upper_bound(
         &self,
         alpha: f64,
+        w: i32,
         t: i32,
         t_start: i32,
         x_start: i32,
     ) -> Result<i32> {
-        self.find_bound(alpha, true, t, t_start, x_start)
+        self.find_bound(alpha, true, w, t, t_start, x_start)
     }
 }
 
@@ -160,18 +187,20 @@ where
         &self,
         alpha: f64,
         inverted: bool,
+        w: i32,
         t: i32,
         t_start: i32,
         x_start: i32,
     ) -> Result<i32> {
-        assert!(t <= self.t_end);
+        assert!(t <= self.t_end + w);
         assert(self.d == 1, Failure::UnsupportedProblemDimension(self.d))?;
 
         if t <= 0 {
             return Ok(0);
         }
 
-        let p = self.reset(t_start);
+        let mut p = self.reset(t_start);
+        p.t_end += w;
         let result = optimal_graph_search.solve(
             p,
             OptimalGraphSearchOptions { x_start },

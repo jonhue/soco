@@ -140,11 +140,15 @@ where
         T: Value<'a>,
     {
         Ok(sum_over_schedule(
-            self.t_end(),
+            self.t_end() + 1,
             xs,
             default,
             |t, prev_x, x| {
-                let hitting_cost = self.hit_cost(t as i32, x.clone());
+                let hitting_cost = if t > self.t_end() {
+                    Default::default()
+                } else {
+                    self.hit_cost(t, x.clone())
+                };
                 Cost::new(
                     hitting_cost.cost
                         + n64(alpha) * self.movement(prev_x, x, inverted),
@@ -165,9 +169,12 @@ where
     {
         let default = self._default_config();
         Ok(
-            sum_over_schedule(self.t_end(), xs, &default, |_, prev_x, x| {
-                RawCost::raw(self.movement(prev_x, x, inverted))
-            })
+            sum_over_schedule(
+                self.t_end() + 1,
+                xs,
+                &default,
+                |_, prev_x, x| RawCost::raw(self.movement(prev_x, x, inverted)),
+            )
             .cost,
         )
     }
@@ -300,7 +307,7 @@ where
 {
     fn hit_cost(&self, t: i32, x: Config<T>) -> Cost<C, D> {
         self.hitting_cost
-            .call_certain_within_bounds(t, x, &self.bounds)
+            .call_mean_within_bounds(t, x, &self.bounds)
     }
 
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64 {
@@ -454,7 +461,7 @@ where
         .into_par_iter()
         .map(|t| {
             let prev_x = xs.get(t - 1).unwrap_or(default).clone();
-            let x = xs.get(t).unwrap().clone();
+            let x = xs.get(t).unwrap_or(default).clone();
             f(t, prev_x, x)
         })
         .sum()
