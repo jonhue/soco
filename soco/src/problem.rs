@@ -169,12 +169,9 @@ where
     {
         let default = self._default_config();
         Ok(
-            sum_over_schedule(
-                self.t_end(),
-                xs,
-                &default,
-                |_, prev_x, x| RawCost::raw(self.movement(prev_x, x, inverted)),
-            )
+            sum_over_schedule(self.t_end(), xs, &default, |_, prev_x, x| {
+                RawCost::raw(self.movement(prev_x, x, inverted))
+            })
             .cost,
         )
     }
