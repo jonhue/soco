@@ -93,15 +93,13 @@ where
         let prev_bound = &bounds[t as usize - 2];
         let bound = &bounds[t as usize - 1];
         if is_valid_initial_time(prev_bound, bound) {
-            // assert!(ToPrimitive::to_f64(&(prev_bound.lower - prev_bound.upper)).unwrap().abs() < PRECISION, "{:?};{:?}", prev_bound.lower, prev_bound.upper);
+            // this should always be true, however, it may be false due to numerical inaccuracies
             if ToPrimitive::to_f64(&(prev_bound.lower - prev_bound.upper))
                 .unwrap()
                 .abs()
                 < PRECISION
             {
                 return (t - 1, prev_bound.upper);
-            } else {
-                debug!("{};{}", prev_bound.lower, prev_bound.upper);
             }
         }
     }

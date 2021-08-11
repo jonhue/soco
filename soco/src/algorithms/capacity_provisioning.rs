@@ -1,5 +1,3 @@
-use log::debug;
-
 use crate::algorithms::offline::uni_dimensional::optimal_graph_search::{
     optimal_graph_search, Options as OptimalGraphSearchOptions,
 };
@@ -144,7 +142,6 @@ where
         );
         let bounds = vec![(0., p.bounds[0]); p.t_end as usize];
         let (xs, _) = find_minimizer(objective, bounds);
-        debug!("{:?}", xs);
         Ok(xs[(t - t_start) as usize - 1])
     }
 }
