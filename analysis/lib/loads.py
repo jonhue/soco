@@ -36,6 +36,7 @@ def select_load_from_nth_last_day(
     time_slots_per_day = int(SECONDS_PER_DAY / time_slot_length)
     a = -(time_slots_per_day * n)
     b = -(time_slots_per_day * (n - 1)) - 1
+    print(a, b)
     result = loads[a:b]
     result.append(loads[len(loads) + b])
     return result
@@ -48,15 +49,30 @@ def perfect_load_prediction(
     Converts some offline input to (perfect knowledge) online input.
     Returns: Arrival Time > Prediction Time > Job Type > List of Samples
     """
-    return [[[load_profile] for load_profile in loads[i:]] for i in range(len(loads))]
+    return [
+        [[load_profile] for load_profile in loads[i:] + [[0] * len(loads[0])] * 24]
+        for i in range(len(loads))
+    ]
 
 
-def predict_loads(trace: str) -> List[List[List[int]]]:
+def predict_loads(
+    trace: str,
+    loads: List[List[int]],
+) -> List[List[List[List[int]]]]:
     """
     Predict loads for a trace with the training data up to some time.
-    Returns: Time > Job Type > List of Samples
+    Returns: Arrival Time > Prediction Time > Job Type > List of Samples
     """
     path = f"out/loads/{trace}.json"
     with open(path, "r") as f:
-        predictions = np.array(json.load(f).values())
-    return np.swapaxes(predictions, 0, 1)
+        values = np.array(list(json.load(f).values()))
+        predictions = np.array(values)
+    tmp = np.mean(np.swapaxes(predictions, 0, 1), axis=2)
+    return [
+        [[loads[i]]]
+        + [
+            [load_profile]
+            for load_profile in list(tmp[i + 1 :]) + [[0] * len(loads[0])] * 24
+        ]
+        for i in range(len(loads))
+    ]

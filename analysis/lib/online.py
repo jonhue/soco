@@ -8,6 +8,7 @@ from soco.data_center.online.uni_dimensional import (
     randomly_biased_greedy,
 )
 from soco.data_center.online.multi_dimensional import (
+    horizon_control,
     lazy_budgeting,
     online_balanced_descent,
     online_gradient_descent,
@@ -293,6 +294,52 @@ def evaluate_ogd(
     ) = online_gradient_descent.start(ADDR, model, offline_inp, 0, options)
     return evaluate(
         online_gradient_descent,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    )
+
+
+def evaluate_receding_horizon_control(
+    model: DataCenterModel,
+    offline_inp: List[List[int]],
+    online_inp: List[List[List[List[int]]]],
+    w: int = 0,
+) -> Tuple[float, float]:
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = horizon_control.receding_horizon_control.start(ADDR, model, offline_inp, w)
+    return evaluate(
+        horizon_control.receding_horizon_control,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    )
+
+
+def evaluate_averaging_fixed_horizon_control(
+    model: DataCenterModel,
+    offline_inp: List[List[int]],
+    online_inp: List[List[List[List[int]]]],
+    w: int = 0,
+) -> Tuple[float, float]:
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = horizon_control.averaging_fixed_horizon_control.start(
+        ADDR, model, offline_inp, w
+    )
+    return evaluate(
+        horizon_control.averaging_fixed_horizon_control,
         online_inp,
         fractional,
         integral,

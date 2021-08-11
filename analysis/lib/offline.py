@@ -25,19 +25,19 @@ def evaluate_1d(model: DataCenterModel, inp: List[List[int]]) -> Tuple[float, fl
     options = OfflineOptions(False, 1, None)
 
     # _, cost_brcp, runtime_brcp = brcp(model, inp, options)
-    # (
-    #     xs,
-    #     cost_optimal_graph_search,
-    #     runtime_optimal_graph_search,
-    # ) = optimal_graph_search_1d(model, inp, OptimalGraphSearch1dOptions(0), options)
-    # xs, cost_optimal_graph_search, runtime_optimal_graph_search = optimal_graph_search(
-    #     model, inp, OptimalGraphSearchOptions(), options
-    # )
     (
         xs,
         cost_optimal_graph_search,
         runtime_optimal_graph_search,
-    ) = approx_graph_search(model, inp, ApproxGraphSearchOptions(1.1), options)
+    ) = optimal_graph_search_1d(model, inp, OptimalGraphSearch1dOptions(0), options)
+    # xs, cost_optimal_graph_search, runtime_optimal_graph_search = optimal_graph_search(
+    #     model, inp, OptimalGraphSearchOptions(), options
+    # )
+    # (
+    #     xs,
+    #     cost_optimal_graph_search,
+    #     runtime_optimal_graph_search,
+    # ) = approx_graph_search(model, inp, ApproxGraphSearchOptions(1.1), options)
     _, cost_co, runtime_co = (0, (1,), 0)  # convex_optimization(model, inp, options)
     print(
         xs,
