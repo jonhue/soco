@@ -85,14 +85,6 @@ where
         options: O,
     ) -> Result<Step<T, M>> {
         let t = xs.t_end() + 1;
-        // assert(
-        //     o.p.t_end() == t + o.w,
-        //     Failure::OnlineInsufficientInformation {
-        //         t_end: o.p.t_end(),
-        //         t,
-        //         w: o.w,
-        //     },
-        // )?;
         let prev_m = match prev_m_ {
             None => M::default(&o),
             Some(prev_m) => prev_m,
