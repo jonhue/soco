@@ -12,11 +12,13 @@ use noisy_float::prelude::*;
 use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
+pub type DistanceGeneratingFn<T> = Arc<dyn Fn(Config<T>) -> N64 + Send + Sync>;
+
 /// Norm function.
-pub type NormFn<'a, T> = Arc<dyn Fn(Config<T>) -> N64 + Send + Sync + 'a>;
+pub type NormFn<T> = DistanceGeneratingFn<T>;
 
 /// Manhattan norm.
-pub fn manhattan<'a, T>() -> NormFn<'static, T>
+pub fn manhattan<'a, T>() -> NormFn<T>
 where
     T: Value<'a>,
 {
@@ -29,7 +31,7 @@ where
 }
 
 /// Manhattan norm scaled with switching costs.
-pub fn manhattan_scaled<'a, T>(switching_cost: Vec<f64>) -> NormFn<'a, T>
+pub fn manhattan_scaled<'a, T>(switching_cost: Vec<f64>) -> NormFn<T>
 where
     T: Value<'a>,
 {
@@ -45,7 +47,7 @@ where
 }
 
 /// Euclidean norm.
-pub fn euclidean<'a, T>() -> NormFn<'static, T>
+pub fn euclidean<'a, T>() -> NormFn<T>
 where
     T: Value<'a>,
 {
@@ -61,10 +63,7 @@ where
 /// Mahalanobis distance square. This norm is `1`-strongly convex and `1`-Lipschitz smooth.
 ///
 /// For `Q` positive semi-definite.
-pub fn mahalanobis<'a, T>(
-    q: &DMatrix<T>,
-    mean: Config<T>,
-) -> Result<NormFn<'a, T>>
+pub fn mahalanobis<'a, T>(q: &DMatrix<T>, mean: Config<T>) -> Result<NormFn<T>>
 where
     T: RealField + Value<'a>,
 {
@@ -79,26 +78,40 @@ where
     }))
 }
 
-/// Norm squared. `1`-strongly convex and `1`-Lipschitz smooth for the Euclidean norm and the Mahalanobis distance.
-pub fn norm_squared<'a, T>(norm: &'a NormFn<'a, T>) -> NormFn<'a, T>
-where
-    T: Value<'a>,
-{
-    Arc::new(move |x: Config<T>| -> N64 { norm(x).powi(2) / n64(2.) })
+/// Computes the dual norm of `x` given some `norm`.
+pub fn dual_norm(norm: NormFn<f64>) -> NormFn<f64> {
+    Arc::new(move |x: FractionalConfig| {
+        if x.iter().any(|&j| j.is_infinite()) {
+            n64(f64::INFINITY)
+        } else {
+            let objective = WrappedObjective::new(x.clone(), |z, x| {
+                n64(Config::new(z.to_vec()) * x.clone())
+            });
+            let constraint = WrappedObjective::new((), |z, _| {
+                norm(Config::new(z.to_vec())) - n64(1.)
+            });
+
+            let (z, _) =
+                find_unbounded_maximizer(objective, x.d(), vec![constraint]);
+            n64(Config::new(z) * x)
+        }
+    })
 }
 
-/// Computes the dual norm of `x` given some `norm`.
-pub fn dual<'a>(norm: &'a NormFn<'a, f64>) -> NormFn<'a, f64> {
-    Arc::new(move |x: FractionalConfig| {
-        let objective = WrappedObjective::new(x.clone(), |z, x| {
-            n64(Config::new(z.to_vec()) * x.clone())
-        });
-        let constraint = WrappedObjective::new((), |z, _| {
-            norm(Config::new(z.to_vec())) - n64(1.)
-        });
+/// Norm squared. `1`-strongly convex and `1`-Lipschitz smooth for the Euclidean norm and the Mahalanobis distance.
+pub fn norm_squared(norm: NormFn<f64>) -> DistanceGeneratingFn<f64> {
+    Arc::new(move |x: FractionalConfig| norm(x).powi(2) / n64(2.))
+}
 
-        let (z, _) =
-            find_unbounded_maximizer(objective, x.d(), vec![constraint]);
-        n64(Config::new(z) * x)
+/// Negative entropy. `1 / (2 ln 2)`-strongly convex and `1 / (\delta ln 2)`-smooth in the `\delta`-interior of the simplex where dimensions sum to `1`. For the l1-norm.
+pub fn negative_entropy() -> DistanceGeneratingFn<f64> {
+    Arc::new(move |x: FractionalConfig| {
+        n64(x
+            .iter()
+            .map(|&j| {
+                assert!(j > 0.);
+                j * j.log2()
+            })
+            .sum())
     })
 }

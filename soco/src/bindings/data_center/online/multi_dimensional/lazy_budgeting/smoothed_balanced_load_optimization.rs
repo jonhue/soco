@@ -1,20 +1,14 @@
-use super::{
-    DataCenterFractionalSimplifiedSmoothedConvexOptimization, Response,
-    StepResponse,
-};
-use crate::{
-    algorithms::online::uni_dimensional::probabilistic::{
-        probabilistic, Memory, Options,
-    },
-    breakpoints::Breakpoints,
-    model::data_center::{
+use crate::{algorithms::online::multi_dimensional::lazy_budgeting::smoothed_balanced_load_optimization::{
+        lb, Memory, Options,
+    }, bindings::data_center::online::{
+        Response,
+        StepResponse,
+    }, model::data_center::{
         model::{
             DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
         },
         DataCenterModelOutputFailure, DataCenterModelOutputSuccess,
-    },
-    streaming::online::{self, OfflineResponse},
-};
+    }, problem::IntegralSmoothedBalancedLoadOptimization, streaming::online::{self, OfflineResponse}};
 use pyo3::{exceptions::PyAssertionError, prelude::*};
 
 /// Starts backend in a new thread.
@@ -27,7 +21,7 @@ fn start(
     input: DataCenterOfflineInput,
     w: i32,
     options: Options,
-) -> PyResult<Response<f64, Memory<'static>>> {
+) -> PyResult<Response<i32, Memory>> {
     py.allow_threads(|| {
         let OfflineResponse {
             xs: (xs, cost),
@@ -37,7 +31,7 @@ fn start(
         } = online::start(
             addr.parse().unwrap(),
             model,
-            &probabilistic,
+            &lb,
             options,
             w,
             input,
@@ -54,12 +48,12 @@ fn next(
     py: Python,
     addr: String,
     input: DataCenterOnlineInput,
-) -> PyResult<StepResponse<f64, Memory<'static>>> {
+) -> PyResult<StepResponse<i32, Memory>> {
     py.allow_threads(|| {
         let ((x, cost), (int_x, int_cost), m, runtime) =
             online::next::<
-                f64,
-                DataCenterFractionalSimplifiedSmoothedConvexOptimization,
+                i32,
+                IntegralSmoothedBalancedLoadOptimization,
                 Memory,
                 DataCenterOnlineInput,
                 DataCenterModelOutputSuccess,
@@ -70,13 +64,12 @@ fn next(
     })
 }
 
-/// Memoryless Algorithm
+/// Lazy Capacity Provisioning
 pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(start, m)?)?;
     m.add_function(wrap_pyfunction!(next, m)?)?;
 
     m.add_class::<Options>()?;
-    m.add_class::<Breakpoints>()?;
 
     Ok(())
 }

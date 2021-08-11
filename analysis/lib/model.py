@@ -52,7 +52,7 @@ def single(
         delta,
         [Location(DEFAULT_KEY, m)],
         server_types,
-        [Source(DEFAULT_KEY, lambda _t, _location: ROUTING_DELAY)],
+        [Source.from_const(DEFAULT_KEY, ROUTING_DELAY)],
         job_types,
         energy_consumption_model,
         {DEFAULT_KEY: energy_cost_model},
@@ -108,7 +108,7 @@ def linear_energy_cost(
             server_type: LinearEnergyConsumptionModel(phi_min, phi_max)
             for server_type, (phi_min, phi_max) in energy_consumption_model.items()
         },
-        LinearEnergyCostModel(lambda _t: energy_cost),
+        LinearEnergyCostModel.from_const(energy_cost),
         {
             job_type: MinimalDetectableDelayRevenueLossModel(gamma, delta)
             for job_type, (gamma, delta) in revenue_loss_model.items()
@@ -139,7 +139,7 @@ def nonlinear_energy_cost(
             server_type: NonLinearEnergyConsumptionModel(phi_min, alpha, beta)
             for server_type, (phi_min, alpha, beta) in energy_consumption_model.items()
         },
-        LinearEnergyCostModel(lambda _t: energy_cost),
+        LinearEnergyCostModel.from_const(energy_cost),
         {
             job_type: MinimalDetectableDelayRevenueLossModel(gamma, delta)
             for job_type, (gamma, delta) in revenue_loss_model.items()
@@ -196,7 +196,7 @@ def build_model(
     )
     if trace == FACEBOOK_2009_0 or trace == FACEBOOK_2009_1 or trace == FACEBOOK_2010:
         server_type = ServerType(DEFAULT_KEY, 1)
-        job_type = JobType(DEFAULT_KEY, lambda _server_type: delta / 2)
+        job_type = JobType.from_const(DEFAULT_KEY, delta / 2)
         return linear_energy_cost(
             delta,
             [server_type],
@@ -216,7 +216,7 @@ def build_model(
         )
     if trace == LANL_MUSTANG:
         server_type = ServerType(DEFAULT_KEY, 1)
-        job_type = JobType(DEFAULT_KEY, lambda _server_type: delta / 2)
+        job_type = JobType.from_const(DEFAULT_KEY, delta / 2)
         return linear_energy_cost(
             delta,
             [server_type],
@@ -239,9 +239,9 @@ def build_model(
         GPU8 = "gpu8"
         gpu2 = ServerType(GPU2, 1)
         gpu8 = ServerType(GPU8, 1)
-        job_type = JobType(
+        job_type = JobType.from_cached(
             DEFAULT_KEY,
-            lambda server_type: delta / 2 if server_type == GPU2 else delta / (2 * 4),
+            {GPU2: delta / 2, GPU8: delta / (2 * 4)},
         )
         return linear_energy_cost(
             delta,
@@ -252,8 +252,8 @@ def build_model(
             {
                 GPU2: (energy_model["phi_min"], energy_model["phi_max"]),
                 GPU8: (
-                    4 * energy_model["phi_min"],
-                    4 * energy_model["phi_max"],
+                    4.2 * energy_model["phi_min"],
+                    4.2 * energy_model["phi_max"],
                 ),
             },
             {DEFAULT_KEY: (revenue_loss, 2.5 * delta / 2)},
@@ -266,7 +266,7 @@ def build_model(
                 ),
                 GPU8: SwitchingCost.from_normalized(
                     delta,
-                    10 * normalized_switching_cost,
+                    15 * normalized_switching_cost,
                     energy_cost,
                     energy_model["phi_min"],
                 ),
@@ -279,17 +279,17 @@ def build_model(
         SHORT = "short"
         server_type = ServerType(DEFAULT_KEY, 1)
         very_long_runtime = delta / 2
-        very_long = JobType(VERY_LONG, lambda _server_type: very_long_runtime)
+        very_long = JobType.from_const(VERY_LONG, very_long_runtime)
         long_runtime = very_long_runtime / 2.5
-        long = JobType(LONG, lambda _server_type: long_runtime)
+        long = JobType.from_const(LONG, long_runtime)
         medium_runtime = long_runtime / 2.5
-        medium = JobType(MEDIUM, lambda _server_type: medium_runtime)
+        medium = JobType.from_const(MEDIUM, medium_runtime)
         short_runtime = medium_runtime / 2.5
-        short = JobType(SHORT, lambda _server_type: short_runtime)
+        short = JobType.from_const(SHORT, short_runtime)
         return linear_energy_cost(
             delta,
             [server_type],
-            {DEFAULT_KEY: 4000},
+            {DEFAULT_KEY: 10000},
             [short, medium, long, very_long],
             energy_cost,
             {DEFAULT_KEY: (energy_model["phi_min"], energy_model["phi_max"])},

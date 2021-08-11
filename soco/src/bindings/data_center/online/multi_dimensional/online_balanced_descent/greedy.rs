@@ -1,9 +1,9 @@
-use super::{
-    DataCenterFractionalSmoothedConvexOptimization, Response, StepResponse,
-};
 use crate::{
-    algorithms::online::uni_dimensional::randomly_biased_greedy::{
-        rbg, Memory, Options,
+    algorithms::online::multi_dimensional::online_balanced_descent::greedy::{
+        gobd, Options,
+    },
+    bindings::data_center::online::{
+        DataCenterFractionalSmoothedConvexOptimization, Response, StepResponse,
     },
     model::data_center::{
         model::{
@@ -25,7 +25,7 @@ fn start(
     input: DataCenterOfflineInput,
     w: i32,
     options: Options,
-) -> PyResult<Response<f64, Memory>> {
+) -> PyResult<Response<f64, ()>> {
     py.allow_threads(|| {
         let OfflineResponse {
             xs: (xs, cost),
@@ -35,7 +35,7 @@ fn start(
         } = online::start(
             addr.parse().unwrap(),
             model,
-            &rbg,
+            &gobd,
             options,
             w,
             input,
@@ -52,13 +52,13 @@ fn next(
     py: Python,
     addr: String,
     input: DataCenterOnlineInput,
-) -> PyResult<StepResponse<f64, Memory>> {
+) -> PyResult<StepResponse<f64, ()>> {
     py.allow_threads(|| {
         let ((x, cost), (int_x, int_cost), m, runtime) =
             online::next::<
                 f64,
                 DataCenterFractionalSmoothedConvexOptimization,
-                Memory,
+                (),
                 DataCenterOnlineInput,
                 DataCenterModelOutputSuccess,
                 DataCenterModelOutputFailure,
@@ -68,7 +68,7 @@ fn next(
     })
 }
 
-/// Memoryless Algorithm
+/// Lazy Capacity Provisioning
 pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(start, m)?)?;
     m.add_function(wrap_pyfunction!(next, m)?)?;

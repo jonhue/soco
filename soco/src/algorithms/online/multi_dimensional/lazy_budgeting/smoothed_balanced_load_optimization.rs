@@ -64,6 +64,7 @@ impl IntoPy<PyObject> for Memory<'_> {
     }
 }
 
+#[pyclass]
 #[derive(Clone)]
 pub struct Options {
     /// `epsilon > 0`. Defaults to `0.25`.
@@ -72,6 +73,13 @@ pub struct Options {
 impl Default for Options {
     fn default() -> Self {
         Options { epsilon: 0.25 }
+    }
+}
+#[pymethods]
+impl Options {
+    #[new]
+    fn constructor(epsilon: f64) -> Self {
+        Options { epsilon }
     }
 }
 

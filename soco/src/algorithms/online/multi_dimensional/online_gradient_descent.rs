@@ -1,13 +1,13 @@
 use crate::algorithms::online::{FractionalStep, Step};
 use crate::config::{Config, FractionalConfig};
+use crate::distance::euclidean;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
-use crate::norm::euclidean;
 use crate::numerics::convex_optimization::{find_minimizer, WrappedObjective};
+use crate::numerics::finite_differences::gradient;
 use crate::problem::{FractionalSmoothedConvexOptimization, Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::FractionalSchedule;
 use crate::utils::assert;
-use finitediff::FiniteDiff;
 use pyo3::prelude::*;
 use std::sync::Arc;
 
@@ -39,6 +39,11 @@ impl Options {
             }),
         }
     }
+
+    #[staticmethod]
+    pub fn sqrt() -> Self {
+        Options::default()
+    }
 }
 
 /// Online Gradient Descent
@@ -62,7 +67,7 @@ where
     let f =
         |x: &Vec<f64>| o.p.hit_cost(t - 1, Config::new(x.clone())).cost.raw();
     let step =
-        (options.eta)(t - 1) * Config::new(prev_x.to_vec().central_diff(&f));
+        (options.eta)(t - 1) * Config::new(gradient(&f, prev_x.to_vec()));
     let x = project(o.p.bounds, prev_x - step);
 
     Ok(Step(x, None))

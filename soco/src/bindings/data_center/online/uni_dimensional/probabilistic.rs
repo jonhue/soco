@@ -1,9 +1,12 @@
-use super::{
+use crate::bindings::data_center::online::{
     DataCenterFractionalSimplifiedSmoothedConvexOptimization, Response,
     StepResponse,
 };
 use crate::{
-    algorithms::online::uni_dimensional::memoryless::memoryless,
+    algorithms::online::uni_dimensional::probabilistic::{
+        probabilistic, Memory, Options,
+    },
+    breakpoints::Breakpoints,
     model::data_center::{
         model::{
             DataCenterModel, DataCenterOfflineInput, DataCenterOnlineInput,
@@ -23,29 +26,25 @@ fn start(
     model: DataCenterModel,
     input: DataCenterOfflineInput,
     w: i32,
-) -> PyResult<Response<f64, ()>> {
+    options: Options,
+) -> PyResult<Response<f64, Memory<'static>>> {
     py.allow_threads(|| {
         let OfflineResponse {
             xs: (xs, cost),
             int_xs: (int_xs, int_cost),
+            m,
             runtime,
-            ..
         } = online::start(
             addr.parse().unwrap(),
             model,
-            &memoryless,
-            (),
+            &probabilistic,
+            options,
             w,
             input,
             None,
         )
         .unwrap();
-        Ok((
-            (xs.to_vec(), cost),
-            (int_xs.to_vec(), int_cost),
-            None,
-            runtime,
-        ))
+        Ok(((xs.to_vec(), cost), (int_xs.to_vec(), int_cost), m, runtime))
     })
 }
 
@@ -55,24 +54,19 @@ fn next(
     py: Python,
     addr: String,
     input: DataCenterOnlineInput,
-) -> PyResult<StepResponse<f64, ()>> {
+) -> PyResult<StepResponse<f64, Memory<'static>>> {
     py.allow_threads(|| {
-        let ((x, cost), (int_x, int_cost), _, runtime) =
+        let ((x, cost), (int_x, int_cost), m, runtime) =
             online::next::<
                 f64,
                 DataCenterFractionalSimplifiedSmoothedConvexOptimization,
-                (),
+                Memory,
                 DataCenterOnlineInput,
                 DataCenterModelOutputSuccess,
                 DataCenterModelOutputFailure,
             >(addr.parse().unwrap(), input)
             .map_err(PyAssertionError::new_err)?;
-        Ok((
-            (x.to_vec(), cost),
-            (int_x.to_vec(), int_cost),
-            None,
-            runtime,
-        ))
+        Ok(((x.to_vec(), cost), (int_x.to_vec(), int_cost), m, runtime))
     })
 }
 
@@ -80,6 +74,9 @@ fn next(
 pub fn submodule(_py: Python, m: &PyModule) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(start, m)?)?;
     m.add_function(wrap_pyfunction!(next, m)?)?;
+
+    m.add_class::<Options>()?;
+    m.add_class::<Breakpoints>()?;
 
     Ok(())
 }

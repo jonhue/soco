@@ -193,7 +193,7 @@ fn piecewise_integral_empty_breakpoints() {
             std::f64::consts::E.powf(-x)
         })
         .raw();
-    assert_relative_eq!(result, 1., max_relative = PRECISION);
+    assert_relative_eq!(result, 1., max_relative = PRECISION * 10.);
 }
 
 #[test]
@@ -205,7 +205,7 @@ fn piecewise_integral_default_breakpoints() {
         |x| std::f64::consts::E.powf(-x),
     )
     .raw();
-    assert_relative_eq!(result, 1., max_relative = PRECISION);
+    assert_relative_eq!(result, 1., max_relative = PRECISION * 10.);
 }
 
 #[test]
@@ -215,7 +215,7 @@ fn piecewise_integral_right() {
             std::f64::consts::E.powf(-x)
         })
         .raw();
-    assert_relative_eq!(result, 1., max_relative = PRECISION);
+    assert_relative_eq!(result, 1., max_relative = PRECISION * 10.);
 }
 
 #[test]
@@ -227,5 +227,5 @@ fn piecewise_integral_left() {
         |x| std::f64::consts::E.powf(x),
     )
     .raw();
-    assert_relative_eq!(result, 1., max_relative = PRECISION);
+    assert_relative_eq!(result, 1., max_relative = PRECISION * 10.);
 }

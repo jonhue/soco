@@ -6,7 +6,7 @@ pub mod quadrature;
 pub mod roots;
 
 /// Precision used for numeric computations.
-pub static PRECISION: f64 = 1e-6;
+pub static PRECISION: f64 = 1e-2;
 /// Tolerance used for numeric computations.
 pub static TOLERANCE: f64 = PRECISION / 10.;
 

@@ -73,18 +73,18 @@ pub fn inv_e_sblo() -> FailableCostFn<'static, f64, DataCenterModelOutputFailure
     wrap(|t: i32, x: f64| t as f64 * std::f64::consts::E.powf(-x))
 }
 
-/// `1 / t * x^2` for a single dimension.
+/// `1 / t * (x-1)^2` around `1` for a single dimension.
 pub fn parabola() -> RawCostFn<'static, FractionalConfig> {
     wrap(|t: i32, j: FractionalConfig| {
         assert!(j.d() == 1);
-        1. / t as f64 * (j[0] as f64).powi(2)
+        1. / t as f64 * (j[0] as f64 - 1.).powi(2)
     })
 }
 
-/// `1 / t * x^2` for a single dimension.
+/// `1 / t * (x-1)^2` around `1` for a single dimension.
 pub fn int_parabola() -> RawCostFn<'static, IntegralConfig> {
     wrap(|t: i32, j: IntegralConfig| {
         assert!(j.d() == 1);
-        1. / t as f64 * (j[0] as f64).powi(2)
+        1. / t as f64 * (j[0] as f64 - 1.).powi(2)
     })
 }

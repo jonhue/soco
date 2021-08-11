@@ -2,6 +2,7 @@
 
 use crate::config::Config;
 use crate::cost::{Cost, CostFn, FailableCost, FailableCostFn, RawCost};
+use crate::distance::NormFn;
 use crate::model::data_center::loads::{
     apply_loads_over_time, LoadFractions, LoadProfile,
 };
@@ -11,7 +12,6 @@ use crate::model::data_center::{
     DataCenterObjective, IntermediateObjective,
 };
 use crate::model::{ModelOutput, ModelOutputFailure, ModelOutputSuccess};
-use crate::norm::NormFn;
 use crate::result::Result;
 use crate::schedule::Schedule;
 use crate::utils::pos;
@@ -144,7 +144,11 @@ where
             xs,
             default,
             |t, prev_x, x| {
-                let hitting_cost = self.hit_cost(t as i32, x.clone());
+                let hitting_cost = if t > self.t_end() {
+                    Default::default()
+                } else {
+                    self.hit_cost(t, x.clone())
+                };
                 Cost::new(
                     hitting_cost.cost
                         + n64(alpha) * self.movement(prev_x, x, inverted),
@@ -246,7 +250,7 @@ pub struct SmoothedConvexOptimization<'a, T, C, D> {
     pub bounds: Vec<(T, T)>,
     /// Norm function.
     #[derivative(Debug = "ignore")]
-    pub switching_cost: NormFn<'a, T>,
+    pub switching_cost: NormFn<T>,
     /// Non-negative convex cost functions.
     #[derivative(Debug = "ignore")]
     pub hitting_cost: CostFn<'a, Config<T>, C, D>,
@@ -260,7 +264,7 @@ where
 {
     fn hit_cost(&self, t: i32, x: Config<T>) -> Cost<C, D> {
         self.hitting_cost
-            .call_certain_within_bounds(t, x, &self.bounds)
+            .call_mean_within_bounds(t, x, &self.bounds)
     }
 
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64 {
@@ -300,7 +304,7 @@ where
 {
     fn hit_cost(&self, t: i32, x: Config<T>) -> Cost<C, D> {
         self.hitting_cost
-            .call_certain_within_bounds(t, x, &self.bounds)
+            .call_mean_within_bounds(t, x, &self.bounds)
     }
 
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64 {
@@ -364,7 +368,7 @@ where
                         Ok(DataCenterObjective::new(
                             safe_balancing(x, total_load, || {
                                 Ok(x * self.hitting_cost[k]
-                                    .call_certain(t, (total_load / x).raw())
+                                    .call_mean(t, (total_load / x).raw())
                                     .cost)
                             })?,
                             n64(0.),
@@ -454,7 +458,7 @@ where
         .into_par_iter()
         .map(|t| {
             let prev_x = xs.get(t - 1).unwrap_or(default).clone();
-            let x = xs.get(t).unwrap().clone();
+            let x = xs.get(t).unwrap_or(default).clone();
             f(t, prev_x, x)
         })
         .sum()

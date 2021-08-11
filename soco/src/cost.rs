@@ -285,6 +285,11 @@ where
     ///
     /// Returns cost function and time slot of cost function.
     fn get(&self, t: i32) -> (&i32, &SingleCostFn<'a, T, C, D>) {
+        assert!(
+            t >= 1,
+            "Cost functions are only defined for `t >= 1` (got `t = {}`).",
+            t
+        );
         self.0.range(1..=t).last().expect("Cost function does not have an implementation for the given time slot")
     }
 }

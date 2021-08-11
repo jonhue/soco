@@ -5,7 +5,7 @@ mod ogd {
     use soco::algorithms::online::multi_dimensional::online_gradient_descent::{ogd, Options};
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
-    use soco::norm::manhattan_scaled;
+    use soco::distance::manhattan_scaled;
     use soco::problem::{Online, Problem, SmoothedConvexOptimization};
     use soco::schedule::Schedule;
 

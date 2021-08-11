@@ -5,7 +5,7 @@ use crate::numerics::convex_optimization::{find_minimizer, WrappedObjective};
 use crate::problem::{
     FractionalSimplifiedSmoothedConvexOptimization, Online, Problem,
 };
-use crate::schedule::{FractionalSchedule, Schedule};
+use crate::schedule::Schedule;
 
 pub mod averaging_fixed_horizon_control;
 pub mod receding_horizon_control;
@@ -34,10 +34,11 @@ where
     let t_start = t + k - (o.w + 1);
 
     let d = o.p.d;
-    let bounds = vec![
-        (0., o.p.bounds[0]);
-        FractionalSchedule::raw_encoding_len(o.p.d, o.w) as usize
-    ];
+    let bounds = (0..o.w + 1)
+        .into_iter()
+        .map(|_| (0..o.p.d as usize).into_iter().map(|k| (0., o.p.bounds[k])))
+        .flatten()
+        .collect();
     let objective = WrappedObjective::new(
         ObjectiveData {
             k,
@@ -47,8 +48,8 @@ where
             prev_x,
         },
         |raw_xs, data| {
-            let xs = Schedule::from_raw(data.o.p.d, data.o.w, raw_xs);
-            let p = data.o.p.reset(data.t_start);
+            let xs = Schedule::from_raw(data.o.p.d, data.o.w + 1, raw_xs);
+            let p = data.o.p.reset(data.t_start - 1);
             p.objective_function_with_default(&xs, &data.prev_x)
                 .unwrap()
                 .cost

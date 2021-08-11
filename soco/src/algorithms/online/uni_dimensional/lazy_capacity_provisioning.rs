@@ -2,12 +2,13 @@ use crate::algorithms::capacity_provisioning::Bounded;
 use crate::algorithms::online::Step;
 use crate::config::Config;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
+use crate::numerics::PRECISION;
 use crate::problem::{Online, Problem};
 use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::{assert, project};
 use crate::value::Value;
-use num::NumCast;
+use num::{NumCast, ToPrimitive};
 use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
@@ -71,8 +72,8 @@ where
     let (t_start, x_start) = find_initial_time(&bounds);
 
     let i = xs.now_with_default(Config::single(NumCast::from(0).unwrap()))[0];
-    let lower = o.p.find_lower_bound(o.p.t_end(), t_start, x_start)?;
-    let upper = o.p.find_upper_bound(o.p.t_end(), t_start, x_start)?;
+    let lower = o.p.find_lower_bound(o.w, o.p.t_end(), t_start, x_start)?;
+    let upper = o.p.find_upper_bound(o.w, o.p.t_end(), t_start, x_start)?;
     let j = project(i, lower, upper);
 
     bounds.push(BoundsMemory { lower, upper });
@@ -91,7 +92,14 @@ where
         let prev_bound = &bounds[t as usize - 2];
         let bound = &bounds[t as usize - 1];
         if is_valid_initial_time(prev_bound, bound) {
-            return (t, prev_bound.upper);
+            // this should always be true, however, it may be false due to numerical inaccuracies
+            if ToPrimitive::to_f64(&(prev_bound.lower - prev_bound.upper))
+                .unwrap()
+                .abs()
+                < PRECISION
+            {
+                return (t - 1, prev_bound.upper);
+            }
         }
     }
 

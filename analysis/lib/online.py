@@ -1,11 +1,17 @@
 from typing import List, Tuple
-from soco.data_center.online import (
-    stop,
+from soco.data_center.online import stop
+from soco.data_center.online.uni_dimensional import (
     lazy_capacity_provisioning,
     memoryless,
     probabilistic,
     randomized,
     randomly_biased_greedy,
+)
+from soco.data_center.online.multi_dimensional import (
+    horizon_control,
+    lazy_budgeting,
+    online_balanced_descent,
+    online_gradient_descent,
 )
 from soco.data_center.model import DataCenterModel
 from tqdm import tqdm
@@ -37,8 +43,9 @@ def evaluate(
         fractional, integral, m, runtime = alg.next(ADDR, online_inp[i])
         cost = fractional[1][0]
         int_cost = integral[1][0]
-        energy_cost = integral[1][1].energy_cost
-        revenue_loss = integral[1][1].revenue_loss
+        if integral[1][1] is not None:
+            energy_cost = integral[1][1].energy_cost
+            revenue_loss = integral[1][1].revenue_loss
         assert int_cost >= energy_cost + revenue_loss
         xs.append(integral[0])
         ms.append(m)
@@ -174,4 +181,168 @@ def evaluate_randomly_biased_greedy(
     )
     return evaluate(
         randomly_biased_greedy, online_inp, fractional, integral, m, initial_runtime
+    )
+
+
+def evaluate_lazy_budgeting_slo(
+    model: DataCenterModel,
+    offline_inp: List[List[int]],
+    online_inp: List[List[List[List[int]]]],
+    randomized: bool = False,
+) -> Tuple[float, float]:
+    options = lazy_budgeting.smoothed_load_optimization.Options(randomized)
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = lazy_budgeting.smoothed_load_optimization.start(
+        ADDR, model, offline_inp, 0, options
+    )
+    return evaluate(
+        lazy_budgeting.smoothed_load_optimization,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    )
+
+
+def evaluate_lazy_budgeting_sblo(
+    model: DataCenterModel,
+    offline_inp: List[List[int]],
+    online_inp: List[List[List[List[int]]]],
+    epsilon: float = 0.25,
+) -> Tuple[float, float]:
+    options = lazy_budgeting.smoothed_balanced_load_optimization.Options(epsilon)
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = lazy_budgeting.smoothed_balanced_load_optimization.start(
+        ADDR, model, offline_inp, 0, options
+    )
+    return evaluate(
+        lazy_budgeting.smoothed_balanced_load_optimization,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    )
+
+
+def evaluate_pobd(
+    model: DataCenterModel,
+    offline_inp: List[List[int]],
+    online_inp: List[List[List[List[int]]]],
+    beta: float = 0.5,
+) -> Tuple[float, float]:
+    options = online_balanced_descent.primal.Options.euclidean_squared(beta)
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = online_balanced_descent.primal.start(ADDR, model, offline_inp, 0, options)
+    return evaluate(
+        online_balanced_descent.primal,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    )
+
+
+def evaluate_dobd(
+    model: DataCenterModel,
+    offline_inp: List[List[int]],
+    online_inp: List[List[List[List[int]]]],
+    eta: float = 1,
+) -> Tuple[float, float]:
+    options = online_balanced_descent.dual.Options.euclidean_squared(eta)
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = online_balanced_descent.dual.start(ADDR, model, offline_inp, 0, options)
+    return evaluate(
+        online_balanced_descent.dual,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    )
+
+
+def evaluate_ogd(
+    model: DataCenterModel,
+    offline_inp: List[List[int]],
+    online_inp: List[List[List[List[int]]]],
+) -> Tuple[float, float]:
+    options = online_gradient_descent.Options.sqrt()
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = online_gradient_descent.start(ADDR, model, offline_inp, 0, options)
+    return evaluate(
+        online_gradient_descent,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    )
+
+
+def evaluate_receding_horizon_control(
+    model: DataCenterModel,
+    offline_inp: List[List[int]],
+    online_inp: List[List[List[List[int]]]],
+    w: int = 0,
+) -> Tuple[float, float]:
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = horizon_control.receding_horizon_control.start(ADDR, model, offline_inp, w)
+    return evaluate(
+        horizon_control.receding_horizon_control,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    )
+
+
+def evaluate_averaging_fixed_horizon_control(
+    model: DataCenterModel,
+    offline_inp: List[List[int]],
+    online_inp: List[List[List[List[int]]]],
+    w: int = 0,
+) -> Tuple[float, float]:
+    (
+        fractional,
+        integral,
+        m,
+        initial_runtime,
+    ) = horizon_control.averaging_fixed_horizon_control.start(
+        ADDR, model, offline_inp, w
+    )
+    return evaluate(
+        horizon_control.averaging_fixed_horizon_control,
+        online_inp,
+        fractional,
+        integral,
+        m,
+        initial_runtime,
     )

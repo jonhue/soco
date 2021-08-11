@@ -42,8 +42,8 @@ where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    let lower = p.find_alpha_unfair_lower_bound(alpha, t, 0, 0.)?;
-    let upper = p.find_alpha_unfair_upper_bound(alpha, t, 0, 0.)?;
+    let lower = p.find_alpha_unfair_lower_bound(alpha, 0, t, 0, 0.)?;
+    let upper = p.find_alpha_unfair_upper_bound(alpha, 0, t, 0, 0.)?;
 
     Ok(project(x, lower, upper))
 }

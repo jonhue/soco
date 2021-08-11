@@ -4,9 +4,8 @@ use crate::algorithms::Options;
 use crate::config::Config;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::problem::{DefaultGivenOnlineProblem, Online, Problem};
-use crate::result::{Failure, Result};
+use crate::result::Result;
 use crate::schedule::Schedule;
-use crate::utils::assert;
 use crate::value::Value;
 use pyo3::{IntoPy, PyObject};
 use serde::de::DeserializeOwned;
@@ -86,14 +85,6 @@ where
         options: O,
     ) -> Result<Step<T, M>> {
         let t = xs.t_end() + 1;
-        assert(
-            o.p.t_end() == t + o.w,
-            Failure::OnlineInsufficientInformation {
-                t_end: o.p.t_end(),
-                t,
-                w: o.w,
-            },
-        )?;
         let prev_m = match prev_m_ {
             None => M::default(&o),
             Some(prev_m) => prev_m,

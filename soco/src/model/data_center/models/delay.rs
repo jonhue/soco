@@ -12,7 +12,7 @@ pub fn average_delay(
     number_of_jobs: N64,
     mean_job_duration: N64,
 ) -> N64 {
-    if number_of_jobs != n64(0.) && mean_job_duration != n64(0.) {
+    if number_of_jobs > n64(0.) && mean_job_duration > n64(0.) {
         let service_rate = n64(1.) / mean_job_duration;
         let arrival_rate = number_of_jobs / delta;
         if arrival_rate < service_rate {

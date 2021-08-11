@@ -4,6 +4,7 @@ use crate::numerics::{ApplicablePrecision, TOLERANCE};
 use bacon_sci::differentiate::{
     derivative as derivative_, second_derivative as second_derivative_,
 };
+use finitediff::FiniteDiff;
 use log::warn;
 use noisy_float::prelude::*;
 
@@ -35,4 +36,17 @@ pub fn second_derivative(f: impl Fn(f64) -> f64, x: f64) -> N64 {
         return n64(0.);
     }
     n64(result)
+}
+
+pub fn gradient(f: &impl Fn(&Vec<f64>) -> f64, xs: Vec<f64>) -> Vec<f64> {
+    let result = xs.central_diff(f);
+    result.iter().map(|&d| {
+        if d.is_nan() {
+            warn!(
+                "First-order finite difference returned NaN. Assuming result `0`."
+            );
+            return 0.;
+        }
+        d
+    }).collect()
 }
