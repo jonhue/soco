@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod meta {
+mod dual {
     use crate::{factories::inv_e, utils::upper_bounds};
     use num::Float;
     use soco::algorithms::online::multi_dimensional::online_balanced_descent::dual::{dobd, Options};

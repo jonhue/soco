@@ -31,10 +31,10 @@ mod rhc {
         assert_eq!(
             result.0.to_i(),
             Schedule::new(vec![
-                Config::new(vec![0, 1]),
-                Config::new(vec![2, 1]),
-                Config::new(vec![2, 1]),
-                Config::new(vec![2, 1]),
+                Config::new(vec![0, 0]),
+                Config::new(vec![1, 1]),
+                Config::new(vec![1, 1]),
+                Config::new(vec![1, 1]),
                 Config::new(vec![2, 1])
             ])
         );

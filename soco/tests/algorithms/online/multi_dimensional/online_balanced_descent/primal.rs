@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod meta {
+mod primal {
     use crate::{factories::inv_e, utils::upper_bounds};
     use num::Float;
     use soco::algorithms::online::multi_dimensional::online_balanced_descent::primal::{pobd, Options};
@@ -37,7 +37,7 @@ mod meta {
         assert_eq!(
             result.0.to_i(),
             Schedule::new(vec![
-                Config::new(vec![1, 1]),
+                Config::new(vec![2, 1]),
                 Config::new(vec![2, 1]),
                 Config::new(vec![2, 1]),
                 Config::new(vec![2, 1]),

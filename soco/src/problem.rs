@@ -140,7 +140,7 @@ where
         T: Value<'a>,
     {
         Ok(sum_over_schedule(
-            self.t_end() + 1,
+            self.t_end(),
             xs,
             default,
             |t, prev_x, x| {
@@ -170,7 +170,7 @@ where
         let default = self._default_config();
         Ok(
             sum_over_schedule(
-                self.t_end() + 1,
+                self.t_end(),
                 xs,
                 &default,
                 |_, prev_x, x| RawCost::raw(self.movement(prev_x, x, inverted)),
@@ -267,7 +267,7 @@ where
 {
     fn hit_cost(&self, t: i32, x: Config<T>) -> Cost<C, D> {
         self.hitting_cost
-            .call_certain_within_bounds(t, x, &self.bounds)
+            .call_mean_within_bounds(t, x, &self.bounds)
     }
 
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64 {
@@ -371,7 +371,7 @@ where
                         Ok(DataCenterObjective::new(
                             safe_balancing(x, total_load, || {
                                 Ok(x * self.hitting_cost[k]
-                                    .call_certain(t, (total_load / x).raw())
+                                    .call_mean(t, (total_load / x).raw())
                                     .cost)
                             })?,
                             n64(0.),
@@ -382,7 +382,7 @@ where
             loads,
             1,
         )
-        .call_certain_within_bounds(t, x, &bounds)
+        .call_mean_within_bounds(t, x, &bounds)
     }
 
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64 {

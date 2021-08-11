@@ -8,7 +8,6 @@ use crate::result::{Failure, Result};
 use crate::schedule::Schedule;
 use crate::utils::{assert, project};
 use crate::value::Value;
-use log::debug;
 use num::{NumCast, ToPrimitive};
 use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
