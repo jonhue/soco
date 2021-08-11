@@ -2,91 +2,14 @@
 \begin{tikzpicture}
 
 \begin{axis}[
-legend pos=north west,
-tick align=outside,
-tick pos=left,
-% x grid style={white!69.0196078431373!black},
-xlabel={time (hours)},
-xmin=1, xmax=24,
-% xtick style={color=black},
-% y grid style={white!69.0196078431373!black},
-% ylabel={number of servers},
-ymin=0, ymax=30,
-% ytick style={color=black}
-]
-\addplot [semithick, black, const plot mark left]
-table {%
-1 0
-2 0
-3 0
-4 0
-5 0
-6 0
-7 0
-8 0
-9 0
-10 0
-11 0
-12 0
-13 0
-14 0
-15 0
-16 0
-17 0
-18 0
-19 0
-20 0
-21 0
-22 0
-23 0
-24 0
-};
-\addlegendentry{$OPT$ 2 GPUs}
-\addplot [ultra thick, black, const plot mark left]
-table {%
-1 5
-2 6
-3 5
-4 5
-5 5
-6 5
-7 5
-8 5
-9 5
-10 5
-11 5
-12 5
-13 5
-14 17
-15 17
-16 17
-17 17
-18 17
-19 17
-20 17
-21 17
-22 17
-23 4
-24 4
-};
-\addlegendentry{$OPT$ 8 GPUs}
-
-\draw[dashed, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},0) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},0);
-\addlegendimage{dashed, color=black}
-\addlegendentry{$OPT_s$ 2 GPUs}
-\draw[dashed, ultra thick, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},17) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},17);
-\addlegendimage{dashed, ultra thick, color=black}
-\addlegendentry{$OPT_s$ 8 GPUs}
-\end{axis}
-
-\begin{axis}[
+legend pos=north east,
 axis y line*=right,
 axis x line=none,
 xmin=1, xmax=24,
-ymin=0, ymax=200,
+ymin=-10, ymax=200,
 % ylabel=load
 ]
-\addplot [semithick, red, const plot mark left]
+\addplot [semithick, red, const plot mark left, name path=A]
 table {%
 1 32
 2 43
@@ -113,6 +36,88 @@ table {%
 23 27
 24 23
 };
+\addlegendentry{load}
+
+\addplot+[draw=none,domain=0:24,name path=B] {-10000};
+\addplot+[red!5] fill between[of=A and B];
+\end{axis}
+
+\begin{axis}[
+legend pos=north west,
+tick align=outside,
+tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xlabel={time (hours)},
+xmin=1, xmax=24,
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+% ylabel={number of servers},
+ymin=-1.5, ymax=42,
+% ytick style={color=black}
+]
+\addplot [semithick, black, const plot mark left]
+table {%
+1 9
+2 13
+3 0
+4 0
+5 0
+6 0
+7 0
+8 0
+9 0
+10 0
+11 0
+12 0
+13 0
+14 34
+15 34
+16 34
+17 34
+18 29
+19 29
+20 29
+21 29
+22 29
+23 0
+24 0
+};
+\addlegendentry{$OPT$ 2 GPUs}
+\addplot [ultra thick, black, const plot mark left]
+table {%
+1 4
+2 4
+3 4
+4 4
+5 4
+6 4
+7 4
+8 4
+9 4
+10 4
+11 4
+12 4
+13 4
+14 12
+15 12
+16 12
+17 12
+18 12
+19 12
+20 12
+21 12
+22 12
+23 4
+24 4
+};
+\addlegendentry{$OPT$ 8 GPUs}
+
+\draw[dashed, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},0) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},0);
+\addlegendimage{dashed, color=black}
+\addlegendentry{$OPT_s$ 2 GPUs}
+\draw[dashed, ultra thick, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},17) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},17);
+\addlegendimage{dashed, ultra thick, color=black}
+\addlegendentry{$OPT_s$ 8 GPUs}
 \end{axis}
 
 \end{tikzpicture}

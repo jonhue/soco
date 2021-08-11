@@ -13,10 +13,10 @@ xlabel={},
 xmin=-0.5, xmax=4.5,
 % xtick style={color=black},
 xtick={0,1,2,3,4},
-xticklabels={FB 09-0,FB 09-1,FB 10,LANL,Alibaba},
+xticklabels={FB 09-0,FB 09-1,FB 10,LANL,MS,Alibaba},
 % y grid style={white!69.0196078431373!black},
-ylabel={$c(OPT_s) / c(OPT)$},
-ymin=0.9, ymax=4,
+ylabel={static/dynamic ratio},
+ymin=0.9, ymax=2.75,
 % ytick style={color=black}
 ]
 \addplot
@@ -25,7 +25,8 @@ table {%
 1 1.1540470009508415
 2 1.0479312893570394
 3 2.4294509720294735
-4 3.463604774571692
+4 1.9696643
+5 1.068293057
 };
 \addplot
 table {%
@@ -33,7 +34,8 @@ table {%
 1 1.0433664197908732
 2 1
 3 1.9200838991565596
-4 2.0882736330081575
+4 1.29969
+5 1.011010843
 };
 \legend{model 1, model 2}
 \end{axis}

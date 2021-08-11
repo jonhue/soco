@@ -1,0 +1,174 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+legend pos=north west,
+tick align=outside,
+tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xlabel={time (hours)},
+xmin=1, xmax=24,
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+% ylabel={number of servers},
+ymin=-6.5, ymax=130,
+% ytick style={color=black}
+]
+\addplot [semithick, green, const plot mark left]
+table {%
+1 32
+2 43
+3 43
+4 43
+5 29
+6 18
+7 18
+8 18
+9 18
+10 15
+11 22
+12 22
+13 22
+14 121
+15 114
+16 114
+17 114
+18 15
+19 0
+20 0
+21 0
+22 58
+23 58
+24 58
+};
+\addlegendentry{$ALG$ 2 GPUs}
+\addplot [ultra thick, green, const plot mark left]
+table {%
+1 0
+2 0
+3 0
+4 0
+5 0
+6 0
+7 0
+8 0
+9 0
+10 0
+11 0
+12 0
+13 0
+14 0
+15 0
+16 0
+17 0
+18 31
+19 31
+20 31
+21 31
+22 58
+23 109
+24 109
+};
+\addlegendentry{$ALG$ 8 GPUs}
+\addplot [semithick, black, const plot mark left]
+table {%
+1 16
+2 23
+3 15
+4 15
+5 15
+6 0
+7 0
+8 0
+9 0
+10 0
+11 0
+12 0
+13 0
+14 61
+15 61
+16 61
+17 61
+18 55
+19 55
+20 55
+21 55
+22 61
+23 0
+24 0
+};
+\addlegendentry{$OPT$ 2 GPUs}
+\addplot [ultra thick, black, const plot mark left]
+table {%
+1 16
+2 21
+3 15
+4 15
+5 15
+6 15
+7 15
+8 15
+9 15
+10 15
+11 22
+12 22
+13 22
+14 61
+15 61
+16 61
+17 61
+18 55
+19 55
+20 55
+21 55
+22 55
+23 28
+24 23
+};
+\addlegendentry{$OPT$ 8 GPUs}
+
+\draw[dashed, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},0) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},0);
+\addlegendimage{dashed, color=black}
+\addlegendentry{$OPT_s$ 2 GPUs}
+\draw[dashed, ultra thick, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},122) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},122);
+\addlegendimage{dashed, ultra thick, color=black}
+\addlegendentry{$OPT_s$ 8 GPUs}
+\end{axis}
+
+% \begin{axis}[
+% axis y line*=right,
+% axis x line=none,
+% xmin=1, xmax=24,
+% ymin=0, ymax=200,
+% ylabel=load
+% ]
+% \addplot [semithick, red, const plot mark left]
+% table {%
+% 1 32
+% 2 43
+% 3 42
+% 4 16
+% 5 29
+% 6 9
+% 7 9
+% 8 13
+% 9 12
+% 10 15
+% 11 22
+% 12 10
+% 13 14
+% 14 121
+% 15 22
+% 16 25
+% 17 122
+% 18 12
+% 19 27
+% 20 8
+% 21 16
+% 22 115
+% 23 27
+% 24 23
+% };
+% \end{axis}
+
+\end{tikzpicture}

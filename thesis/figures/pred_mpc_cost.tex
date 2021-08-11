@@ -1,0 +1,48 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+% tick align=outside,
+% tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xlabel={prediction window $w$},
+xmin=0, xmax=24,
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+% ylabel={normalized cost},
+ymin=1, ymax=1.2,
+% ytick style={color=black}
+]
+\addplot [mark=x,red]
+table {%
+0 1.043876404
+1 1.077904071
+2 1.077904071
+3 1.096849433
+4 1.077911928
+6 1.077904071
+8 1.077904071
+12 1.06902603
+16 1.0740756
+20 1.076362197
+24 1.079518259
+};
+\addlegendentry{RHC}
+\addplot [mark=x,blue]
+table {%
+0 1.043876404
+1 1.042590748
+2 1.049217045
+3 1.050676806
+4 1.064636454
+6 1.063182574
+8 1.080176738
+12 1.092145632
+16 1.108752789
+20 1.116262537
+24 1.116262537
+};
+\addlegendentry{AFHC}
+\end{axis}
+
+\end{tikzpicture}

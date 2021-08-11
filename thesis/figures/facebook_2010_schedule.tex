@@ -3,6 +3,46 @@
 
 \begin{axis}[
 legend pos=north east,
+axis y line*=right,
+axis x line=none,
+xmin=1, xmax=23,
+ymin=0, ymax=2500,
+ylabel=load
+]
+\addplot [semithick, red, const plot mark left, name path=A]
+table {%
+1 1043
+2 1646
+3 1118
+4 1564
+5 1010
+6 741
+7 1259
+8 1551
+9 1096
+10 911
+11 687
+12 1432
+13 1223
+14 380
+15 818
+16 903
+17 1051
+18 822
+19 1089
+20 892
+21 1490
+22 977
+23 739
+};
+\addlegendentry{load}
+
+\addplot+[draw=none,domain=0:24,name path=B] {-10000};
+\addplot+[red!5] fill between[of=A and B];
+\end{axis}
+
+\begin{axis}[
+legend pos=north west,
 tick align=outside,
 tick pos=left,
 % x grid style={white!69.0196078431373!black},
@@ -11,7 +51,7 @@ xmin=1, xmax=23,
 % xtick style={color=black},
 % y grid style={white!69.0196078431373!black},
 % ylabel={number of servers},
-ymin=0, ymax=2250,
+ymin=0, ymax=3000,
 % ytick style={color=black}
 ]
 \addplot [semithick, black, const plot mark left]
@@ -45,41 +85,6 @@ table {%
 \draw[dashed, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},1000) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},1000);
 \addlegendimage{dashed, color=black}
 \addlegendentry{$OPT_s$}
-\end{axis}
-
-\begin{axis}[
-axis y line*=right,
-axis x line=none,
-xmin=1, xmax=23,
-ymin=0, ymax=2000,
-ylabel=load
-]
-\addplot [semithick, red, const plot mark left]
-table {%
-1 1043
-2 1646
-3 1118
-4 1564
-5 1010
-6 741
-7 1259
-8 1551
-9 1096
-10 911
-11 687
-12 1432
-13 1223
-14 380
-15 818
-16 903
-17 1051
-18 822
-19 1089
-20 892
-21 1490
-22 977
-23 739
-};
 \end{axis}
 
 \end{tikzpicture}

@@ -1,0 +1,40 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+ybar,
+height=8cm,
+% tick align=outside,
+% tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xmin=-0.5, xmax=4.5,
+xtick={0,1,2,3,4,5,6},
+xticklabel style={rotate=90.0},
+xticklabels={Memoryless,LCP,Int-LCP,Probabilistic,Rand-Probabilistic},
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+ylabel={cost reduction (\%)},
+ymin=-20, ymax=20,
+/pgf/number format/precision=5,
+% ytick style={color=black}
+]
+\addplot
+table {%
+0 -2.6773166
+1 9.4800549
+2 -1.43078
+3 -2.3123229
+4 -2.508807
+};
+\addplot
+table {%
+0 -8.0181426
+1 -1.5303087
+2 -13.3395591
+3 -13.1603326
+4 -13.2301154
+};
+\legend{model 1, model 2}
+\end{axis}
+
+\end{tikzpicture}

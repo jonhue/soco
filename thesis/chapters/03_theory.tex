@@ -73,7 +73,7 @@ We now observe that given the optimal offline solution $OPT$ with schedule $\hat
 Another metric used to bridge the gap between the competitive ratio and regret is the \emph{$\alpha$-unfair competitive ratio} which penalizes movement in the decision space by an additional factor $\alpha$~\cite{Andrew2015}.
 
 \begin{definition}\index{unfair competitive ratio}
-\cite{Andrew2015} The $\alpha$-unfair competitive ratio of an online algorithm $ALG$ for a minimization problem $c$ is $\rho(T)$ if for all instances of the problem the ratio of the result of the algorithm and the dynamic $\alpha$-unfair offline solution $OPT_{\alpha}$ does not exceed $\rho(T)$, i.e. $c(ALG) \leq \rho(T) \cdot c(OPT_{\alpha})$.
+\cite{Andrew2015} The $\alpha$-unfair competitive ratio of an online algorithm $ALG$ for a minimization problem $c$ is $\beta$ if for all instances of the problem the ratio of the result of the algorithm and the dynamic $\alpha$-unfair offline solution $OPT_{\alpha}$ does not exceed $\beta$, i.e. $c(ALG) \leq \beta \cdot c(OPT_{\alpha})$.
 
 Here, the $\alpha$-unfair optimal offline solution $OPT_{\alpha}$ is defined as the minimizer of \begin{align*}
     \sum_{t=1}^T f_t(X_t) + \alpha \norm{X_t - X_{t-1}}.
@@ -313,7 +313,7 @@ To show convexity of $f_1$, it suffices to show that $h(x) = n - \sum_{i=1}^n x_
 We now turn to a variant of Int-SSCO introduced by \citeauthor*{Albers2021_2}~\cite{Albers2021_2} that further restricts the structure of the convex cost functions. This restriction is motivated by the usual cost model of heterogeneous data centers with homogeneous loads we examined in detail in \cref{section:application:dispatching:optimal_load_balancing} where the incoming load (or set of jobs) is distributed equally among all active servers.
 
 Given a sequence of convex increasing non-negative costs $g_{t,k}(l)$ of each instance in dimension $k$ given its load $l$ during time slot $t$, the overall cost for dimension $k$ during time slot $t$ is given as \begin{align*}
-    h_{t,k}(x,z) := \begin{cases}
+    h_{t,k}(x,z) := \begin{cases} 
         x g_{t,k}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
         \infty                                  & x = 0 \land l_{t,k} > 0 \\
         0                                       & x = 0 \land l_{t,k} = 0

@@ -1,0 +1,78 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+% tick align=outside,
+% tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xlabel={prediction window $w$},
+xmin=1, xmax=24,
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+ylabel={normalized cost},
+ymin=0.995, ymax=1.25,
+% ytick style={color=black}
+]
+\addplot [mark=x,red]
+table {%
+0 1.098736948
+1 1.175687427
+2 1.075631818
+3 1.072634645
+4 1.070999275
+6 1.138422029
+8 1.094499546
+12 1.094499546
+16 1.06923045
+20 1.080885023
+24 1.039921325
+};
+\addlegendentry{LCP (perfect)}
+\addplot [mark=x,blue]
+table {%
+0 1.134416689
+1 1.047299695
+2 1.022549638
+3 1.022528928
+4 1.014063942
+6 1.00519416
+8 1
+12 1
+16 1
+20 1
+24 1
+};
+\addlegendentry{Int-LCP (perfect)}
+\addplot [mark=x,red,thick]
+table {%
+0 1.098736948
+1 1.082887541
+2 1.098133413
+3 1.073693844
+4 1.08498568
+6 1.067637295
+8 1.081397557
+12 1.073772973
+16 1.13110595
+20 1.08225852
+24 1.08225852
+};
+\addlegendentry{LCP (imperfect)}
+\addplot [mark=x,blue,thick]
+table {%
+0 1.134416689
+1 1.069284948
+2 1.064359748
+3 1.059832012
+4 1.057992166
+6 1.049956689
+8 1.039784723
+12 1.039784723
+16 1.039784723
+20 1.039784723
+24 1.039784723
+};
+\addlegendentry{Int-LCP (imperfect)}
+\end{axis}
+
+\end{tikzpicture}

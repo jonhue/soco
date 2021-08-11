@@ -454,5 +454,12 @@ table {%
 143 5.47794117647059
 };
 \end{axis}
+\begin{axis}[
+xmin=0,xmax=24,
+axis y line=none,
+axis x line*=top,
+xlabel=time (hours)]
+\addplot [draw=none,forget plot] {x};
+\end{axis}
 
 \end{tikzpicture}

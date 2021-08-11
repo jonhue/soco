@@ -1,0 +1,73 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\begin{axis}[
+legend pos=south east,
+tick align=outside,
+tick pos=left,
+% x grid style={white!69.0196078431373!black},
+xlabel={time (hours)},
+xmin=1, xmax=23,
+% xtick style={color=black},
+% y grid style={white!69.0196078431373!black},
+ylabel={number of servers},
+ymin=-17.5, ymax=350,
+% ytick style={color=black}
+]
+\addplot [semithick, blue, const plot mark left]
+table {%
+1 48
+2 102
+3 114
+4 119
+5 206
+6 148
+7 264
+8 245
+9 147
+10 145
+11 77
+12 43
+13 85
+14 195
+15 90
+16 101
+17 90
+18 172
+19 246
+20 241
+21 198
+22 87
+23 309
+};
+\addlegendentry{Int-LCP}
+\addplot [semithick, red, const plot mark left]
+table {%
+1 48
+2 102
+3 115
+4 119
+5 207
+6 171
+7 264
+8 264
+9 264
+10 264
+11 264
+12 264
+13 264
+14 264
+15 264
+16 264
+17 264
+18 264
+19 284
+20 284
+21 284
+22 284
+23 310
+};
+\addlegendentry{LCP}
+\end{axis}
+
+\end{tikzpicture}

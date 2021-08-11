@@ -46,7 +46,7 @@ We first consider the homogeneous setting. In the homogeneous case, we write $g_
 \end{align} It is easy to see that this definition of $f_t$ is jointly convex in $\lambda_t$ and $x$. Crucially, this is an approximation as we did not impose the restriction that job arrival rates must be integral, which is required in practice.
 
 In the heterogeneous setting, it is easy to see that there is no single optimal dispatching rule. However, our analysis implies that the optimal dispatching strategy is to load balance within one server type, even in the heterogeneous setting~\cite{Albers2021_2}. We define the operating cost for servers of type $k$ during time slot $t$ as \begin{align}\label{eq:heterogeneous_load_balancing_unit}
-    h_{t,k}(x,z) := \begin{cases}
+    h_{t,k}(x,z) := \begin{cases} 
         x g_{t,k}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
         \infty                                  & x = 0 \land l_{t,k} > 0 \\
         0                                       & x = 0 \land l_{t,k} = 0
@@ -70,7 +70,7 @@ The problem becomes harder when we consider heterogeneous loads. However, as we 
 \end{align*} where $\lambda_t := \sum_{i=1}^e \lambda_{t,i}$. Here, $z_{t,k,i}$ is the fraction of jobs of type $i$ assigned to servers of type $k$ during time slot $t$. $\lambda_{t,i} / \lambda_t$ is the fraction of jobs of type $i$ at time $t$.
 
 We continue to use optimal load balancing similarly to \cref{eq:heterogeneous_load_balancing_unit} to distribute load evenly across all servers of the same type. However, we introduce an additional cost that is paid per job of type $i$ that is processed on a server of type $k$. Our new operating cost for servers of type $k$ during time slot $t$ thus becomes \begin{align}\label{eq:multiple_load_types_load_balancing_unit}
-    h_{t,k}(x,z) := \begin{cases}
+    h_{t,k}(x,z) := \begin{cases} 
         x g_{t,k}\left(\frac{l_{t,k}}{x}\right) + \sum_{i=1}^e l_{t,k,i} q_{t,k,i}\left(\frac{l_{t,k}}{x}\right) & x > 0 \\
         \infty                                                                                                   & x = 0 \land l_{t,k} > 0 \\
         0                                                                                                        & x = 0 \land l_{t,k} = 0

@@ -1,0 +1,38 @@
+\pgfplotstableread{
+X Y
+2.115 1.1862049328218298
+1.913 1.1540470009508415
+1.549 1.0479312893570394
+6.575 2.4294509720294735
+3.822 1.9696643
+1.339 1.068293057
+}\a
+\pgfplotstableread{
+X Y
+2.115 1.071842679781245
+1.913 1.0433664197908732
+1.549 1
+6.575 1.9200838991565596
+3.822 1.29969
+1.339 1.011010843
+}\b
+
+\begin{tikzpicture}
+\begin{axis}[
+legend pos=south east,
+ylabel={static/dynamic ratio},
+xlabel={PMR}]
+\addplot [only marks, blue, mark = o] table {\a};
+\addlegendentry{model 1}
+\addplot [only marks, red, mark = o] table {\b};
+\addlegendentry{model 2}
+\addplot [thick, blue] table[
+    y={create col/linear regression={y=Y}}
+] % compute a linear regression from the input table
+{\a};
+\addplot [thick, red] table[
+    y={create col/linear regression={y=Y}}
+] % compute a linear regression from the input table
+{\b};
+\end{axis}
+\end{tikzpicture}

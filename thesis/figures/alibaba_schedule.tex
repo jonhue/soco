@@ -2,7 +2,136 @@
 \begin{tikzpicture}
 
 \begin{axis}[
-legend style={at={(axis cs:23.3,3500)},anchor=north east},
+legend pos=north east,
+% stack plots=y,
+axis y line*=right,
+axis x line=none,
+xmin=1, xmax=24,
+ymin=-9500, ymax=190000,
+ylabel=load
+]
+\addplot [semithick, cyan, const plot mark left,name path=A4]
+table {%
+1 6388
+2 4608
+3 10887
+4 3643
+5 719
+6 2126
+7 1409
+8 3239
+9 12372
+10 4711
+11 1252
+12 1090
+13 1508
+14 815
+15 612
+16 1032
+17 431
+18 488
+19 402
+20 603
+21 790
+22 1806
+23 606
+24 5420
+};
+\addlegendentry{very long}
+\addplot [semithick, green, const plot mark left,name path=A3]
+table {%
+1 154
+2 58
+3 35
+4 58
+5 53
+6 23
+7 56
+8 88
+9 106
+10 127
+11 371
+12 350
+13 238
+14 209
+15 313
+16 865
+17 128
+18 152
+19 124
+20 138
+21 123
+22 88
+23 37
+24 71
+};
+\addlegendentry{long}
+\addplot [semithick, blue, const plot mark left,name path=A2]
+table {%
+1 19071
+2 12928
+3 9869
+4 14223
+5 14023
+6 11464
+7 9042
+8 9103
+9 9109
+10 9150
+11 9320
+12 9014
+13 7913
+14 8132
+15 9713
+16 10031
+17 12864
+18 12558
+19 12909
+20 15273
+21 11957
+22 17614
+23 23001
+24 16746
+};
+\addlegendentry{medium}
+\addplot [semithick, red, const plot mark left,name path=A1]
+table {%
+1 71738
+2 54322
+3 55729
+4 60749
+5 64916
+6 67104
+7 109698
+8 104588
+9 100065
+10 91810
+11 101320
+12 66868
+13 74260
+14 67624
+15 72631
+16 57123
+17 71217
+18 63062
+19 74424
+20 60045
+21 84472
+22 104435
+23 93108
+24 87287
+};
+\addlegendentry{short}
+
+\addplot+[draw=none,domain=0:24,name path=B] {-10000};
+\addplot+[red!5] fill between[of=A1 and B];
+\addplot+[blue!5] fill between[of=A2 and B];
+\addplot+[green!5] fill between[of=A3 and B];
+\addplot+[cyan!5] fill between[of=A4 and B];
+\end{axis}
+
+\begin{axis}[
+legend pos=north west,
 tick align=outside,
 tick pos=left,
 % x grid style={white!69.0196078431373!black},
@@ -11,163 +140,41 @@ xmin=1, xmax=24,
 % xtick style={color=black},
 % y grid style={white!69.0196078431373!black},
 % ylabel={proportion of iterations},
-ymin=0, ymax=6000,
+ymin=-510, ymax=12000,
 % ytick style={color=black}
 ]
 \addplot [semithick, black, const plot mark left]
 table {%
-1 4000
-2 4000
-3 4000
-4 2223
-5 1
-6 1
-7 1
-8 1
-9 1
-10 1
-11 1
-12 1
-13 1
-14 0
-15 0
-16 0
-17 0
-18 0
-19 0
-20 0
-21 0
-22 1
-23 1
-24 1
+1 5313
+2 5313
+3 5313
+4 5313
+5 5313
+6 5313
+7 7071
+8 7071
+9 7071
+10 7071
+11 7071
+12 6428
+13 6428
+14 6428
+15 6428
+16 6428
+17 6428
+18 6428
+19 6428
+20 6428
+21 6428
+22 6428
+23 6428
+24 6428
 };
 \addlegendentry{$OPT$}
 
-\draw[dashed, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},4000) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},4000);
+\draw[dashed, color=black] (axis cs:\pgfkeysvalueof{/pgfplots/xmin},6383) -- (axis cs:\pgfkeysvalueof{/pgfplots/xmax},6383);
 \addlegendimage{dashed, color=black}
 \addlegendentry{$OPT_s$}
-\end{axis}
-
-\begin{axis}[
-legend pos=north east,
-axis y line*=right,
-axis x line=none,
-xmin=1, xmax=24,
-ymin=0, ymax=110000,
-ylabel=load
-]
-\addplot [semithick, red, const plot mark left]
-table {%
-1 77680
-2 102062
-3 71522
-4 24183
-5 2
-6 4
-7 0
-8 2
-9 1
-10 0
-11 1
-12 3
-13 1
-14 0
-15 0
-16 0
-17 0
-18 0
-19 0
-20 0
-21 0
-22 1
-23 0
-24 1
-};
-\addlegendentry{short}
-\addplot [semithick, blue, const plot mark left]
-table {%
-1 12362
-2 13705
-3 10655
-4 3024
-5 0
-6 0
-7 0
-8 0
-9 0
-10 0
-11 0
-12 0
-13 0
-14 0
-15 0
-16 0
-17 0
-18 0
-19 0
-20 0
-21 0
-22 0
-23 0
-24 0
-};
-\addlegendentry{medium}
-\addplot [semithick, green, const plot mark left]
-table {%
-1 105
-2 628
-3 164
-4 33
-5 0
-6 0
-7 0
-8 0
-9 0
-10 0
-11 0
-12 0
-13 0
-14 0
-15 0
-16 0
-17 0
-18 0
-19 0
-20 0
-21 0
-22 0
-23 0
-24 0
-};
-\addlegendentry{long}
-\addplot [semithick, cyan, const plot mark left]
-table {%
-1 2319
-2 6870
-3 550
-4 3440
-5 0
-6 0
-7 0
-8 0
-9 0
-10 0
-11 0
-12 0
-13 0
-14 0
-15 0
-16 0
-17 0
-18 0
-19 0
-20 0
-21 0
-22 0
-23 0
-24 0
-};
-\addlegendentry{very long}
 \end{axis}
 
 \end{tikzpicture}

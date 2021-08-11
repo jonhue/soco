@@ -7,15 +7,15 @@ Here, we give an overview of the algorithms that were discussed in this chapter.
     \centering
     \begin{tabularx}{\textheight}{l|l|X|l}
         name & problem & performance & time complexity \\\hline
-        \hyperref[alg:ud:lcp]{LCP} & \hyperref[problem:simplified_smoothed_convex_optimization]{SSCO} & 3-competitive & $\mathcal{O}(\tau C O_{\epsilon}^{\tau})$ \\
-        \hyperref[alg:ud:lcp]{Int-LCP} & \hyperref[problem:simplified_smoothed_convex_optimization]{Int-SSCO} & 3-competitive & $\mathcal{O}(\tau^2 C \log_2 m)$ \\
+        \hyperref[alg:ud:lcp]{LCP} & \hyperref[problem:simplified_smoothed_convex_optimization]{SSCO} & 3-competitive & $\mathcal{O}((\tau + w) C O_{\epsilon}^{\tau + w})$ \\
+        \hyperref[alg:ud:lcp]{Int-LCP} & \hyperref[problem:simplified_smoothed_convex_optimization]{Int-SSCO} & 3-competitive & $\mathcal{O}((\tau + w)^2 C \log_2 m)$ \\
         \hyperref[alg:ud:memoryless]{Memoryless} & \hyperref[problem:simplified_smoothed_convex_optimization]{SSCO} & 3-competitive & $\mathcal{O}(C O_{\epsilon}^1)$ \\
         \hyperref[alg:ud:probabilistic]{Probabilistic} & \hyperref[problem:simplified_smoothed_convex_optimization]{SSCO} & 2-competitive & $\mathcal{O}(\tau^2 C I_{\epsilon} |B_{f_0}| R_{\epsilon} O_{\epsilon}^1)$ \\
         \hyperref[alg:ud:rbg]{RBG} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $\alpha$-unfair competitive ratio $(1+\theta) / \min \{\theta, \alpha\}$ and regret $\mathcal{O}(\max \{T / \theta, \theta\})$; 2-competitive for $\theta = 1$ & $\mathcal{O}(C (O_{\epsilon}^1)^{\tau+1})$ \\
         \hyperref[alg:ud:randomized]{Rand-Probabilistic} & \hyperref[problem:simplified_smoothed_convex_optimization]{Int-SSCO} & 2-competitive & $\mathcal{O}(\tau^2 m C I_{\epsilon} R_{\epsilon} O_{\epsilon}^1)$ \\
         \hyperref[alg:ud:randomized]{Rand-RBG} & \hyperref[problem:smoothed_convex_optimization]{Int-SCO} & 2-competitive & $\mathcal{O}(C (O_{\epsilon}^1)^{\tau+1})$ \\
-    \end{tabularx}
     \caption{Taxonomy of uni-dimensional online algorithms.}
+    \end{tabularx}
 \end{table}
 
 \begin{table}[!ht]
@@ -31,7 +31,7 @@ Here, we give an overview of the algorithms that were discussed in this chapter.
         \hyperref[alg:md:dobd]{D-OBD} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $\mathcal{O}(\sqrt{T})$-regret & $\mathcal{O}(C O_{\epsilon}^d + (O_{\epsilon}^d)^2 R_{\epsilon})$ \\
         \hyperref[alg:predictions:rhc]{RHC} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $(1 + \mathcal{O}(1/w))$-competitive in one dimension; otherwise $(1 + \max_{k \in [d]} \beta_k / e_k(0))$-competitive & $\mathcal{O}(C O_{\epsilon}^{dw})$ \\
         \hyperref[alg:predictions:afhc]{AFHC} & \hyperref[problem:smoothed_convex_optimization]{SCO} & $(1 + \max_{k \in [d]} \frac{\beta_k}{(w+1) e_k(0)})$-competitive, i.e., $(1 + \mathcal{O}(1/w))$-competitive & $\mathcal{O}(w C O_{\epsilon}^{dw})$ \\
-    \end{tabularx}
     \caption{Taxonomy of multi-dimensional online algorithms.}
+    \end{tabularx}
 \end{table}
 \end{landscape}

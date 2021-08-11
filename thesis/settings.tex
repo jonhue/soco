@@ -21,7 +21,10 @@
 \usepackage{lstautogobble}
 \usepackage{tikz}
 \usetikzlibrary{patterns}
+\usetikzlibrary{intersections}
 \usepackage{pgfplots}
+\usepgfplotslibrary{fillbetween}
+\usepgfplotslibrary{dateplot}
 \usepackage{pgfplotstable}
 \usepackage{booktabs}
 \usepackage[final]{microtype}
@@ -138,7 +141,7 @@
   % we tell hyperref to use algocfproc as category and to take the appropriate ref.
   \ifthenelse{\boolean{algocf@func}}{\def\@proc@func{algocffunc}}{\def\@proc@func{algocfproc}}%
   \@ifundefined{hyper@refstepcounter}{\relax}{% if hyper@refstepcounter undefind, no hyperref, else...
-    \ifthenelse{\boolean{algocf@procnumbered}}{%
+    \ifthenelse{\boolean{algocf@procnumbered}}{% 
       \expandafter\def\csname theH\@proc@func\endcsname{\algocf@captname#3@}%if procnumbered, take \thealgocf as ref
     }{%
       \expandafter\def\csname theH\@proc@func\endcsname{\algocf@captname#3@}%else take procedure or function name

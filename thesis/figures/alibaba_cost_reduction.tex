@@ -2,32 +2,40 @@
 \begin{tikzpicture}
 
 \begin{axis}[
+legend pos=south east,
 ybar,
 height=8cm,
 % tick align=outside,
 % tick pos=left,
 % x grid style={white!69.0196078431373!black},
-xmin=-0.5, xmax=6.5,
+xmin=-0.5, xmax=4.5,
 xtick={0,1,2,3,4,5,6},
 xticklabel style={rotate=90.0},
-xticklabels={Memoryless,LCP,Int-LCP,Probabilistic,RBG,Rand-Probabilistic,Rand-RBG},
+xticklabels={Memoryless,LCP,Int-LCP,Probabilistic,Rand-Probabilistic},
 % xtick style={color=black},
 % y grid style={white!69.0196078431373!black},
-ylabel={deviation from mean cost reduction},
-ymin=-1.75, ymax=1.75,
+% ylabel={cost reduction (\%)},
+ymin=-20, ymax=0,
 /pgf/number format/precision=5,
 % ytick style={color=black}
 ]
 \addplot
 table {%
-0 -0.534
-1 0.421
-2 -1.318
-3 -1.420
-4 1.172
-5 0.785
-6 0.893
+0 -14.2617794
+1 -1.3194739
+2 -09.1237759
+3 -07.5814783
+4 -07.5985549
 };
+\addplot
+table {%
+0 -12.9927675
+1 -8.6770686
+2 -12.2061842
+3 -13.413304
+4 -13.4174715
+};
+\legend{model 1, model 2}
 \end{axis}
 
 \end{tikzpicture}

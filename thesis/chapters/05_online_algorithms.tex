@@ -14,7 +14,7 @@ Throughout this chapter, we denote by $\tau \in [T]$ the current time slot. In c
 \subsubsection{Fractional Algorithm}
 
 We begin by returning to the notion of capacity provisioning that we introduced in \cref{section:offline_algorithms:ud:capacity_provisioning}, yielding a backward-recurrent algorithm finding an optimal schedule for SSCO. This algorithm computed bounds $X_{\tau}^L$ and $X_{\tau}^U$ on the optimal solution, which only depend on the schedule up to time slot $\tau$. However, the optimal offline algorithm stayed within these bounds moving backward in time which is impossible for an online algorithm. \citeauthor*{Lin2011}~\cite{Lin2011} present a similar algorithm moving forward in time called \emph{lazy capacity provisioning}. We compute the schedule $X_{\tau}$ during time slot $\tau$ by setting $X_{\tau} = X_{\tau-1}$ unless this violates the bounds in which case we make the smallest possible change: \begin{align*}
-    X_{\tau} = \begin{cases}
+    X_{\tau} = \begin{cases} 
         0 & \tau \leq 0 \\
         (X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U} & \tau \geq 1
     \end{cases}
@@ -53,7 +53,7 @@ While not changing the worst-case complexity, this significantly improves the pr
 
 \subsubsection{Integral Algorithm}
 
-\citeauthor*{Albers2018}~\cite{Albers2018} applied lazy capacity provisioning to the integral variant Int-SSCO using their graph-based offline algorithm discussed in \cref{section:offline_algorithms:ud:graph_based} to compute the integral lower and upper bounds. It is apparent that this immediately yields a deterministic online algorithm for Int-SSCO. \citeauthor*{Albers2018}~\cite{Albers2018} showed that similar to lazy capacity provisioning, their algorithm is $3$-competitive. Due to the changed method of determining the bounds, its runtime is $\mathcal{O}(\tau^2 C \log_2 m)$. Note that it is impossible to cache the intermediate results of the dynamic program (see \cref{alg:ud:optimal_graph_search}) as the binary search over possible configurations considers different vertices depending on the obtained schedule, which changes over time. Thus, for large $\tau$, it may be beneficial to use caching instead of binary search resulting in a runtime of $\mathcal{O}(\tau C m)$. By using the same method of shortening the used history that was proposed by \citeauthor*{Lin2011}~\cite{Lin2011}, we can reduce this time complexity drastically in practice (for large $\tau$). Thus, the adopted algorithm is still described by \cref{alg:ud:lcp}. We simply need to slightly modify the graph-based algorithm computing optimal offline solutions to allow for initial conditions other than $0$.
+\citeauthor*{Albers2018}~\cite{Albers2018} applied lazy capacity provisioning to the integral variant Int-SSCO using their graph-based offline algorithm discussed in \cref{section:offline_algorithms:ud:graph_based} to compute the integral lower and upper bounds. It is apparent that this immediately yields a deterministic online algorithm for Int-SSCO. \citeauthor*{Albers2018}~\cite{Albers2018} showed that similar to lazy capacity provisioning, their algorithm is $3$-competitive. Due to the changed method of determining the bounds, its runtime is $\mathcal{O}(\tau^2 C \log_2 m)$. Note that it is impossible to cache the intermediate results of the dynamic program (see \cref{alg:ud:optimal_graph_search}) as the binary search over possible configurations considers different vertices depending on the obtained schedule, which changes over time. Thus, for large $\tau$, it may be beneficial to use caching instead of binary search resulting in a worst-case runtime of $\mathcal{O}(\tau C m)$. By using the same method of shortening the used history that was proposed by \citeauthor*{Lin2011}~\cite{Lin2011}, we can reduce this time complexity drastically in practice (for large $\tau$). Thus, the adopted algorithm is still described by \cref{alg:ud:lcp}. We simply need to slightly modify the graph-based algorithm computing optimal offline solutions to allow for initial conditions other than $0$.
 
 \subsection{Memoryless Algorithm}\label{section:online_algorithms:ud:memoryless}
 
@@ -642,7 +642,7 @@ Returning to the description of D-OBD, for some fixed learning rate $\eta$, $l$ 
 
 An evaluation of the dual norm can be computed $\epsilon$-optimally in $\mathcal{O_{\epsilon}^d}$ time. Thus, assuming the runtime of $h$ is constant, $l$ can be found in $\mathcal{O}((O_{\epsilon}^d)^2 R_{\epsilon})$ time. Overall, the asymptotic time complexity of D-OBD is given as $\mathcal{O}(C O_{\epsilon}^d + (O_{\epsilon}^d)^2 R_{\epsilon})$.
 
-\subsubsection{Greedy and Regularized Algorithm}
+\subsubsection{Greedy and Regularized Algorithms}
 
 Later, \citeauthor*{Goel2019}~\cite{Goel2019} proposed two additional algorithms using the OBD framework, \emph{greedy online balanced descent} (G-OBD) and \emph{regularized online balanced descent} (R-OBD). Both algorithms yield strong guarantees for the competitive ratio in the setting of squared $\ell_2$ norm movement costs and $\alpha$-strongly convex hitting costs where the optimal competitive ratio is $\mathcal{O}(1 / \sqrt{\alpha})$ as $\alpha$ approaches zero. G-OBD achieves this competitive ratio for quasiconvex\footnote{A function is quasiconvex iff it has a unique global minimum.} hitting costs that are $\alpha$-strongly convex around their minimizer and squared $\ell_2$ norm movement costs. R-OBD achieves this competitive ratio for $\alpha$-strongly convex hitting costs and arbitrary Bregman divergences as movement costs.
 
@@ -659,15 +659,17 @@ A natural model to allow incorporating predictions is the use of a finite predic
 \subsubsection{Lazy Capacity Provisioning with Prediction Window}
 
 \citeauthor*{Lin2011}~\cite{Lin2011} extend their algorithm lazy capacity provisioning, which we discussed in \cref{section:online_algorithms:ud:lazy_capacity_provisioning} to support the prediction window by changing the update rule to \begin{align*}
-    X_{\tau} = \begin{cases}
+    X_{\tau} = \begin{cases} 
         0 & \tau \leq 0 \\
         (X_{\tau-1})_{X_{\tau+w,\tau}^L}^{X_{\tau+w,\tau}^U} & \tau \geq 1
     \end{cases}
 \end{align*}
 
-The assumption of perfect knowledge of the future is sure to be violated when an online algorithm is used in practice. Still, \citeauthor*{Lin2011}~\cite{Lin2011} show that lazy capacity provisioning with a prediction window is robust to this assumption in practice. Unfortunately, \citeauthor*{Lin2011}~\cite{Lin2011} and \citeauthor*{Albers2018}~\cite{Albers2018} showed that using a finite prediction window does not improve the worst-case performance of the online algorithm for the fractional and integral case, respectively. In other words, the competitive ratio of lazy capacity provisioning is $3$ regardless of whether it uses a finite prediction window. In practice, however, \citeauthor*{Lin2011}~\cite{Lin2011} show that a prediction window already significantly improves the algorithm's performance.
+The optimal schedules now need to obtained for $\tau + w$ rather than $\tau$ time slots. Thus, the time complexity changes to $\mathcal{O}((\tau + w) C O_{\epsilon}^{\tau + w})$ and $\mathcal{O}((\tau + w)^2 C \log_2 m)$ in the fractional and integral case, respectively.
 
-There are two main drawbacks to using a finite prediction window. First, predictions windows are finite and typically constrained to a short period as they are assumed to be perfect. In contrast, predictions can be made for much longer time horizons, albeit with decreasing accuracy. Second, it completely disregards any knowledge or assumptions of the certainty and noise of the predictions by assuming the predictions to be perfect. Therefore, for the remainder of this section, our goal is to devise better algorithms that use this information to make more informed decisions.
+The assumption of perfect knowledge of the future is sure to be violated when an online algorithm is used in practice. Still, \citeauthor*{Lin2011}~\cite{Lin2011} show that lazy capacity provisioning with a prediction window is robust to this assumption in practice. \citeauthor*{Lin2011}~\cite{Lin2011} and \citeauthor*{Albers2018}~\cite{Albers2018} showed that using a finite prediction window does not improve the worst-case performance of the online algorithm for the fractional and integral case, respectively. In other words, the competitive ratio of lazy capacity provisioning is $3$ regardless of whether it uses a finite prediction window. In practice, however, \citeauthor*{Lin2011}~\cite{Lin2011} show that a prediction window significantly improves the algorithm's performance.
+
+There are two main drawbacks to using a finite prediction window. First, predictions windows are finite and typically constrained to a short period as they are assumed to be perfect. In contrast, predictions can be made for much longer time horizons, albeit with decreasing accuracy. Second, it completely disregards any knowledge or assumptions of the certainty and noise of the predictions by assuming the predictions to be perfect.
 
 \subsection{Making Predictions}\label{section:online_algorithms:md:predictions:making_predictions}
 
@@ -683,14 +685,14 @@ Note that, in principle, predictions can be made arbitrarily far into the future
 
 \emph{Receding horizon control}\index{receding horizon control} (RHC) (or \emph{model predictive control}) is a methodology for making decisions based on predictions of the future that is commonly used to control data centers~\cite{Lin2012}. In RHC, an agent predicts their action up to some fixed point in time, referred to as the prediction window. Based on this prediction, the agent adjusts their action for the current time slot. In the next time slot, this process repeats~\cite{Zak2017}.
 
-\citeauthor*{Lin2012}~\cite{Lin2012} previously investigated the performance of RHC in the context of right-sizing data centers. RCH works by solving a convex optimization from time $\tau$ to time $\tau + w$ starting from the initial configuration $X_{\tau-1}$. We set $X_0 = \mathbf{0}$. Similar to our analysis of capacity provisioning in \cref{section:offline_algorithms:ud:capacity_provisioning}, we describe by $X^{\tau}(X_{\tau-1}) \in \mathcal{X}^{w+1}$ the optimal schedule for times $\tau$ through $\tau+w$. This schedule is obtained by minimizing \begin{align}\label{eq:rhc}
+\citeauthor*{Lin2012}~\cite{Lin2012} previously investigated the performance of RHC in the context of right-sizing data centers. RHC works by solving a convex optimization from time $\tau$ to time $\tau + w$ starting from the initial configuration $X_{\tau-1}$. We set $X_0 = \mathbf{0}$. Similar to our analysis of capacity provisioning in \cref{section:offline_algorithms:ud:capacity_provisioning}, we describe by $X^{\tau}(X_{\tau-1}) \in \mathcal{X}^{w+1}$ the optimal schedule for times $\tau$ through $\tau+w$. This schedule is obtained by minimizing \begin{align}\label{eq:rhc}
     \sum_{t=\tau}^{\tau+w} f_t(X_t) + \norm{X_t - X_{t-1}}
 \end{align} over configurations $X_{\tau}, \dots, X_{\tau+w} \in \mathcal{X}$. This optimization has $\mathcal{O}(d w)$ dimensions and thus can be computed $\epsilon$-optimally in $\mathcal{O}(C O_{\epsilon}^{dw})$ time. Now, RHC simply picks the first predicted action. RHC is described in \cref{alg:predictions:rhc}.
 
 \begin{algorithm}
     \caption{Receding Horizon Control~\cite{Lin2012}}\label{alg:predictions:rhc}
     \SetKwInOut{Input}{Input}
-    \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}^d, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathcal{X} \to \mathbb{R}_{\geq 0})^{\tau})$}
+    \Input{$\mathcal{I}_{\text{SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau})$}
     $X_{\tau} = X_{\tau}^{\tau}(X_{\tau-1})$\;
     \Return $X_{\tau}$\;
 \end{algorithm}
@@ -708,7 +710,7 @@ We describe the sub-iterations of AFHC using $k \in [w+1]$. We set $t_0 = \tau+k
 \begin{algorithm}
     \caption{Averaging Fixed Horizon Control~\cite{Lin2012}}\label{alg:predictions:afhc}
     \SetKwInOut{Input}{Input}
-    \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}^d, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathcal{X} \to \mathbb{R}_{\geq 0})^{\tau})$}
+    \Input{$\mathcal{I}_{\text{SSCO}} = (\tau \in \mathbb{N}, m \in \mathbb{N}, \beta \in \mathbb{R}_{>0}, (f_1, \dots, f_{\tau}) \in (\mathbb{R}_{\geq 0} \to \mathbb{R}_{\geq 0})^{\tau})$}
     \ForEach{$k \in [w+1]$}{
         $t_0 \gets \tau+k-(w+1)$\;
         $X^{(k)} \gets X^{t_0}(X_{t_0-1}^{(k)})$\;

@@ -1,0 +1,49 @@
+% This file was created by tikzplotlib v0.9.9.
+\begin{tikzpicture}
+
+\definecolor{color0}{rgb}{0.12156862745098,0.466666666666667,0.705882352941177}
+
+\begin{axis}[
+legend pos=south east,
+tick align=outside,
+tick pos=left,
+x grid style={white!69.0196078431373!black},
+xlabel={runtime up to (seconds)},
+xmin=25, xmax=50,
+xtick style={color=black},
+y grid style={white!69.0196078431373!black},
+% ylabel={proportion of iterations},
+ymin=0, ymax=1,
+ytick style={color=black}
+]
+\addplot [semithick, blue, const plot mark left]
+table {%
+-inf 0
+26.2298 0.0416666666666667
+28.0695 0.0833333333333333
+28.3796 0.125
+28.8086 0.166666666666667
+31.2105 0.208333333333333
+31.6994 0.25
+33.2586 0.291666666666667
+33.9032 0.333333333333333
+34.5655 0.375
+34.8953 0.416666666666667
+35.0067 0.458333333333333
+35.5462 0.5
+35.5884 0.541666666666667
+35.8874 0.583333333333333
+37.3382 0.625
+37.6436 0.666666666666667
+38.1931 0.708333333333333
+38.4449 0.75
+39.0436 0.791666666666667
+39.1265 0.833333333333333
+39.8516 0.875
+41.2810 0.916666666666667
+41.3132 0.958333333333333
+48.2838 1
+};
+\end{axis}
+
+\end{tikzpicture}
