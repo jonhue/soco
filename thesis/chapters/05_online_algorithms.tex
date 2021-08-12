@@ -14,7 +14,7 @@ Throughout this chapter, we denote by $\tau \in [T]$ the current time slot. In c
 \subsubsection{Fractional Algorithm}
 
 We begin by returning to the notion of capacity provisioning that we introduced in \cref{section:offline_algorithms:ud:capacity_provisioning}, yielding a backward-recurrent algorithm finding an optimal schedule for SSCO. This algorithm computed bounds $X_{\tau}^L$ and $X_{\tau}^U$ on the optimal solution, which only depend on the schedule up to time slot $\tau$. However, the optimal offline algorithm stayed within these bounds moving backward in time which is impossible for an online algorithm. \citeauthor*{Lin2011}~\cite{Lin2011} present a similar algorithm moving forward in time called \emph{lazy capacity provisioning}. We compute the schedule $X_{\tau}$ during time slot $\tau$ by setting $X_{\tau} = X_{\tau-1}$ unless this violates the bounds in which case we make the smallest possible change: \begin{align*}
-    X_{\tau} = \begin{cases} 
+    X_{\tau} = \begin{cases}
         0 & \tau \leq 0 \\
         (X_{\tau-1})_{X_{\tau,\tau}^L}^{X_{\tau,\tau}^U} & \tau \geq 1
     \end{cases}
@@ -484,7 +484,7 @@ The mirror descent framework is an extension of gradient descent, allowing to ad
 \paragraph{Proximal Point View} The Bregman divergence is a commonly used class of distance functions. Given a strictly convex \emph{distance-generating function}\index{distance-generating function} $h$, the Bregman divergence measures the deviation of $h$ from its linear approximation.
 
 \begin{definition}\index{Bregman divergence}
-\cite{Goel2018} The Bregman divergence from a point $x$ to a point $y$ with respect to a strictly convex function $h$ is given as \begin{align*}
+\cite{Chen2018} The Bregman divergence from a point $x$ to a point $y$ with respect to a strictly convex function $h$ is given as \begin{align*}
     D_h(x,y) = h(x) - h(y) - \langle\nabla h(y), x - y\rangle.
 \end{align*}
 \end{definition}
@@ -492,15 +492,15 @@ The mirror descent framework is an extension of gradient descent, allowing to ad
 \begin{figure}
     \centering
     \input{thesis/figures/bregman_divergence}
-    \caption{Bregman Divergence $D_h(x,y)$ for a function $h : \mathbb{R} \to \mathbb{R}$ \cite{Goel2018}. The Bregman divergence measures how much a function differs at $x$ from its linear approximation at $y$.}
+    \caption{Bregman Divergence $D_h(x,y)$ for a function $h : \mathbb{R} \to \mathbb{R}$ \cite{Chen2018}. The Bregman divergence measures how much a function differs at $x$ from its linear approximation at $y$.}
     \label{fig:bregman_divergence}
 \end{figure}
 
 The definition of the Bregman divergence of a univariate function $h$ is visualized in \cref{fig:bregman_divergence}.
 
-The modified variant of OGD, which uses a Bregman divergence as a regularizer, is known as \emph{online mirror descent}\index{mirror descent} (OMD) or online proximal gradient descent. Note that OMD is parametrized by $h$, which is used to describe the underlying geometry of the problem~\cite{Goel2018}.
+The modified variant of OGD, which uses a Bregman divergence as a regularizer, is known as \emph{online mirror descent}\index{mirror descent} (OMD) or online proximal gradient descent. Note that OMD is parametrized by $h$, which is used to describe the underlying geometry of the problem~\cite{Chen2018}.
 
-For the function $h(x) = \frac{1}{2} \norm{x}_2^2$ from $\mathbb{R}^d$ to $\mathbb{R}$ (the \emph{squared $\ell_2$ norm}\index{squared $\ell_2$ norm}), the Bregman divergence is the Euclidean distance, i.e. $D_h(x,y) = \frac{1}{2} \norm{x-y}_2^2$~\cite{Goel2018}. Hence, OMD reduces to OGD if it is parametrized with the provided definition of $h$, i.e., a Euclidean geometry is used.
+For the function $h(x) = \frac{1}{2} \norm{x}_2^2$ from $\mathbb{R}^d$ to $\mathbb{R}$ (the \emph{squared $\ell_2$ norm}\index{squared $\ell_2$ norm}), the Bregman divergence is the Euclidean distance, i.e. $D_h(x,y) = \frac{1}{2} \norm{x-y}_2^2$~\cite{Chen2018}. Hence, OMD reduces to OGD if it is parametrized with the provided definition of $h$, i.e., a Euclidean geometry is used.
 
 \paragraph{Mirror Map View} The proximal point view gives just one perspective of mirror descent. Another perspective that is used frequently is the perspective of mirror maps.
 
@@ -544,7 +544,7 @@ Next, we describe how the ideas from mirror descent are adapted for the smoothed
 
 \subsubsection{Online Balanced Descent}\label{section:online_algorithms:md:descent_methods:obd}
 
-The online balanced descent (OBD) algorithms were developed by \citeauthor*{Goel2018}~\cite{Goel2018} are a special case of online mirror descent (OMD) with lookahead $1$. In practice, to achieve the one-step lookahead, OBD moves to a point $X_{\tau}$ on a level set of $f_{\tau}(\cdot)$ such that the step is normal to the contour line of $f_{\tau-1}$. In contrast, OMD steps into a direction that is normal to the contour line of $f_{\tau-1}(X_{\tau-1})$. In other words, OMD takes a step with respect to its starting point on some level set, whereas OBD takes a step with respect to its destination on some level set. \Cref{fig:comparison_of_an_update_of_omd_and_obd} shows how these updates compare.
+The online balanced descent (OBD) algorithms were developed by \citeauthor*{Chen2018}~\cite{Chen2018} are a special case of online mirror descent (OMD) with lookahead $1$. In practice, to achieve the one-step lookahead, OBD moves to a point $X_{\tau}$ on a level set of $f_{\tau}(\cdot)$ such that the step is normal to the contour line of $f_{\tau-1}$. In contrast, OMD steps into a direction that is normal to the contour line of $f_{\tau-1}(X_{\tau-1})$. In other words, OMD takes a step with respect to its starting point on some level set, whereas OBD takes a step with respect to its destination on some level set. \Cref{fig:comparison_of_an_update_of_omd_and_obd} shows how these updates compare.
 
 \begin{figure}
     \begin{subfigure}[b]{\textwidth}
@@ -558,7 +558,7 @@ The online balanced descent (OBD) algorithms were developed by \citeauthor*{Goel
     \input{thesis/figures/level_sets_obd}
     \caption{Update of OBD. The contour lines represent level sets of $f_{\tau}$.}
     \end{subfigure}
-    \caption{Comparison of an update of OMD and OBD in two dimensions assuming the distance-generating function $h(x) = \frac{1}{2} \norm{x}_2^2$. OMD (red) takes a step in a direction normal to the contour line of $f_{\tau-1}$ at $X_{\tau-1}$. OBD (blue) takes a step in a direction normal to the contour line of $f_{\tau}$ at $X_{\tau}$ \cite{Goel2018}. The step in the direction of the minimizer of $f_{\tau}$ is shown in black. Note that it is not optimal to move in the direction of the minimizer to a point on some level set as there likely exists a closer point on the same level set.}
+    \caption{Comparison of an update of OMD and OBD in two dimensions assuming the distance-generating function $h(x) = \frac{1}{2} \norm{x}_2^2$. OMD (red) takes a step in a direction normal to the contour line of $f_{\tau-1}$ at $X_{\tau-1}$. OBD (blue) takes a step in a direction normal to the contour line of $f_{\tau}$ at $X_{\tau}$ \cite{Chen2018}. The step in the direction of the minimizer of $f_{\tau}$ is shown in black. Note that it is not optimal to move in the direction of the minimizer to a point on some level set as there likely exists a closer point on the same level set.}
     \label{fig:comparison_of_an_update_of_omd_and_obd}
 \end{figure}
 
@@ -568,32 +568,32 @@ The algorithmic framework for OBD can roughly be divided into two parts. First, 
 
 Similar to OMD, the meta algorithm of OBD chooses the next point $X_{\tau}$ in the dual space. However, whereas OMD takes an arbitrary step into the direction of the gradient, OBD takes the shortest step into some sub-level set $K_l = \{x \in \mathcal{X} \mid f_{\tau}(x) \leq l\}$ of the revealed hitting cost $f_{\tau}$. In other words, we seek to find the Bregman projection of $X_{\tau-1}$ onto the sub-level set $K_l$. The first-order condition of the corresponding optimization in the dual space implies that \begin{align}\label{eq:pbd:first_order_condition}
     \nabla h(X_{\tau}) = \nabla h(X_{\tau-1}) - \eta_{\tau} \nabla f_{\tau}(X_{\tau})
-\end{align} must be satisfied by $X_{\tau}$ where $\eta_{\tau}$ is the optimal slack of the inequality constraint $f_{\tau}(x) \leq l$~\cite{Goel2018}. Note that this corresponds to a variant of OMD with lookahead $1$.
+\end{align} must be satisfied by $X_{\tau}$ where $\eta_{\tau}$ is the optimal slack of the inequality constraint $f_{\tau}(x) \leq l$~\cite{Chen2018}. Note that this corresponds to a variant of OMD with lookahead $1$.
 
 OBD requires $h$ to be $\alpha$-strongly convex and $\beta$-Lipschitz smooth in the norm $\norm{\cdot}$ that is used to obtain the movement costs. The meta algorithm is described in \cref{alg:md:obd}.
 
 \begin{algorithm}
-    \caption{Online Balanced Descent (meta algorithm)~\cite{Goel2018}}\label{alg:md:obd}
+    \caption{Online Balanced Descent (meta algorithm)~\cite{Chen2018}}\label{alg:md:obd}
     \SetKwInOut{Input}{Input}
     \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}^d, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathcal{X} \to \mathbb{R}_{\geq 0})^{\tau}), l \geq 0, \text{distance-generating function } h$}
     $X_{\tau} \gets \Pi_{K_l}^h(X_{\tau-1})$\;
     \Return $X_{\tau}$\;
 \end{algorithm}
 
-As an example, we consider the Euclidean space with the $\ell_2$ norm. In this setting $h(x) = \frac{1}{2} \norm{x}_2^2$ is 1-strongly convex and 1-Lipschitz smooth~\cite{Goel2018}. As the corresponding mirror map, $\nabla h$ is the identity map, the first-order condition \cref{eq:pbd:first_order_condition} reduces to \begin{align*}
+As an example, we consider the Euclidean space with the $\ell_2$ norm. In this setting $h(x) = \frac{1}{2} \norm{x}_2^2$ is 1-strongly convex and 1-Lipschitz smooth~\cite{Chen2018}. As the corresponding mirror map, $\nabla h$ is the identity map, the first-order condition \cref{eq:pbd:first_order_condition} reduces to \begin{align*}
     X_{\tau} = X_{\tau-1} - \eta_{\tau} \nabla f_{\tau}(X_{\tau})
 \end{align*} corresponding to OGD with lookahead $1$.
 
-We can generally choose $h$ to either perform well for the competitive ratio or regret. In their initial paper, \citeauthor*{Goel2018}~\cite{Goel2018} propose two algorithms that balance hitting and movement costs in the primal and dual space and perform well concerning the competitive ratio and regret, respectively.
+We can generally choose $h$ to either perform well for the competitive ratio or regret. In their initial paper, \citeauthor*{Chen2018}~\cite{Chen2018} propose two algorithms that balance hitting and movement costs in the primal and dual space and perform well concerning the competitive ratio and regret, respectively.
 
 \subsubsection{Primal Algorithm}
 
-\emph{Primal online balanced descent} (P-OBD) balances hitting and movement costs in the primal space. Let $\hat{x} = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$ and $x(l) = \text{Meta-OBD}(\mathcal{I}, l, h) = \Pi_{K_l}^h(X_{\tau-1})$. Given some $\beta > 0$, the balance parameter $l$ is chosen such that a balance condition $g(l) = \norm{x(l) - X_{\tau-1}} \leq \beta l$ is satisfied. More formally, $l$ is chosen such that either $x(l) = \hat{x}$ and $g(l) < \beta l$ or $g(l) = \beta l$ hold~\cite{Goel2018}.
+\emph{Primal online balanced descent} (P-OBD) balances hitting and movement costs in the primal space. Let $\hat{x} = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$ and $x(l) = \text{Meta-OBD}(\mathcal{I}, l, h) = \Pi_{K_l}^h(X_{\tau-1})$. Given some $\beta > 0$, the balance parameter $l$ is chosen such that a balance condition $g(l) = \norm{x(l) - X_{\tau-1}} \leq \beta l$ is satisfied. More formally, $l$ is chosen such that either $x(l) = \hat{x}$ and $g(l) < \beta l$ or $g(l) = \beta l$ hold~\cite{Chen2018}.
 
-\citeauthor*{Goel2018}~\cite{Goel2018} show that the balance function $g(l)$ is continuous in $l$. We observe that $l$ is lower bounded by $f_{\tau}(\hat{x})$. As we assume that $\hat{x}$ is unique, $x(l) = \hat{x}$ iff $l = f_{\tau}(\hat{x})$ and the first condition is fulfilled if and only if $g(f_{\tau}(\hat{x})) < \beta f_{\tau}(\hat{x})$. If the first condition is not satisfied, we can efficiently determine an $l$ fulfilling the second condition using a bracketed root finding method on $g(l) - \beta l$ within the interval $[f_{\tau}(\hat{x}), \gamma]$. Here, it suffices to choose $\gamma$ ``large enough'' to ensure that $g(\gamma) \leq \beta \gamma$. Observe that for $\gamma = f_{\tau}(X_{\tau-1})$, this is trivially satisfied, as $x(\gamma) = X_{\tau-1}$ and as such $g(\gamma) = 0$. The algorithm is described in \cref{alg:md:pobd}.
+\citeauthor*{Chen2018}~\cite{Chen2018} show that the balance function $g(l)$ is continuous in $l$. We observe that $l$ is lower bounded by $f_{\tau}(\hat{x})$. As we assume that $\hat{x}$ is unique, $x(l) = \hat{x}$ iff $l = f_{\tau}(\hat{x})$ and the first condition is fulfilled if and only if $g(f_{\tau}(\hat{x})) < \beta f_{\tau}(\hat{x})$. If the first condition is not satisfied, we can efficiently determine an $l$ fulfilling the second condition using a bracketed root finding method on $g(l) - \beta l$ within the interval $[f_{\tau}(\hat{x}), \gamma]$. Here, it suffices to choose $\gamma$ ``large enough'' to ensure that $g(\gamma) \leq \beta \gamma$. Observe that for $\gamma = f_{\tau}(X_{\tau-1})$, this is trivially satisfied, as $x(\gamma) = X_{\tau-1}$ and as such $g(\gamma) = 0$. The algorithm is described in \cref{alg:md:pobd}.
 
 \begin{algorithm}
-    \caption{Primal Online Balanced Descent~\cite{Goel2018}}\label{alg:md:pobd}
+    \caption{Primal Online Balanced Descent~\cite{Chen2018}}\label{alg:md:pobd}
     \SetKwInOut{Input}{Input}
     \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}^d, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathcal{X} \to \mathbb{R}_{\geq 0})^{\tau}), \beta > 0, \text{distance-generating function } h$}
     $\hat{x} = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$\;
@@ -604,15 +604,15 @@ We can generally choose $h$ to either perform well for the competitive ratio or 
     \Return $\text{Meta-OBD}(\mathcal{I}, l, h)$\;
 \end{algorithm}
 
-The balancing is chosen such that the movement cost is upper bounded by the constant $\beta$ times the hitting cost~\cite{Goel2018}.
+The balancing is chosen such that the movement cost is upper bounded by the constant $\beta$ times the hitting cost~\cite{Chen2018}.
 
-\citeauthor*{Goel2018}~\cite{Goel2018} show that P-OBD attains a competitive ratio of at most $3 + \mathcal{O}(1 / \alpha)$ for some $\beta > 0$, $\alpha$-locally polyhedral cost functions, and the $\ell_2$ norm as movement cost. They also show that local polyhedrality is useful when other norms like the $l_{\infty}$ norm are used. Note that the algorithm is memoryless and, therefore, nearly optimal, as \citeauthor*{Bansal2015}~\cite{Bansal2015} showed in the uni-dimensional setting that no memoryless algorithm can attain a better competitive ratio than $3$ (which also holds for locally polyhedral cost functions)~\cite{Goel2018}. When used with the $\ell_1$ norm, which is relevant in the application of right-sizing data centers, P-OBD attains a competitive ratio of $\mathcal{O}(\sqrt{d})$ if $\alpha$ is fixed~\cite{Goel2018}. The memoryless algorithm (\cref{alg:ud:memoryless}) of \citeauthor*{Bansal2015}~\cite{Bansal2015} can be seen as a special case of P-OBD for $d = 1$ and $\beta = \frac{1}{2}$~\cite{Goel2018}.
+\citeauthor*{Chen2018}~\cite{Chen2018} show that P-OBD attains a competitive ratio of at most $3 + \mathcal{O}(1 / \alpha)$ for some $\beta > 0$, $\alpha$-locally polyhedral cost functions, and the $\ell_2$ norm as movement cost. They also show that local polyhedrality is useful when other norms like the $l_{\infty}$ norm are used. Note that the algorithm is memoryless and, therefore, nearly optimal, as \citeauthor*{Bansal2015}~\cite{Bansal2015} showed in the uni-dimensional setting that no memoryless algorithm can attain a better competitive ratio than $3$ (which also holds for locally polyhedral cost functions)~\cite{Chen2018}. When used with the $\ell_1$ norm, which is relevant in the application of right-sizing data centers, P-OBD attains a competitive ratio of $\mathcal{O}(\sqrt{d})$ if $\alpha$ is fixed~\cite{Chen2018}. The memoryless algorithm (\cref{alg:ud:memoryless}) of \citeauthor*{Bansal2015}~\cite{Bansal2015} can be seen as a special case of P-OBD for $d = 1$ and $\beta = \frac{1}{2}$~\cite{Chen2018}.
 
 The minimizer can be found $\epsilon$-optimally in $\mathcal{O}(C O_{\epsilon}^d)$ time. Assuming the runtime of $h$ is constant, the balance parameter $l$ can be determined $\epsilon$-optimally in $\mathcal{O}(O_{\epsilon}^d R_{\epsilon})$ time. Overall, P-OBD runs in $\mathcal{O}(C O_{\epsilon}^d + O_{\epsilon}^d R_{\epsilon})$ time.
 
 \subsubsection{Dual Algorithm}
 
-\citeauthor*{Goel2018}~\cite{Goel2018} also developed an algorithm called \emph{dual online balanced descent} (D-OBD), which balances the movement cost in the dual space with the gradient of the hitting cost (which is also in the dual space). Before describing the algorithm, we must first describe how the movement cost can be represented in the dual space. We thus introduce the notion of a \emph{dual norm}.
+\citeauthor*{Chen2018}~\cite{Chen2018} also developed an algorithm called \emph{dual online balanced descent} (D-OBD), which balances the movement cost in the dual space with the gradient of the hitting cost (which is also in the dual space). Before describing the algorithm, we must first describe how the movement cost can be represented in the dual space. We thus introduce the notion of a \emph{dual norm}.
 
 \begin{definition}\index{dual norm}
 \cite{Gupta2020} Given some norm $\norm{\cdot}$ on $\mathbb{R}^d$, its dual norm $\norm{\cdot}_*$ is defined as \begin{align*}
@@ -627,10 +627,10 @@ The $\ell_2$ norm is self-dual~\cite{Gupta2020}. In general, the dual norm for a
 
 Returning to the description of D-OBD, for some fixed learning rate $\eta$, $l$ is now chosen such that \begin{align*}
     \norm{\nabla h(x(l)) - \nabla h(X_{\tau-1})}_* = \eta \norm{\nabla f_{\tau}(x(l))}_*
-\end{align*} holds. Let $g_1(l) = \norm{\nabla h(x(l)) - \nabla h(X_{\tau-1})}_*$ and $g_2(l) = \norm{\nabla f_{\tau}(x(l))}_*$. Again, \citeauthor*{Goel2018}~\cite{Goel2018} show that the balance function $\frac{g_1(l)}{g_2(l)}$ is continuous in $l$ under the assumption that $h$ and $f_{\tau}$ are continuously differentiable on $\mathcal{X}$. Similar to our analysis of P-OBD, we observe  that $l$ is lower bounded by $f_{\tau}(\hat{x})$. We can determine $l$ using a bracketed root finding method on $g_1(l) - \eta g_2(l)$ within the interval $[f_{\tau}(\hat{x}), \gamma]$. We observe that for $l = f_{\tau}(\hat{x})$, $g_1(l) \geq \eta g_2(l) = 0$. Therefore, we need to choose $\gamma$ such that $g_1(l) \leq \eta g_2(l)$ is satisfied. Similar to our argument for P-OBD, it suffices to choose $\gamma = f_{\tau}(X_{\tau-1})$, resulting in $x(\gamma) = X_{\tau-1}$, and implying $g_1(\gamma) = 0$. The resulting algorithm is described in \cref{alg:md:dobd}.
+\end{align*} holds. Let $g_1(l) = \norm{\nabla h(x(l)) - \nabla h(X_{\tau-1})}_*$ and $g_2(l) = \norm{\nabla f_{\tau}(x(l))}_*$. Again, \citeauthor*{Chen2018}~\cite{Chen2018} show that the balance function $\frac{g_1(l)}{g_2(l)}$ is continuous in $l$ under the assumption that $h$ and $f_{\tau}$ are continuously differentiable on $\mathcal{X}$. Similar to our analysis of P-OBD, we observe  that $l$ is lower bounded by $f_{\tau}(\hat{x})$. We can determine $l$ using a bracketed root finding method on $g_1(l) - \eta g_2(l)$ within the interval $[f_{\tau}(\hat{x}), \gamma]$. We observe that for $l = f_{\tau}(\hat{x})$, $g_1(l) \geq \eta g_2(l) = 0$. Therefore, we need to choose $\gamma$ such that $g_1(l) \leq \eta g_2(l)$ is satisfied. Similar to our argument for P-OBD, it suffices to choose $\gamma = f_{\tau}(X_{\tau-1})$, resulting in $x(\gamma) = X_{\tau-1}$, and implying $g_1(\gamma) = 0$. The resulting algorithm is described in \cref{alg:md:dobd}.
 
 \begin{algorithm}
-    \caption{Dual Online Balanced Descent~\cite{Goel2018}}\label{alg:md:dobd}
+    \caption{Dual Online Balanced Descent~\cite{Chen2018}}\label{alg:md:dobd}
     \SetKwInOut{Input}{Input}
     \Input{$\mathcal{I}_{\text{SCO}} = (\tau \in \mathbb{N}, \mathcal{X} \subset \mathbb{R}^d, \norm{\cdot}, (f_1, \dots, f_{\tau}) \in (\mathcal{X} \to \mathbb{R}_{\geq 0})^{\tau}), \eta > 0, \text{distance-generating function } h$}
     $\hat{x} = \argmin_{x \in \mathcal{X}} f_{\tau}(x)$\;
@@ -638,7 +638,7 @@ Returning to the description of D-OBD, for some fixed learning rate $\eta$, $l$ 
     \Return $\text{Meta-OBD}(\mathcal{I}, l, h)$\;
 \end{algorithm}
 
-\citeauthor*{Goel2018}~\cite{Goel2018} show that the $L$-constrained dynamic regret of D-OBD is upper bounded by $\frac{G L}{\eta} + \frac{T \eta}{2 \alpha}$ where $h$ is $\alpha$-strongly convex in $\norm{\cdot}$, $\norm{\nabla h(x)}_*$ is upper bounded by $G$, and $\nabla h(0) = 0$. When $G$, $L$, and $T$ are known, $\eta$ can be chosen optimally as $\eta = \sqrt{\frac{2 G L \alpha}{T}}$, resulting in an $L$-constrained dynamic regret that is upper bounded by $\sqrt{\frac{2 G L T}{\alpha}}$~\cite{Goel2018}. Further, in this setting, D-OBD achieves static regret $\mathcal{O}(\sqrt{T})$~\cite{Goel2018}.
+\citeauthor*{Chen2018}~\cite{Chen2018} show that the $L$-constrained dynamic regret of D-OBD is upper bounded by $\frac{G L}{\eta} + \frac{T \eta}{2 \alpha}$ where $h$ is $\alpha$-strongly convex in $\norm{\cdot}$, $\norm{\nabla h(x)}_*$ is upper bounded by $G$, and $\nabla h(0) = 0$. When $G$, $L$, and $T$ are known, $\eta$ can be chosen optimally as $\eta = \sqrt{\frac{2 G L \alpha}{T}}$, resulting in an $L$-constrained dynamic regret that is upper bounded by $\sqrt{\frac{2 G L T}{\alpha}}$~\cite{Chen2018}. Further, in this setting, D-OBD achieves static regret $\mathcal{O}(\sqrt{T})$~\cite{Chen2018}.
 
 An evaluation of the dual norm can be computed $\epsilon$-optimally in $\mathcal{O_{\epsilon}^d}$ time. Thus, assuming the runtime of $h$ is constant, $l$ can be found in $\mathcal{O}((O_{\epsilon}^d)^2 R_{\epsilon})$ time. Overall, the asymptotic time complexity of D-OBD is given as $\mathcal{O}(C O_{\epsilon}^d + (O_{\epsilon}^d)^2 R_{\epsilon})$.
 
@@ -659,7 +659,7 @@ A natural model to allow incorporating predictions is the use of a finite predic
 \subsubsection{Lazy Capacity Provisioning with Prediction Window}
 
 \citeauthor*{Lin2011}~\cite{Lin2011} extend their algorithm lazy capacity provisioning, which we discussed in \cref{section:online_algorithms:ud:lazy_capacity_provisioning} to support the prediction window by changing the update rule to \begin{align*}
-    X_{\tau} = \begin{cases} 
+    X_{\tau} = \begin{cases}
         0 & \tau \leq 0 \\
         (X_{\tau-1})_{X_{\tau+w,\tau}^L}^{X_{\tau+w,\tau}^U} & \tau \geq 1
     \end{cases}

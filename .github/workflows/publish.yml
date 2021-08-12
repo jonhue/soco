@@ -30,6 +30,8 @@ jobs:
         pre_compile: tlmgr update --self && tlmgr update --all
         root_file: |
           thesis/main.tex
+          thesis/slides.tex
+          thesis/handout.tex
     - name: Move PDFs
       run: mv ./*.pdf ./dist
     - name: Move readme

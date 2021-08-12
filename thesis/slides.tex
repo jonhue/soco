@@ -1,0 +1,379 @@
+\documentclass{beamer}
+%
+% Choose how your presentation looks.
+%
+% For more themes, color themes and font themes, see:
+% http://deic.uab.es/~iblanes/beamer_gallery/index_by_theme.html
+%
+\mode<presentation>
+{
+  \usetheme{default}      % or try Darmstadt, Madrid, Warsaw, ...
+  \usecolortheme{default} % or try albatross, beaver, crane, ...
+  \usefonttheme{default}  % or try serif, structurebold, ...
+  \setbeamertemplate{navigation symbols}{}
+  \setbeamertemplate{caption}[numbered]
+  \setbeamertemplate{footline}[frame number]
+  \setbeamertemplate{itemize items}[circle]
+  \setbeamertemplate{theorems}[numbered]
+  \setbeamercolor*{structure}{bg=white,fg=blue}
+  \setbeamerfont{block title}{size=\normalsize}
+  \setbeamercolor{bibliography entry author}{fg=black}
+  \setbeamercolor{bibliography entry title}{fg=black}
+  \setbeamercolor{bibliography entry note}{fg=black}
+}
+
+% \newtheorem{proposition}[theorem]{Proposition}
+% \theoremstyle{definition}
+% \newtheorem{algorithm}[theorem]{Algorithm}
+% \newtheorem{idea}[theorem]{Idea}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+% \usepackage{aligned-overset}
+\usepackage{alltt}
+\usepackage{amsmath}
+\usepackage{csquotes}
+% \usepackage{multicol}
+% \usepackage{stmaryrd}
+\usepackage{tabularx}
+\usepackage{tikz}
+\usetikzlibrary{patterns}
+\usetikzlibrary{intersections}
+\usepackage{pgfplots}
+\usepgfplotslibrary{fillbetween}
+\usepgfplotslibrary{dateplot}
+\usepackage{pgfplotstable}
+\usepackage{booktabs}
+\usepackage[final]{microtype}
+\usepackage{caption}
+\usepackage{amsmath}
+\usepackage{mathtools}
+\usepackage{amsthm,thmtools}
+\usepackage[nottoc]{tocbibind}
+\usepackage[ruled]{algorithm2e}
+\usepackage{enumerate}
+\usepackage{tabularx}
+\usepackage[italic]{esdiff}
+\usepackage{subcaption}
+\usepackage{ltablex}
+\usepackage[hidelinks]{hyperref} % hidelinks removes colored boxes around references and links
+\usepackage[nameinlink]{cleveref}
+\usepackage{multirow}
+
+% Settings for pgfplots
+\pgfplotsset{compat=newest}
+\pgfplotsset{
+  % For available color names, see http://www.latextemplates.com/svgnames-colors
+  cycle list={TUMBlue\\TUMAccentOrange\\TUMAccentGreen\\TUMSecondaryBlue2\\TUMDarkGray\\},
+}
+
+% \renewcommand\tabularxcolumn[1]{m{#1}}
+% \newcolumntype{R}{>{\raggedleft\arraybackslash}X}=
+
+\def\code#1{\texttt{\frenchspacing#1}}
+\def\padding{\vspace{0.5cm}}
+\def\spadding{\vspace{0.25cm}}
+\def\b{\textcolor{blue}}
+\def\r{\textcolor{red}}
+\def\g#1{{\usebeamercolor[fg]{block title example}{#1}}}
+
+% % fix for \pause in align
+% \makeatletter
+% \let\save@measuring@true\measuring@true
+% \def\measuring@true{%
+%   \save@measuring@true
+%   \def\beamer@sortzero##1{\beamer@ifnextcharospec{\beamer@sortzeroread{##1}}{}}%
+%   \def\beamer@sortzeroread##1<##2>{}%
+%   \def\beamer@finalnospec{}%
+% }
+% \makeatother
+
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+\usepackage[sorting=ynt,style=alphabetic]{biblatex}
+\addbibresource{sources.bib}
+
+\renewcommand{\footnotesize}{\tiny}
+
+\begin{document}
+
+\title[Implementation of Algorithms for Right-Sizing Data Centers]{Implementation of Algorithms for \\ Right-Sizing Data Centers}
+\institute{Department of Informatics \\ Technical University of Munich}
+\author{\begin{tabular}{r@{ }l}
+Author:      & Jonas Hübotter \\[1ex]
+Supervisor:  & Prof. Dr. Susanne Albers\\
+Advisor:     & Jens Quedenfeld\\
+\end{tabular}}
+\date{August 13, 2021}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Outline}
+ \tableofcontents[subsectionstyle=hide, subsubsectionstyle=hide]
+\end{frame}
+% \AtBeginSection[]
+%   {
+%      \begin{frame}[allowframebreaks]{Plan}
+%      \tableofcontents[currentsection, sectionstyle=show/hide, hideothersubsections]
+%      \end{frame}
+%   }
+
+\section{Motivation}
+
+\begin{frame}{Motivation}
+    \begin{itemize}
+        \item data centers use between 1\% and 3\% of global energy \footfullcite{Shehabi2016}, which is estimated to increase\footfullcite{Jones2018}\pause
+        \item most data centers are statically provisioned, leading to average utilization levels between 12\% and 18\%\footfullcite{Whitney2014}\pause
+        \item typically servers operate at energy efficiency levels between 20\% and 30\%\footfullcite{Barroso2007}\pause
+        \item when idling, servers consume half of their peak power\footnotemark[\value{footnote}]
+    \end{itemize}
+\end{frame}
+
+\section{Problem}
+
+\begin{frame}{Problem}
+\centering
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,308); %set diagram left start at 0, and has height of 308
+
+%Straight Lines [id:da3912851178909138]
+\draw    (331,135.33) -- (636,135.33) ;
+\draw [shift={(638,135.33)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+\draw [shift={(329,135.33)}, rotate = 0] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+\only<2>{
+%Shape: Circle [id:dp9366405058886342]
+\draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (520.67,135.67) .. controls (520.67,134.19) and (521.86,133) .. (523.33,133) .. controls (524.81,133) and (526,134.19) .. (526,135.67) .. controls (526,137.14) and (524.81,138.33) .. (523.33,138.33) .. controls (521.86,138.33) and (520.67,137.14) .. (520.67,135.67) -- cycle ;
+%Straight Lines [id:da6017657532306151]
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (523.33,135.67) -- (523.52,112.05) ;
+% Text Node
+\draw (515,142) node [anchor=north west][inner sep=0.75pt]    {$x_{1}$};
+}
+
+%Curve Lines [id:da9412769336006994]
+\draw [line width=1.5]    (374.52,40.05) .. controls (393.52,61.05) and (501.52,126.05) .. (535.52,110.05) .. controls (569.52,94.05) and (586.52,68.05) .. (597.52,38.05) ;
+% Text Node
+\draw (397,35) node [anchor=north west][inner sep=0.75pt]    {$f_{1}$};
+\end{tikzpicture}
+\end{frame}
+\begin{frame}{Problem}
+\centering
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt
+
+\begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
+%uncomment if require: \path (0,308); %set diagram left start at 0, and has height of 308
+
+%Straight Lines [id:da8132100594867722]
+\draw    (7,136.33) -- (312,136.33) ;
+\draw [shift={(314,136.33)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+\draw [shift={(5,136.33)}, rotate = 0] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
+% \only<2>{
+% %Shape: Circle [id:dp9366405058886342]
+% \draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (520.67,135.67) .. controls (520.67,134.19) and (521.86,133) .. (523.33,133) .. controls (524.81,133) and (526,134.19) .. (526,135.67) .. controls (526,137.14) and (524.81,138.33) .. (523.33,138.33) .. controls (521.86,138.33) and (520.67,137.14) .. (520.67,135.67) -- cycle ;
+% %Straight Lines [id:da6017657532306151]
+% \draw  [dash pattern={on 0.84pt off 2.51pt}]  (523.33,135.67) -- (523.52,112.05) ;
+% % Text Node
+% \draw (515,142) node [anchor=north west][inner sep=0.75pt]    {$x_{1}$};
+% }
+
+%Curve Lines [id:da37061921880533877]
+\draw [line width=1.5]    (32,21.33) .. controls (36.36,41.81) and (61.25,115.72) .. (106,119.33) .. controls (150.75,122.95) and (246.43,53.26) .. (269,36.33) ;
+% Text Node
+\draw (44,17) node [anchor=north west][inner sep=0.75pt]    {$f_{2}$};
+
+%Straight Lines [id:da23167830177054616]
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (199.33,136.67) -- (199.52,83.05) ;
+%Shape: Circle [id:dp9237316574850754]
+\draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (196.67,136.67) .. controls (196.67,135.19) and (197.86,134) .. (199.33,134) .. controls (200.81,134) and (202,135.19) .. (202,136.67) .. controls (202,138.14) and (200.81,139.33) .. (199.33,139.33) .. controls (197.86,139.33) and (196.67,138.14) .. (196.67,136.67) -- cycle ;
+
+% Text Node
+\draw (191,144) node [anchor=north west][inner sep=0.75pt]    {$x_{1}$};
+
+\onslide<2->{
+%Straight Lines [id:da9850850655894281]
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (109.33,136.67) -- (109.52,120.05) ;
+%Shape: Circle [id:dp2801837798690885]
+\draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (106.67,136.67) .. controls (106.67,135.19) and (107.86,134) .. (109.33,134) .. controls (110.81,134) and (112,135.19) .. (112,136.67) .. controls (112,138.14) and (110.81,139.33) .. (109.33,139.33) .. controls (107.86,139.33) and (106.67,138.14) .. (106.67,136.67) -- cycle ;
+
+% Text Node
+\draw (101,141) node [anchor=north west][inner sep=0.75pt]    {$x^{*}$};
+}
+
+\onslide<3->{
+%Straight Lines [id:da4019047700825191]
+\draw  [dash pattern={on 0.84pt off 2.51pt}]  (139.33,136.67) -- (139.52,113.05) ;
+%Shape: Circle [id:dp045787056716331875]
+\draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (136.67,136.67) .. controls (136.67,135.19) and (137.86,134) .. (139.33,134) .. controls (140.81,134) and (142,135.19) .. (142,136.67) .. controls (142,138.14) and (140.81,139.33) .. (139.33,139.33) .. controls (137.86,139.33) and (136.67,138.14) .. (136.67,136.67) -- cycle ;
+
+% Text Node
+\draw (132,144) node [anchor=north west][inner sep=0.75pt]    {$x_{t}$};
+
+%Straight Lines [id:da25275615888238856]
+\draw [color={rgb, 255:red, 255; green, 0; blue, 0 }  ,draw opacity=1 ][line width=1.5]    (145.33,136.67) -- (193.33,136.67) ;
+\draw [shift={(196.33,136.67)}, rotate = 180] [color={rgb, 255:red, 255; green, 0; blue, 0 }  ,draw opacity=1 ][line width=1.5]    (14.21,-4.28) .. controls (9.04,-1.82) and (4.3,-0.39) .. (0,0) .. controls (4.3,0.39) and (9.04,1.82) .. (14.21,4.28)   ;
+\draw [shift={(142.33,136.67)}, rotate = 0] [color={rgb, 255:red, 255; green, 0; blue, 0 }  ,draw opacity=1 ][line width=1.5]    (14.21,-4.28) .. controls (9.04,-1.82) and (4.3,-0.39) .. (0,0) .. controls (4.3,0.39) and (9.04,1.82) .. (14.21,4.28)   ;
+}
+\end{tikzpicture}
+\end{frame}
+\begin{frame}{Problem}
+\b{Smoothed online convex optimization} (or \emph{convex function chasing})\footfullcite{Lin2011}:\pause\ Given a convex decision space $\mathcal{X} \subset \mathbb{R}^d$, a norm $\norm{\cdot}$ on $\mathbb{R}^d$, and a sequence $F$ of non-negative convex functions $f_t : \mathcal{X} \to \mathbb{R}_{\geq 0}$\pause, find $x \in \mathcal{X}^T$ such that \begin{align*}
+    \sum_{t=1}^T f_t(x_t) + \norm{x_t - x_{t-1}}
+\end{align*} is minimized where $T$ is the time horizon and $x_0 = \mathbf{0}$.
+\end{frame}
+\begin{frame}{Problem}
+\begin{itemize}
+    \item similar to \emph{online convex optimization} with movement costs and lookahead 1\pause
+    \item equivalent to \emph{convex body chasing} in $d + 1$\pause
+    \item fundamental incompatibility between competitive ratio and regret even for linear hitting costs in one dimension
+\end{itemize}
+\end{frame}
+
+\section{Model}
+
+\begin{frame}{Model}
+What is the cost of operating a data center with $x_t \in \mathbb{N}_0$ active servers and under load $\lambda_t \in \mathbb{N}_0$?\pause
+\begin{itemize}
+    \item How to distribute jobs across the active servers?\pause\par
+        Distribute evenly across all servers of the same type\footfullcite{Albers2021_2}.
+    \item What is the cost associated with such an assignment?\pause\par
+        Consisting of energy costs and the revenue loss incurred by a delayed processing of jobs.\pause\par
+        Algorithms need to \emph{balance} energy costs and revenue loss.
+\end{itemize}\pause\spadding
+
+Movement costs are on the order of operating an idling server for 1-4 hours\footfullcite{Lin2011}.
+\end{frame}
+
+\section{Algorithms}
+
+\begin{frame}{Algorithms for one dimension}
+\scriptsize
+\begin{tabularx}{\textwidth}{r|X|p{2cm}|l}
+    problem & algorithm & results & time complexity \\\hline
+    \multirow{4}*{fractional} & \onslide<2->{Lazy Capacity Provisioning\footfullcite{Lin2011}} & \onslide<2->{3-competitive} & \onslide<2->{$\mathcal{O}(\tau O_{\epsilon}^{\tau})$} \\
+    & \onslide<3->{Memoryless\footfullcite{Bansal2015}} & \onslide<3->{3-competitive} & \onslide<3->{$\mathcal{O}(O_{\epsilon}^1)$} \\
+    & \onslide<4->{Probabilistic\footnotemark[\value{footnote}]} & \onslide<4->{2-competitive} & \onslide<4->{$\mathcal{O}(\tau^2 I_{\epsilon} |B_{f_0}| R_{\epsilon} O_{\epsilon}^1)$} \\
+    & \onslide<5->{Randomly Biased Greedy\footfullcite{Andrew2015},\newline $\theta \geq 1$} & \onslide<5->{$(1+\theta)$\newline-competitive,\newline $\mathcal{O}(\max \{T / \theta, \theta\})$-regret} & \onslide<5->{$\mathcal{O}((O_{\epsilon}^1)^{\tau+1})$} \\\hline
+    \multirow{2}*{integral} & \onslide<6->{Lazy Capacity Provisioning\footfullcite{Albers2018}} & \onslide<6->{3-competitive} & \onslide<6->{$\mathcal{O}(\tau^2 \log_2 m)$} \\
+    & \onslide<7->{Randomized\footnotemark[\value{footnote}]} & \onslide<7->{2-competitive} & \onslide<7->{$\mathcal{O}(1 + ALG)$} \\
+\end{tabularx}
+\end{frame}
+
+\begin{frame}{Algorithms for multiple dimensions}
+\scriptsize
+\begin{tabularx}{\textwidth}{X|p{2.2cm}|p{2cm}|l}
+    problem & algorithm & results & time complexity \\\hline
+    \multirow{2}*{\shortstack[l]{integral; linear,\\ time-indep. cost}} & \onslide<2->{Lazy Budgeting\footfullcite{Albers2021} (deterministic)} & \onslide<2->{$2d$-competitive} & \multirow{2}*{\onslide<2->{$\mathcal{O}(m d^2 + d \prod_{k=1}^d m_k)$}} \\
+    & \onslide<3->{Lazy Budgeting\footnotemark[\value{footnote}] (randomized)} & \onslide<3->{$\frac{e}{e-1}d$-competitive} & \\\hline
+    integral; hom. load & \onslide<4->{Lazy Budgeting\footfullcite{Albers2021_2}} & \onslide<4->{$(2d + 1 + \epsilon)$-competitive} & \onslide<4->{$\mathcal{O}(\widetilde{n}_{\tau} \widetilde{\tau}^2 |\mathcal{M}| d)$} \\\hline
+    \multirow{2}*{\shortstack[l]{fractional; $\alpha$-loc. \\ polyhedral costs; \\ $\ell_2$ movement}} & \onslide<5->{Primal OBD\footfullcite{Chen2018}} & \onslide<5->{$3 + \mathcal{O}(1 / \alpha)$-competitive} & \onslide<5->{$\mathcal{O}(O_{\epsilon}^d + O_{\epsilon}^d R_{\epsilon})$} \\
+    & \onslide<6->{Dual OBD\footnotemark[\value{footnote}]} & \onslide<6->{$\mathcal{O}(\sqrt{T})$-regret} & \onslide<6->{$\mathcal{O}(O_{\epsilon}^d + (O_{\epsilon}^d)^2 R_{\epsilon})$} \\\hline
+    \multirow{2}*{\shortstack[l]{fractional; \\ prediction window}} & \onslide<7->{RHC\footfullcite{Lin2012}} & \onslide<7->{$(1 + \mathcal{O}(1/w))$-competitive~in~1d} & \onslide<7->{$\mathcal{O}(O_{\epsilon}^{dw})$} \\
+    & \onslide<8->{AFHC\footnotemark[\value{footnote}]} & \onslide<8->{$(1 + \mathcal{O}(1/w))$-competitive} & \onslide<8->{$\mathcal{O}(w O_{\epsilon}^{dw})$} \\
+\end{tabularx}
+\end{frame}
+
+\section{Results}
+
+\begin{frame}{Traces}
+\begin{figure}
+    \begin{subfigure}[b]{.4\linewidth}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/los_alamos_mustang_schedule.tex}}
+    \caption{LANL Mustang}
+    \end{subfigure}
+    \begin{subfigure}[b]{.35\linewidth}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/microsoft_schedule}}
+    \caption{Microsoft Fiddle}
+    \end{subfigure}
+    \par\bigskip
+    \begin{subfigure}[b]{.38\linewidth}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/alibaba_schedule}}
+    \caption{Alibaba}
+    \end{subfigure}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Performance metrics}
+\begin{itemize}
+    \item \b{normalized cost}: $c(ALG) / c(OPT)$\pause
+    \item \b{cost reduction}: \begin{align*}
+        \frac{c(OPT_s) - c(ALG)}{c(OPT_s)}
+    \end{align*}\pause
+    \item \b{static/dynamic ratio}: $c(OPT_s) / c(OPT)$
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Results in one dimension}
+\begin{figure}
+    \begin{subfigure}[b]{.50\linewidth}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/lanl_normalized_cost}}
+    \caption{LANL Mustang}
+    \end{subfigure}
+    \begin{subfigure}[b]{.48\linewidth}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/alibaba_normalized_cost}}
+    \caption{Alibaba}
+    \end{subfigure}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Results in one dimension}
+\begin{figure}
+    \begin{subfigure}[b]{.38\linewidth}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/opts_opt_vs_pmr}}
+    \end{subfigure}\pause
+    \begin{subfigure}[b]{.38\linewidth}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/opt_vs_opts_against_normalized_cost}}
+    \end{subfigure}\pause
+    \par\bigskip
+    \begin{subfigure}[b]{.38\linewidth}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/cr_vs_nc}}
+    \end{subfigure}
+\end{figure}
+\end{frame}
+
+\begin{frame}{Overview of results in multiple dimensions}
+\begin{itemize}
+    \item lazy budgeting algorithms perform nearly optimally (normalized cost $\in [1.05, 1.25]$), without consideration of revenue loss\pause
+    \item descent methods achieve normalized costs of $\approx 2.5$, assuming the decision space is Euclidean
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Results with predictions}
+\begin{figure}
+    \begin{subfigure}[b]{.51\linewidth}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/pred_lcp_cost}}
+    \caption{LCP and Int-LCP}
+    \end{subfigure}\pause
+    \begin{subfigure}[b]{.48\linewidth}
+    \resizebox{\textwidth}{!}{\input{thesis/figures/pred_mpc_cost}}
+    \caption{RHC and AFHC}
+    \end{subfigure}
+\end{figure}
+\end{frame}
+
+\section{Future work}
+
+\begin{frame}{Future work}
+\begin{itemize}
+    \item compare performance to algorithms for convex body chasing\pause
+    \item performance of algorithms in other applications\pause
+    \item appropriate modeling of long-running jobs\pause
+    \item SOCO without lookahead\pause
+    \item better algorithms to make use of predictions
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\centering \large
+Thanks for your attention!
+Questions?
+\end{frame}
+
+% \begin{frame}[allowframebreaks]
+% \printbibliography
+% \end{frame}
+
+\end{document}

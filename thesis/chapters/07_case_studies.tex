@@ -292,7 +292,7 @@ We also observe in \cref{fig:case_studies:ud:opt_vs_opts_against_normalized_cost
     \resizebox{\textwidth}{!}{\input{thesis/figures/lanl_normalized_cost}}
     \caption{LANL Mustang}
     \end{subfigure}
-    \begin{subfigure}[b]{.47\linewidth}
+    \begin{subfigure}[b]{.48\linewidth}
     \resizebox{\textwidth}{!}{\input{thesis/figures/alibaba_normalized_cost}}
     \caption{Alibaba}
     \end{subfigure}
@@ -317,7 +317,7 @@ We also observe in \cref{fig:case_studies:ud:opt_vs_opts_against_normalized_cost
     \resizebox{\textwidth}{!}{\input{thesis/figures/lanl_cost_reduction}}
     \caption{LANL Mustang}
     \end{subfigure}
-    \begin{subfigure}[b]{.47\linewidth}
+    \begin{subfigure}[b]{.48\linewidth}
     \resizebox{\textwidth}{!}{\input{thesis/figures/alibaba_cost_reduction}}
     \caption{Alibaba}
     \end{subfigure}
@@ -387,7 +387,7 @@ Recall that for SLO, during a single time slot a server can process at most one 
     \label{tab:simp_model}
 \end{table}
 
-The achieved normalized cost and cost reduction of lazy budgeting are shown in \cref{fig:case_studies:md:slo:normalized_cost} and \cref{fig:case_studies:md:slo:cost_reduction}, respectively. The dynamic offline optimal schedule primarily uses 8-GPU-servers and only uses 2-GPU-servers for short periods. The static offline optimal schedule uses 122 8-GPU-servers and no 2-GPU-servers as they have a larger operating cost, which would have to be paid throughout the entire day. Interestingly, the lazy budgeting algorithms primarily use 2-GPU-servers due to their lower switching cost and stick with 8-GPU-servers once they were powered up. \Cref{fig:case_studies:md:slo:det:schedule} and \cref{fig:case_studies:md:slo:rand:schedule} show the schedules obtained by the online algorithms in comparison to the offline optimal schedule. The runtime of the deterministic and randomized variants is shown in \cref{fig:case_studies:md:slo:runtimes}.
+The achieved normalized cost and cost reduction of lazy budgeting are shown in \cref{fig:case_studies:md:slo:normalized_cost} and \cref{fig:case_studies:md:slo:cost_reduction}, respectively. The dynamic offline optimal schedule primarily uses 8-GPU-servers and only uses 2-GPU-servers for short periods. The static offline optimal schedule uses 122 8-GPU-servers and no 2-GPU-servers as they have a larger operating cost, which would have to be paid throughout the entire day. The lazy budgeting algorithms primarily use 2-GPU-servers due to their lower switching cost and stick with 8-GPU-servers once they were powered up. \Cref{fig:case_studies:md:slo:det:schedule} and \cref{fig:case_studies:md:slo:rand:schedule} show the schedules obtained by the online algorithms in comparison to the offline optimal schedule. The runtime of the deterministic and randomized variants is shown in \cref{fig:case_studies:md:slo:runtimes}.
 
 \begin{figure}
     \begin{subfigure}[b]{.5\linewidth}
@@ -398,7 +398,7 @@ The achieved normalized cost and cost reduction of lazy budgeting are shown in \
     \resizebox{\textwidth}{!}{\input{thesis/figures/slo_cost_reduction}}
     \caption{Cost reduction}\label{fig:case_studies:md:slo:cost_reduction}
     \end{subfigure}
-    \caption{Performance of lazy budgeting (SLO) for the Microsoft Fiddle trace when compared against the offline optimum.}
+    \caption{Performance of lazy budgeting (SLO) for the Microsoft Fiddle trace when compared against the offline optimum. The results of the randomized algorithm are based on five individual runs.}
 \end{figure}
 
 \begin{figure}
@@ -414,7 +414,7 @@ The achieved normalized cost and cost reduction of lazy budgeting are shown in \
     \resizebox{\textwidth}{!}{\input{thesis/figures/sblo_schedule}}
     \caption{SBLO ($\epsilon = 1/4$)}\label{fig:case_studies:md:sblo:schedule}
     \end{subfigure}
-    \caption{Comparison of the schedules obtained by lazy budgeting for the Microsoft Fiddle trace and the offline optimum. For SLO, the deterministic algorithm is shown in blue and the randomized algorithm is shown in red. The lazy budgeting algorithm for SBLO is shown in green. Note that the lazy budgeting algorithms prefer the 2-GPU-servers initially due to their low switching costs. For SLO, the randomized algorithm appears to be less ``sticky'' than the deterministic algorithm, resulting in a better normalized cost.}
+    \caption{Comparison of the schedules obtained by lazy budgeting for the Microsoft Fiddle trace and the offline optimum. For SLO, the deterministic algorithm is shown in blue and one result of the randomized algorithm is shown in red. The lazy budgeting algorithm for SBLO is shown in green. Note that the lazy budgeting algorithms prefer the 2-GPU-servers initially due to their low switching costs. For SLO, the randomized algorithm appears to be less ``sticky'' than the deterministic algorithm, resulting in a better normalized cost.}
 \end{figure}
 
 \begin{figure}
