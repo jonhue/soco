@@ -243,30 +243,57 @@ Movement costs are on the order of operating an idling server for 1-4 hours\foot
 
 \section{Algorithms}
 
+% \begin{frame}{Algorithms for one dimension}
+% \scriptsize
+% \begin{tabularx}{\textwidth}{r|X|p{2cm}|l}
+%     problem & algorithm & results & time complexity \\\hline
+%     \multirow{4}*{fractional} & \onslide<2->{Lazy Capacity Provisioning\footfullcite{Lin2011}} & \onslide<2->{3-competitive} & \onslide<2->{$\mathcal{O}(\tau O_{\epsilon}^{\tau})$} \\
+%     & \onslide<3->{Memoryless\footfullcite{Bansal2015}} & \onslide<3->{3-competitive} & \onslide<3->{$\mathcal{O}(O_{\epsilon}^1)$} \\
+%     & \onslide<4->{Probabilistic\footnotemark[\value{footnote}]} & \onslide<4->{2-competitive} & \onslide<4->{$\mathcal{O}(\tau^2 I_{\epsilon} |B_{f_0}| R_{\epsilon} O_{\epsilon}^1)$} \\
+%     & \onslide<5->{Randomly Biased Greedy\footfullcite{Andrew2015},\newline $\theta \geq 1$} & \onslide<5->{$(1+\theta)$\newline-competitive,\newline $\mathcal{O}(\max \{T / \theta, \theta\})$-regret} & \onslide<5->{$\mathcal{O}((O_{\epsilon}^1)^{\tau+1})$} \\\hline
+%     \multirow{2}*{integral} & \onslide<6->{Lazy Capacity Provisioning\footfullcite{Albers2018}} & \onslide<6->{3-competitive} & \onslide<6->{$\mathcal{O}(\tau^2 \log_2 m)$} \\
+%     & \onslide<7->{Randomized\footnotemark[\value{footnote}]} & \onslide<7->{2-competitive} & \onslide<7->{$\mathcal{O}(1 + ALG)$} \\
+% \end{tabularx}
+% \end{frame}
+
 \begin{frame}{Algorithms for one dimension}
 \scriptsize
-\begin{tabularx}{\textwidth}{r|X|p{2cm}|l}
-    problem & algorithm & results & time complexity \\\hline
-    \multirow{4}*{fractional} & \onslide<2->{Lazy Capacity Provisioning\footfullcite{Lin2011}} & \onslide<2->{3-competitive} & \onslide<2->{$\mathcal{O}(\tau O_{\epsilon}^{\tau})$} \\
-    & \onslide<3->{Memoryless\footfullcite{Bansal2015}} & \onslide<3->{3-competitive} & \onslide<3->{$\mathcal{O}(O_{\epsilon}^1)$} \\
-    & \onslide<4->{Probabilistic\footnotemark[\value{footnote}]} & \onslide<4->{2-competitive} & \onslide<4->{$\mathcal{O}(\tau^2 I_{\epsilon} |B_{f_0}| R_{\epsilon} O_{\epsilon}^1)$} \\
-    & \onslide<5->{Randomly Biased Greedy\footfullcite{Andrew2015},\newline $\theta \geq 1$} & \onslide<5->{$(1+\theta)$\newline-competitive,\newline $\mathcal{O}(\max \{T / \theta, \theta\})$-regret} & \onslide<5->{$\mathcal{O}((O_{\epsilon}^1)^{\tau+1})$} \\\hline
-    \multirow{2}*{integral} & \onslide<6->{Lazy Capacity Provisioning\footfullcite{Albers2018}} & \onslide<6->{3-competitive} & \onslide<6->{$\mathcal{O}(\tau^2 \log_2 m)$} \\
-    & \onslide<7->{Randomized\footnotemark[\value{footnote}]} & \onslide<7->{2-competitive} & \onslide<7->{$\mathcal{O}(1 + ALG)$} \\
+\begin{tabularx}{\textwidth}{r|X|X}
+    problem & algorithm & results \\\hline
+    \multirow{4}*{fractional} & \onslide<2->{Lazy Capacity Provisioning\footfullcite{Lin2011}} & \onslide<2->{3-competitive} \\
+    & \onslide<3->{Memoryless\footfullcite{Bansal2015}} & \onslide<3->{3-competitive} \\
+    & \onslide<4->{Probabilistic\footnotemark[\value{footnote}]} & \onslide<4->{2-competitive} \\
+    & \onslide<5->{Randomly Biased Greedy\footfullcite{Andrew2015},\newline $\theta \geq 1$} & \onslide<5->{$(1+\theta)$-competitive,\newline $\mathcal{O}(\max \{T / \theta, \theta\})$-regret} \\\hline
+    \multirow{2}*{integral} & \onslide<6->{Lazy Capacity Provisioning\footfullcite{Albers2018}} & \onslide<6->{3-competitive} \\
+    & \onslide<7->{Randomized\footnotemark[\value{footnote}]} & \onslide<7->{2-competitive} \\
 \end{tabularx}
 \end{frame}
 
+% \begin{frame}{Algorithms for multiple dimensions}
+% \scriptsize
+% \begin{tabularx}{\textwidth}{X|p{2.2cm}|p{2cm}|l}
+%     problem & algorithm & results & time complexity \\\hline
+%     \multirow{2}*{\shortstack[l]{integral; linear,\\ time-indep. cost}} & \onslide<2->{Lazy Budgeting\footfullcite{Albers2021} (deterministic)} & \onslide<2->{$2d$-competitive} & \multirow{2}*{\onslide<2->{$\mathcal{O}(m d^2 + d \prod_{k=1}^d m_k)$}} \\
+%     & \onslide<3->{Lazy Budgeting\footnotemark[\value{footnote}] (randomized)} & \onslide<3->{$\approx1.582d$-competitive} & \\\hline
+%     integral; hom. load & \onslide<4->{Lazy Budgeting\footfullcite{Albers2021_2}} & \onslide<4->{$(2d + 1 + \epsilon)$-competitive} & \onslide<4->{$\mathcal{O}(\widetilde{n}_{\tau} \widetilde{\tau}^2 |\mathcal{M}| d)$} \\\hline
+%     \multirow{2}*{\shortstack[l]{fractional; $\alpha$-loc. \\ polyhedral costs; \\ $\ell_2$ movement}} & \onslide<5->{Primal OBD\footfullcite{Chen2018}} & \onslide<5->{$3 + \mathcal{O}(1 / \alpha)$-competitive} & \onslide<5->{$\mathcal{O}(O_{\epsilon}^d + O_{\epsilon}^d R_{\epsilon})$} \\
+%     & \onslide<6->{Dual OBD\footnotemark[\value{footnote}]} & \onslide<6->{$\mathcal{O}(\sqrt{T})$-regret} & \onslide<6->{$\mathcal{O}(O_{\epsilon}^d + (O_{\epsilon}^d)^2 R_{\epsilon})$} \\\hline
+%     \multirow{2}*{\shortstack[l]{fractional; \\ prediction window}} & \onslide<7->{RHC\footfullcite{Lin2012}} & \onslide<7->{$(1 + \mathcal{O}(1/w))$-competitive~in~1d} & \onslide<7->{$\mathcal{O}(O_{\epsilon}^{dw})$} \\
+%     & \onslide<8->{AFHC\footnotemark[\value{footnote}]} & \onslide<8->{$(1 + \mathcal{O}(1/w))$-competitive} & \onslide<8->{$\mathcal{O}(w O_{\epsilon}^{dw})$} \\
+% \end{tabularx}
+% \end{frame}
+
 \begin{frame}{Algorithms for multiple dimensions}
 \scriptsize
-\begin{tabularx}{\textwidth}{X|p{2.2cm}|p{2cm}|l}
-    problem & algorithm & results & time complexity \\\hline
-    \multirow{2}*{\shortstack[l]{integral; linear,\\ time-indep. cost}} & \onslide<2->{Lazy Budgeting\footfullcite{Albers2021} (deterministic)} & \onslide<2->{$2d$-competitive} & \multirow{2}*{\onslide<2->{$\mathcal{O}(m d^2 + d \prod_{k=1}^d m_k)$}} \\
-    & \onslide<3->{Lazy Budgeting\footnotemark[\value{footnote}] (randomized)} & \onslide<3->{$\approx1.582d$-competitive} & \\\hline
-    integral; hom. load & \onslide<4->{Lazy Budgeting\footfullcite{Albers2021_2}} & \onslide<4->{$(2d + 1 + \epsilon)$-competitive} & \onslide<4->{$\mathcal{O}(\widetilde{n}_{\tau} \widetilde{\tau}^2 |\mathcal{M}| d)$} \\\hline
-    \multirow{2}*{\shortstack[l]{fractional; $\alpha$-loc. \\ polyhedral costs; \\ $\ell_2$ movement}} & \onslide<5->{Primal OBD\footfullcite{Chen2018}} & \onslide<5->{$3 + \mathcal{O}(1 / \alpha)$-competitive} & \onslide<5->{$\mathcal{O}(O_{\epsilon}^d + O_{\epsilon}^d R_{\epsilon})$} \\
-    & \onslide<6->{Dual OBD\footnotemark[\value{footnote}]} & \onslide<6->{$\mathcal{O}(\sqrt{T})$-regret} & \onslide<6->{$\mathcal{O}(O_{\epsilon}^d + (O_{\epsilon}^d)^2 R_{\epsilon})$} \\\hline
-    \multirow{2}*{\shortstack[l]{fractional; \\ prediction window}} & \onslide<7->{RHC\footfullcite{Lin2012}} & \onslide<7->{$(1 + \mathcal{O}(1/w))$-competitive~in~1d} & \onslide<7->{$\mathcal{O}(O_{\epsilon}^{dw})$} \\
-    & \onslide<8->{AFHC\footnotemark[\value{footnote}]} & \onslide<8->{$(1 + \mathcal{O}(1/w))$-competitive} & \onslide<8->{$\mathcal{O}(w O_{\epsilon}^{dw})$} \\
+\begin{tabularx}{\textwidth}{r|X|X}
+    problem & algorithm & results \\\hline
+    \multirow{2}*{\shortstack[r]{integral; linear,\\ time-indep. cost}} & \onslide<2->{Lazy Budgeting\footfullcite{Albers2021}\newline(deterministic)} & \onslide<2->{$2d$-competitive} \\
+    & \onslide<3->{Lazy Budgeting\footnotemark[\value{footnote}]\newline(randomized)} & \onslide<3->{$\approx1.582d$-competitive} \\\hline
+    integral; hom. load & \onslide<4->{Lazy Budgeting\footfullcite{Albers2021_2}} & \onslide<4->{$(2d + 1 + \epsilon)$-competitive} \\\hline
+    \multirow{2}*{\shortstack[r]{fractional; $\alpha$-loc. \\ polyhedral costs; \\ $\ell_2$ movement}} & \onslide<5->{Primal OBD\footfullcite{Chen2018}} & \onslide<5->{$3 + \mathcal{O}(1 / \alpha)$-competitive} \\
+    & \onslide<6->{Dual OBD\footnotemark[\value{footnote}]}\newline & \onslide<6->{$\mathcal{O}(\sqrt{T})$-regret} \\\hline
+    \multirow{2}*{\shortstack[r]{fractional; \\ prediction window}} & \onslide<7->{RHC\footfullcite{Lin2012}} & \onslide<7->{$(1 + \mathcal{O}(1/w))$\newline-competitive~in~1d} \\
+    & \onslide<8->{AFHC\footnotemark[\value{footnote}]} & \onslide<8->{$(1 + \mathcal{O}(1/w))$-competitive} \\
 \end{tabularx}
 \end{frame}
 
