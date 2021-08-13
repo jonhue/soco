@@ -204,7 +204,7 @@ Advisor:     & Jens Quedenfeld\\
 \draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (136.67,136.67) .. controls (136.67,135.19) and (137.86,134) .. (139.33,134) .. controls (140.81,134) and (142,135.19) .. (142,136.67) .. controls (142,138.14) and (140.81,139.33) .. (139.33,139.33) .. controls (137.86,139.33) and (136.67,138.14) .. (136.67,136.67) -- cycle ;
 
 % Text Node
-\draw (132,144) node [anchor=north west][inner sep=0.75pt]    {$x_{t}$};
+\draw (132,144) node [anchor=north west][inner sep=0.75pt]    {$x_{2}$};
 
 %Straight Lines [id:da25275615888238856]
 \draw [color={rgb, 255:red, 255; green, 0; blue, 0 }  ,draw opacity=1 ][line width=1.5]    (145.33,136.67) -- (193.33,136.67) ;
@@ -212,18 +212,6 @@ Advisor:     & Jens Quedenfeld\\
 \draw [shift={(142.33,136.67)}, rotate = 0] [color={rgb, 255:red, 255; green, 0; blue, 0 }  ,draw opacity=1 ][line width=1.5]    (14.21,-4.28) .. controls (9.04,-1.82) and (4.3,-0.39) .. (0,0) .. controls (4.3,0.39) and (9.04,1.82) .. (14.21,4.28)   ;
 }
 \end{tikzpicture}
-\end{frame}
-\begin{frame}{Problem}
-\b{Smoothed online convex optimization} (or \emph{convex function chasing})\footfullcite{Lin2011}:\pause\ Given a convex decision space $\mathcal{X} \subset \mathbb{R}^d$, a norm $\norm{\cdot}$ on $\mathbb{R}^d$, and a sequence $F$ of non-negative convex functions $f_t : \mathcal{X} \to \mathbb{R}_{\geq 0}$\pause, find $x \in \mathcal{X}^T$ such that \begin{align*}
-    \sum_{t=1}^T f_t(x_t) + \norm{x_t - x_{t-1}}
-\end{align*} is minimized where $T$ is the time horizon and $x_0 = \mathbf{0}$.
-\end{frame}
-\begin{frame}{Problem}
-\begin{itemize}
-    \item similar to \emph{online convex optimization} with movement costs and lookahead 1\pause
-    \item equivalent to \emph{convex body chasing} in $d + 1$\pause
-    \item fundamental incompatibility between competitive ratio and regret even for linear hitting costs in one dimension
-\end{itemize}
 \end{frame}
 
 \section{Model}
@@ -301,16 +289,16 @@ Movement costs are on the order of operating an idling server for 1-4 hours\foot
 
 \begin{frame}{Traces}
 \begin{figure}
-    \begin{subfigure}[b]{.4\linewidth}
+    \begin{subfigure}[b]{.51\linewidth}
     \resizebox{\textwidth}{!}{\input{thesis/figures/los_alamos_mustang_schedule.tex}}
     \caption{LANL Mustang}
     \end{subfigure}
-    \begin{subfigure}[b]{.35\linewidth}
-    \resizebox{\textwidth}{!}{\input{thesis/figures/microsoft_schedule}}
-    \caption{Microsoft Fiddle}
-    \end{subfigure}
-    \par\bigskip
-    \begin{subfigure}[b]{.38\linewidth}
+    % \begin{subfigure}[b]{.35\linewidth}
+    % \resizebox{\textwidth}{!}{\input{thesis/figures/microsoft_schedule}}
+    % \caption{Microsoft Fiddle}
+    % \end{subfigure}
+    % \par\bigskip
+    \begin{subfigure}[b]{.47\linewidth}
     \resizebox{\textwidth}{!}{\input{thesis/figures/alibaba_schedule}}
     \caption{Alibaba}
     \end{subfigure}
@@ -355,25 +343,33 @@ Movement costs are on the order of operating an idling server for 1-4 hours\foot
 \end{figure}
 \end{frame}
 
-\begin{frame}{Overview of results in multiple dimensions}
+\begin{frame}{Other results}
+\begin{block}{Multiple dimensions}
 \begin{itemize}
     \item lazy budgeting algorithms perform nearly optimally (normalized cost $\in [1.05, 1.25]$), without consideration of revenue loss\pause
     \item descent methods achieve normalized costs of $\approx 2.5$
 \end{itemize}
+\end{block}\pause
+\begin{block}{With predictions}
+\begin{itemize}
+    \item even a short prediction window of several hours can significantly improve the results (by $\approx 5\%$)\pause
+    \item robust to imperfect (realistic) predictions
+\end{itemize}
+\end{block}
 \end{frame}
 
-\begin{frame}{Results with predictions}
-\begin{figure}
-    \begin{subfigure}[b]{.51\linewidth}
-    \resizebox{\textwidth}{!}{\input{thesis/figures/pred_lcp_cost}}
-    \caption{LCP and Int-LCP}
-    \end{subfigure}\pause
-    \begin{subfigure}[b]{.48\linewidth}
-    \resizebox{\textwidth}{!}{\input{thesis/figures/pred_mpc_cost}}
-    \caption{RHC and AFHC}
-    \end{subfigure}
-\end{figure}
-\end{frame}
+% \begin{frame}{Results with predictions}
+% \begin{figure}
+%     \begin{subfigure}[b]{.51\linewidth}
+%     \resizebox{\textwidth}{!}{\input{thesis/figures/pred_lcp_cost}}
+%     \caption{LCP and Int-LCP}
+%     \end{subfigure}\pause
+%     \begin{subfigure}[b]{.48\linewidth}
+%     \resizebox{\textwidth}{!}{\input{thesis/figures/pred_mpc_cost}}
+%     \caption{RHC and AFHC}
+%     \end{subfigure}
+% \end{figure}
+% \end{frame}
 
 \section{Future work}
 
@@ -381,8 +377,8 @@ Movement costs are on the order of operating an idling server for 1-4 hours\foot
 \begin{itemize}
     \item compare performance to algorithms for convex body chasing\pause
     \item performance of algorithms in other applications\pause
-    \item appropriate modeling of long-running jobs\pause
-    \item SOCO without lookahead\pause
+    % \item appropriate modeling of long-running jobs\pause
+    % \item SOCO without lookahead\pause
     \item better algorithms to make use of predictions
 \end{itemize}
 \end{frame}
@@ -396,5 +392,18 @@ Questions?
 % \begin{frame}[allowframebreaks]
 % \printbibliography
 % \end{frame}
+
+\begin{frame}{Problem}
+\b{Smoothed online convex optimization} (or \emph{convex function chasing})\footfullcite{Lin2011}:\pause\ Given a convex decision space $\mathcal{X} \subset \mathbb{R}^d$, a norm $\norm{\cdot}$ on $\mathbb{R}^d$, and a sequence $F$ of non-negative convex functions $f_t : \mathcal{X} \to \mathbb{R}_{\geq 0}$\pause, find $x \in \mathcal{X}^T$ such that \begin{align*}
+    \sum_{t=1}^T f_t(x_t) + \norm{x_t - x_{t-1}}
+\end{align*} is minimized where $T$ is the time horizon and $x_0 = \mathbf{0}$.
+\end{frame}
+\begin{frame}{Problem}
+\begin{itemize}
+    \item similar to \emph{online convex optimization} with movement costs and lookahead 1\pause
+    \item equivalent to \emph{convex body chasing} in $d + 1$\pause
+    \item fundamental incompatibility between competitive ratio and regret even for linear hitting costs in one dimension
+\end{itemize}
+\end{frame}
 
 \end{document}
