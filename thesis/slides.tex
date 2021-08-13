@@ -94,8 +94,8 @@
 
 \title[Implementation of Algorithms for Right-Sizing Data Centers]{Implementation of Algorithms for \\ Right-Sizing Data Centers}
 \institute{Department of Informatics \\ Technical University of Munich}
-\author{\begin{tabular}{r@{ }l}
-Author:      & Jonas Hübotter \\[1ex]
+\author{\begin{tabular}{r@{ }l} 
+Author:      & Jonas Hübotter \\[1ex] 
 Supervisor:  & Prof. Dr. Susanne Albers\\
 Advisor:     & Jens Quedenfeld\\
 \end{tabular}}
@@ -130,25 +130,25 @@ Advisor:     & Jens Quedenfeld\\
 
 \begin{frame}{Problem}
 \centering
-\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
 
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
 %uncomment if require: \path (0,308); %set diagram left start at 0, and has height of 308
 
-%Straight Lines [id:da3912851178909138]
+%Straight Lines [id:da3912851178909138] 
 \draw    (331,135.33) -- (636,135.33) ;
 \draw [shift={(638,135.33)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
 \draw [shift={(329,135.33)}, rotate = 0] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
 \only<2>{
-%Shape: Circle [id:dp9366405058886342]
+%Shape: Circle [id:dp9366405058886342] 
 \draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (520.67,135.67) .. controls (520.67,134.19) and (521.86,133) .. (523.33,133) .. controls (524.81,133) and (526,134.19) .. (526,135.67) .. controls (526,137.14) and (524.81,138.33) .. (523.33,138.33) .. controls (521.86,138.33) and (520.67,137.14) .. (520.67,135.67) -- cycle ;
-%Straight Lines [id:da6017657532306151]
+%Straight Lines [id:da6017657532306151] 
 \draw  [dash pattern={on 0.84pt off 2.51pt}]  (523.33,135.67) -- (523.52,112.05) ;
 % Text Node
 \draw (515,142) node [anchor=north west][inner sep=0.75pt]    {$x_{1}$};
 }
 
-%Curve Lines [id:da9412769336006994]
+%Curve Lines [id:da9412769336006994] 
 \draw [line width=1.5]    (374.52,40.05) .. controls (393.52,61.05) and (501.52,126.05) .. (535.52,110.05) .. controls (569.52,94.05) and (586.52,68.05) .. (597.52,38.05) ;
 % Text Node
 \draw (397,35) node [anchor=north west][inner sep=0.75pt]    {$f_{1}$};
@@ -156,41 +156,41 @@ Advisor:     & Jens Quedenfeld\\
 \end{frame}
 \begin{frame}{Problem}
 \centering
-\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt
+\tikzset{every picture/.style={line width=0.75pt}} %set default line width to 0.75pt        
 
 \begin{tikzpicture}[x=0.75pt,y=0.75pt,yscale=-1,xscale=1]
 %uncomment if require: \path (0,308); %set diagram left start at 0, and has height of 308
 
-%Straight Lines [id:da8132100594867722]
+%Straight Lines [id:da8132100594867722] 
 \draw    (7,136.33) -- (312,136.33) ;
 \draw [shift={(314,136.33)}, rotate = 180] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
 \draw [shift={(5,136.33)}, rotate = 0] [color={rgb, 255:red, 0; green, 0; blue, 0 }  ][line width=0.75]    (10.93,-3.29) .. controls (6.95,-1.4) and (3.31,-0.3) .. (0,0) .. controls (3.31,0.3) and (6.95,1.4) .. (10.93,3.29)   ;
 % \only<2>{
-% %Shape: Circle [id:dp9366405058886342]
+% %Shape: Circle [id:dp9366405058886342] 
 % \draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (520.67,135.67) .. controls (520.67,134.19) and (521.86,133) .. (523.33,133) .. controls (524.81,133) and (526,134.19) .. (526,135.67) .. controls (526,137.14) and (524.81,138.33) .. (523.33,138.33) .. controls (521.86,138.33) and (520.67,137.14) .. (520.67,135.67) -- cycle ;
-% %Straight Lines [id:da6017657532306151]
+% %Straight Lines [id:da6017657532306151] 
 % \draw  [dash pattern={on 0.84pt off 2.51pt}]  (523.33,135.67) -- (523.52,112.05) ;
 % % Text Node
 % \draw (515,142) node [anchor=north west][inner sep=0.75pt]    {$x_{1}$};
 % }
 
-%Curve Lines [id:da37061921880533877]
+%Curve Lines [id:da37061921880533877] 
 \draw [line width=1.5]    (32,21.33) .. controls (36.36,41.81) and (61.25,115.72) .. (106,119.33) .. controls (150.75,122.95) and (246.43,53.26) .. (269,36.33) ;
 % Text Node
 \draw (44,17) node [anchor=north west][inner sep=0.75pt]    {$f_{2}$};
 
-%Straight Lines [id:da23167830177054616]
+%Straight Lines [id:da23167830177054616] 
 \draw  [dash pattern={on 0.84pt off 2.51pt}]  (199.33,136.67) -- (199.52,83.05) ;
-%Shape: Circle [id:dp9237316574850754]
+%Shape: Circle [id:dp9237316574850754] 
 \draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (196.67,136.67) .. controls (196.67,135.19) and (197.86,134) .. (199.33,134) .. controls (200.81,134) and (202,135.19) .. (202,136.67) .. controls (202,138.14) and (200.81,139.33) .. (199.33,139.33) .. controls (197.86,139.33) and (196.67,138.14) .. (196.67,136.67) -- cycle ;
 
 % Text Node
 \draw (191,144) node [anchor=north west][inner sep=0.75pt]    {$x_{1}$};
 
 \onslide<2->{
-%Straight Lines [id:da9850850655894281]
+%Straight Lines [id:da9850850655894281] 
 \draw  [dash pattern={on 0.84pt off 2.51pt}]  (109.33,136.67) -- (109.52,120.05) ;
-%Shape: Circle [id:dp2801837798690885]
+%Shape: Circle [id:dp2801837798690885] 
 \draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (106.67,136.67) .. controls (106.67,135.19) and (107.86,134) .. (109.33,134) .. controls (110.81,134) and (112,135.19) .. (112,136.67) .. controls (112,138.14) and (110.81,139.33) .. (109.33,139.33) .. controls (107.86,139.33) and (106.67,138.14) .. (106.67,136.67) -- cycle ;
 
 % Text Node
@@ -198,15 +198,15 @@ Advisor:     & Jens Quedenfeld\\
 }
 
 \onslide<3->{
-%Straight Lines [id:da4019047700825191]
+%Straight Lines [id:da4019047700825191] 
 \draw  [dash pattern={on 0.84pt off 2.51pt}]  (139.33,136.67) -- (139.52,113.05) ;
-%Shape: Circle [id:dp045787056716331875]
+%Shape: Circle [id:dp045787056716331875] 
 \draw  [fill={rgb, 255:red, 0; green, 0; blue, 0 }  ,fill opacity=1 ] (136.67,136.67) .. controls (136.67,135.19) and (137.86,134) .. (139.33,134) .. controls (140.81,134) and (142,135.19) .. (142,136.67) .. controls (142,138.14) and (140.81,139.33) .. (139.33,139.33) .. controls (137.86,139.33) and (136.67,138.14) .. (136.67,136.67) -- cycle ;
 
 % Text Node
 \draw (132,144) node [anchor=north west][inner sep=0.75pt]    {$x_{t}$};
 
-%Straight Lines [id:da25275615888238856]
+%Straight Lines [id:da25275615888238856] 
 \draw [color={rgb, 255:red, 255; green, 0; blue, 0 }  ,draw opacity=1 ][line width=1.5]    (145.33,136.67) -- (193.33,136.67) ;
 \draw [shift={(196.33,136.67)}, rotate = 180] [color={rgb, 255:red, 255; green, 0; blue, 0 }  ,draw opacity=1 ][line width=1.5]    (14.21,-4.28) .. controls (9.04,-1.82) and (4.3,-0.39) .. (0,0) .. controls (4.3,0.39) and (9.04,1.82) .. (14.21,4.28)   ;
 \draw [shift={(142.33,136.67)}, rotate = 0] [color={rgb, 255:red, 255; green, 0; blue, 0 }  ,draw opacity=1 ][line width=1.5]    (14.21,-4.28) .. controls (9.04,-1.82) and (4.3,-0.39) .. (0,0) .. controls (4.3,0.39) and (9.04,1.82) .. (14.21,4.28)   ;
