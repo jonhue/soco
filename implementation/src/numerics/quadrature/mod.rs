@@ -1,7 +1,9 @@
 //! Integration.
 
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
-use bacon_sci::integrate::{integrate, integrate_hermite, integrate_laguerre};
+use bacon_sci_1::integrate::{
+    integrate, integrate_hermite, integrate_laguerre,
+};
 use log::debug;
 use noisy_float::prelude::*;
 

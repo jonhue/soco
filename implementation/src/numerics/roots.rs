@@ -2,7 +2,7 @@
 
 use super::PRECISION;
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
-use bacon_sci::roots::brent;
+use bacon_sci_1::roots::brent;
 use log::warn;
 use noisy_float::prelude::*;
 

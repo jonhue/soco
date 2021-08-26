@@ -94,9 +94,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "bacon-sci"
+name = "bacon-sci-1"
 version = "0.11.0"
-source = "git+https://github.com/jonhue/bacon?branch=master#e4f6d68b2ed97e7e0b3db2e133987e4c13dc8907"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8af60a3c35235b92f1652ee191adc8dc4dc4b3ee5d8d5f4ad04e59fac8f08056"
 dependencies = [
  "nalgebra 0.24.1",
  "num-complex 0.3.1",
@@ -1224,11 +1225,11 @@ checksum = "fe0f37c9e8f3c5a4a66ad655a93c74daac4ad00c441533bf5c6e7990bb42604e"
 
 [[package]]
 name = "soco"
-version = "0.1.0"
+version = "1.0.0"
 dependencies = [
  "approx 0.5.0",
  "backtrace",
- "bacon-sci",
+ "bacon-sci-1",
  "bincode",
  "cached",
  "derivative",
