@@ -19,9 +19,9 @@ jobs:
       uses: actions-rs/cargo@v1.0.3
       with:
         command: doc
-        args: --manifest-path=soco/Cargo.toml
+        args: --manifest-path=implementation/Cargo.toml
     - name: Move documentation
-      run: mv ./soco/target/doc ./dist/doc
+      run: mv ./implementation/target/doc ./dist/doc
     - name: Prepare files
       run: sh ./scripts/setup.sh
     - name: Compile LaTeX sources
@@ -37,7 +37,7 @@ jobs:
     - name: Move readme
       run: |
         cp ./README.md ./dist/index.md
-        cp ./soco/src/algorithms/README.md ./dist/algorithms.md
+        cp ./implementation/src/algorithms/README.md ./dist/algorithms.md
     - name: Deploy
       uses: peaceiris/actions-gh-pages@v3.8.0
       with:
