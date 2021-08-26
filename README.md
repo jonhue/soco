@@ -11,15 +11,23 @@ Thus, SOCO can be understood as online convex optimization with an additional sm
 
 A special focus of this work is the application to the dynamic right-sizing of data centers.
 
-[**Thesis**](https://jonhue.github.io/soco/main.pdf), [Presentation](https://jonhue.github.io/soco/handout.pdf), [(with animations)](https://jonhue.github.io/soco/slides.pdf), [Documentation](https://jonhue.github.io/soco/doc/soco)
+[**Thesis**](https://jonhue.github.io/soco/main.pdf), [Presentation](https://jonhue.github.io/soco/handout.pdf) [(with animations)](https://jonhue.github.io/soco/slides.pdf), [Documentation](https://jonhue.github.io/soco/doc/soco)
 
 ## Acknowledgement
 
 The following is a result of my undergraduate thesis work at [TUM](https://www.tum.de/en/) under the supervision of [Prof. Dr. Susanne Albers](https://www.professoren.tum.de/en/albers-susanne) and advised by [Jens Quedenfeld](http://www14.in.tum.de/personen/quedenfeld/index.html.en).
 
-## Overview
+## Organization
 
-This implementation can mainly be broken down into three separate parts.
+The top-level folders are described as follows:
+
+| `analysis`       | empirical evaluation of the implemented algorithms in the application of dynamically right-sizing data centers |
+| `implementation` | implementation of the algorithms |
+| `thesis`         | source files of the thesis and the presentation |
+
+### Overview
+
+The implementation can mainly be broken down into three separate parts.
 
 * **Algorithms** - The implementation of various offline and online algorithms for SOCO andrelated problems. [Here is a complete list of the implemented algorithms](https://jonhue.github.io/soco/algorithms).
 * **Streaming** - Utilities for streaming the online algorithms in practice. This includes a TCP server that can be queried to run iterations of the online algorithms sequentially.
