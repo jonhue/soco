@@ -1,0 +1,6 @@
+[package]
+name = "smoothed_online_convex_optimization"
+
+[build-system]
+requires = ["maturin>=0.11,<0.12"]
+build-backend = "maturin"
