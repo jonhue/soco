@@ -29,11 +29,11 @@ jobs:
       with:
         command: test
         args: --manifest-path=implementation/Cargo.toml
-    # - name: Package
-    #   uses: actions-rs/cargo@v1.0.3
-    #   with:
-    #     command: package
-    #     args: --manifest-path=implementation/Cargo.toml
+    - name: Package
+      uses: actions-rs/cargo@v1.0.3
+      with:
+        command: package
+        args: --manifest-path=implementation/Cargo.toml
 
   python:
     name: Python
