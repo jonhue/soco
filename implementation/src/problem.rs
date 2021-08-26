@@ -242,7 +242,7 @@ pub struct Online<P> {
     pub w: i32,
 }
 
-/// Smoothed Convex Optimization.
+/// Smoothed Convex Optimization (SCO).
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 pub struct SmoothedConvexOptimization<'a, T, C, D> {
@@ -282,7 +282,10 @@ pub type IntegralSmoothedConvexOptimization<'a, C, D> =
 pub type FractionalSmoothedConvexOptimization<'a, C, D> =
     SmoothedConvexOptimization<'a, f64, C, D>;
 
-/// Simplified Smoothed Convex Optimization.
+/// Simplified Smoothed Convex Optimization (SSCO).
+///
+/// * decision space is lower bounded by $\mathbf{0}$
+/// * movement costs are a dimension-dependently scaled Manhattan distance
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 pub struct SimplifiedSmoothedConvexOptimization<'a, T, C, D> {
@@ -320,7 +323,10 @@ pub type IntegralSimplifiedSmoothedConvexOptimization<'a, C, D> =
 pub type FractionalSimplifiedSmoothedConvexOptimization<'a, C, D> =
     SimplifiedSmoothedConvexOptimization<'a, f64, C, D>;
 
-/// Smoothed Balanced-Load Optimization.
+/// Smoothed Balanced-Load Optimization (SBLO).
+///
+/// * SSCO
+/// * hitting costs are computed by _balancing_ incoming loads across all dimensions each of which is described by a convex cost function
 #[derive(Clone, Derivative)]
 #[derivative(Debug)]
 pub struct SmoothedBalancedLoadOptimization<'a, T> {
@@ -393,7 +399,10 @@ where
 pub type IntegralSmoothedBalancedLoadOptimization<'a> =
     SmoothedBalancedLoadOptimization<'a, i32>;
 
-/// Smoothed Load Optimization.
+/// Smoothed Load Optimization (SLO).
+///
+/// * SSCO
+/// * hitting costs are time independent and linear in some incoming load
 #[derive(Clone, Debug)]
 pub struct SmoothedLoadOptimization<T> {
     /// Number of dimensions.
