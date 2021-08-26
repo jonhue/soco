@@ -3,46 +3,154 @@ layout: primer_without_heading
 title: Algorithms - Algorithms for Smoothed Online Convex Optimization
 ---
 
+# Problem Variants
+
+* **Smoothed Convex Optimization (SCO)**
+* **Simplified Smoothed Convex Optimization (SSCO)** - decision space is lower bounded by `0`, movement costs are a dimension-dependently scaled Manhattan distance
+* **Smoothed Balanced-Load Optimization (SBLO)** - SSCO and hitting costs are computed by _balancing_ incoming loads across all dimensions each of which is described by a convex cost function
+* **Smoothed Load Optimization (SLO)** - SSCO and hitting costs are time independent and linear in some incoming load
+
 # Algorithms
 
-| Name                                                                                                           | Variant | Multi-Dimensional? | Integral? | Online? | Approximation/Competitiveness* | Complexity** | Notes |
-| -------------------------------------------------------------------------------------------------------------- | ------- | ------------------ | --------- | ------- | ------------------------------ | ------------ | ----- |
-| [Backward-Recurrent Capacity Provisioning](offline/uni_dimensional/capacity_provisioning.rs) [1]               | 2       | ❌                 | ❌        | ❌      | optimal                        |              |
-| [Convex Optimization](offline/multi_dimensional/convex_optimization.rs) [*]                                    | 1       | ✅                 | ❌        | ❌      | optimal                        |              |
-| [Graph-Based Optimal Algorithm](offline/uni_dimensional/optimal_graph_search.rs) [5]                           | 2       | ❌                 | ✅        | ❌      | optimal                        | O(T log m)   |
-| [Graph-Based Optimal Algorithm](offline/multi_dimensional/optimal_graph_search.rs) [9]                         | 2       | ✅                 | ✅        | ❌      | optimal                        |              |
-| [Graph-Based Approximation Algorithm](offline/multi_dimensional/approx_graph_search.rs) [9]                    | 2       | ✅                 | ✅        | ❌      | (2𝛾 - 1)-approximation         |              | 𝛾 > 0 |
-| [Lazy Capacity Provisioing](online/uni_dimensional/lazy_capacity_provisioing.rs) [1,5]                         | 2       | ❌                 | ❌/✅     | ✅      | 3-competitive                  |              |
-| [Memoryless Algorithm](online/uni_dimensional/memoryless.rs) [3]                                               | 2       | ❌                 | ❌        | ✅      | 3-competitive                  |              |
-| [Probabilistic Algorithm](online/uni_dimensional/probabilistic.rs) [3]                                         | 2       | ❌                 | ❌        | ✅      | 2-competitive                  |              |
-| [Randomized Integral Relaxation](online/uni_dimensional/randomized.rs) [5]                                     | 2       | ❌                 | ✅        | ✅      | 2-competitive                  |              |
-| [Randomly Biased Greedy](online/uni_dimensional/randomly_biased_greedy.rs) [4]                                 | 1       | ❌                 | ❌        | ✅      | 2-competitive                  |              |
-| [Lazy Budgeting for SLO](online/multi_dimensional/lazy_budgeting/smoothed_load_optimization.rs) [8]            | 3       | ✅                 | ✅        | ✅      | 2d-competitive                 |              |
-| [Randomized Lazy Budgeting for SLO](online/multi_dimensional/lazy_budgeting/smoothed_load_optimization.rs) [8] | 3       | ✅                 | ✅        | ✅      | (e / (e - 1))d-competitive     |              |
-| [Lazy Budgeting for SBLO](online/multi_dimensional/lazy_budgeting/smoothed_balanced_load_optimization.rs) [9]  | 4       | ✅                 | ✅        | ✅      | (2d + 1 + ε)-competitive       |              | ε > 0 |
-| [Online Gradient Descent](online/multi_dimensional/online_gradient_descent.rs) [4]                             | 1       | ✅                 | ❌        | ✅      |                                |              | ΩO(log T) regret for learning rate 1/Ht where hitting costs are H-strongly convex |
-| [Online Balanced Descent (meta algorithm)](online/multi_dimensional/online_balanced_descent/meta.rs) [6]       | 1       | ✅                 | ❌        | ✅      |                                |              | Ω(m^{-2/3})-competitive for m-strongly convex hitting costs and l2-squared switching costs |
-| [Primal Online Balanced Descent](online/multi_dimensional/online_balanced_descent/primal.rs) [6]               | 1       | ✅                 | ❌        | ✅      | 3+O(1/𝛼)-competitive           |              | given competitiveness is for the l2-norm and locally 𝛼-polyhedral hitting costs, O(sqrt(d))-competitive for the l1-norm; mirror map must be m-strongly convex and M-Lipschitz smooth in the switching cost norm
-| [Dual Online Balanced Descent](online/multi_dimensional/online_balanced_descent/dual.rs) [6]                   | 1       | ✅                 | ❌        | ✅      |                                |              | mirror map must be m-strongly convex and M-Lipschitz smooth in the switching cost norm |
-| [Greedy Online Balanced Descent](online/multi_dimensional/online_balanced_descent/greedy.rs) [7]               | 1       | ✅                 | ❌        | ✅      | O(1/sqrt(m))-competitive       |              | for m-quasiconvex hitting costs and l2-squared switching costs |
-| [Regularized Online Balanced Descent](online/multi_dimensional/online_balanced_descent/regularized.rs) [7]     | 1       | ✅                 | ❌        | ✅      | O(1/sqrt(m))-competitive       |              | for m-strongly convex and differentiable hitting costs and switching costs modeled as the Bregman divergence where the potential function is 𝛼-strongly convex, 𝛽-strongly smooth, differentiable, and its Fenchel Conjugate is differentiable; Ω(1/m)-competitive for m-quasiconvex hitting costs and l2-squared switching costs |
-| [Receding Horizon Control](online/multi_dimensional/horizon_control.rs) [2]                                    | 2       | ✅                 | ❌        | ✅      | (1 + Ω(𝛽/e_0))-competitive     |              | where `e_0` is the idle cost; when uni-dimensional the competitive ratio is 1 + O(1/w) |
-| [Averaging Fixed Horizon Control](online/multi_dimensional/horizon_control.rs) [2]                             | 2       | ✅                 | ❌        | ✅      | (1 + O(1/w))-competitive       |              |
+## Offline
 
-\* If online, the competitive ratio describes how much worse the algorithm performs compared to an optimal offline algorithm in the worst case.
+### Backward-Recurrent Capacity Provisioning [1]
 
-\*\* If online, complexity is with respect to one iteration of the algorithm.
+SSCO - Fractional - Uni-Dimensional
 
-### Problem Variants
+Stays within bounds on the optimal solution moving backwards in time.
 
-1. Smoothed Convex Optimization
-2. Simplified Smoothed Convex Optimization
-3. Smoothed Load Optimization
-4. Smoothed Balanced-Load Optimization
+### Convex Optimization
 
-Above order is from most general to most specific.
+SCO - Fractional
 
-### References
+Finds the minimizer of a convex objective.
+
+### Graph-Based Optimal Algorithm (in one dimension) [5]
+
+SSCO - Integral - Uni-Dimensional
+
+Finds a shortest path in a graph using dynamic programming (in polynomial time).
+
+### Graph-Based Optimal Algorithm [9]
+
+SSCO - Integral
+
+Finds a shortest path in a graph using dynamic programming (**not** in polynomial time).
+
+### Graph-Based Polynomial-Time Approximation Scheme [9]
+
+SSCO - Integral
+
+Extends the graph-based optimal algorithm by only considering a subset of the decision space to achieve a better performance.
+
+### Static Fractional Optimum
+
+SCO - Fractional
+
+Solves a smaller problem than _Convex Optimization_ to obtain an optimal static solution.
+
+### Static Integral Optimum
+
+SCO - Integral
+
+Cycles through _all_ possible configurations to find the optimal static integral solution. Convexity is used to stop the search of the decision space quickly in practice, however, the worst-case runtime is exponential.
+
+## Online
+
+### Lazy Capacity Provisioning [1]
+
+SSCO - Fractional - Uni-Dimensional - `3`-competitive
+
+Lazily stays within fractional bounds on the decision space.
+
+### Lazy Capacity Provisioning [5]
+
+SSCO - Integral - Uni-Dimensional - `3`-competitive (optimal for a deterministic algorithm)
+
+Lazily stays within integral bounds on the decision space.
+
+### Memoryless algorithm [3]
+
+SSCO - Fractional - Uni-Dimensional - `3`-competitive (optimal for a memoryless algorithm)
+
+Moves towards the minimizer of the hitting cost balancing the paid movement cost. Special case of Primal Online Balanced Descent.
+
+### Probabilistic Algorithm [3]
+
+SSCO - Fractional - Uni-Dimensional - `2`-competitive (optimal)
+
+Constructs a probability distribution of well-performing configurations over time.
+
+### Randmoly Biased Greedy [4]
+
+SCO - Fractional - Uni-Dimensional - `2`-competitive (optimal)
+
+Uses a work function to balance hitting and movement costs.
+
+### Randomized Integral Relaxation [5]
+
+SSCO - Integral - Uni-Dimensional - `2`-competitive (optimal)
+
+Randomly rounds solutions of any `2`-competitive fractional algorithm.
+
+### Lazy Budgeting for SLO [8]
+
+SLO - Integral - `2d`-competitive (optimal for a deterministic algorithm)
+
+Keeps servers active for some minimum time delta even when they are not use to balance hitting costs and movement costs.
+
+### Lazy Budgeting for SLO (randomized) [8]
+
+SLO - Integral - `(e / (e - 1))d`-competitive
+
+Keeps servers active for some minimum time delta even when they are not use to balance hitting costs and movement costs.
+
+### Lazy Budgeting for SBLO [9]
+
+SBLO - Integral - `2d + 1 + \epsilon`-competitive
+
+Keeps servers active for some minimum time delta even when they are not use to balance hitting costs and movement costs.
+
+### Online Gradient Descent [4]
+
+SCO - Fractional
+
+Achieves sublinear regret by _learning_ the static offline optimum.
+
+### Primal Online Balanced Descent [6]
+
+SCO - Fractional - `3+\mathcal{O}(1/\alpha)`-competitive for the `\ell_2` norm and locally `\alpha`-polyhedral hitting costs, `\mathcal{O}(\sqrt{d})`-competitive for the `\ell_1` norm; mirror map must be `m`-strongly convex and `M`-Lipschitz smooth in the switching cost norm
+
+Takes a gradient step orthogonal to some landing level set balancing costs in the primal space.
+
+### Dual Online Balanced Descent [6]
+
+SCO - Fractional - mirror map must be `m`-strongly convex and `M`-Lipschitz smooth in the switching cost norm
+
+Takes a gradient step orthogonal to some landing level set balancing costs in the dual space. Achieves sublinear regret.
+
+### Greedy Online Balanced Descent [7]
+
+SCO - Fractional - `\mathcal{O}(1 / \sqrt{m})`-competitive for `m`-quasiconvex hitting costs and `\ell_2`-squared switching costs
+
+Takes a normal OBD-step and then an additional step directly towards the minimizer of the hitting cost depending on the convexity parameter `m`.
+
+### Regularized Online Balanced Descent [7]
+
+SCO - Fractional - `\mathcal{O}(1 / \sqrt{m})`-competitive (optimal) for `m`-strongly convex and differentiable hitting costs and switching costs modeled as the Bregman divergence where the potential function is `\alpha`-strongly convex, `\beta`-strongly smooth, differentiable, and its Fenchel Conjugate is differentiable; `\Omega(1/m)`-competitive for `m`-quasiconvex hitting costs and `\ell_2`-squared switching costs
+
+Using a computationally simpler local view.
+
+### Receding Horizon Control [2]
+
+SSCO - Fractional - `(1 + \Omega(\beta/e_0))`-competitive where `e_0` is the idle cost and `\beta` is the scaling of the Manhattan distance; when uni-dimensional the competitive ratio is `1 + \mathcal{O}(1/w)`
+
+### Averaging Fixed Horizon Control [2]
+
+SSCO - Fractional - `1 + \mathcal{O}(1/w)`-competitive
+
+# References
 
 1. Minghong Lin and Adam Wierman and Lachlan L. H. Andrew and Eno Thereska. _Dynamic right-sizing for power-proportional data centers_. 2011.
 2. Minghong Lin and Zhenhua Liu and Adam Wierman and Lachlan L. H. Andrew. _Online Algorithms for Geographical Load Balancing_. 2012.
