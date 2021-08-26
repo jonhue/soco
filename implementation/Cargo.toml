@@ -17,8 +17,11 @@ rustdoc-args = [
   "katex.html",
 ]
 
+[package.metadata.maturin]
+name = "smoothed_online_convex_optimization"
+
 [lib]
-name = "soco"
+name = "smoothed_online_convex_optimization"
 # "cdylib" is necessary to produce a shared library for Python to import from.
 #
 # Downstream Rust code (including code in `bin/`, `examples/`, and `tests/`) will not be able
