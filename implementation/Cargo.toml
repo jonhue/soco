@@ -5,8 +5,8 @@ version = "0.1.0"
 authors = ["Jonas Hübotter <jonas.huebotter@gmail.com>"]
 edition = "2018"
 license = "MIT"
-homepage = "https://jonhue.github.io/bachelors-thesis"
-repository = "https://github.com/jonhue/bachelors-thesis"
+homepage = "https://jonhue.github.io/soco"
+repository = "https://github.com/jonhue/soco"
 
 [package.metadata.docs.rs]
 rustdoc-args = [
