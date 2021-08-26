@@ -7,9 +7,9 @@ title: Implementation of Algorithms for Right-Sizing Data Centers
 
 (under construction)
 
-* [Thesis](https://jonhue.github.io/bachelors-thesis/main.pdf)
-* [Presentation](https://jonhue.github.io/bachelors-thesis/handout.pdf), [slides (with animations)](https://jonhue.github.io/bachelors-thesis/slides.pdf)
-* [Documentation](https://jonhue.github.io/bachelors-thesis/doc/soco/)
+* [Thesis](https://jonhue.github.io/soco/main.pdf)
+* [Presentation](https://jonhue.github.io/soco/handout.pdf), [slides (with animations)](https://jonhue.github.io/soco/slides.pdf)
+* [Documentation](https://jonhue.github.io/soco/doc/soco/)
 
 ## Development
 
