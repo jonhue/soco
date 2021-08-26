@@ -1,4 +1,9 @@
-# List of Algorithms
+---
+layout: primer_without_heading
+title: Algorithms - Algorithms for Smoothed Online Convex Optimization
+---
+
+# Algorithms
 
 | Name                                                                                                           | Variant | Multi-Dimensional? | Integral? | Online? | Approximation/Competitiveness* | Complexity** | Notes |
 | -------------------------------------------------------------------------------------------------------------- | ------- | ------------------ | --------- | ------- | ------------------------------ | ------------ | ----- |
