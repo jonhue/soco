@@ -15,7 +15,7 @@ use serde_derive::{Deserialize, Serialize};
 #[pyclass]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory {
-    /// Random number `r` representing bias.
+    /// Random number $r$ representing bias.
     pub r: f64,
 }
 impl Default for Memory {
@@ -29,7 +29,7 @@ impl Default for Memory {
 #[pyclass]
 #[derive(Clone)]
 pub struct Options {
-    /// Scaling factor for norm. `theta >= 1. Defaults to `1`.
+    /// Scaling factor for norm. $\theta \geq 1$. Defaults to $1$.
     #[pyo3(get, set)]
     pub theta: f64,
 }

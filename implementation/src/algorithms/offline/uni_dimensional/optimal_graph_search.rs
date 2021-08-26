@@ -15,14 +15,14 @@ use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 
-/// Vertice in the graph denoting time `t` and the value `j` at time `t`.
+/// Vertice in the graph denoting time $t$ and the value $j$ at time $t$.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Vertice(i32, i32);
 
 #[pyclass(name = "OptimalGraphSearch1dOptions")]
 #[derive(Clone)]
 pub struct Options {
-    /// Value at initial time `0`. Defaults to `0`.
+    /// Value at initial time $0$. Defaults to $0$.
     #[pyo3(get, set)]
     pub x_start: i32,
 }
@@ -82,7 +82,7 @@ where
     Ok(path)
 }
 
-/// Utility to transform a problem instance where `m` is not a power of `2` to an instance that is accepted by `optimal_graph_search`.
+/// Utility to transform a problem instance where $m$ is not a power of $2$ to an instance that is accepted by `optimal_graph_search`.
 pub fn make_pow_of_2<'a, C, D>(
     p: IntegralSimplifiedSmoothedConvexOptimization<'a, C, D>,
 ) -> Result<IntegralSimplifiedSmoothedConvexOptimization<C, D>>

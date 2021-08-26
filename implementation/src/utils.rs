@@ -59,12 +59,12 @@ where
     max(a, min(b, x))
 }
 
-/// Determines whether `x` is a power of `2`.
+/// Determines whether $x$ is a power of $2$.
 pub fn is_pow_of_2(x: i32) -> bool {
     x != 0 && x & (x - 1) == 0
 }
 
-/// Returns the `i`-th element if it exists.
+/// Returns the $i$-th element if it exists.
 pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<&T> {
     if 1 <= i && i <= xs.len() as i32 {
         Some(&xs[i as usize - 1])
@@ -73,18 +73,18 @@ pub fn access<T>(xs: &Vec<T>, i: i32) -> Option<&T> {
     }
 }
 
-/// Randomly samples a uniform value in `[a,b]`.
+/// Randomly samples a uniform value in $\[a,b\]$.
 pub fn sample_uniform(a: f64, b: f64) -> f64 {
     let mut rng = thread_rng();
     rng.gen_range(a..=b)
 }
 
-/// Move `t` such that the time scale begins at `t_start`.
+/// Move $t$ such that the time scale begins at $t_start$.
 pub fn shift_time(t: i32, t_start: i32) -> i32 {
     t + t_start - 1
 }
 
-/// Move `t` from a time scale beginning at `t_start` to a time scale beginning at `1`.
+/// Move $t$ from a time scale beginning at $t_start$ to a time scale beginning at $1$.
 pub fn unshift_time(t: i32, t_start: i32) -> i32 {
     t - t_start + 1
 }

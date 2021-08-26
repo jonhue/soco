@@ -12,7 +12,7 @@ pub struct Breakpoints {
     /// Finite vector of breakpoints.
     pub bs: Vec<N64>,
     /// Function which given a breakpoint returns the previous and next breakpoints (until there are none), respectively.
-    /// The function is called to obtain the next breakpoint until the piecewise integrals converge to `0` or the entire integral was integrated.
+    /// The function is called to obtain the next breakpoint until the piecewise integrals converge to $0$ or the entire integral was integrated.
     #[allow(clippy::type_complexity)]
     pub next:
         Option<Arc<dyn Fn(f64) -> (Option<f64>, Option<f64>) + Send + Sync>>,
@@ -26,12 +26,12 @@ impl Breakpoints {
         }
     }
 
-    /// Generate breakpoints from a finite vector of breakpoints `bs`.
+    /// Generate breakpoints from a finite vector of breakpoints $bs$.
     pub fn from(bs: Vec<f64>) -> Self {
         Self::empty().add(&bs)
     }
 
-    /// Breakpoints on a grid with a mesh width of `d`.
+    /// Breakpoints on a grid with a mesh width of $d$.
     pub fn grid(d: f64) -> Self {
         Breakpoints {
             bs: vec![],
@@ -41,8 +41,8 @@ impl Breakpoints {
         }
     }
 
-    /// Adds breakpoints in `bs` to the set of breakpoints, unless already included.
-    /// Note: The caller must ensure that there are no duplicates within `bs`.
+    /// Adds breakpoints in $bs$ to the set of breakpoints, unless already included.
+    /// Note: The caller must ensure that there are no duplicates within $bs$.
     pub fn add(&self, bs: &Vec<f64>) -> Self {
         let new_bs = bs
             .iter()

@@ -19,7 +19,7 @@ struct ObjectiveData<'a, C, D> {
     prev_x: FractionalConfig,
 }
 
-/// Returns new initial config `prev_x` and config for time slot `t`.
+/// Returns new initial config $prev_x$ and config for time slot $t$.
 fn next<C, D>(
     k: i32,
     o: Online<FractionalSimplifiedSmoothedConvexOptimization<C, D>>,

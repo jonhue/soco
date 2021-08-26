@@ -31,7 +31,7 @@ impl OfflineResult<i32> for Path {
     }
 }
 
-/// Data structure to cache results of the algorithm up to some time slot `t`.
+/// Data structure to cache results of the algorithm up to some time slot $t$.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Cache<T>
 where
@@ -39,11 +39,11 @@ where
 {
     /// Time slot.
     pub t: i32,
-    /// Computed paths up to time slot `t`.
+    /// Computed paths up to time slot $t$.
     pub paths: Paths<T>,
 }
 
-/// Returns next initial time slot `t_init` and `paths` from cache.
+/// Returns next initial time slot $t_init$ and $paths$ from cache.
 pub fn read_cache<T>(
     cache: Option<Cache<T>>,
     default: impl Fn() -> (i32, Paths<T>),

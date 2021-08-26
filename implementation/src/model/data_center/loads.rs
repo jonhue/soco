@@ -33,7 +33,7 @@ use std::ops::Mul;
 
 static MAX_SAMPLE_SIZE: i32 = 100;
 
-/// Encapsulates the load of `e` types.
+/// Encapsulates the load of $e$ types.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LoadProfile(Vec<N64>);
 
@@ -184,7 +184,7 @@ impl Div<N64> for LoadProfile {
     }
 }
 
-/// Encapsulates the load of `e` types as multiple samples per type.
+/// Encapsulates the load of $e$ types as multiple samples per type.
 #[derive(Clone, Debug)]
 pub struct PredictedLoadProfile(Vec<Vec<N64>>);
 
@@ -344,8 +344,8 @@ impl IntoParallelIterator for PredictedLoadProfile {
 /// Assignment of load fractions to dimensions for each job type.
 #[derive(Debug)]
 pub struct LoadFractions {
-    /// Stores for each dimension `k in [d]` the fractions of loads `i in [e]` that are handled.
-    /// Flat representation where position `k * e + i` represents the fraction of jobs of type `i` assigned to servers of type `k`.
+    /// Stores for each dimension $k \in \[d\]$ the fractions of loads $i \in \[e\]$ that are handled.
+    /// Flat representation where position $k \cdot e + i$ represents the fraction of jobs of type $i$ assigned to servers of type $k$.
     pub zs: Vec<N64>,
     /// Number of dimensions.
     pub d: i32,
@@ -354,7 +354,7 @@ pub struct LoadFractions {
 }
 
 impl LoadFractions {
-    /// Returns the load fraction for dimension `k` and job type `i`.
+    /// Returns the load fraction for dimension $k$ and job type $i$.
     pub fn get(&self, k: usize, i: usize, lambda: &LoadProfile) -> N64 {
         match k.cmp(&(self.d as usize - 1)) {
             Ordering::Less => self.zs[k * self.e as usize + i],
@@ -375,7 +375,7 @@ impl LoadFractions {
         }
     }
 
-    /// Selects loads for dimension `k`.
+    /// Selects loads for dimension $k$.
     pub fn select_loads(&self, lambda: &LoadProfile, k: usize) -> LoadProfile {
         (0..self.e as usize)
             .into_iter()
@@ -395,11 +395,11 @@ impl LoadFractions {
 
 /// Optimally applies (certain) loads to a model to obtain a cost function.
 ///
-/// * `d` - number of dimensions
-/// * `e` - number of job types
-/// * `objective` - cost function to minimize w.r.t. load assignments, returning energy cost and revenue loss
-/// * `loads` - vector of (certain) loads for all time slots that should be supported by the returned cost function
-/// * `t_start` - time offset, i.e. time of first load profile
+/// * $d$ - number of dimensions
+/// * $e$ - number of job types
+/// * $objective$ - cost function to minimize w.r.t. load assignments, returning energy cost and revenue loss
+/// * $loads$ - vector of (certain) loads for all time slots that should be supported by the returned cost function
+/// * $t_start$ - time offset, i.e. time of first load profile
 pub fn apply_loads_over_time<'a, 'b, T>(
     d: i32,
     e: i32,
@@ -434,11 +434,11 @@ where
 
 /// Optimally applies loads to a model to obtain a cost function.
 ///
-/// * `d` - number of dimensions
-/// * `e` - number of job types
-/// * `objective` - cost function to minimize w.r.t. load assignments
-/// * `predicted_loads` - vector of predicted loads for all time slots that should be supported by the returned cost function
-/// * `t_start` - time offset, i.e. time of first load samples
+/// * $d$ - number of dimensions
+/// * $e$ - number of job types
+/// * $objective$ - cost function to minimize w.r.t. load assignments
+/// * $predicted_loads$ - vector of predicted loads for all time slots that should be supported by the returned cost function
+/// * $t_start$ - time offset, i.e. time of first load samples
 pub fn apply_predicted_loads<'a, 'b, T>(
     d: i32,
     e: i32,
@@ -492,12 +492,12 @@ struct ConstraintData {
 
 /// Calculates cost based on a model for an optimal distribution of loads.
 ///
-/// * `d` - number of dimensions
-/// * `e` - number of job types
-/// * `objective` - cost function to minimize w.r.t. load assignments
-/// * `lambda` - load profile
-/// * `t` - time slot
-/// * `x` - configuration
+/// * $d$ - number of dimensions
+/// * $e$ - number of job types
+/// * $objective$ - cost function to minimize w.r.t. load assignments
+/// * $\lambda$ - load profile
+/// * $t$ - time slot
+/// * $x$ - configuration
 pub fn apply_loads<'a, T>(
     d: i32,
     e: i32,
@@ -516,7 +516,7 @@ where
 {
     assert!(e == lambda.e());
 
-    // we store for each dimension `k in [d]` the fractions of loads `i in [e]` that are handled
+    // we store for each dimension $k \in \[d\]$ the fractions of loads $i \in \[e\]$ that are handled
     // the final dimensions are completely determined by all preceding dimensions
     let solver_d = (d * e) as usize - e as usize;
     let bounds = vec![(0., 1.); solver_d];
@@ -540,8 +540,8 @@ where
     );
 
     // assigns each dimension a fraction of each load type
-    // note: the chosen assignment ensures that any server type with `0` active servers
-    // is also assigned an initial load fraction of `0`
+    // note: the chosen assignment ensures that any server type with $0$ active servers
+    // is also assigned an initial load fraction of $0$
     let number_of_non_zero_entries =
         x.iter().filter(|&&j| j > NumCast::from(0).unwrap()).count();
     let init = if number_of_non_zero_entries == 0 {
@@ -563,7 +563,7 @@ where
             .collect()
     };
 
-    // ensure that the fractions across all solver dimensions of each load type do not exceed `1`
+    // ensure that the fractions across all solver dimensions of each load type do not exceed $1$
     let constraints = (0..e as usize)
         .map(|i| {
             WrappedObjective::new(

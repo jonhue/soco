@@ -20,7 +20,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use serde_derive::{Deserialize, Serialize};
 use std::cmp::max;
 
-/// Lane distribution at some time `t`.
+/// Lane distribution at some time $t$.
 #[pyclass]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory {
@@ -60,8 +60,8 @@ fn sample_gamma() -> f64 {
     (r * (std::f64::consts::E - 1.) + 1.).ln()
 }
 
-/// Maps each lane to the dimension it is "handled by" at some time `t`.
-/// If value is `0`, then the lane is not "active".
+/// Maps each lane to the dimension it is "handled by" at some time $t$.
+/// If value is $0$, then the lane is not "active".
 pub type Lanes = Vec<i32>;
 
 /// Maps each lane to a finite time horizon it stays "active" for unless replaced by another dimension.
@@ -203,7 +203,7 @@ fn build_lanes(x: &IntegralConfig, d: i32, bound: i32) -> Lanes {
     lanes
 }
 
-/// Sums step across dimension from `from` to `to`.
+/// Sums step across dimension from $from$ to $to$.
 fn active_lanes(x: &IntegralConfig, from: i32, to: i32) -> i32 {
     (from..=to).map(|k| x[k as usize - 1]).sum()
 }

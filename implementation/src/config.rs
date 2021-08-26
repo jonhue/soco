@@ -42,7 +42,7 @@ where
         Config(vec![j])
     }
 
-    /// Creates a configuration by repeating `j` across `d` dimensions.
+    /// Creates a configuration by repeating $j$ across $d$ dimensions.
     pub fn repeat(j: T, d: i32) -> Config<T>
     where
         T: Clone,
@@ -60,7 +60,7 @@ where
         self.0.clone()
     }
 
-    /// Appends a value `j` to the configuration.
+    /// Appends a value $j$ to the configuration.
     pub fn push(&mut self, j: T) {
         self.0.push(j)
     }
@@ -214,7 +214,7 @@ where
 {
     type Output = T;
 
-    /// Dot product of transposed `self` with `other`.
+    /// Dot product of transposed $self$ with $other$.
     fn mul(self, other: Self) -> Self::Output {
         self.iter().zip(other.iter()).map(|(&x, &y)| x * y).sum()
     }

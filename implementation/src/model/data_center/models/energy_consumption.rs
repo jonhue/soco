@@ -56,10 +56,10 @@ pub struct NonLinearEnergyConsumptionModel {
     /// Power consumed when idling in a unit of time.
     #[pyo3(get, set)]
     pub phi_min: f64,
-    /// Constant for computing dynamic power. `alpha > 1`.
+    /// Constant for computing dynamic power. $\alpha > 1$.
     #[pyo3(get, set)]
     pub alpha: f64,
-    /// Constant for computing dynamic power. `beta > 0`.
+    /// Constant for computing dynamic power. $\beta > 0$.
     #[pyo3(get, set)]
     pub beta: f64,
 }
@@ -76,7 +76,7 @@ impl NonLinearEnergyConsumptionModel {
 }
 
 impl EnergyConsumptionModel {
-    /// Energy consumption of a server of some type with utilization `s`.
+    /// Energy consumption of a server of some type with utilization $s$.
     /// Referred to as $\phi$ in the paper.
     pub fn consumption(
         &self,

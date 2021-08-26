@@ -8,8 +8,8 @@ use noisy_float::prelude::*;
 /// Number of consecutive integrations below precision before the piecewise integration is stopped.
 static CONVERGENCE_THRESHOLD: i32 = 10;
 
-/// Computes the piecewise integral of `f_` over the interval `[from, to]` with respect to some breakpoints.
-/// Note that this function terminates when either the entire interval was integrated OR piecewise integrals converge to `0`.
+/// Computes the piecewise integral of $f_$ over the interval $\[from, to\]$ with respect to some breakpoints.
+/// Note that this function terminates when either the entire interval was integrated OR piecewise integrals converge to $0$.
 pub fn piecewise_integral(
     breakpoints: &Breakpoints,
     from: f64,
@@ -69,7 +69,7 @@ fn __piecewise_integral(
     b: f64,
     to: f64,
     f_: impl Fn(f64) -> f64,
-    // index of next breakpoint in `breakpoints`
+    // index of next breakpoint in $breakpoints$
     i: i32,
     // number of consecutive integrations below tolerance
     n: i32,
@@ -105,7 +105,7 @@ fn __piecewise_integral(
         Some(next) => next(b),
     };
 
-    // choose the next breakpoint; and update `i` if fixed breakpoint is chosen
+    // choose the next breakpoint; and update $i$ if fixed breakpoint is chosen
     let next_b = match fixed_b {
         None => match dir {
             Direction::Left => left_b,

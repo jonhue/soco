@@ -8,7 +8,7 @@ use noisy_float::prelude::*;
 
 // in practice, the inputs to the function may be imprecise enough to lead to the error:
 // `initial guesses do not bracket root` if the actual precision is required as the
-// function value at the boundary may deviate slightly from `0`.
+// function value at the boundary may deviate slightly from $0$.
 static ROOT_PRECISION: f64 = PRECISION * 1_000.;
 
 pub fn find_root(interval: (f64, f64), f: impl Fn(f64) -> f64) -> N64 {

@@ -24,7 +24,7 @@ struct InternalConfig {
     indices: Config<usize>,
 }
 
-/// Vertice in the graph denoting time `t` and the value `x` at time `t`.
+/// Vertice in the graph denoting time $t$ and the value $x$ at time $t$.
 /// The boolean flag indicates whether the vertice belongs to the powering up (`true`) or powering down (`false`) phase.
 /// The algorithm only keeps the most recent two layers in memory.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]

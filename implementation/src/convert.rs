@@ -413,7 +413,7 @@ where
 }
 
 pub trait ResettableCostFn<'a, T, C, D> {
-    /// Shift a certain cost function to some new initial time `t_start` (a time _before_ first time slot).
+    /// Shift a certain cost function to some new initial time $t_start$ (a time _before_ first time slot).
     fn reset(&'a self, t_start: i32) -> CostFn<'a, T, C, D>;
 }
 
@@ -439,7 +439,7 @@ where
 }
 
 pub trait ResettableProblem<'a, T> {
-    /// Shifts problem instance to some new initial time `t_start`.
+    /// Shifts problem instance to some new initial time $t_start$.
     fn reset(&'a self, t_start: i32) -> Self;
 }
 

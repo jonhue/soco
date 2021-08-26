@@ -13,7 +13,7 @@ use rayon::{
 use serde_derive::{Deserialize, Serialize};
 use std::{iter::FromIterator, ops::Index};
 
-/// Includes all configurations from time `1` to time `t_end`.
+/// Includes all configurations from time $1$ to time $t_end$.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Schedule<T>(Vec<Config<T>>);
 pub type IntegralSchedule = Schedule<i32>;
@@ -61,7 +61,7 @@ where
         }
     }
 
-    /// Returns the config at time `t` if present.
+    /// Returns the config at time $t$ if present.
     pub fn get(&self, t: i32) -> Option<&Config<T>> {
         access(&self.0, t)
     }
@@ -86,9 +86,9 @@ where
         self.0.iter().map(|x| x.to_vec()).collect()
     }
 
-    /// Builds a schedule from a raw (flat) encoding `raw_xs` (used for convex optimization).
-    /// `d` is the number of dimensions, `w` is the length of the time window.
-    /// The length of `raw_xs` must therefore be `d * w`.
+    /// Builds a schedule from a raw (flat) encoding $raw_xs$ (used for convex optimization).
+    /// $d$ is the number of dimensions, $w$ is the length of the time window.
+    /// The length of $raw_xs$ must therefore be $d \cdot w$.
     pub fn from_raw(d: i32, w: i32, raw_xs: &[T]) -> Schedule<T> {
         assert_eq!(
             raw_xs.len() as i32,
@@ -107,7 +107,7 @@ where
         )
     }
 
-    /// Builds a raw (flat) encoding of a schedule (used for convex optimization) by stretching a config across the time window `w`.
+    /// Builds a raw (flat) encoding of a schedule (used for convex optimization) by stretching a config across the time window $w$.
     pub fn build_raw(w: i32, x: &Config<T>) -> Vec<T> {
         let raw_xs: Vec<T> = (0..w as usize)
             .into_iter()
@@ -121,7 +121,7 @@ where
         raw_xs
     }
 
-    /// Returns the length of the raw encoding of `d` dimensions across time window `w`.
+    /// Returns the length of the raw encoding of $d$ dimensions across time window $w$.
     pub fn raw_encoding_len(d: i32, w: i32) -> i32 {
         d * w
     }

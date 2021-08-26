@@ -26,7 +26,7 @@ use serde_derive::{Deserialize, Serialize};
 #[derive(Clone, Derivative, Deserialize, Serialize)]
 #[derivative(Debug)]
 pub struct Memory<'a> {
-    /// Maps each time `u` to the corresponding load
+    /// Maps each time $u$ to the corresponding load
     pub load: Vec<i32>,
     /// Hitting costs for modified problem instance.
     #[serde(skip, default = "default_hitting_cost")]
@@ -68,7 +68,7 @@ impl IntoPy<PyObject> for Memory<'_> {
 #[pyclass]
 #[derive(Clone)]
 pub struct Options {
-    /// `epsilon > 0`. Defaults to `0.25`.
+    /// $\epsilon > 0$. Defaults to $0.25$.
     pub epsilon: f64,
 }
 impl Default for Options {
@@ -120,7 +120,7 @@ pub fn lb<'a>(
     };
     debug!("constructed modified problem instance: {:?}", mod_o);
 
-    // execute `n` time slots of algorithm B on modified problem instance
+    // execute $n$ time slots of algorithm B on modified problem instance
     let mod_prev_m = mod_o.offline_stream_from(
         &alg_b,
         u_end,
@@ -150,7 +150,7 @@ pub fn lb<'a>(
     ))
 }
 
-/// Calculates the number of sub time slots for some time slot `t`.
+/// Calculates the number of sub time slots for some time slot $t$.
 fn determine_sub_time_slots(
     p: &IntegralSmoothedBalancedLoadOptimization,
     t: i32,
@@ -247,7 +247,7 @@ fn determine_config(
 #[pyclass]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 struct AlgBMemory {
-    /// Maps dimension to the number of added instances for some sub time slot `u`.
+    /// Maps dimension to the number of added instances for some sub time slot $u$.
     init_times: Vec<Vec<i32>>,
     /// Cache of offline algorithm.
     cache: Option<Cache<Vertice>>,

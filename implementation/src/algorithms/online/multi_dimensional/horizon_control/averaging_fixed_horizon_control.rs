@@ -14,7 +14,7 @@ use serde_derive::{Deserialize, Serialize};
 #[pyclass]
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory {
-    /// Last initial configs for each iteration `k`.
+    /// Last initial configs for each iteration $k$.
     pub prev_x: Vec<FractionalConfig>,
 }
 impl<'a, C, D>

@@ -20,7 +20,7 @@ use pyo3::prelude::*;
 #[pyclass]
 #[derive(Clone)]
 pub struct Options {
-    /// The movement cost is at most `beta` times the hitting cost. `beta > 0`.
+    /// The movement cost is at most $\beta$ times the hitting cost. $\beta > 0$.
     pub beta: f64,
     /// Distance-generating function.
     pub h: DistanceGeneratingFn<f64>,

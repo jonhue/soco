@@ -40,7 +40,7 @@ impl<'a, D> WrappedObjective<'a, D> {
 /// Optimization result comprised of argmin and min.
 type OptimizationResult = (Vec<f64>, N64);
 
-/// Determines the minimizer of `hitting_cost` at time `t` with bounds `bounds`.
+/// Determines the minimizer of $hitting_cost$ at time $t$ with bounds $bounds$.
 pub fn find_minimizer_of_hitting_cost<C, D>(
     t: i32,
     hitting_cost: CostFn<'_, FractionalConfig, C, D>,
@@ -56,7 +56,7 @@ where
     find_minimizer(objective, bounds)
 }
 
-/// Determines the minimizer of a convex function `f` with bounds `bounds`.
+/// Determines the minimizer of a convex function $f$ with bounds $bounds$.
 pub fn find_minimizer<C>(
     objective: WrappedObjective<C>,
     bounds: Vec<(f64, f64)>,
@@ -64,7 +64,7 @@ pub fn find_minimizer<C>(
     minimize(objective, bounds, None, Vec::<WrappedObjective<()>>::new())
 }
 
-/// Determines the maximizer of a convex function `f` in `d` dimensions with `constraints`.
+/// Determines the maximizer of a convex function $f$ in $d$ dimensions with $constraints$.
 pub fn find_unbounded_maximizer<C, D>(
     objective: WrappedObjective<C>,
     d: i32,
@@ -92,9 +92,9 @@ pub fn maximize<C, D>(
     optimize(Direction::Maximize, objective, bounds, init, constraints)
 }
 
-/// Determines the optimum of a convex function `f` w.r.t some direction `dir`
-/// with bounds `bounds`, and `constraints`.
-/// Optimization begins at `init` (defaults to lower bounds).
+/// Determines the optimum of a convex function $f$ w.r.t some direction $dir$
+/// with bounds $bounds$, and $constraints$.
+/// Optimization begins at $init$ (defaults to lower bounds).
 ///
 /// The used algorithms do not support equality constraints very well, and thus
 /// they are not supported by this interface.

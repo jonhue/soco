@@ -14,9 +14,9 @@ use serde::Serialize;
 pub mod multi_dimensional;
 pub mod uni_dimensional;
 
-/// Solution fragment at some time `t` to an online problem.
+/// Solution fragment at some time $t$ to an online problem.
 ///
-/// * Configuration at time `t`.
+/// * Configuration at time $t$.
 /// * Memory if new memory should be added.
 pub struct Step<T, M>(pub Config<T>, pub Option<M>);
 pub type IntegralStep<M> = Step<i32, M>;

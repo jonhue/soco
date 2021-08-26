@@ -146,7 +146,7 @@ pub type IntermediateResult = Result<N64, DataCenterModelOutputFailure>;
 pub type IntermediateObjective =
     Result<DataCenterObjective, DataCenterModelOutputFailure>;
 
-/// Ensures that `x` is greater than zero and handles edge cases appropriately.
+/// Ensures that $x$ is greater than zero and handles edge cases appropriately.
 pub fn safe_balancing(
     x: N64,
     total_load: N64,

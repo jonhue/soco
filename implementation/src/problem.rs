@@ -238,7 +238,7 @@ pub struct Online<P> {
     /// Finite, non-negative prediction window.
     ///
     /// This prediction window is included in the time bound of the problem instance,
-    /// i.e. at time `t` `t_end` should be set to `t + w`.
+    /// i.e. at time $t$ $t_end$ should be set to $t + w$.
     pub w: i32,
 }
 

@@ -12,7 +12,7 @@ use num::{NumCast, ToPrimitive};
 use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
 
-/// Lower and upper bound from some time `t`.
+/// Lower and upper bound from some time $t$.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BoundsMemory<T> {
     pub lower: T,
@@ -29,7 +29,7 @@ where
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory<T> {
-    /// Lower and upper bounds from times `t` (in order).
+    /// Lower and upper bounds from times $t$ (in order).
     pub bounds: Vec<BoundsMemory<T>>,
 }
 impl<T> Default for Memory<T> {
@@ -83,7 +83,7 @@ where
 }
 
 /// Finds a valid reference time and initial condition to base the optimization
-/// on (alternatively to time `0`).
+/// on (alternatively to time $0$).
 fn find_initial_time<'a, T>(bounds: &Vec<BoundsMemory<T>>) -> (i32, T)
 where
     T: Value<'a>,
@@ -106,8 +106,8 @@ where
     (0, NumCast::from(0).unwrap())
 }
 
-/// Returns `true` if the time `t` with current bounds `m` and previous bounds
-/// (at `t - 1`) `prev_m` may be used as reference time.
+/// Returns `true` if the time $t$ with current bounds $m$ and previous bounds
+/// (at $t - 1$) $prev_m$ may be used as reference time.
 fn is_valid_initial_time<'a, T>(
     BoundsMemory {
         lower: prev_lower,

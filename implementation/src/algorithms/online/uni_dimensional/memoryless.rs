@@ -39,7 +39,7 @@ struct ObjectiveData<'a, C, D> {
     o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a, C, D>>,
 }
 
-/// Determines next `x` with a convex optimization.
+/// Determines next $x$ with a convex optimization.
 fn next<C, D>(
     o: Online<FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>>,
     t: i32,

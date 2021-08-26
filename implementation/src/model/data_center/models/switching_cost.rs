@@ -45,15 +45,15 @@ impl SwitchingCost {
         )
     }
 
-    /// Computes normalized switching cost for a server of some type given the time slot length `delta`.
+    /// Computes normalized switching cost for a server of some type given the time slot length $\delta$.
     /// Approximately, measures the minimum duration a server must be asleep to outweigh the switching cost.
-    /// Referred to as `\xi` in the paper.
+    /// Referred to as $\xi$ in the paper.
     pub fn normalized_switching_cost(&self, delta: f64) -> N64 {
         self.switching_cost() / (self.energy_cost * delta * self.phi_min)
     }
 
-    /// Builds switching cost such that the normalized switching cost matches `normalized_switching_cost`.
-    /// Here, `delta` is the time slot length.
+    /// Builds switching cost such that the normalized switching cost matches $normalized_switching_cost$.
+    /// Here, $\delta$ is the time slot length.
     pub fn from_normalized(
         delta: f64,
         normalized_switching_cost: f64,

@@ -42,7 +42,7 @@ pub struct ServerType {
     /// Name.
     #[pyo3(get, set)]
     pub key: String,
-    /// Maximum allowed utilization. Between `0` and `1`.
+    /// Maximum allowed utilization. Between $0$ and $1$.
     #[pyo3(get, set)]
     pub max_utilization: f64,
 }
@@ -81,8 +81,8 @@ pub struct JobType {
     /// Name.
     #[pyo3(get, set)]
     pub key: String,
-    /// Processing time `\eta_{k,i}` in units time of a job on some server type `k` (assuming full utilization).
-    /// Must be less or equals to the length of a time slot `delta` for some server type.
+    /// Processing time $\eta_{k,i}$ in units time of a job on some server type $k$ (assuming full utilization).
+    /// Must be less or equals to the length of a time slot $\delta$ for some server type.
     pub processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + Send + Sync>,
 }
 impl Default for JobType {
@@ -154,7 +154,7 @@ pub struct Source {
     /// Name.
     #[pyo3(get, set)]
     pub key: String,
-    /// Routing delay `\delta_{t,j,s}` to location `j` during time slot `t`.
+    /// Routing delay $\delta_{t,j,s}$ to location $j$ during time slot $t$.
     pub routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync>,
 }
 impl Source {
@@ -295,7 +295,7 @@ impl DataCenterModel {
 impl DataCenterModel {
     /// Calculates cumulative sub jobs of servers of some type, i.e. the number
     /// of sub jobs handled by all servers of this type, when they are assigned
-    /// the load profile `loads`.
+    /// the load profile $loads$.
     fn total_sub_jobs(
         &self,
         server_type: &ServerType,
@@ -313,9 +313,9 @@ impl DataCenterModel {
             .sum())
     }
 
-    /// Energy cost. Non-negative convex operating cost of data center `j`
-    /// during time slot `t` with configuration `x` load profile `lambda` and load fractions `zs`.
-    /// Referred to as `e` in the paper.
+    /// Energy cost. Non-negative convex operating cost of data center $j$
+    /// during time slot $t$ with configuration $x$ load profile $\lambda$ and load fractions $zs$.
+    /// Referred to as $e$ in the paper.
     fn energy_cost<'a, T>(
         &self,
         t: i32,
@@ -331,9 +331,9 @@ impl DataCenterModel {
         Ok(self.energy_cost_model.cost(t, &self.locations[j], p))
     }
 
-    /// Energy consumption of data center `j` with configuration `x_`, load profile
-    /// `lambda`, and load fractions `zs`.
-    /// Referred to as `\phi'` in the paper.
+    /// Energy consumption of data center $j$ with configuration $x_$, load profile
+    /// $\lambda$, and load fractions $zs$.
+    /// Referred to as $\phi'$ in the paper.
     fn energy_consumption<'a, T>(
         &self,
         j: usize,
@@ -368,11 +368,11 @@ impl DataCenterModel {
     }
 
     /// Revenue loss. Non-negative convex cost incurred by processing some job
-    /// on some server during time slot `t` when a total of `l` sub jobs are
+    /// on some server during time slot $t$ when a total of $l$ sub jobs are
     /// processed on the server.
-    /// `number_of_jobs` is the number of jobs processed on the server and
-    /// `mean_job_duration` is their mean duration.
-    /// Referred to as `q` in the paper.
+    /// $number_of_jobs$ is the number of jobs processed on the server and
+    /// $mean_job_duration$ is their mean duration.
+    /// Referred to as $q$ in the paper.
     #[allow(clippy::too_many_arguments)]
     fn revenue_loss(
         &self,
@@ -400,7 +400,7 @@ impl DataCenterModel {
     }
 
     /// Revenue loss across all sources and job types.
-    /// Referred to as `h` in the paper.
+    /// Referred to as $h$ in the paper.
     fn overall_revenue_loss<'a, T>(
         &self,
         t: i32,
@@ -415,7 +415,7 @@ impl DataCenterModel {
         let x = NumCast::from(x_).unwrap();
         let total_load = self.total_sub_jobs(server_type, &loads)?;
 
-        // calculates the mean duration of jobs on a server of some type under the load profile `loads`
+        // calculates the mean duration of jobs on a server of some type under the load profile $loads$
         let number_of_jobs = loads.iter().sum();
         let mean_job_duration = if number_of_jobs == 0. {
             n64(0.)
@@ -445,7 +445,7 @@ impl DataCenterModel {
     }
 
     /// Objective to be minimized when assigning jobs.
-    /// Referred to as `f` in the paper.
+    /// Referred to as $f$ in the paper.
     fn objective<'a, T>(
         &self,
         t: i32,
@@ -479,10 +479,10 @@ impl DataCenterModel {
     }
 
     /// Optimally applies (certain) loads to the model of a data center to obtain a cost function.
-    /// Referred to as `f` in the paper.
+    /// Referred to as $f$ in the paper.
     ///
-    /// * `loads` - vector of loads for all time slots that should be supported by the returned cost function
-    /// * `t_start` - time offset, i.e. time of first load profile
+    /// * $loads$ - vector of loads for all time slots that should be supported by the returned cost function
+    /// * $t_start$ - time offset, i.e. time of first load profile
     fn apply_loads_over_time<'a, T>(
         &self,
         loads: Vec<LoadProfile>,
@@ -507,10 +507,10 @@ impl DataCenterModel {
     }
 
     /// Optimally applies loads from a single to the model of a data center to obtain a cost function.
-    /// Referred to as `f` in the paper.
+    /// Referred to as $f$ in the paper.
     ///
-    /// * `predicted_loads` - vector of predicted loads for all time slots that should be supported by the returned cost function
-    /// * `t_start` - time offset, i.e. time of first load samples
+    /// * $predicted_loads$ - vector of predicted loads for all time slots that should be supported by the returned cost function
+    /// * $t_start$ - time offset, i.e. time of first load samples
     fn apply_predicted_loads<'a, T>(
         &self,
         predicted_loads: Vec<PredictedLoadProfile>,

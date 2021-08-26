@@ -73,7 +73,7 @@ where
     Ok(Step(x, None))
 }
 
-/// Projection of `y` under the Euclidean norm
+/// Projection of $y$ under the Euclidean norm
 fn project(bounds: Vec<(f64, f64)>, y: FractionalConfig) -> FractionalConfig {
     let objective = WrappedObjective::new(y, |x, y| {
         euclidean()(Config::new(x.to_vec()) - y.clone())

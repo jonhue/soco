@@ -13,7 +13,7 @@ use pyo3::prelude::*;
 #[pyclass]
 #[derive(Clone)]
 pub struct Options {
-    /// Convexity parameter. Chosen such that `f_t(x) \geq f_t(v_t) + \frac{m}{2} \norm{x - v_t}_2^2` where `v_t` is the minimizer of `f_t`.
+    /// Convexity parameter. Chosen such that $f_t(x) \geq f_t(v_t) + \frac{m}{2} \norm{x - v_t}_2^2$ where $v_t$ is the minimizer of $f_t$.
     pub m: f64,
     /// Convexity parameter of potential function of Bregman convergence.
     pub alpha: f64,
@@ -93,7 +93,7 @@ where
     Ok(Step(x, None))
 }
 
-/// Determines `lambda_1` (weight of movement cost) and `lambda_2` (weight of regularizer).
+/// Determines $\lambda_1$ (weight of movement cost) and $\lambda_2$ (weight of regularizer).
 fn build_parameters(m: f64, alpha: f64, beta: f64) -> (f64, f64) {
     let f_lambda_2 = |lambda_1| {
         (lambda_1 * m / 2.

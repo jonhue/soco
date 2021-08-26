@@ -13,11 +13,11 @@ use pyo3::prelude::*;
 #[pyclass]
 #[derive(Clone)]
 pub struct Options {
-    /// Convexity parameter. Chosen such that `f_t(x) \geq f_t(v_t) + \frac{m}{2} \norm{x - v_t}_2^2` where `v_t` is the minimizer of `f_t`.
+    /// Convexity parameter. Chosen such that $f_t(x) \geq f_t(v_t) + \frac{m}{2} \norm{x - v_t}_2^2$ where $v_t$ is the minimizer of $f_t$.
     pub m: f64,
-    /// Controls the size of the step towards the minimizer. `mu > 0`. Defaults to `1`.
+    /// Controls the size of the step towards the minimizer. $\mu > 0$. Defaults to $1$.
     pub mu: f64,
-    /// Balance parameter in OBD. `gamma > 0`. Defaults to `1`.
+    /// Balance parameter in OBD. $\gamma > 0$. Defaults to $1$.
     pub gamma: f64,
     /// Distance-generating function.
     pub h: DistanceGeneratingFn<f64>,

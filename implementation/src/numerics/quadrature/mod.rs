@@ -7,7 +7,7 @@ use noisy_float::prelude::*;
 
 pub mod piecewise;
 
-/// Integrates `f` from `from` to `to` using an applicable quadrature method.
+/// Integrates $f$ from $from$ to $to$ using an applicable quadrature method.
 pub fn integral(from: f64, to: f64, f: impl Fn(f64) -> f64) -> N64 {
     let result = if from == f64::NEG_INFINITY && to == f64::INFINITY {
         infinite_integral(f)

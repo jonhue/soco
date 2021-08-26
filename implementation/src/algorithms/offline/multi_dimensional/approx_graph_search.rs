@@ -15,7 +15,7 @@ use rayon::slice::ParallelSliceMut;
 #[derive(Clone)]
 pub struct Options {
     pub cache: Option<Cache<Vertice>>,
-    /// `gamma > 1`. Default is `1.1`.
+    /// $\gamma > 1$. Default is $1.1$.
     #[pyo3(get, set)]
     pub gamma: f64,
 }

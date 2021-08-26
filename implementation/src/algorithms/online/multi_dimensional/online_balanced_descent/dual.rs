@@ -21,7 +21,7 @@ use pyo3::prelude::*;
 #[pyclass]
 #[derive(Clone)]
 pub struct Options {
-    /// Balance parameter. `eta > 0`.
+    /// Balance parameter. $\eta > 0$.
     pub eta: f64,
     /// Distance-generating function.
     pub h: DistanceGeneratingFn<f64>,

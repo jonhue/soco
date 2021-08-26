@@ -82,9 +82,9 @@ struct ConstraintData<'a, C, D> {
     l: N64,
 }
 
-/// Bregman projection of `x` onto a convex `l`-sublevel set `K` of `f`.
+/// Bregman projection of $x$ onto a convex $l$-sublevel set $K$ of $f$.
 ///
-/// `h` must be `m`-strongly convex and `M`-Lipschitz smooth for the norm function with fixed `m` and `M`.
+/// $h$ must be $m$-strongly convex and $M$-Lipschitz smooth for the norm function with fixed $m$ and $M$.
 fn bregman_projection<C, D>(
     h: DistanceGeneratingFn<f64>,
     l: N64,
@@ -102,7 +102,7 @@ where
     let objective = WrappedObjective::new(ObjectiveData { h, x }, |y, data| {
         bregman_divergence(&data.h, Config::new(y.to_vec()), data.x.clone())
     });
-    // `l`-sublevel set of `f`
+    // $l$-sublevel set of $f$
     let constraint = WrappedObjective::new(
         ConstraintData { f: f.clone(), t, l },
         |y, data| {
@@ -121,7 +121,7 @@ where
     }
 }
 
-/// Bregman divergence between `x` and `y`.
+/// Bregman divergence between $x$ and $y$.
 fn bregman_divergence(
     h: &DistanceGeneratingFn<f64>,
     x: FractionalConfig,

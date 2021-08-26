@@ -151,7 +151,7 @@ where
     Ok(Step(Config::single(x), Some(m)))
 }
 
-/// Determines `x_r` with a convex optimization.
+/// Determines $x_r$ with a convex optimization.
 fn find_right_bound<C, D>(
     o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>>,
     t: i32,
@@ -184,7 +184,7 @@ where
     .raw()
 }
 
-/// Determines `x_l` with a convex optimization.
+/// Determines $x_l$ with a convex optimization.
 fn find_left_bound<C, D>(
     o: &Online<FractionalSimplifiedSmoothedConvexOptimization<'_, C, D>>,
     t: i32,

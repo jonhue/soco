@@ -30,7 +30,7 @@ where
         self.find_alpha_unfair_lower_bound(1., w, t, t_start, x_start)
     }
 
-    /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the lowest possible cost.
+    /// Computes the number of servers at time $t$ starting from $t_start$ with initial condition $x_start$ simulating up to time $t_end$ resulting in the lowest possible cost.
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
@@ -50,7 +50,7 @@ where
         self.find_alpha_unfair_upper_bound(1., w, t, t_start, x_start)
     }
 
-    /// Computes the number of servers at time `t` starting from `t_start` with initial condition `x_start` simulating up to time `t_end` resulting in the highest possible cost.
+    /// Computes the number of servers at time $t$ starting from $t_start$ with initial condition $x_start$ simulating up to time $t_end$ resulting in the highest possible cost.
     fn find_alpha_unfair_upper_bound(
         &self,
         alpha: f64,

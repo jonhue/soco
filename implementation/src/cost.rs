@@ -119,7 +119,7 @@ pub type FailableCost<D> = Cost<(), D>;
 /// A cost without associated information.
 pub type RawCost = Cost<(), ()>;
 
-/// Cost function (from time `t_start`).
+/// Cost function (from time $t_start$).
 #[derive(Clone)]
 #[allow(clippy::type_complexity)]
 pub struct SingleCostFn<'a, T, C, D>(
@@ -194,7 +194,7 @@ where
         CostFn(BTreeMap::new())
     }
 
-    /// Creates initial cost function from some time `t >= 1`.
+    /// Creates initial cost function from some time $t \geq 1$.
     pub fn new(t: i32, f: SingleCostFn<'a, T, C, D>) -> Self {
         let mut fs = BTreeMap::new();
         fs.insert(t, f);
@@ -285,10 +285,10 @@ where
         }
     }
 
-    /// Finds the most recent version of the cost function which assigns a value to time slot `t`.
+    /// Finds the most recent version of the cost function which assigns a value to time slot $t$.
     ///
-    /// If `t` is in the future (or now), the current cost function is used.
-    /// If `t` is in the past, the cost function from time `t` is used.
+    /// If $t$ is in the future (or now), the current cost function is used.
+    /// If $t$ is in the past, the cost function from time $t$ is used.
     ///
     /// Returns cost function and time slot of cost function.
     fn get(&self, t: i32) -> (&i32, &SingleCostFn<'a, T, C, D>) {

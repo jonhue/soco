@@ -119,10 +119,10 @@ where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
-    /// Generates an offline problem instance given some `input` (with certainty).
+    /// Generates an offline problem instance given some $input$ (with certainty).
     fn to(&self, input: A) -> P;
 
-    /// Performs an online update of the given problem instance `o` with some `input` (which may be uncertain).
+    /// Performs an online update of the given problem instance $o$ with some $input$ (which may be uncertain).
     fn update(&self, o: &mut Online<P>, input: B);
 }
 

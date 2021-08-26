@@ -12,7 +12,7 @@ use crate::utils::assert;
 use crate::value::Value;
 
 impl<'a, P> Online<P> {
-    /// Utility to stream an online algorithm from `T = 1`.
+    /// Utility to stream an online algorithm from $T = 1$.
     ///
     /// Returns resulting schedule, final memory of the algorithm.
     ///
@@ -108,12 +108,12 @@ impl<'a, P> Online<P> {
         Ok((x, m))
     }
 
-    /// Utility to stream an online algorithm with a constant cost function from `T = 1`.
+    /// Utility to stream an online algorithm with a constant cost function from $T = 1$.
     ///
     /// Returns resulting schedule, final memory of the algorithm.
     ///
     /// * `alg` - Online algorithm to stream.
-    /// * `t_end` - Finite time horizon. `t_end >= 1`.
+    /// * `t_end` - Finite time horizon. $t_end \geq 1$.
     pub fn offline_stream<T, M, O, C, D>(
         &mut self,
         alg: &impl OnlineAlgorithm<'a, T, P, M, O, C, D>,
