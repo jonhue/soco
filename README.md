@@ -21,6 +21,7 @@ The following is a result of my undergraduate thesis work at [TUM](https://www.t
 
 The top-level folders are described as follows:
 
+| ---------------- | ---- |
 | `analysis`       | empirical evaluation of the implemented algorithms in the application of dynamically right-sizing data centers |
 | `implementation` | implementation of the algorithms |
 | `thesis`         | source files of the thesis and the presentation |

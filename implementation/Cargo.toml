@@ -8,6 +8,12 @@ license = "MIT"
 homepage = "https://jonhue.github.io/bachelors-thesis"
 repository = "https://github.com/jonhue/bachelors-thesis"
 
+[package.metadata.docs.rs]
+rustdoc-args = [
+  "--html-in-header",
+  "katex.html",
+]
+
 [lib]
 name = "soco"
 # "cdylib" is necessary to produce a shared library for Python to import from.
@@ -16,10 +22,6 @@ name = "soco"
 # to `use string_sum;` unless the "rlib" or "lib" crate type is also included, e.g.:
 # crate-type = ["cdylib", "rlib"]
 crate-type = ["cdylib", "rlib"]
-
-[dependencies.pyo3]
-version = "0.14.3"
-features = ["extension-module"]
 
 [dependencies]
 approx = "0.5.0"
@@ -36,6 +38,7 @@ nalgebra = "0.29.0"
 nlopt = "0.5.4"
 noisy_float = "0.2.0"
 num = "0.4.0"
+pyo3 = { version = "0.14.3", features = ["extension-module"] }
 pyo3-log = "0.4.0"
 rand = "0.8.4"
 rand_pcg = "0.3.1"
