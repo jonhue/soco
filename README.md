@@ -37,10 +37,6 @@ The implementation can mainly be broken down into three separate parts.
 
 To achieve optimal performance, everything is implemented in Rust and heavily parallelized. Python bindings are included to interface with the _streaming_ and _data center model_ components.
 
-## Usage
-
-TBD
-
 ## Development
 
 ### Crate
@@ -51,3 +47,22 @@ The Rust crate is contained in the `implementation` directory. See the relevant 
 
 The `analysis` directory contains the case studies with real-world data. It requires the [Python bindings](https://github.com/jonhue/soco/tree/main/implementation#python-bindings) for the `soco` crate.
 See the relevant [prerequisites](https://github.com/jonhue/soco/tree/main/analysis#prerequisites) section for more information.
+
+## Contributing
+
+We warmly welcome everyone who is intersted in contributing. Please reference our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Releases
+
+[Here](https://github.com/jonhue/soco/releases) you can find details on all past releases. Unreleased breaking changes that are on the current master can be found [here](CHANGELOG.md).
+
+acts_as_favoritor follows Semantic Versioning 2.0 as defined at http://semver.org. Reference the [security policy](SECURITY.md).
+
+### Publishing
+
+1. Review breaking changes and deprecations in `CHANGELOG.md`.
+2. Change version in `implementation/Cargo.toml`.
+3. Reset `CHANGELOG.md`.
+4. Create a pull request to merge the changes into `main`.
+5. After the pull request was merged, create a new release listing the breaking changes and commits on `main` since the last release.
+6. The release workflow will publish the crate to crates.io.

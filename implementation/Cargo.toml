@@ -1,7 +1,7 @@
 [package]
 name = "soco"
 description = "Algorithms for Smoothed Online Convex Optimization"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Jonas Hübotter <jonas.huebotter@gmail.com>"]
 edition = "2018"
 license = "MIT"
