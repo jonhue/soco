@@ -1,4 +1,4 @@
-//! Convex cost functions.
+//! Definition of cost functions.
 
 use crate::config::Config;
 use crate::model::{ModelOutput, ModelOutputFailure, ModelOutputSuccess};
@@ -23,10 +23,12 @@ where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
+    /// Builds a new cost.
     pub fn new(cost: N64, output: ModelOutput<C, D>) -> Self {
         Self { cost, output }
     }
 
+    /// Creates a cost without any additional information.
     pub fn raw(cost: N64) -> Cost<(), D> {
         Cost {
             cost,
@@ -34,6 +36,7 @@ where
         }
     }
 
+    /// Aggregates a vector of costs.
     pub fn mean(costs: Vec<Self>) -> Self {
         let (raw_costs, outputs) = costs
             .into_iter()
@@ -45,6 +48,7 @@ where
         }
     }
 
+    /// Returns information as a primitive data structure.
     pub fn to_raw(&self) -> (f64, ModelOutput<C, D>) {
         (self.cost.raw(), self.output.clone())
     }
@@ -110,7 +114,9 @@ where
     }
 }
 
+/// A cost with associated information in case of a failure.
 pub type FailableCost<D> = Cost<(), D>;
+/// A cost without associated information.
 pub type RawCost = Cost<(), ()>;
 
 /// Cost function (from time `t_start`).
@@ -170,10 +176,11 @@ where
     }
 }
 
+/// A single cost function returning costs without any associated information.
 pub type RawSingleCostFn<'a, T> = SingleCostFn<'a, T, (), ()>;
 
 /// Cost functions that arrived over time. Individual cost functions may have different domains.
-/// For example, in a predictive online setting, a cost function arriving at time `t` generally has the domain `[t, t + w]`.
+/// For example, in a predictive online setting, a cost function arriving at time $t$ generally has the domain $\[t, t + w\]$.
 #[derive(Clone)]
 pub struct CostFn<'a, T, C, D>(BTreeMap<i32, SingleCostFn<'a, T, C, D>>);
 impl<'a, T, C, D> CostFn<'a, T, C, D>
@@ -294,9 +301,12 @@ where
     }
 }
 
+/// A cost function returning costs with associated information in case of a failure.
 pub type FailableCostFn<'a, T, D> = CostFn<'a, T, (), D>;
+/// A cost function returning costs without any associated information.
 pub type RawCostFn<'a, T> = CostFn<'a, T, (), ()>;
 
+/// Abstract definition of a decision space which is defined by which points lie within and which points lie outside it.
 pub trait DecisionSpace<'a, T> {
     /// Checks whether the given configuration is within the decision space.
     fn within(&self, x: &T) -> bool;

@@ -1,7 +1,8 @@
-//! Result types.
+//! Wrappers around values returned by the public interface.
 
 use thiserror::Error;
 
+/// Interface errors.
 #[derive(Debug, Error)]
 pub enum Failure {
     #[error("A verifier determined an invalidity: {0}")]
@@ -28,4 +29,5 @@ pub enum Failure {
     UnsupportedProblemDimension(i32),
 }
 
+/// Wrapper type for values returned by the public interface.
 pub type Result<T> = std::result::Result<T, Failure>;

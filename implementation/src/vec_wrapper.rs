@@ -1,3 +1,5 @@
+//! Utilities to use iterators with wrappers around vectors.
+
 pub trait VecWrapper {
     type Item;
 

@@ -24,9 +24,9 @@ type ObjectiveFn<'a, D> = Arc<dyn Fn(&[f64], &mut D) -> N64 + 'a>;
 #[derive(Clone)]
 pub struct WrappedObjective<'a, D> {
     /// Cached argument.
-    data: D,
+    pub data: D,
     /// Objective.
-    f: ObjectiveFn<'a, D>,
+    pub f: ObjectiveFn<'a, D>,
 }
 impl<'a, D> WrappedObjective<'a, D> {
     pub fn new(data: D, f: impl Fn(&[f64], &mut D) -> N64 + 'a) -> Self {

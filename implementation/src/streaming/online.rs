@@ -1,3 +1,5 @@
+//! Utilities for streaming online problems given a model.
+
 use crate::{
     algorithms::{
         online::{Memory, OnlineAlgorithm},
@@ -28,6 +30,7 @@ use std::{
     time::Instant,
 };
 
+/// Intermediate result after solving the initial offline problem.
 #[derive(Clone)]
 pub struct OfflineResponse<T, C, D, M> {
     pub xs: (Schedule<T>, Cost<C, D>),

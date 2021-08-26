@@ -33,7 +33,7 @@ use std::ops::Mul;
 
 static MAX_SAMPLE_SIZE: i32 = 100;
 
-/// For some time `t`, encapsulates the load of `e` types.
+/// Encapsulates the load of `e` types.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LoadProfile(Vec<N64>);
 
@@ -184,7 +184,7 @@ impl Div<N64> for LoadProfile {
     }
 }
 
-/// For some time `t`, encapsulates the load of `e` types as multiple samples per type.
+/// Encapsulates the load of `e` types as multiple samples per type.
 #[derive(Clone, Debug)]
 pub struct PredictedLoadProfile(Vec<Vec<N64>>);
 
@@ -346,11 +346,11 @@ impl IntoParallelIterator for PredictedLoadProfile {
 pub struct LoadFractions {
     /// Stores for each dimension `k in [d]` the fractions of loads `i in [e]` that are handled.
     /// Flat representation where position `k * e + i` represents the fraction of jobs of type `i` assigned to servers of type `k`.
-    zs: Vec<N64>,
+    pub zs: Vec<N64>,
     /// Number of dimensions.
-    d: i32,
+    pub d: i32,
     /// Number of job types.
-    e: i32,
+    pub e: i32,
 }
 
 impl LoadFractions {

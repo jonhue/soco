@@ -8,11 +8,10 @@ mod approx_graph_search {
     use rand_pcg::Pcg64;
     use soco::{
         algorithms::offline::{
-            graph_search::CachedPath,
             multi_dimensional::approx_graph_search::{
                 approx_graph_search, Options,
             },
-            OfflineAlgorithm, OfflineOptions,
+            CachedPath, OfflineAlgorithm, OfflineOptions,
         },
         config::Config,
         problem::{Problem, SimplifiedSmoothedConvexOptimization},

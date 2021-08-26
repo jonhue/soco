@@ -1,4 +1,4 @@
-//! Definition of schedules.
+//! Definition of schedules (sequences of points in the decision space).
 
 use crate::utils::access;
 use crate::value::Value;
@@ -23,10 +23,12 @@ impl<'a, T> Schedule<T>
 where
     T: Value<'a>,
 {
+    /// Converts a vector of configurations to a schedule.
     pub fn new(x: Vec<Config<T>>) -> Schedule<T> {
         Schedule(x)
     }
 
+    /// Builds an empty schedule.
     pub fn empty() -> Schedule<T> {
         Schedule(vec![])
     }

@@ -1,8 +1,8 @@
-use crate::algorithms::offline::graph_search::Cache;
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::{
     optimal_graph_search, Options as OptimalGraphSearchOptions,
 };
 use crate::algorithms::offline::multi_dimensional::Vertice;
+use crate::algorithms::offline::Cache;
 use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Online, Step};
 use crate::config::{Config, IntegralConfig};

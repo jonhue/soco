@@ -1,10 +1,11 @@
-use std::panic::UnwindSafe;
+//! Abstract and concrete definitions of models that are used to generate problem instances.
 
 use crate::problem::{Online, Problem};
 use log::info;
 use pyo3::{IntoPy, PyObject, Python};
 use serde::{de::DeserializeOwned, Serialize};
 use serde_derive::{Deserialize, Serialize};
+use std::panic::UnwindSafe;
 
 pub mod data_center;
 
@@ -18,7 +19,7 @@ pub trait OnlineInput:
 {
 }
 
-/// Results of model.
+/// Results of a model.
 pub trait ModelOutputSuccess:
     Clone + std::fmt::Debug + DeserializeOwned + IntoPy<PyObject> + Send + Serialize
 {
@@ -32,15 +33,18 @@ impl ModelOutputSuccess for () {
     fn horizontal_merge(self, _: ()) {}
     fn vertical_merge(self, _: ()) {}
 }
+/// Failures of a model.
 pub trait ModelOutputFailure:
     Clone + std::fmt::Debug + DeserializeOwned + IntoPy<PyObject> + Send + Serialize
 {
+    /// Failure when result lies outside of the decision space.
     fn outside_decision_space() -> Self;
 }
 impl ModelOutputFailure for () {
     fn outside_decision_space() {}
 }
 
+/// Output of a model.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub enum ModelOutput<C, D> {
     Success(C),

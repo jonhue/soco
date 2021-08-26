@@ -3,7 +3,9 @@
 pub mod multi_dimensional;
 pub mod uni_dimensional;
 
-pub mod graph_search;
+mod graph_search;
+
+pub use graph_search::{Cache, CachedPath};
 
 use crate::algorithms::Options;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
@@ -14,14 +16,14 @@ use pyo3::prelude::*;
 
 /// Implementation of an offline algorithm.
 ///
-/// * `T` - Result.
-/// * `P` - Problem.
-/// * `O` - Options.
+/// * `R` - result
+/// * `P` - problem
+/// * `O` - options
 ///
 /// Receives the arguments:
-/// * `p` - Problem instance.
-/// * `options` - Algorithm options.
-/// * `offline_options` - General configuration of the offlien setting.
+/// * `p` - problem instance
+/// * `options` - algorithm options
+/// * `offline_options` - general configuration of the offlien setting
 pub trait OfflineAlgorithm<T, R, P, O, C, D>:
     Fn(P, O, OfflineOptions) -> Result<R>
 where
@@ -66,13 +68,13 @@ where
 pub struct OfflineOptions {
     /// Compute inverted movement costs (SSCO only).
     #[pyo3(get, set)]
-    inverted: bool,
-    /// Compute the `\alpha`-unfair offline optimum.
+    pub inverted: bool,
+    /// Compute the $\alpha$-unfair offline optimum.
     #[pyo3(get, set)]
-    alpha: f64,
-    /// Compute the `L`-constrained offline optimum (`convex_optimization` only).
+    pub alpha: f64,
+    /// Compute the $L$-constrained offline optimum (`convex_optimization` only).
     #[pyo3(get, set)]
-    l: Option<f64>,
+    pub l: Option<f64>,
 }
 impl Default for OfflineOptions {
     fn default() -> Self {
@@ -115,12 +117,14 @@ impl OfflineOptions {
 
 /// Result of an offline algorithm.
 pub trait OfflineResult<T> {
+    /// Resulting schedule.
     fn xs(self) -> Schedule<T>;
 }
 
 /// Result of an offline algorithm which only returns the obtained schedule.
 pub struct PureOfflineResult<T> {
-    xs: Schedule<T>,
+    /// Schedule.
+    pub xs: Schedule<T>,
 }
 impl<T> OfflineResult<T> for PureOfflineResult<T> {
     fn xs(self) -> Schedule<T> {

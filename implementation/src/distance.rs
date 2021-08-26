@@ -1,4 +1,4 @@
-//! Norms.
+//! Definition of distance-generating functions and norms.
 
 use crate::config::{Config, FractionalConfig};
 use crate::numerics::convex_optimization::{
@@ -12,9 +12,10 @@ use noisy_float::prelude::*;
 use num::{NumCast, ToPrimitive};
 use std::sync::Arc;
 
+/// Distance-generating function.
 pub type DistanceGeneratingFn<T> = Arc<dyn Fn(Config<T>) -> N64 + Send + Sync>;
 
-/// Norm function.
+/// Norm function. Its definition is equivalent to that of a distance-generating function.
 pub type NormFn<T> = DistanceGeneratingFn<T>;
 
 /// Manhattan norm.
@@ -60,9 +61,9 @@ where
     })
 }
 
-/// Mahalanobis distance square. This norm is `1`-strongly convex and `1`-Lipschitz smooth.
+/// Mahalanobis distance square. This norm is $1$-strongly convex and $1$-Lipschitz smooth.
 ///
-/// For `Q` positive semi-definite.
+/// $Q$ must be positive semi-definite.
 pub fn mahalanobis<'a, T>(q: &DMatrix<T>, mean: Config<T>) -> Result<NormFn<T>>
 where
     T: RealField + Value<'a>,
@@ -78,7 +79,7 @@ where
     }))
 }
 
-/// Computes the dual norm of `x` given some `norm`.
+/// Computes the dual of some `norm`.
 pub fn dual_norm(norm: NormFn<f64>) -> NormFn<f64> {
     Arc::new(move |x: FractionalConfig| {
         if x.iter().any(|&j| j.is_infinite()) {
@@ -98,12 +99,12 @@ pub fn dual_norm(norm: NormFn<f64>) -> NormFn<f64> {
     })
 }
 
-/// Norm squared. `1`-strongly convex and `1`-Lipschitz smooth for the Euclidean norm and the Mahalanobis distance.
+/// Norm squared. $1$-strongly convex and $1$-Lipschitz smooth for the Euclidean norm and the Mahalanobis distance.
 pub fn norm_squared(norm: NormFn<f64>) -> DistanceGeneratingFn<f64> {
     Arc::new(move |x: FractionalConfig| norm(x).powi(2) / n64(2.))
 }
 
-/// Negative entropy. `1 / (2 ln 2)`-strongly convex and `1 / (\delta ln 2)`-smooth in the `\delta`-interior of the simplex where dimensions sum to `1`. For the l1-norm.
+/// Negative entropy. $1 / (2 \ln 2)$-strongly convex and $1 / (\delta \ln 2)$-smooth in the $\delta$-interior of the simplex where dimensions sum to $1$. For the $\ell_1$ norm.
 pub fn negative_entropy() -> DistanceGeneratingFn<f64> {
     Arc::new(move |x: FractionalConfig| {
         n64(x

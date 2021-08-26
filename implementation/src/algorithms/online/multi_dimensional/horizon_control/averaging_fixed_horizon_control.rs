@@ -15,7 +15,7 @@ use serde_derive::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory {
     /// Last initial configs for each iteration `k`.
-    prev_x: Vec<FractionalConfig>,
+    pub prev_x: Vec<FractionalConfig>,
 }
 impl<'a, C, D>
     DefaultGivenOnlineProblem<

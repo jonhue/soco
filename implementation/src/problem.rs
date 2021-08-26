@@ -1,4 +1,4 @@
-//! Problem definition.
+//! Abstract definition of problem variants.
 
 use crate::config::Config;
 use crate::cost::{Cost, CostFn, FailableCost, FailableCostFn, RawCost};
@@ -74,16 +74,19 @@ macro_rules! impl_base_problem {
     };
 }
 
+/// Trait providing objective function, hitting cost, and movement cost.
 pub trait Problem<T, C, D>: BaseProblem + Sync
 where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
+    /// Hitting cost.
     fn hit_cost(&self, t: i32, x: Config<T>) -> Cost<C, D>;
 
+    /// Movement cost.
     fn movement(&self, prev_x: Config<T>, x: Config<T>, inverted: bool) -> N64;
 
-    /// Objective Function. Calculates the cost of a schedule.
+    /// Objective function. Calculates the cost of a schedule.
     fn objective_function<'a>(&self, xs: &Schedule<T>) -> Result<Cost<C, D>>
     where
         T: Value<'a>,
@@ -92,7 +95,7 @@ where
         self._objective_function_with_default(xs, &default, 1., false)
     }
 
-    /// Inverted Objective Function. Calculates the cost of a schedule. Pays the
+    /// Inverted Objective function. Calculates the cost of a schedule. Pays the
     /// switching cost for powering down rather than powering up.
     fn inverted_objective_function<'a>(
         &self,
@@ -105,7 +108,7 @@ where
         self._objective_function_with_default(xs, &default, 1., true)
     }
 
-    /// `\alpha`-unfair Objective Function. Calculates the cost of a schedule.
+    /// $\alpha$-unfair Objective function. Calculates the cost of a schedule.
     fn alpha_unfair_objective_function<'a>(
         &self,
         xs: &Schedule<T>,
@@ -118,6 +121,7 @@ where
         self._objective_function_with_default(xs, &default, alpha, false)
     }
 
+    /// Objective function starting from an initial configuration other than $\mathbf{0}$.
     fn objective_function_with_default<'a>(
         &self,
         xs: &Schedule<T>,
@@ -464,6 +468,7 @@ where
         .sum()
 }
 
+/// Movement between two values (one dimensional points).
 pub fn scalar_movement<'a, T>(j: T, prev_j: T, inverted: bool) -> T
 where
     T: Value<'a>,
@@ -471,6 +476,7 @@ where
     pos(if inverted { prev_j - j } else { j - prev_j })
 }
 
+/// Movement between two configurations (points in the decision space).
 pub fn movement<'a, T>(
     x: &Config<T>,
     prev_x: &Config<T>,
@@ -485,6 +491,7 @@ where
         .collect()
 }
 
+/// Movement scaled by dimension-dependent switching costs.
 pub fn scaled_movement<'a, T>(
     switching_cost: &Vec<f64>,
     x: &Config<T>,

@@ -1,4 +1,4 @@
-//! Offline and Online Algorithms
+//! Offline and Online Algorithms.
 //!
 //! # Algorithms
 //!
@@ -162,7 +162,7 @@ mod capacity_provisioning;
 pub mod offline;
 pub mod online;
 
-/// Options of algorithm.
+/// Options of an algorithm.
 pub trait Options<T, P, C, D>:
     Clone + DefaultGivenProblem<T, P, C, D> + Send
 where

@@ -77,7 +77,7 @@ impl NonLinearEnergyConsumptionModel {
 
 impl EnergyConsumptionModel {
     /// Energy consumption of a server of some type with utilization `s`.
-    /// Referred to as `\phi` in the paper.
+    /// Referred to as $\phi$ in the paper.
     pub fn consumption(
         &self,
         delta: f64,

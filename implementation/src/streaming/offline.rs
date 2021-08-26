@@ -1,3 +1,5 @@
+//! Utilities for solving offline problems given a model.
+
 use std::{panic, time::Instant};
 
 use crate::{

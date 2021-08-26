@@ -26,9 +26,9 @@ pub struct Memory<'a> {
     /// Probability distribution.
     #[serde(skip, default = "default_p")]
     #[derivative(Debug = "ignore")]
-    p: Distribution<'a>,
+    pub p: Distribution<'a>,
     /// List of non-continuous or non-smooth points of the probability distribution.
-    breakpoints: Vec<f64>,
+    pub breakpoints: Vec<f64>,
 }
 fn default_p<'a>() -> Distribution<'a> {
     Arc::new(|_| {

@@ -1,3 +1,5 @@
+//! General data structures for graph search.
+
 use super::OfflineResult;
 use crate::schedule::IntegralSchedule;
 use serde_derive::{Deserialize, Serialize};
@@ -18,7 +20,9 @@ impl<C> OfflineResult<i32> for CachedPath<C> {
 /// The minimal cost from some initial vertice alongside the shortest path to the final vertice.
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct Path {
+    /// Schortest path.
     pub xs: IntegralSchedule,
+    /// Associated (i.e. cached) cost.
     pub cost: f64,
 }
 impl OfflineResult<i32> for Path {

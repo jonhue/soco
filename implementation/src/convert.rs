@@ -1,4 +1,4 @@
-//! Functions to convert between problem instances.
+//! Conversions between problem instances.
 
 use crate::config::{Config, FractionalConfig, IntegralConfig};
 use crate::cost::{Cost, CostFn, FailableCost, SingleCostFn};

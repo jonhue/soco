@@ -1,8 +1,8 @@
-use crate::algorithms::offline::graph_search::Cache;
 use crate::algorithms::offline::multi_dimensional::optimal_graph_search::{
     optimal_graph_search, Options as OptimalGraphSearchOptions,
 };
 use crate::algorithms::offline::multi_dimensional::Vertice;
+use crate::algorithms::offline::Cache;
 use crate::algorithms::offline::OfflineAlgorithm;
 use crate::algorithms::online::{IntegralStep, Step};
 use crate::config::{Config, IntegralConfig};
@@ -27,11 +27,12 @@ use serde_derive::{Deserialize, Serialize};
 #[derivative(Debug)]
 pub struct Memory<'a> {
     /// Maps each time `u` to the corresponding load
-    load: Vec<i32>,
+    pub load: Vec<i32>,
     /// Hitting costs for modified problem instance.
     #[serde(skip, default = "default_hitting_cost")]
     #[derivative(Debug = "ignore")]
-    hitting_cost: Vec<FailableCostFn<'a, f64, DataCenterModelOutputFailure>>,
+    pub hitting_cost:
+        Vec<FailableCostFn<'a, f64, DataCenterModelOutputFailure>>,
     /// Schedule and memory of internally used algorithm.
     mod_m: (IntegralSchedule, Option<AlgBMemory>),
 }

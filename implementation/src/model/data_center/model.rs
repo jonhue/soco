@@ -32,6 +32,7 @@ use serde_derive::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
 
+/// Key used in homogeneous settings.
 pub static DEFAULT_KEY: &str = "";
 
 /// Server type.
@@ -43,7 +44,7 @@ pub struct ServerType {
     pub key: String,
     /// Maximum allowed utilization. Between `0` and `1`.
     #[pyo3(get, set)]
-    max_utilization: f64,
+    pub max_utilization: f64,
 }
 impl Default for ServerType {
     fn default() -> Self {
@@ -82,7 +83,7 @@ pub struct JobType {
     pub key: String,
     /// Processing time `\eta_{k,i}` in units time of a job on some server type `k` (assuming full utilization).
     /// Must be less or equals to the length of a time slot `delta` for some server type.
-    processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + Send + Sync>,
+    pub processing_time_on: Arc<dyn Fn(&ServerType) -> f64 + Send + Sync>,
 }
 impl Default for JobType {
     fn default() -> Self {
@@ -154,7 +155,7 @@ pub struct Source {
     #[pyo3(get, set)]
     pub key: String,
     /// Routing delay `\delta_{t,j,s}` to location `j` during time slot `t`.
-    routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync>,
+    pub routing_delay_to: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync>,
 }
 impl Source {
     pub fn routing_delay_to(&self, t: i32, location: &Location) -> N64 {
@@ -234,31 +235,31 @@ impl Location {
 pub struct DataCenterModel {
     /// Length of a time slot.
     #[pyo3(get, set)]
-    delta: f64,
+    pub delta: f64,
     /// Locations.
     #[pyo3(get, set)]
-    locations: Vec<Location>,
+    pub locations: Vec<Location>,
     /// Server types.
     #[pyo3(get, set)]
-    server_types: Vec<ServerType>,
+    pub server_types: Vec<ServerType>,
     /// Sources, i.e. geographically centered locations.
     #[pyo3(get, set)]
-    sources: Vec<Source>,
+    pub sources: Vec<Source>,
     /// Job types.
     #[pyo3(get, set)]
-    job_types: Vec<JobType>,
+    pub job_types: Vec<JobType>,
     /// Energy consumption model.
     #[pyo3(set)]
-    energy_consumption_model: EnergyConsumptionModel,
+    pub energy_consumption_model: EnergyConsumptionModel,
     /// Energy cost model.
     #[pyo3(set)]
-    energy_cost_model: EnergyCostModel,
+    pub energy_cost_model: EnergyCostModel,
     /// Revenue loss model.
     #[pyo3(set)]
-    revenue_loss_model: RevenueLossModel,
+    pub revenue_loss_model: RevenueLossModel,
     /// Switching cost model.
     #[pyo3(set)]
-    switching_cost_model: SwitchingCostModel,
+    pub switching_cost_model: SwitchingCostModel,
 }
 
 #[pymethods]
@@ -570,6 +571,7 @@ fn encode(inner_len: usize, outer: usize, inner: usize) -> usize {
     outer * inner_len + inner
 }
 
+/// Inputs to generate problem instances in an offline setting.
 #[derive(Clone, Debug, FromPyObject)]
 #[pyo3(transparent)]
 pub struct DataCenterOfflineInput {
@@ -593,6 +595,7 @@ impl DataCenterOfflineInput {
     }
 }
 
+/// Inputs to generate problem instances in an online setting.
 #[derive(Clone, Debug, Deserialize, FromPyObject, Serialize)]
 #[pyo3(transparent)]
 pub struct DataCenterOnlineInput {

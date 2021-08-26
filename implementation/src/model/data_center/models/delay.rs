@@ -6,7 +6,7 @@ use noisy_float::prelude::*;
 /// `number_of_jobs` jobs with average duration `mean_job_duration` using
 /// the model of a M/GI/1 Processor Sharing Queue.
 /// `delta` is the duration of a time slot.
-/// Referred to as `d` in the paper.
+/// Referred to as $d$ in the paper.
 pub fn average_delay(
     delta: f64,
     number_of_jobs: N64,

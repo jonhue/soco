@@ -15,8 +15,8 @@ use serde_derive::{Deserialize, Serialize};
 /// Lower and upper bound from some time `t`.
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct BoundsMemory<T> {
-    lower: T,
-    upper: T,
+    pub lower: T,
+    pub upper: T,
 }
 impl<T> IntoPy<PyObject> for BoundsMemory<T>
 where
@@ -30,7 +30,7 @@ where
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory<T> {
     /// Lower and upper bounds from times `t` (in order).
-    bounds: Vec<BoundsMemory<T>>,
+    pub bounds: Vec<BoundsMemory<T>>,
 }
 impl<T> Default for Memory<T> {
     fn default() -> Self {

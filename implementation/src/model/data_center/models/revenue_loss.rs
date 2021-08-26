@@ -20,10 +20,10 @@ pub enum RevenueLossModel {
 pub struct MinimalDetectableDelayRevenueLossModel {
     /// Revenue loss factor. `gamma >= 0`.
     #[pyo3(get, set)]
-    gamma: f64,
+    pub gamma: f64,
     /// Minimal detectable delay of a job type. `delta >= 0`.
     #[pyo3(get, set)]
-    delta: f64,
+    pub delta: f64,
 }
 impl Default for MinimalDetectableDelayRevenueLossModel {
     fn default() -> Self {

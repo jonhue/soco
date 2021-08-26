@@ -1,4 +1,4 @@
-//! Utilities to model cost of data centers.
+//! Utilities to model the cost of data centers.
 
 use std::{iter::Sum, ops::Add};
 
@@ -12,6 +12,7 @@ pub mod loads;
 pub mod model;
 pub mod models;
 
+/// Model result.
 #[pyclass]
 #[derive(Clone, Debug, Deserialize, PartialEq, Serialize)]
 pub struct DataCenterModelOutputSuccess {
@@ -62,6 +63,7 @@ impl DataCenterModelOutputSuccess {
     }
 }
 
+/// Model failure.
 #[derive(Clone, Debug, Error, Deserialize, PartialEq, Serialize)]
 pub enum DataCenterModelOutputFailure {
     #[error("The configuration is unable to support the given load profile.")]
@@ -90,13 +92,15 @@ impl ModelOutputFailure for DataCenterModelOutputFailure {
     }
 }
 
+/// Model output.
 pub type DataCenterModelOutput =
     ModelOutput<DataCenterModelOutputSuccess, DataCenterModelOutputFailure>;
 
+/// Encapsulating the constituents of the hitting cost.
 #[derive(Debug)]
 pub struct DataCenterObjective {
-    energy_cost: N64,
-    revenue_loss: N64,
+    pub energy_cost: N64,
+    pub revenue_loss: N64,
 }
 impl DataCenterObjective {
     pub fn new(energy_cost: N64, revenue_loss: N64) -> Self {

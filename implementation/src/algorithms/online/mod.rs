@@ -56,17 +56,16 @@ where
 
 /// Implementation of an online algorithm.
 ///
-/// * `T` - Value (integral, fractional).
-/// * `P` - Problem.
-/// * `M` - Memory.
-/// * `O` - Options.
+/// * `P` - problem
+/// * `M` - memory
+/// * `O` - options
 ///
 /// Receives the arguments:
-/// * `o` - Online problem instance.
-/// * `t` - Current time slot.
-/// * `xs` - Schedule up to the previous time slot.
-/// * `prev_m` - Latest memory, is the default if nothing was memorized.
-/// * `options` - Algorithm options.
+/// * `o` - online problem instance
+/// * `t` - current time slot
+/// * `xs` - schedule up to the previous time slot
+/// * `prev_m` - latest memory, is the default if nothing was memorized
+/// * `options` - algorithm options
 pub trait OnlineAlgorithm<'a, T, P, M, O, C, D>:
     Fn(Online<P>, i32, &Schedule<T>, M, O) -> Result<Step<T, M>> + Send + Sync
 where
@@ -77,6 +76,7 @@ where
     C: ModelOutputSuccess,
     D: ModelOutputFailure,
 {
+    /// Executes the next iteration of an online algorithm.
     fn next(
         &self,
         o: Online<P>,
@@ -93,6 +93,7 @@ where
         self(o, t, xs, prev_m, options)
     }
 
+    /// Executes the next iteration of an online algorithm with default options.
     fn next_with_default_options(
         &self,
         o: Online<P>,

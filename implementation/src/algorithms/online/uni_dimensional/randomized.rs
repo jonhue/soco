@@ -34,9 +34,9 @@ use std::marker::PhantomData;
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory<M> {
     /// Fractional number of servers determined by fractional relaxation.
-    y: FractionalConfig,
+    pub y: FractionalConfig,
     /// Memory of relaxation.
-    relaxation_m: Option<M>,
+    pub relaxation_m: Option<M>,
 }
 impl<M> Default for Memory<M> {
     fn default() -> Self {

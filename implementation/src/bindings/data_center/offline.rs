@@ -1,6 +1,5 @@
 use crate::{
     algorithms::offline::{
-        graph_search::{Cache, CachedPath},
         multi_dimensional::{
             approx_graph_search::{
                 approx_graph_search, Options as ApproxGraphSearchOptions,
@@ -20,7 +19,7 @@ use crate::{
                 Options as OptimalGraphSearch1dOptions,
             },
         },
-        OfflineOptions, PureOfflineResult,
+        Cache, CachedPath, OfflineOptions, PureOfflineResult,
     },
     bindings::DataCenterCost,
     cost::Cost,

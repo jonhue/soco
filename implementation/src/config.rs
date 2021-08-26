@@ -1,4 +1,4 @@
-//! Definition of configurations.
+//! Definition of configurations (points in the decision space).
 
 use crate::value::Value;
 use crate::vec_wrapper::VecWrapper;
@@ -17,7 +17,7 @@ use std::ops::IndexMut;
 use std::ops::Mul;
 use std::ops::Sub;
 
-/// For some time `t`, assigns each dimension `d` a unique value.
+/// Assigns each dimension $k \in \[d\]$ a unique value.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, PartialEq, Serialize)]
 pub struct Config<T>(Vec<T>);
 pub type IntegralConfig = Config<i32>;
@@ -27,18 +27,22 @@ impl<'a, T> Config<T>
 where
     T: Value<'a>,
 {
+    /// Converts a vector to a configuration.
     pub fn new(x: Vec<T>) -> Config<T> {
         Config(x)
     }
 
+    /// Creates an empty configuration.
     pub fn empty() -> Config<T> {
         Config(vec![])
     }
 
+    /// Creates a uni-dimensional configuration.
     pub fn single(j: T) -> Config<T> {
         Config(vec![j])
     }
 
+    /// Creates a configuration by repeating `j` across `d` dimensions.
     pub fn repeat(j: T, d: i32) -> Config<T>
     where
         T: Clone,
@@ -46,18 +50,22 @@ where
         Config(vec![j; d as usize])
     }
 
+    /// Returns the dimensionality of a configuration.
     pub fn d(&self) -> i32 {
         self.0.len() as i32
     }
 
+    /// Clones the inner vector.
     pub fn to_vec(&self) -> Vec<T> {
         self.0.clone()
     }
 
+    /// Appends a value `j` to the configuration.
     pub fn push(&mut self, j: T) {
         self.0.push(j)
     }
 
+    /// Returns the sum of values across all dimensions.
     pub fn total(&self) -> T {
         self.0.clone().into_iter().sum()
     }

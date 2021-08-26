@@ -13,11 +13,11 @@ use std::sync::Arc;
 #[derive(Clone)]
 pub struct EnergySource {
     /// Average cost of a unit of energy during time slot `t`.
-    cost: Arc<dyn Fn(i32) -> f64 + Send + Sync>,
+    pub cost: Arc<dyn Fn(i32) -> f64 + Send + Sync>,
     /// Average profit of an unused unit of energy during time slot `t`.
-    profit: Arc<dyn Fn(i32) -> f64 + Send + Sync>,
+    pub profit: Arc<dyn Fn(i32) -> f64 + Send + Sync>,
     /// Maximum amount of energy at some location during time slot `t`.
-    limit: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync>,
+    pub limit: Arc<dyn Fn(i32, &Location) -> f64 + Send + Sync>,
 }
 impl EnergySource {
     fn cost(&self, t: i32) -> N64 {
@@ -135,7 +135,7 @@ impl QuotasEnergyCostModel {
 
 impl EnergyCostModel {
     /// Energy cost at some location during time slot `t` with energy consumption `p`.
-    /// Referred to as `\nu` in the paper.
+    /// Referred to as $\nu$ in the paper.
     pub fn cost(&self, t: i32, location: &Location, p: N64) -> N64 {
         match self {
             EnergyCostModel::Linear(models) => {

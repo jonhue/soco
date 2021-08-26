@@ -16,7 +16,7 @@ use serde_derive::{Deserialize, Serialize};
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory {
     /// Random number `r` representing bias.
-    r: f64,
+    pub r: f64,
 }
 impl Default for Memory {
     fn default() -> Self {
