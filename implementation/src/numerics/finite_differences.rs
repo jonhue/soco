@@ -1,7 +1,7 @@
 //! Differentiation.
 
 use crate::numerics::{ApplicablePrecision, TOLERANCE};
-use bacon_sci::differentiate::{
+use bacon_sci_1::differentiate::{
     derivative as derivative_, second_derivative as second_derivative_,
 };
 use finitediff::FiniteDiff;
