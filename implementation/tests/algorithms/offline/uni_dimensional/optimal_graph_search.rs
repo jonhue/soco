@@ -55,7 +55,7 @@ mod optimal_graph_search {
     };
     use soco::schedule::Schedule;
     use soco::verifiers::VerifiableProblem;
-    use soco::{algorithms::offline::graph_search::CachedPath, config::Config};
+    use soco::{algorithms::offline::CachedPath, config::Config};
     use soco::{
         algorithms::offline::{
             multi_dimensional::optimal_graph_search::optimal_graph_search as md_optimal_graph_search,
