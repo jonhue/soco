@@ -45,9 +45,9 @@ TBD
 
 ### Crate
 
-The Rust crate is contained in the `soco` directory. See the relevant [development](soco#development) section there.
+The Rust crate is contained in the `implementation` directory. See the relevant [development](https://github.com/jonhue/soco/tree/main/implementation#development) section there.
 
 ### Analysis
 
-The `analysis` directory contains the case studies with real-world data. It requires the [Python bindings](soco#python-bindings) for the `soco` crate.
-See the relevant [prerequisites](analysis#prerequisites) section for more information.
+The `analysis` directory contains the case studies with real-world data. It requires the [Python bindings](https://github.com/jonhue/soco/tree/main/implementation#python-bindings) for the `soco` crate.
+See the relevant [prerequisites](https://github.com/jonhue/soco/tree/main/analysis#prerequisites) section for more information.
