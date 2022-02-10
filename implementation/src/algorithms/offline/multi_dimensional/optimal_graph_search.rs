@@ -11,15 +11,15 @@ use log::debug;
 use pyo3::prelude::*;
 
 #[pyclass(name = "OptimalGraphSearchOptions")]
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Options {
     pub cache: Option<Cache<Vertice>>,
 }
-impl Default for Options {
-    fn default() -> Self {
-        Options { cache: None }
-    }
-}
+// impl Default for Options {
+//     fn default() -> Self {
+//         Options { cache: None }
+//     }
+// }
 #[pymethods]
 impl Options {
     #[new]

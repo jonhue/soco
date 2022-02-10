@@ -245,21 +245,21 @@ fn determine_config(
 }
 
 #[pyclass]
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize)]
 struct AlgBMemory {
     /// Maps dimension to the number of added instances for some sub time slot $u$.
     init_times: Vec<Vec<i32>>,
     /// Cache of offline algorithm.
     cache: Option<Cache<Vertice>>,
 }
-impl Default for AlgBMemory {
-    fn default() -> Self {
-        AlgBMemory {
-            init_times: vec![],
-            cache: None,
-        }
-    }
-}
+// impl Default for AlgBMemory {
+//     fn default() -> Self {
+//         AlgBMemory {
+//             init_times: vec![],
+//             cache: None,
+//         }
+//     }
+// }
 
 fn alg_b(
     o: Online<IntegralSmoothedBalancedLoadOptimization>,

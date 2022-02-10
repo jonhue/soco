@@ -14,9 +14,9 @@ pub fn piecewise_integral(
     breakpoints: &Breakpoints,
     from: f64,
     to: f64,
-    f_: impl Fn(f64) -> f64,
+    f: impl Fn(f64) -> f64 + Clone,
 ) -> N64 {
-    let f = |x| f_(x);
+    // let f = |x| f_(x);
 
     // determine initial breakpoint
     let init = if from.is_infinite() && to.is_infinite() {
@@ -48,7 +48,7 @@ pub fn piecewise_integral(
         breakpoints,
         init,
         from,
-        f,
+        f.clone(),
         prev_i,
         0,
     );
@@ -68,7 +68,7 @@ fn __piecewise_integral(
     breakpoints: &Breakpoints,
     b: f64,
     to: f64,
-    f_: impl Fn(f64) -> f64,
+    f: impl Fn(f64) -> f64 + Clone,
     // index of next breakpoint in $breakpoints$
     i: i32,
     // number of consecutive integrations below tolerance
@@ -88,7 +88,7 @@ fn __piecewise_integral(
         }
     }
 
-    let f = |x| f_(x);
+    // let f = |x| f_(x);
     let mut next_i = i;
     let mut next_n = n;
 
@@ -161,8 +161,8 @@ fn __piecewise_integral(
     };
     // otherwise, compute the integral over the new interval
     let result = match dir {
-        Direction::Left => integral(next_b.unwrap(), b, f),
-        Direction::Right => integral(b, next_b.unwrap(), f),
+        Direction::Left => integral(next_b.unwrap(), b, f.clone()),
+        Direction::Right => integral(b, next_b.unwrap(), f.clone()),
     };
 
     // check if convergence threshold is reached
@@ -180,7 +180,7 @@ fn __piecewise_integral(
             breakpoints,
             next_b.unwrap(),
             to,
-            f_,
+            f,
             next_i,
             next_n,
         )

@@ -45,7 +45,7 @@ fn semi_infinite_integral(f: impl Fn(f64) -> f64) -> N64 {
 
 /// Uses the Gaussian-Hermite quadrature
 fn infinite_integral(f: impl Fn(f64) -> f64) -> N64 {
-    n64(integrate_hermite(|x| f(x), TOLERANCE).unwrap())
+    n64(integrate_hermite(f, TOLERANCE).unwrap())
 }
 
 fn handle_integration_result(

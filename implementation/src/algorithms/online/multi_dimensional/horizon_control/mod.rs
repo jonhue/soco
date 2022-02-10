@@ -12,10 +12,10 @@ pub mod receding_horizon_control;
 
 #[derive(Clone)]
 struct ObjectiveData<'a, C, D> {
-    k: i32,
+    // k: i32,
     t_start: i32,
     o: Online<FractionalSimplifiedSmoothedConvexOptimization<'a, C, D>>,
-    t: i32,
+    // t: i32,
     prev_x: FractionalConfig,
 }
 
@@ -41,10 +41,10 @@ where
         .collect();
     let objective = WrappedObjective::new(
         ObjectiveData {
-            k,
+            // k,
             t_start,
             o,
-            t,
+            // t,
             prev_x,
         },
         |raw_xs, data| {

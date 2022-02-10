@@ -13,11 +13,11 @@ struct ObjectiveData<'a, C, D> {
     alpha: f64,
 }
 
-#[derive(Clone)]
-struct ConstraintData<'a, C, D> {
-    p: FractionalSmoothedConvexOptimization<'a, C, D>,
-    l: f64,
-}
+// #[derive(Clone)]
+// struct ConstraintData<'a, C, D> {
+//     p: FractionalSmoothedConvexOptimization<'a, C, D>,
+//     l: f64,
+// }
 
 /// Algorithm computing the static fractional optimum.
 pub fn static_fractional<C, D>(
