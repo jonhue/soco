@@ -572,16 +572,11 @@ fn encode(inner_len: usize, outer: usize, inner: usize) -> usize {
 }
 
 /// Inputs to generate problem instances in an offline setting.
-#[derive(Clone, Debug, FromPyObject)]
+#[derive(Clone, Debug, Default, FromPyObject)]
 #[pyo3(transparent)]
 pub struct DataCenterOfflineInput {
     /// Vector of loads for all time slots that should be supported by the returned cost function.
     pub loads: Vec<LoadProfile>,
-}
-impl Default for DataCenterOfflineInput {
-    fn default() -> Self {
-        DataCenterOfflineInput { loads: vec![] }
-    }
 }
 impl OfflineInput for DataCenterOfflineInput {}
 impl DataCenterOfflineInput {

@@ -68,15 +68,10 @@ pub type Lanes = Vec<i32>;
 pub type Horizons = Vec<i32>;
 
 #[pyclass]
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Options {
     /// Whether to use the randomized variant of the algorithm.
     pub randomized: bool,
-}
-impl Default for Options {
-    fn default() -> Self {
-        Options { randomized: false }
-    }
 }
 #[pymethods]
 impl Options {

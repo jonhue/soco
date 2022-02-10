@@ -20,16 +20,11 @@ use std::collections::HashMap;
 pub struct Vertice(i32, i32);
 
 #[pyclass(name = "OptimalGraphSearch1dOptions")]
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct Options {
     /// Value at initial time $0$. Defaults to $0$.
     #[pyo3(get, set)]
     pub x_start: i32,
-}
-impl Default for Options {
-    fn default() -> Self {
-        Options { x_start: 0 }
-    }
 }
 impl Options {
     pub fn new(x_start: i32) -> Self {
