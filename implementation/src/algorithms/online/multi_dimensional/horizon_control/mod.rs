@@ -38,11 +38,7 @@ where
         .flatten()
         .collect();
     let objective = WrappedObjective::new(
-        ObjectiveData {
-            t_start,
-            o,
-            prev_x,
-        },
+        ObjectiveData { t_start, o, prev_x },
         |raw_xs, data| {
             let xs = Schedule::from_raw(data.o.p.d, data.o.w + 1, raw_xs);
             let p = data.o.p.reset(data.t_start - 1);
