@@ -578,11 +578,6 @@ pub struct DataCenterOfflineInput {
     /// Vector of loads for all time slots that should be supported by the returned cost function.
     pub loads: Vec<LoadProfile>,
 }
-// impl Default for DataCenterOfflineInput {
-//     fn default() -> Self {
-//         DataCenterOfflineInput { loads: vec![] }
-//     }
-// }
 impl OfflineInput for DataCenterOfflineInput {}
 impl DataCenterOfflineInput {
     pub fn into_online(self) -> Vec<DataCenterOnlineInput> {

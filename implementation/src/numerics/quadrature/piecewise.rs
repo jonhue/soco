@@ -16,8 +16,6 @@ pub fn piecewise_integral(
     to: f64,
     f: impl Fn(f64) -> f64 + Clone,
 ) -> N64 {
-    // let f = |x| f_(x);
-
     // determine initial breakpoint
     let init = if from.is_infinite() && to.is_infinite() {
         0.
@@ -88,7 +86,6 @@ fn __piecewise_integral(
         }
     }
 
-    // let f = |x| f_(x);
     let mut next_i = i;
     let mut next_n = n;
 

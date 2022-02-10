@@ -252,14 +252,6 @@ struct AlgBMemory {
     /// Cache of offline algorithm.
     cache: Option<Cache<Vertice>>,
 }
-// impl Default for AlgBMemory {
-//     fn default() -> Self {
-//         AlgBMemory {
-//             init_times: vec![],
-//             cache: None,
-//         }
-//     }
-// }
 
 fn alg_b(
     o: Online<IntegralSmoothedBalancedLoadOptimization>,

@@ -15,11 +15,6 @@ use pyo3::prelude::*;
 pub struct Options {
     pub cache: Option<Cache<Vertice>>,
 }
-// impl Default for Options {
-//     fn default() -> Self {
-//         Options { cache: None }
-//     }
-// }
 #[pymethods]
 impl Options {
     #[new]

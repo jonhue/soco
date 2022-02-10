@@ -26,11 +26,6 @@ pub struct Options {
     #[pyo3(get, set)]
     pub x_start: i32,
 }
-// impl Default for Options {
-//     fn default() -> Self {
-//         Options { x_start: 0 }
-//     }
-// }
 impl Options {
     pub fn new(x_start: i32) -> Self {
         Options { x_start }
