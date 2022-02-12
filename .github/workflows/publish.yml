@@ -3,46 +3,22 @@ name: Publish
 on:
   push:
     branches:
-    - main
-
+      - main
 jobs:
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@main
-    - uses: actions-rs/toolchain@v1.0.7
-      with:
-        toolchain: stable
-    - name: Build documentation
-      uses: actions-rs/cargo@v1.0.3
-      with:
-        command: doc
-        args: --manifest-path=implementation/Cargo.toml
-    - name: Move documentation
-      run: mv ./implementation/target/doc ./dist/doc
-    - name: Prepare files
-      run: sh ./scripts/setup.sh
-    - name: Compile LaTeX sources
-      uses: xu-cheng/latex-action@2.4.0
-      with:
-        pre_compile: tlmgr update --self && tlmgr update --all
-        root_file: |
-          thesis/main.tex
-          thesis/slides.tex
-          thesis/handout.tex
-    - name: Move PDFs
-      run: mv ./*.pdf ./dist
-    - name: Move readme
-      run: |
-        cp ./README.md ./dist/index.md
-        cp ./implementation/src/algorithms/README.md ./dist/algorithms.md
-    - name: Deploy
-      uses: peaceiris/actions-gh-pages@v3.8.0
-      with:
-        deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-        publish_dir: ./dist
-        allow_empty_commit: true
-        force_orphan: true
-        enable_jekyll: true
+      - uses: actions/checkout@main
+      - name: Move readme
+        run: |
+          cp ./README.md ./dist/index.md
+          cp ./implementation/src/algorithms/README.md ./dist/algorithms.md
+      - name: Compile and Deploy
+        uses: jonhue/pubtex-action@main
+        with:
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          files: |
+            examples/paper.tex
+            examples/slides.tex
+          handouts: |
+            examples/slides.tex
