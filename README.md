@@ -11,7 +11,7 @@ Thus, SOCO can be understood as online convex optimization with an additional sm
 
 A special focus of this work is the application to the dynamic right-sizing of data centers.
 
-[**Thesis**](https://jonhue.github.io/soco/main.pdf), [Presentation](https://jonhue.github.io/soco/handout.pdf) [(with animations)](https://jonhue.github.io/soco/slides.pdf), [Documentation](https://jonhue.github.io/soco/doc/soco)
+[**Thesis**](https://jonhue.github.io/soco/main.pdf), [Presentation](https://jonhue.github.io/soco/slides_handout.pdf) [(with animations)](https://jonhue.github.io/soco/slides.pdf), [Documentation](https://jonhue.github.io/soco/doc/soco)
 
 ## Acknowledgement
 
