@@ -9,6 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@main
+      - uses: actions-rs/toolchain@v1.0.7
+        with:
+          toolchain: stable
+      - name: Build documentation
+        uses: actions-rs/cargo@v1.0.3
+        with:
+          command: doc
+          args: --manifest-path=implementation/Cargo.toml
+      - name: Move documentation
+        run: mv ./implementation/target/doc ./dist/doc
       - name: Move readme
         run: |
           cp ./README.md ./dist/index.md
