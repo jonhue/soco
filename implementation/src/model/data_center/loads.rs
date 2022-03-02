@@ -552,14 +552,13 @@ where
         let (_, butlast_x) = vec_x.split_last().unwrap();
         butlast_x
             .iter()
-            .map(|&j| {
+            .flat_map(|&j| {
                 if j == NumCast::from(0).unwrap() {
                     vec![0.; e as usize]
                 } else {
                     vec![value; e as usize]
                 }
             })
-            .flatten()
             .collect()
     };
 
