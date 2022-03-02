@@ -34,7 +34,9 @@ where
     let d = o.p.d;
     let bounds = (0..o.w + 1)
         .into_iter()
-        .flat_map(|_| (0..o.p.d as usize).into_iter().map(|k| (0., o.p.bounds[k])))
+        .flat_map(|_| {
+            (0..o.p.d as usize).into_iter().map(|k| (0., o.p.bounds[k]))
+        })
         .collect();
     let objective = WrappedObjective::new(
         ObjectiveData { t_start, o, prev_x },
