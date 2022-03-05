@@ -129,7 +129,7 @@ where
         t_start: i32,
         x_start: f64,
     ) -> Result<f64> {
-        assert!(t_end <= self.t_end); // + w);
+        assert!(t_end <= self.t_end);
         assert(self.d == 1, Failure::UnsupportedProblemDimension(self.d))?;
 
         if t_end <= 0 {
@@ -209,7 +209,7 @@ where
         t_start: i32,
         x_start: i32,
     ) -> Result<i32> {
-        assert!(t_end <= self.t_end); // + w);
+        assert!(t_end <= self.t_end);
         assert(self.d == 1, Failure::UnsupportedProblemDimension(self.d))?;
 
         if t_end <= 0 {
