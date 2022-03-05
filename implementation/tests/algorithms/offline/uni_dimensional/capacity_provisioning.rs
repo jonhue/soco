@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod brcp {
-    use crate::{factories::{inv_e,moving_parabola}};
+    use crate::factories::{inv_e, moving_parabola};
     use crate::init;
     use crate::utils::upper_bounds;
     use soco::algorithms::offline::multi_dimensional::convex_optimization::co;

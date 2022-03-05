@@ -428,7 +428,6 @@ where
             1,
             SingleCostFn::predictive(move |t, j| {
                 let shifted_t = shift_time(t, t_start + 1);
-                println!("{} -> {} ;; {}", t, shifted_t, t_start);
                 if shifted_t >= 1 {
                     self.call_predictive(shifted_t, j)
                 } else {
@@ -460,15 +459,11 @@ where
     }
 }
 
-impl<'a, T> Resettable<'a>
-    for Schedule<T>
+impl<'a, T> Resettable<'a> for Schedule<T>
 where
     T: Value<'a>,
 {
-    fn reset(
-        &'a self,
-        t_start: i32,
-    ) -> Schedule<T> {
+    fn reset(&'a self, t_start: i32) -> Schedule<T> {
         self.skip(t_start)
     }
 }

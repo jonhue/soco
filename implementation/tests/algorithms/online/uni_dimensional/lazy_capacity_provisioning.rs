@@ -2,11 +2,11 @@
 mod fractional_lcp {
     use crate::factories::{inv_e, moving_parabola};
     use crate::init;
-    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::brcp;
     use soco::algorithms::offline::{
         OfflineAlgorithm, OfflineOptions, OfflineResult,
     };
+    use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
     use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
@@ -82,7 +82,10 @@ mod fractional_lcp {
 
         let bounds = result.1.clone().unwrap().bounds;
         for t in 0..t_end as usize {
-            println!("{:?} <= {:?} <= {:?}", bounds[t].lower, brcp_result[t][0], bounds[t].upper);
+            println!(
+                "{:?} <= {:?} <= {:?}",
+                bounds[t].lower, brcp_result[t][0], bounds[t].upper
+            );
         }
 
         // println!("{:?}", brcp_result);
@@ -94,7 +97,7 @@ mod fractional_lcp {
                     assert!(brcp_result[t][0] >= memory.bounds[t].lower);
                     assert!(brcp_result[t][0] <= memory.bounds[t].upper);
                 }
-            },
+            }
             None => (),
         }
 
@@ -127,7 +130,10 @@ mod fractional_lcp {
 
         let bounds = result.1.clone().unwrap().bounds;
         for t in 0..t_end as usize {
-            println!("{:?} <= {:?} <= {:?}", bounds[t].lower, brcp_result[t][0], bounds[t].upper);
+            println!(
+                "{:?} <= {:?} <= {:?}",
+                bounds[t].lower, brcp_result[t][0], bounds[t].upper
+            );
         }
 
         // println!("{:?}", brcp_result);
@@ -139,7 +145,7 @@ mod fractional_lcp {
                     assert!(brcp_result[t][0] >= memory.bounds[t].lower);
                     assert!(brcp_result[t][0] <= memory.bounds[t].upper);
                 }
-            },
+            }
             None => (),
         }
 
