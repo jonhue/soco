@@ -57,9 +57,8 @@ where
     let (t_start, x_start) = find_initial_time(&bounds);
 
     let i = xs.now_with_default(Config::single(NumCast::from(0).unwrap()))[0];
-    let lower = o.p.find_lower_bound(0, o.p.t_end(), t_start, x_start)?;
-    let upper = o.p.find_upper_bound(0, o.p.t_end(), t_start, x_start)?;
-    println!("B: {} ==> {} :: {}", o.p.t_end(), lower, upper);
+    let lower = o.p.find_lower_bound(o.w, o.p.t_end(), t_start, x_start)?;
+    let upper = o.p.find_upper_bound(o.w, o.p.t_end(), t_start, x_start)?;
     let j = project(i, lower, upper);
 
     bounds.push(BoundsMemory { lower, upper });

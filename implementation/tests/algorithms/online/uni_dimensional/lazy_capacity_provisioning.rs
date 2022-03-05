@@ -179,8 +179,6 @@ mod fractional_lcp {
             .cost
             .raw()
             .is_finite());
-
-        assert!(false)
     }
 }
 
