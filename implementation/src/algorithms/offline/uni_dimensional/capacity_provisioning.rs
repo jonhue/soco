@@ -42,7 +42,7 @@ where
     for t in (1..=p.t_end).rev() {
         (x, bound) = next(&p, alpha, t, x)?;
         xs.shift(Config::single(x));
-        bounds.push(bound);
+        bounds.insert(0, bound);
     }
 
     Ok(WithBounds { xs, bounds })

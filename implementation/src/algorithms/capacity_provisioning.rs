@@ -31,6 +31,7 @@ where
         (self.lower, self.upper).into_py(py)
     }
 }
+
 pub trait Bounded<T>
 where
     T: std::fmt::Debug + Clone,
