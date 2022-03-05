@@ -44,6 +44,7 @@ where
 {
     let lower = p.find_alpha_unfair_lower_bound(alpha, 0, t, 0, 0.)?;
     let upper = p.find_alpha_unfair_upper_bound(alpha, 0, t, 0, 0.)?;
+    println!("[{}; {}]", lower, upper);
 
     Ok(project(x, lower, upper))
 }

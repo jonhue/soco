@@ -88,17 +88,9 @@ mod fractional_lcp {
             );
         }
 
-        // println!("{:?}", brcp_result);
-        // println!("{:?}", bounds);
-
-        match result.1 {
-            Some(memory) => {
-                for t in 0..memory.bounds.len() {
-                    assert!(brcp_result[t][0] >= memory.bounds[t].lower);
-                    assert!(brcp_result[t][0] <= memory.bounds[t].upper);
-                }
-            }
-            None => (),
+        for t in 0..bounds.len() {
+            assert!(brcp_result[t][0] >= bounds[t].lower);
+            assert!(brcp_result[t][0] <= bounds[t].upper);
         }
 
         assert!(false)
@@ -136,17 +128,9 @@ mod fractional_lcp {
             );
         }
 
-        // println!("{:?}", brcp_result);
-        // println!("{:?}", bounds);
-
-        match result.1 {
-            Some(memory) => {
-                for t in 0..memory.bounds.len() {
-                    assert!(brcp_result[t][0] >= memory.bounds[t].lower);
-                    assert!(brcp_result[t][0] <= memory.bounds[t].upper);
-                }
-            }
-            None => (),
+        for t in 0..bounds.len() {
+            assert!(brcp_result[t][0] >= bounds[t].lower);
+            assert!(brcp_result[t][0] <= bounds[t].upper);
         }
 
         assert!(false)
