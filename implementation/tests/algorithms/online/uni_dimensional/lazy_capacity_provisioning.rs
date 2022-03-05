@@ -9,7 +9,9 @@ mod fractional_lcp {
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
     use soco::config::Config;
     use soco::convert::DiscretizableSchedule;
-    use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
+    use soco::problem::{
+        Online, Problem, SimplifiedSmoothedConvexOptimization,
+    };
     use soco::schedule::Schedule;
 
     #[test]
@@ -76,21 +78,35 @@ mod fractional_lcp {
 
         let brcp_result = brcp
             .solve_with_default_options(o.p.clone(), OfflineOptions::default())
-            .unwrap()
-            .xs();
-        brcp_result.verify(t_end, &o.p.bounds).unwrap();
+            .unwrap();
+        let brcp_xs = brcp_result.xs;
+        let brcp_bounds = brcp_result.bounds;
+        brcp_xs.verify(t_end, &o.p.bounds).unwrap();
+
+        println!(
+            "{:?} >= {:?}",
+            o.p.objective_function(&result.0).unwrap().cost.raw(),
+            o.p.objective_function(&brcp_xs).unwrap().cost.raw()
+        );
 
         let bounds = result.1.clone().unwrap().bounds;
         for t in 0..t_end as usize {
             println!(
-                "{:?} <= {:?} <= {:?}",
-                bounds[t].lower, brcp_result[t][0], bounds[t].upper
+                "{:?} = {:?} <= {:?} <= {:?} = {:?}",
+                bounds[t].lower,
+                brcp_bounds[t].lower,
+                brcp_xs[t][0],
+                brcp_bounds[t].upper,
+                bounds[t].upper
             );
         }
 
         for t in 0..bounds.len() {
-            assert!(brcp_result[t][0] >= bounds[t].lower);
-            assert!(brcp_result[t][0] <= bounds[t].upper);
+            assert_eq!(brcp_bounds[t].lower, bounds[t].lower);
+            assert_eq!(brcp_bounds[t].upper, bounds[t].upper);
+
+            assert!(brcp_xs[t][0] >= bounds[t].lower);
+            assert!(brcp_xs[t][0] <= bounds[t].upper);
         }
 
         assert!(false)
@@ -119,6 +135,12 @@ mod fractional_lcp {
             .unwrap()
             .xs();
         brcp_result.verify(t_end, &o.p.bounds).unwrap();
+
+        println!(
+            "{:?} >= {:?}",
+            o.p.objective_function(&result.0).unwrap().cost.raw(),
+            o.p.objective_function(&brcp_result).unwrap().cost.raw()
+        );
 
         let bounds = result.1.clone().unwrap().bounds;
         for t in 0..t_end as usize {

@@ -1,4 +1,4 @@
-use crate::algorithms::capacity_provisioning::Bounded;
+use crate::algorithms::capacity_provisioning::{Bounded, BoundsMemory};
 use crate::algorithms::online::Step;
 use crate::config::Config;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
@@ -11,21 +11,6 @@ use crate::value::Value;
 use num::{NumCast, ToPrimitive};
 use pyo3::prelude::*;
 use serde_derive::{Deserialize, Serialize};
-
-/// Lower and upper bound from some time $t$.
-#[derive(Clone, Debug, Deserialize, Serialize)]
-pub struct BoundsMemory<T> {
-    pub lower: T,
-    pub upper: T,
-}
-impl<T> IntoPy<PyObject> for BoundsMemory<T>
-where
-    T: IntoPy<PyObject>,
-{
-    fn into_py(self, py: Python) -> PyObject {
-        (self.lower, self.upper).into_py(py)
-    }
-}
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct Memory<T> {

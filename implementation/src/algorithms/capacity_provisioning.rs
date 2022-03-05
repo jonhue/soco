@@ -14,7 +14,23 @@ use crate::problem::{
 };
 use crate::result::{Failure, Result};
 use crate::utils::assert;
+use pyo3::prelude::*;
+use serde_derive::{Deserialize, Serialize};
 
+/// Lower and upper bound from some time $t$.
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct BoundsMemory<T> {
+    pub lower: T,
+    pub upper: T,
+}
+impl<T> IntoPy<PyObject> for BoundsMemory<T>
+where
+    T: IntoPy<PyObject>,
+{
+    fn into_py(self, py: Python) -> PyObject {
+        (self.lower, self.upper).into_py(py)
+    }
+}
 pub trait Bounded<T>
 where
     T: std::fmt::Debug + Clone,
@@ -30,7 +46,7 @@ where
         self.find_alpha_unfair_lower_bound(1., w, t, t_start, x_start)
     }
 
-    /// Computes the number of servers at time $t$ starting from $t_start$ with initial condition $x_start$ simulating up to time $t_end$ resulting in the lowest possible cost.
+    /// Computes the number of servers at time $t$ starting from $t_start$ with initial condition $x_start$ simulating up to time $t$ resulting in the lowest possible cost.
     fn find_alpha_unfair_lower_bound(
         &self,
         alpha: f64,
@@ -50,7 +66,7 @@ where
         self.find_alpha_unfair_upper_bound(1., w, t, t_start, x_start)
     }
 
-    /// Computes the number of servers at time $t$ starting from $t_start$ with initial condition $x_start$ simulating up to time $t_end$ resulting in the highest possible cost.
+    /// Computes the number of servers at time $t$ starting from $t_start$ with initial condition $x_start$ simulating up to time $t$ resulting in the highest possible cost.
     fn find_alpha_unfair_upper_bound(
         &self,
         alpha: f64,
