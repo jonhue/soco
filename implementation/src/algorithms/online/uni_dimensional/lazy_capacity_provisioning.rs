@@ -82,7 +82,7 @@ where
             if ToPrimitive::to_f64(&(prev_bound.lower - prev_bound.upper))
                 .unwrap()
                 .abs()
-                < PRECISION
+                < PRECISION * 10. // without multiplying by $10$, numerical optimization is too imprecise
             {
                 return (t - 1, prev_bound.upper);
             }

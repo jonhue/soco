@@ -168,7 +168,7 @@ mod fractional_lcp {
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
 
-        let t_end = 20;
+        let t_end = 10;
         let result = o.offline_stream(&lcp, t_end, ()).unwrap();
         result.0.verify(t_end, &o.p.bounds).unwrap();
 
