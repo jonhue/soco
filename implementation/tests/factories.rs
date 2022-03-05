@@ -77,7 +77,7 @@ pub fn inv_e_sblo() -> FailableCostFn<'static, f64, DataCenterModelOutputFailure
 pub fn parabola() -> RawCostFn<'static, FractionalConfig> {
     wrap(|t: i32, j: FractionalConfig| {
         assert!(j.d() == 1);
-        1. / t as f64 * (j[0] as f64 - 1.).powi(2)
+        1. / t as f64 * (j[0] - 1.).powi(2)
     })
 }
 
@@ -86,5 +86,13 @@ pub fn int_parabola() -> RawCostFn<'static, IntegralConfig> {
     wrap(|t: i32, j: IntegralConfig| {
         assert!(j.d() == 1);
         1. / t as f64 * (j[0] as f64 - 1.).powi(2)
+    })
+}
+
+/// $(x-(t % m))^2$ around $t % m$ for a single dimension.
+pub fn moving_parabola(m: i32) -> RawCostFn<'static, FractionalConfig> {
+    wrap(move |t: i32, j: FractionalConfig| {
+        assert!(j.d() == 1);
+        (j[0] - ((t % m) as f64)).powi(2)
     })
 }
