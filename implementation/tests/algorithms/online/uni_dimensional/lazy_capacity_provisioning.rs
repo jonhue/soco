@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod fractional_lcp {
-    use crate::factories::{constant, inv_e, moving_parabola, parabola};
+    use crate::factories::{inv_e, moving_parabola, parabola};
     use crate::init;
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::brcp;
     use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions};
@@ -86,7 +86,7 @@ mod fractional_lcp {
                 >= o.p.objective_function(&brcp_xs).unwrap().cost.raw()
         );
 
-        let bounds = result.1.clone().unwrap().bounds;
+        let bounds = result.1.unwrap().bounds;
         for t in 0..bounds.len() {
             assert_eq!(brcp_bounds[t].lower, bounds[t].lower);
             assert_eq!(brcp_bounds[t].upper, bounds[t].upper);
@@ -143,7 +143,7 @@ mod fractional_lcp {
         //     ])
         // );
 
-        let bounds = result.1.clone().unwrap().bounds;
+        let bounds = result.1.unwrap().bounds;
         for t in 0..bounds.len() {
             assert_eq!(brcp_bounds[t].lower, bounds[t].lower);
             assert_eq!(brcp_bounds[t].upper, bounds[t].upper);
