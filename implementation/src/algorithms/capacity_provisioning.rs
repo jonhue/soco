@@ -160,7 +160,6 @@ where
         );
         let bounds = vec![(0., p.bounds[0]); (t_end - t_start) as usize];
         let (xs, _) = find_minimizer(objective, bounds);
-        println!("==> {} <-> {}", t_start, t_end);
         assert_eq!(xs.len() as i32, t_end - t_start);
         Ok(xs[(t_end - t_start) as usize - 1])
     }
