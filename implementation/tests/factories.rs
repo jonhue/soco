@@ -92,7 +92,6 @@ pub fn int_parabola() -> RawCostFn<'static, IntegralConfig> {
 /// $(x-(t % m))^2$ around $t % m$ for a single dimension.
 pub fn moving_parabola(m: i32) -> RawCostFn<'static, FractionalConfig> {
     wrap(move |t: i32, j: FractionalConfig| {
-        // println!("=> {}", t);
         assert!(j.d() == 1);
         (j[0] - ((t % m) as f64)).powi(2)
     })

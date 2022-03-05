@@ -153,7 +153,6 @@ where
                 } else {
                     self.hit_cost(t, x.clone())
                 };
-
                 Cost::new(
                     hitting_cost.cost
                         + n64(alpha) * self.movement(prev_x, x, inverted),
