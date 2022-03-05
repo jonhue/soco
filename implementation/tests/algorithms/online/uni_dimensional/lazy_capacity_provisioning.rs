@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod fractional_lcp {
-    use crate::factories::inv_e;
+    use crate::factories::{inv_e, moving_parabola};
     use crate::init;
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
     use soco::algorithms::offline::uni_dimensional::capacity_provisioning::brcp;
@@ -80,15 +80,70 @@ mod fractional_lcp {
             .xs();
         brcp_result.verify(t_end, &o.p.bounds).unwrap();
 
+        let bounds = result.1.clone().unwrap().bounds;
+        for t in 0..t_end as usize {
+            println!("{:?} <= {:?} <= {:?}", bounds[t].lower, brcp_result[t][0], bounds[t].upper);
+        }
+
+        // println!("{:?}", brcp_result);
+        // println!("{:?}", bounds);
+
         match result.1 {
             Some(memory) => {
                 for t in 0..memory.bounds.len() {
-                    assert!(result.0[t][0] >= memory.bounds[t].lower);
-                    assert!(result.0[t][0] <= memory.bounds[t].upper);
+                    assert!(brcp_result[t][0] >= memory.bounds[t].lower);
+                    assert!(brcp_result[t][0] <= memory.bounds[t].upper);
                 }
             },
             None => (),
         }
+
+        assert!(false)
+    }
+
+    #[test]
+    fn _4() {
+        init();
+
+        let p = SimplifiedSmoothedConvexOptimization {
+            d: 1,
+            t_end: 1,
+            bounds: vec![10.],
+            switching_cost: vec![1.],
+            hitting_cost: moving_parabola(5),
+        };
+        let mut o = Online { p, w: 0 };
+        o.verify().unwrap();
+
+        let t_end = 10;
+        let result = o.offline_stream(&lcp, t_end, ()).unwrap();
+        result.0.verify(t_end, &o.p.bounds).unwrap();
+
+        let brcp_result = brcp
+            .solve_with_default_options(o.p.clone(), OfflineOptions::default())
+            .unwrap()
+            .xs();
+        brcp_result.verify(t_end, &o.p.bounds).unwrap();
+
+        let bounds = result.1.clone().unwrap().bounds;
+        for t in 0..t_end as usize {
+            println!("{:?} <= {:?} <= {:?}", bounds[t].lower, brcp_result[t][0], bounds[t].upper);
+        }
+
+        // println!("{:?}", brcp_result);
+        // println!("{:?}", bounds);
+
+        match result.1 {
+            Some(memory) => {
+                for t in 0..memory.bounds.len() {
+                    assert!(brcp_result[t][0] >= memory.bounds[t].lower);
+                    assert!(brcp_result[t][0] <= memory.bounds[t].upper);
+                }
+            },
+            None => (),
+        }
+
+        assert!(false)
     }
 }
 

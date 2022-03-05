@@ -282,3 +282,89 @@ mod into_sblo {
         );
     }
 }
+
+#[cfg(test)]
+mod reset {
+    use crate::factories::{moving_parabola};
+    use soco::config::Config;
+    use soco::convert::Resettable;
+    use soco::problem::{Problem,SimplifiedSmoothedConvexOptimization};
+    use soco::schedule::Schedule;
+
+    use crate::init;
+
+    #[test]
+    fn _1() {
+        init();
+
+        let p = SimplifiedSmoothedConvexOptimization {
+            d: 1,
+            t_end: 10,
+            bounds: vec![10.],
+            switching_cost: vec![1.],
+            hitting_cost: moving_parabola(5),
+        };
+
+        let xs = Schedule::new(vec![
+            Config::single(1.0),
+            Config::single(2.0),
+            Config::single(3.0),
+            Config::single(3.5),
+            Config::single(0.5),
+            Config::single(1.0),
+            Config::single(2.0),
+            Config::single(3.0),
+            Config::single(3.5),
+            Config::single(0.0)
+        ]);
+        let cost = p.objective_function(&xs).unwrap().cost.raw();
+
+        println!("---");
+
+        let p1 = p.reset(2);
+        let xs1 = Schedule::new(vec![
+            Config::single(3.0),
+            Config::single(3.5),
+            Config::single(0.5),
+            Config::single(1.0),
+            Config::single(2.0),
+            Config::single(3.0),
+            Config::single(3.5),
+            Config::single(0.0)
+        ]);
+        let cost1 = p1.objective_function(&xs1).unwrap().cost.raw();
+
+        println!("---");
+
+        let p2 = p1.reset(3);
+        let xs2 = Schedule::new(vec![
+            Config::single(1.0),
+            Config::single(2.0),
+            Config::single(3.0),
+            Config::single(3.5),
+            Config::single(0.0)
+        ]);
+        let cost2 = p2.objective_function(&xs2).unwrap().cost.raw();
+
+        println!("===");
+
+        for t in 1..=2 {
+            println!("{} -- # -- #", p.hit_cost(t, xs[t as usize].clone()).cost.raw());
+        }
+        for t in 3..=5 {
+            println!("{} -- {} -- #", p.hit_cost(t, xs[t as usize].clone()).cost.raw(), p1.hit_cost(t - 2, xs[t as usize].clone()).cost.raw());
+        }
+        for t in 6..=10 {
+            println!("{} -- {} -- {}", p.hit_cost(t, xs[t as usize].clone()).cost.raw(), p1.hit_cost(t - 2, xs[t as usize].clone()).cost.raw(), p2.hit_cost(t - 5, xs[t as usize].clone()).cost.raw());
+        }
+
+        assert_eq!(p.hit_cost(9, xs[9].clone()).cost.raw(), p1.hit_cost(7, xs1[7].clone()).cost.raw());
+        assert_eq!(p.hit_cost(9, xs[9].clone()).cost.raw(), p2.hit_cost(4, xs2[4].clone()).cost.raw());
+
+        assert!(cost.is_finite());
+        assert_eq!(cost - p.hit_cost(1, xs[1].clone()).cost.raw() - p.hit_cost(2, xs[2].clone()).cost.raw(), cost1);
+        assert_eq!(cost1 - p.hit_cost(3, xs[3].clone()).cost.raw() - p.hit_cost(4, xs[4].clone()).cost.raw() - p.hit_cost(5, xs[5].clone()).cost.raw(), cost2);
+
+        assert!(false)
+    }
+}

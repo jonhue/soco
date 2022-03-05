@@ -81,6 +81,11 @@ where
         Schedule([&self.0[..], &[x]].concat())
     }
 
+    /// Skips first $delta$ configurations.
+    pub fn skip(&self, delta: i32) -> Self {
+        Self::new(self.0.clone().into_iter().skip(delta as usize).collect())
+    }
+
     /// Converts schedule to a vector of vectors.
     pub fn to_vec(&self) -> Vec<Vec<T>> {
         self.0.iter().map(|x| x.to_vec()).collect()
