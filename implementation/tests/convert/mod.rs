@@ -325,26 +325,6 @@ mod reset {
         let p2 = p1.reset(3);
         let cost2 = p2.objective_function(&xs.reset(5)).unwrap().cost.raw();
 
-        // for t in 1..=2 {
-        //     println!(
-        //         "{} -- # -- #",
-        //         p.hit_cost(t, xs.get(t).unwrap().clone()).cost.raw()
-        //     );
-        // }
-        // for t in 3..=5 {
-        //     println!(
-        //         "{} -- {} -- #",
-        //         p.hit_cost(t, xs.get(t).unwrap().clone()).cost.raw(),
-        //         p1.hit_cost(t - 2, xs.get(t).unwrap().clone()).cost.raw()
-        //     );
-        // }
-        // for t in 6..=10 {
-        //     let a = p.hit_cost(t, xs.get(t).unwrap().clone()).cost.raw();
-        //     let b = p1.hit_cost(t - 2, xs.get(t).unwrap().clone()).cost.raw();
-        //     let c = p2.hit_cost(t - 5, xs.get(t).unwrap().clone()).cost.raw();
-        //     println!("{} -- {} -- {}", a, b, c);
-        // }
-
         assert_eq!(xs.get(3), xs.reset(2).get(1));
 
         assert_eq!(
@@ -372,6 +352,12 @@ mod reset {
                     false
                 )
                 .raw()
+                - p.movement(
+                    xs.get(2).unwrap().clone(),
+                    xs.get(3).unwrap().clone(),
+                    false
+                )
+                .raw()
                 + p.movement(
                     Config::single(0.),
                     xs.get(3).unwrap().clone(),
@@ -386,7 +372,7 @@ mod reset {
                 - p.hit_cost(4, xs.get(4).unwrap().clone()).cost.raw()
                 - p.hit_cost(5, xs.get(5).unwrap().clone()).cost.raw()
                 - p.movement(
-                    xs.get(2).unwrap().clone(),
+                    Config::single(0.),
                     xs.get(3).unwrap().clone(),
                     false
                 )
@@ -400,6 +386,12 @@ mod reset {
                 - p.movement(
                     xs.get(4).unwrap().clone(),
                     xs.get(5).unwrap().clone(),
+                    false
+                )
+                .raw()
+                - p.movement(
+                    xs.get(5).unwrap().clone(),
+                    xs.get(6).unwrap().clone(),
                     false
                 )
                 .raw()
