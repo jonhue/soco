@@ -1,5 +1,5 @@
 #[cfg(test)]
-mod bcp {
+mod brcp {
     use crate::factories::{inv_e, moving_parabola};
     use crate::init;
     use crate::utils::upper_bounds;

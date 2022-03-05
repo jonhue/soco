@@ -282,3 +282,126 @@ mod into_sblo {
         );
     }
 }
+
+#[cfg(test)]
+mod reset {
+    use crate::factories::moving_parabola;
+    use soco::config::Config;
+    use soco::convert::Resettable;
+    use soco::problem::{Problem, SimplifiedSmoothedConvexOptimization};
+    use soco::schedule::Schedule;
+
+    use crate::init;
+
+    #[test]
+    fn _1() {
+        init();
+
+        let p = SimplifiedSmoothedConvexOptimization {
+            d: 1,
+            t_end: 10,
+            bounds: vec![10.],
+            switching_cost: vec![1.],
+            hitting_cost: moving_parabola(5),
+        };
+
+        let xs = Schedule::new(vec![
+            Config::single(1.0),
+            Config::single(2.0),
+            Config::single(3.0),
+            Config::single(3.5),
+            Config::single(0.5),
+            Config::single(1.0),
+            Config::single(2.0),
+            Config::single(3.0),
+            Config::single(3.5),
+            Config::single(0.0),
+        ]);
+        let cost = p.objective_function(&xs).unwrap().cost.raw();
+
+        let p1 = p.reset(2);
+        let cost1 = p1.objective_function(&xs.reset(2)).unwrap().cost.raw();
+
+        let p2 = p1.reset(3);
+        let cost2 = p2.objective_function(&xs.reset(5)).unwrap().cost.raw();
+
+        assert_eq!(xs.get(3), xs.reset(2).get(1));
+
+        assert_eq!(
+            p.hit_cost(9, xs.get(9).unwrap().clone()).cost.raw(),
+            p1.hit_cost(7, xs.get(9).unwrap().clone()).cost.raw()
+        );
+        assert_eq!(
+            p.hit_cost(9, xs.get(9).unwrap().clone()).cost.raw(),
+            p2.hit_cost(4, xs.get(9).unwrap().clone()).cost.raw()
+        );
+
+        assert!(cost.is_finite());
+        assert_eq!(
+            cost - p.hit_cost(1, xs.get(1).unwrap().clone()).cost.raw()
+                - p.hit_cost(2, xs.get(2).unwrap().clone()).cost.raw()
+                - p.movement(
+                    Config::single(0.),
+                    xs.get(1).unwrap().clone(),
+                    false
+                )
+                .raw()
+                - p.movement(
+                    xs.get(1).unwrap().clone(),
+                    xs.get(2).unwrap().clone(),
+                    false
+                )
+                .raw()
+                - p.movement(
+                    xs.get(2).unwrap().clone(),
+                    xs.get(3).unwrap().clone(),
+                    false
+                )
+                .raw()
+                + p.movement(
+                    Config::single(0.),
+                    xs.get(3).unwrap().clone(),
+                    false
+                )
+                .raw(),
+            cost1
+        );
+        assert_eq!(
+            cost1
+                - p.hit_cost(3, xs.get(3).unwrap().clone()).cost.raw()
+                - p.hit_cost(4, xs.get(4).unwrap().clone()).cost.raw()
+                - p.hit_cost(5, xs.get(5).unwrap().clone()).cost.raw()
+                - p.movement(
+                    Config::single(0.),
+                    xs.get(3).unwrap().clone(),
+                    false
+                )
+                .raw()
+                - p.movement(
+                    xs.get(3).unwrap().clone(),
+                    xs.get(4).unwrap().clone(),
+                    false
+                )
+                .raw()
+                - p.movement(
+                    xs.get(4).unwrap().clone(),
+                    xs.get(5).unwrap().clone(),
+                    false
+                )
+                .raw()
+                - p.movement(
+                    xs.get(5).unwrap().clone(),
+                    xs.get(6).unwrap().clone(),
+                    false
+                )
+                .raw()
+                + p.movement(
+                    Config::single(0.),
+                    xs.get(6).unwrap().clone(),
+                    false
+                )
+                .raw(),
+            cost2
+        );
+    }
+}

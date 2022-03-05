@@ -412,12 +412,12 @@ where
     }
 }
 
-pub trait ResettableCostFn<'a, T, C, D> {
-    /// Shift a certain cost function to some new initial time $t_start$ (a time _before_ first time slot).
-    fn reset(&'a self, t_start: i32) -> CostFn<'a, T, C, D>;
+pub trait Resettable<'a> {
+    /// Shift object to some new initial time $t_start$. Here, $t_start$ is the time _before_ first time slot (e.g., $t_start = 0$ is a no-op).
+    fn reset(&'a self, t_start: i32) -> Self;
 }
 
-impl<'a, T, C, D> ResettableCostFn<'a, T, C, D> for CostFn<'a, T, C, D>
+impl<'a, T, C, D> Resettable<'a> for CostFn<'a, T, C, D>
 where
     T: Clone,
     C: ModelOutputSuccess,
@@ -438,12 +438,7 @@ where
     }
 }
 
-pub trait ResettableProblem<'a, T> {
-    /// Shifts problem instance to some new initial time $t_start$.
-    fn reset(&'a self, t_start: i32) -> Self;
-}
-
-impl<'a, T, C, D> ResettableProblem<'a, T>
+impl<'a, T, C, D> Resettable<'a>
     for SimplifiedSmoothedConvexOptimization<'a, T, C, D>
 where
     T: Value<'a>,
@@ -461,5 +456,14 @@ where
             switching_cost: self.switching_cost.clone(),
             hitting_cost: self.hitting_cost.reset(t_start),
         }
+    }
+}
+
+impl<'a, T> Resettable<'a> for Schedule<T>
+where
+    T: Value<'a>,
+{
+    fn reset(&'a self, t_start: i32) -> Schedule<T> {
+        self.skip(t_start)
     }
 }

@@ -1,5 +1,5 @@
 use crate::config::{Config, FractionalConfig};
-use crate::convert::ResettableProblem;
+use crate::convert::Resettable;
 use crate::model::{ModelOutputFailure, ModelOutputSuccess};
 use crate::numerics::convex_optimization::{find_minimizer, WrappedObjective};
 use crate::problem::{
