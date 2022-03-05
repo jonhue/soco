@@ -2,7 +2,7 @@ use noisy_float::prelude::*;
 use rand::prelude::*;
 use rand_pcg::Pcg64;
 use soco::{
-    config::{FractionalConfig, IntegralConfig},
+    config::{Config, FractionalConfig, IntegralConfig},
     cost::{FailableCost, FailableCostFn, RawCostFn, SingleCostFn},
     model::{data_center::DataCenterModelOutputFailure, ModelOutputFailure},
     vec_wrapper::VecWrapper,
@@ -22,7 +22,10 @@ where
 }
 
 /// Returns $1$.
-pub fn constant() -> RawCostFn<'static, IntegralConfig> {
+pub fn constant<T>() -> RawCostFn<'static, Config<T>>
+where
+    T: Clone,
+{
     wrap(|_, _| 1.)
 }
 

@@ -92,7 +92,13 @@ where
         T: Value<'a>,
     {
         let default = self._default_config();
-        self._objective_function_with_default(xs, &default, 1., false)
+        self._objective_function_with_default(
+            xs,
+            &default,
+            1.,
+            false,
+            self.t_end(),
+        )
     }
 
     /// Inverted Objective function. Calculates the cost of a schedule. Pays the
@@ -105,7 +111,13 @@ where
         T: Value<'a>,
     {
         let default = self._default_config();
-        self._objective_function_with_default(xs, &default, 1., true)
+        self._objective_function_with_default(
+            xs,
+            &default,
+            1.,
+            true,
+            self.t_end(),
+        )
     }
 
     /// $\alpha$-unfair Objective function. Calculates the cost of a schedule.
@@ -118,7 +130,13 @@ where
         T: Value<'a>,
     {
         let default = self._default_config();
-        self._objective_function_with_default(xs, &default, alpha, false)
+        self._objective_function_with_default(
+            xs,
+            &default,
+            alpha,
+            false,
+            self.t_end(),
+        )
     }
 
     /// Objective function starting from an initial configuration other than $\mathbf{0}$.
@@ -130,7 +148,13 @@ where
     where
         T: Value<'a>,
     {
-        self._objective_function_with_default(xs, default, 1., false)
+        self._objective_function_with_default(
+            xs,
+            default,
+            1.,
+            false,
+            self.t_end(),
+        )
     }
 
     fn _objective_function_with_default<'a>(
@@ -139,27 +163,23 @@ where
         default: &Config<T>,
         alpha: f64,
         inverted: bool,
+        t_end: i32,
     ) -> Result<Cost<C, D>>
     where
         T: Value<'a>,
     {
-        Ok(sum_over_schedule(
-            self.t_end(),
-            xs,
-            default,
-            |t, prev_x, x| {
-                let hitting_cost = if t > self.t_end() {
-                    Default::default()
-                } else {
-                    self.hit_cost(t, x.clone())
-                };
-                Cost::new(
-                    hitting_cost.cost
-                        + n64(alpha) * self.movement(prev_x, x, inverted),
-                    hitting_cost.output,
-                )
-            },
-        ))
+        Ok(sum_over_schedule(t_end, xs, default, |t, prev_x, x| {
+            let hitting_cost = if t > self.t_end() {
+                Default::default()
+            } else {
+                self.hit_cost(t, x.clone())
+            };
+            Cost::new(
+                hitting_cost.cost
+                    + n64(alpha) * self.movement(prev_x, x, inverted),
+                hitting_cost.output,
+            )
+        }))
     }
 
     /// Movement in the decision space.
