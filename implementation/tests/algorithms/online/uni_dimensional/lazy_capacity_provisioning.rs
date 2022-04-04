@@ -184,11 +184,15 @@ mod fractional_lcp {
 
 #[cfg(test)]
 mod integral_lcp {
-    use crate::factories::penalize_zero;
+    use crate::factories::{moving_parabola, penalize_zero};
     use crate::init;
+    use soco::algorithms::offline::uni_dimensional::optimal_graph_search::optimal_graph_search;
+    use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions};
     use soco::algorithms::online::uni_dimensional::lazy_capacity_provisioning::lcp;
     use soco::config::Config;
-    use soco::problem::{Online, SimplifiedSmoothedConvexOptimization};
+    use soco::problem::{
+        Online, Problem, SimplifiedSmoothedConvexOptimization,
+    };
     use soco::schedule::Schedule;
 
     #[test]
@@ -277,5 +281,57 @@ mod integral_lcp {
             result.0,
             Schedule::new(vec![Config::single(0), Config::single(1)])
         );
+    }
+
+    #[test]
+    fn _5() {
+        init();
+
+        let p = SimplifiedSmoothedConvexOptimization {
+            d: 1,
+            t_end: 1,
+            bounds: vec![10],
+            switching_cost: vec![1.],
+            hitting_cost: moving_parabola(5),
+        };
+        let mut o = Online { p, w: 0 };
+        o.verify().unwrap();
+
+        let t_end = 10;
+        let result = o.offline_stream(&lcp, t_end, ()).unwrap();
+        result.0.verify(t_end, &o.p.bounds).unwrap();
+
+        let opt_result = optimal_graph_search
+            .solve_with_default_options(o.p.clone(), OfflineOptions::default())
+            .unwrap();
+        let opt_xs = opt_result.xs;
+        opt_xs.verify(t_end, &o.p.bounds).unwrap();
+
+        assert!(
+            o.p.objective_function(&result.0).unwrap().cost.raw()
+                >= o.p.objective_function(&opt_xs).unwrap().cost.raw()
+        );
+
+        assert_eq!(
+            result.0,
+            Schedule::new(vec![
+                Config::single(0),
+                Config::single(1),
+                Config::single(2),
+                Config::single(3),
+                Config::single(0),
+                Config::single(0),
+                Config::single(1),
+                Config::single(2),
+                Config::single(3),
+                Config::single(0)
+            ])
+        );
+
+        let bounds = result.1.unwrap().bounds;
+        for t in 0..bounds.len() {
+            assert!(opt_xs[t][0] >= bounds[t].lower);
+            assert!(opt_xs[t][0] <= bounds[t].upper);
+        }
     }
 }

@@ -47,13 +47,13 @@ pub mod problem;
 pub mod result;
 pub mod schedule;
 pub mod streaming;
+pub mod value;
 pub mod vec_wrapper;
 pub mod verifiers;
 
 mod bindings;
 mod numerics;
 mod utils;
-mod value;
 
 #[allow(unused_imports)]
 use bindings::soco;

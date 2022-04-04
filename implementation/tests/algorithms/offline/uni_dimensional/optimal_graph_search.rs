@@ -118,8 +118,7 @@ mod optimal_graph_search {
             .unwrap();
         inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(path.xs, inv_path.xs);
-        assert_abs_diff_eq!(path.cost, inv_path.cost);
+        assert!(path.cost >= inv_path.cost);
         assert_eq!(
             path.xs,
             Schedule::new(vec![Config::single(1), Config::single(1)])
@@ -154,8 +153,7 @@ mod optimal_graph_search {
             .unwrap();
         inv_path.xs.verify(p.t_end, &p.bounds).unwrap();
 
-        assert_eq!(path.xs, inv_path.xs);
-        assert_abs_diff_eq!(path.cost, inv_path.cost);
+        assert!(path.cost >= inv_path.cost);
         assert_relative_eq!(
             path.cost,
             p.objective_function(&path.xs).unwrap().cost.raw(),
@@ -204,8 +202,7 @@ mod optimal_graph_search {
 
         assert!(path.cost.is_finite());
         assert_abs_diff_eq!(path.cost, md_path.cost);
-        assert_eq!(path.xs, inv_path.xs);
-        assert_abs_diff_eq!(path.cost, inv_path.cost);
+        assert!(path.cost >= inv_path.cost);
         assert_relative_eq!(
             path.cost,
             transformed_p
