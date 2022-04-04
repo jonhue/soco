@@ -22,4 +22,4 @@ Times are given in seconds beginning from the start of the trace. Indexes begin 
 
 ## Prerequisites
 
-Prerequisites are the [Python bindings](https://github.com/jonhue/bachelors-thesis/tree/main/implementation#python-bindings) for the `soco` crate and the Python packages listed in [`requirements.txt`](requirements.txt) which can be installed in the current environment by running `pip install -r requirements.txt`.
+Prerequisites are the [Python bindings](https://github.com/jonhue/soco/tree/main/implementation#python-bindings) for the `soco` crate and the Python packages listed in [`requirements.txt`](requirements.txt) which can be installed in the current environment by running `pip install -r requirements.txt`.

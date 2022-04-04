@@ -1,10 +1,12 @@
 use noisy_float::prelude::*;
+use num::ToPrimitive;
 use rand::prelude::*;
 use rand_pcg::Pcg64;
 use soco::{
-    config::{FractionalConfig, IntegralConfig},
+    config::{FractionalConfig, IntegralConfig, Config},
     cost::{FailableCost, FailableCostFn, RawCostFn, SingleCostFn},
     model::{data_center::DataCenterModelOutputFailure, ModelOutputFailure},
+    value::Value,
     vec_wrapper::VecWrapper,
 };
 
@@ -74,25 +76,17 @@ pub fn inv_e_sblo() -> FailableCostFn<'static, f64, DataCenterModelOutputFailure
 }
 
 /// $1 / t \cdot (x-1)^2$ around $1$ for a single dimension.
-pub fn parabola() -> RawCostFn<'static, FractionalConfig> {
-    wrap(|t: i32, j: FractionalConfig| {
+pub fn parabola<T>() -> RawCostFn<'static, Config<T>> where T: Value<'static> {
+    wrap(|t: i32, j: Config<T>| {
         assert!(j.d() == 1);
-        1. / t as f64 * (j[0] - 1.).powi(2)
-    })
-}
-
-/// $1 / t \cdot (x-1)^2$ around $1$ for a single dimension.
-pub fn int_parabola() -> RawCostFn<'static, IntegralConfig> {
-    wrap(|t: i32, j: IntegralConfig| {
-        assert!(j.d() == 1);
-        1. / t as f64 * (j[0] as f64 - 1.).powi(2)
+        1. / t as f64 * (ToPrimitive::to_f64(&j[0]).unwrap() - 1.).powi(2)
     })
 }
 
 /// $(x-(t % m))^2$ around $t % m$ for a single dimension.
-pub fn moving_parabola(m: i32) -> RawCostFn<'static, FractionalConfig> {
-    wrap(move |t: i32, j: FractionalConfig| {
+pub fn moving_parabola<T>(m: i32) -> RawCostFn<'static, Config<T>> where T: Value<'static> {
+    wrap(move |t: i32, j: Config<T>| {
         assert!(j.d() == 1);
-        (j[0] - ((t % m) as f64)).powi(2)
+        (ToPrimitive::to_f64(&j[0]).unwrap() - ((t % m) as f64)).powi(2)
     })
 }

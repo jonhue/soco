@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod probabilistic {
-    use crate::factories::int_parabola;
+    use crate::factories::parabola;
     use crate::init;
     use soco::algorithms::online::uni_dimensional::probabilistic::Memory;
     use soco::algorithms::online::uni_dimensional::randomized::{
@@ -17,7 +17,7 @@ mod probabilistic {
             t_end: 1,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: int_parabola(),
+            hitting_cost: parabola(),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -37,7 +37,7 @@ mod probabilistic {
             t_end: 1,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: int_parabola(),
+            hitting_cost: parabola(),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -52,7 +52,7 @@ mod probabilistic {
 
 #[cfg(test)]
 mod randomly_biased_greedy {
-    use crate::factories::int_parabola;
+    use crate::factories::parabola;
     use crate::init;
     use soco::algorithms::online::uni_dimensional::randomized::{
         randomized, Relaxation,
@@ -69,7 +69,7 @@ mod randomly_biased_greedy {
             t_end: 1,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: int_parabola(),
+            hitting_cost: parabola(),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();
@@ -89,7 +89,7 @@ mod randomly_biased_greedy {
             t_end: 1,
             bounds: vec![2],
             switching_cost: vec![1.],
-            hitting_cost: int_parabola(),
+            hitting_cost: parabola(),
         };
         let mut o = Online { p, w: 0 };
         o.verify().unwrap();

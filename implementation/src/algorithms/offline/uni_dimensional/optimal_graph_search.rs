@@ -164,10 +164,7 @@ where
         },
         |result, &i| {
             let path = &paths[&Vertice(p.t_end, i)];
-            let cost = alpha
-                * p.movement(Config::single(i), Config::single(0), inverted)
-                    .raw();
-            let picked_cost = path.cost + cost;
+            let picked_cost = path.cost;
             if picked_cost < result.cost {
                 Path {
                     xs: path.xs.clone(),
