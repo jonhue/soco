@@ -184,7 +184,7 @@ mod fractional_lcp {
 
 #[cfg(test)]
 mod integral_lcp {
-    use crate::factories::{penalize_zero, moving_parabola};
+    use crate::factories::{moving_parabola, penalize_zero};
     use crate::init;
     use soco::algorithms::offline::uni_dimensional::optimal_graph_search::optimal_graph_search;
     use soco::algorithms::offline::{OfflineAlgorithm, OfflineOptions};
