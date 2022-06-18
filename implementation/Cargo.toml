@@ -38,7 +38,7 @@ is_sorted = "0.1.1"
 itertools = "0.10.3"
 log = "0.4.17"
 nalgebra = "0.31.0"
-nlopt = "0.5.4"
+nlopt = "0.6.0"
 noisy_float = "0.2.0"
 num = "0.4.0"
 pyo3 = { version = "0.15.2", features = ["extension-module"] }
