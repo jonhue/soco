@@ -235,7 +235,7 @@ where
     }
 }
 
-impl<'a, P> Online<P>
+impl<P> Online<P>
 where
     P: VerifiableProblem,
 {

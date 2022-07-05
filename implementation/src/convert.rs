@@ -277,7 +277,7 @@ where
     }
 }
 
-impl<'a, P> Online<P>
+impl<P> Online<P>
 where
     P: DiscretizableProblem,
 {
@@ -290,7 +290,7 @@ where
     }
 }
 
-impl<'a, P> Online<P>
+impl<P> Online<P>
 where
     P: RelaxableProblem,
 {

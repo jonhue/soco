@@ -220,7 +220,7 @@ where
     }
 }
 
-impl<'a> Mul<FractionalConfig> for f64 {
+impl Mul<FractionalConfig> for f64 {
     type Output = FractionalConfig;
 
     /// Scales config with scalar.
@@ -229,7 +229,7 @@ impl<'a> Mul<FractionalConfig> for f64 {
     }
 }
 
-impl<'a> Div<f64> for FractionalConfig {
+impl Div<f64> for FractionalConfig {
     type Output = FractionalConfig;
 
     /// Divides config by scalar.
