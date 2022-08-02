@@ -1,0 +1,169 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Build Status crates.io docs"><meta name="keywords" content="rust, rustlang, rust-lang, cached"><title>cached - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../normalize.css"><link rel="stylesheet" type="text/css" href="../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../dark.css" disabled><link rel="stylesheet" type="text/css" href="../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../storage.js"></script><script src="../crates.js"></script><script defer src="../main.js"></script>
+    <noscript><link rel="stylesheet" href="../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../favicon.svg"></head><body class="rustdoc mod crate"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../cached/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../cached/index.html"><div class="logo-container"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Crate cached</a></h2><div class="sidebar-elems"><div class="block"><ul><li class="version">Version 0.38.0</li><li><a id="all-types" href="all.html">All Items</a></li></div></ul><section><div class="block"><ul><li><a href="#reexports">Re-exports</a></li><li><a href="#modules">Modules</a></li><li><a href="#macros">Macros</a></li><li><a href="#structs">Structs</a></li><li><a href="#traits">Traits</a></li></ul></div></section><div id="sidebar-vars" data-name="cached" data-ty="mod" data-relpath=""></div><script defer src="sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../cached/index.html"><img class="rust-logo" src="../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Crate <a class="mod" href="#">cached</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../src/cached/lib.rs.html#1-318">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p><a href="https://github.com/jaemk/cached/actions/workflows/build.yml"><img src="https://github.com/jaemk/cached/actions/workflows/build.yml/badge.svg" alt="Build Status" /></a>
+<a href="https://crates.io/crates/cached"><img src="https://img.shields.io/crates/v/cached.svg" alt="crates.io" /></a>
+<a href="https://docs.rs/cached"><img src="https://docs.rs/cached/badge.svg" alt="docs" /></a></p>
+<blockquote>
+<p>Caching structures and simplified function memoization</p>
+</blockquote>
+<p><code>cached</code> provides implementations of several caching structures as well as a handy macros
+for defining memoized functions.</p>
+<p>Memoized functions defined using <a href="proc_macro/attr.cached.html"><code>#[cached]</code></a>/<a href="proc_macro/attr.once.html"><code>#[once]</code></a>/<a href="proc_macro/attr.io_cached.html"><code>#[io_cached]</code></a>/<a href="macros/index.html"><code>cached!</code></a> macros are thread-safe with the backing
+function-cache wrapped in a mutex/rwlock, or externally synchronized in the case of <code>#[io_cached]</code>.
+By default, the function-cache is <strong>not</strong> locked for the duration of the function’s execution, so initial (on an empty cache)
+concurrent calls of long-running functions with the same arguments will each execute fully and each overwrite
+the memoized value as they complete. This mirrors the behavior of Python’s <code>functools.lru_cache</code>. To synchronize the execution and caching
+of un-cached arguments, specify <code>#[cached(sync_writes = true)]</code> / <code>#[once(sync_writes = true)]</code> (not supported by <code>#[io_cached]</code>.</p>
+<ul>
+<li>See <a href="https://docs.rs/cached/latest/cached/stores/index.html"><code>cached::stores</code> docs</a> cache stores available.</li>
+<li>See <a href="https://docs.rs/cached/latest/cached/proc_macro/index.html"><code>proc_macro</code></a> for more procedural macro examples.</li>
+<li>See <a href="https://docs.rs/cached/latest/cached/macros/index.html"><code>macros</code></a> for more declarative macro examples.</li>
+</ul>
+<p><strong>Features</strong></p>
+<ul>
+<li><code>default</code>: Include <code>proc_macro</code> and <code>async</code> features</li>
+<li><code>proc_macro</code>: Include proc macros</li>
+<li><code>async</code>: Include support for async functions and async cache stores</li>
+<li><code>redis_store</code>: Include Redis cache store</li>
+<li><code>redis_async_std</code>: Include async Redis support using <code>async-std</code> and <code>async-std</code> tls support, implies <code>redis_store</code> and <code>async</code></li>
+<li><code>redis_tokio</code>: Include async Redis support using <code>tokio</code> and <code>tokio</code> tls support, implies <code>redis_store</code> and <code>async</code></li>
+<li><code>wasm</code>: Enable WASM support. Note that this feature is incompatible with all Redis features (<code>redis_store</code>, <code>redis_async_std</code>, <code>redis_tokio</code>)</li>
+</ul>
+<p>The procedural macros (<code>#[cached]</code>, <code>#[once]</code>, <code>#[io_cached]</code>) offer more features, including async support.
+See the <a href="proc_macro/index.html"><code>proc_macro</code></a> and <a href="macros/index.html"><code>macros</code></a> modules for more samples, and the
+<a href="https://github.com/jaemk/cached/tree/master/examples"><code>examples</code></a> directory for runnable snippets.`</p>
+<p>Any custom cache that implements <code>cached::Cached</code>/<code>cached::CachedAsync</code> can be used with the <code>#[cached]</code>/<code>#[once]</code>/<code>cached!</code> macros in place of the built-ins.
+Any custom cache that implements <code>cached::IOCached</code>/<code>cached::IOCachedAsync</code> can be used with the <code>#[io_cached]</code> macro.</p>
+<hr />
+<p>The basic usage looks like:</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">cached::proc_macro::cached</span>;
+
+<span class="doccomment">/// Defines a function named `fib` that uses a cache implicitly named `FIB`.</span>
+<span class="doccomment">/// By default, the cache will be the function&#39;s name in all caps.</span>
+<span class="doccomment">/// The following line is equivalent to #[cached(name = &quot;FIB&quot;, unbound)]</span>
+<span class="attribute">#[<span class="ident">cached</span>]</span>
+<span class="kw">fn</span> <span class="ident">fib</span>(<span class="ident">n</span>: <span class="ident">u64</span>) -&gt; <span class="ident">u64</span> {
+    <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">1</span> { <span class="kw">return</span> <span class="ident">n</span> }
+    <span class="ident">fib</span>(<span class="ident">n</span><span class="op">-</span><span class="number">1</span>) <span class="op">+</span> <span class="ident">fib</span>(<span class="ident">n</span><span class="op">-</span><span class="number">2</span>)
+}</code></pre></div>
+<hr />
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">std::thread::sleep</span>;
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use</span> <span class="ident">cached::proc_macro::cached</span>;
+<span class="kw">use</span> <span class="ident">cached::SizedCache</span>;
+
+<span class="doccomment">/// Use an explicit cache-type with a custom creation block and custom cache-key generating block</span>
+<span class="attribute">#[<span class="ident">cached</span>(
+    <span class="kw">type</span> <span class="op">=</span> <span class="string">&quot;SizedCache&lt;String, usize&gt;&quot;</span>,
+    <span class="ident">create</span> <span class="op">=</span> <span class="string">&quot;{ SizedCache::with_size(100) }&quot;</span>,
+    <span class="ident">convert</span> <span class="op">=</span> <span class="string">r#&quot;{ format!(&quot;{}{}&quot;, a, b) }&quot;#</span>
+)]</span>
+<span class="kw">fn</span> <span class="ident">keyed</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">usize</span> {
+    <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">b</span>.<span class="ident">len</span>();
+    <span class="ident">sleep</span>(<span class="ident">Duration::new</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">0</span>));
+    <span class="ident">size</span>
+}</code></pre></div>
+<hr />
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="kw">use</span> <span class="ident">cached::proc_macro::once</span>;
+
+<span class="doccomment">/// Only cache the initial function call.</span>
+<span class="doccomment">/// Function will be re-executed after the cache</span>
+<span class="doccomment">/// expires (according to `time` seconds).</span>
+<span class="doccomment">/// When no (or expired) cache, concurrent calls</span>
+<span class="doccomment">/// will synchronize (`sync_writes`) so the function</span>
+<span class="doccomment">/// is only executed once.</span>
+<span class="attribute">#[<span class="ident">once</span>(<span class="ident">time</span><span class="op">=</span><span class="number">10</span>, <span class="ident">option</span> <span class="op">=</span> <span class="bool-val">true</span>, <span class="ident">sync_writes</span> <span class="op">=</span> <span class="bool-val">true</span>)]</span>
+<span class="kw">fn</span> <span class="ident">keyed</span>(<span class="ident">a</span>: <span class="ident">String</span>) -&gt; <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">usize</span><span class="op">&gt;</span> {
+    <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="string">&quot;a&quot;</span> {
+        <span class="prelude-val">Some</span>(<span class="ident">a</span>.<span class="ident">len</span>())
+    } <span class="kw">else</span> {
+        <span class="prelude-val">None</span>
+    }
+}</code></pre></div>
+<hr />
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="kw">use</span> <span class="ident">cached::proc_macro::io_cached</span>;
+<span class="kw">use</span> <span class="ident">cached::AsyncRedisCache</span>;
+<span class="kw">use</span> <span class="ident">thiserror::Error</span>;
+
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Error</span>, <span class="ident">Debug</span>, <span class="ident">PartialEq</span>, <span class="ident">Clone</span>)]</span>
+<span class="kw">enum</span> <span class="ident">ExampleError</span> {
+    <span class="attribute">#[<span class="ident">error</span>(<span class="string">&quot;error with redis cache `{0}`&quot;</span>)]</span>
+    <span class="ident">RedisError</span>(<span class="ident">String</span>),
+}
+
+<span class="doccomment">/// Cache the results of an async function in redis. Cache</span>
+<span class="doccomment">/// keys will be prefixed with `cache_redis_prefix`.</span>
+<span class="doccomment">/// A `map_error` closure must be specified to convert any</span>
+<span class="doccomment">/// redis cache errors into the same type of error returned</span>
+<span class="doccomment">/// by your function. All `io_cached` functions must return `Result`s.</span>
+<span class="attribute">#[<span class="ident">io_cached</span>(
+    <span class="ident">map_error</span> <span class="op">=</span> <span class="string">r##&quot;|e| ExampleError::RedisError(format!(&quot;{:?}&quot;, e))&quot;##</span>,
+    <span class="kw">type</span> <span class="op">=</span> <span class="string">&quot;AsyncRedisCache&lt;u64, String&gt;&quot;</span>,
+    <span class="ident">create</span> <span class="op">=</span> <span class="string">r##&quot; {
+        AsyncRedisCache::new(&quot;cached_redis_prefix&quot;, 1)
+            .set_refresh(true)
+            .build()
+            .await
+            .expect(&quot;error building example redis cache&quot;)
+    } &quot;##</span>
+)]</span>
+<span class="kw">async</span> <span class="kw">fn</span> <span class="ident">async_cached_sleep_secs</span>(<span class="ident">secs</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">ExampleError</span><span class="op">&gt;</span> {
+    <span class="ident">std::thread::sleep</span>(<span class="ident">std::time::Duration::from_secs</span>(<span class="ident">secs</span>));
+    <span class="prelude-val">Ok</span>(<span class="ident">secs</span>.<span class="ident">to_string</span>())
+}</code></pre></div>
+<p>Functions defined via macros will have their results cached using the
+function’s arguments as a key, a <code>convert</code> expression specified on a procedural macros,
+or a <code>Key</code> block specified on a <code>cached_key!</code> declarative macro.</p>
+<p>When a macro-defined function is called, the function’s cache is first checked for an already
+computed (and still valid) value before evaluating the function body.</p>
+<p>Due to the requirements of storing arguments and return values in a global cache:</p>
+<ul>
+<li>Function return types:
+<ul>
+<li>For all store types, except Redis, must be owned and implement <code>Clone</code></li>
+<li>For the Redis store type, must be owned and implement <code>serde::Serialize + serde::DeserializeOwned</code></li>
+</ul>
+</li>
+<li>Function arguments:
+<ul>
+<li>For all store types, except Redis, must either be owned and implement <code>Hash + Eq + Clone</code>,
+the <code>cached_key!</code> macro is used with a <code>Key</code> block specifying key construction, or
+a <code>convert</code> expression is specified on a procedural macro to specify how to construct a key
+of a <code>Hash + Eq + Clone</code> type.</li>
+<li>For the Redis store type, must either be owned and implement <code>Display</code>, or the <code>cached_key!</code> &amp; <code>Key</code>
+or procedural macro &amp; <code>convert</code> expression used to specify how to construct a key of a <code>Display</code> type.</li>
+</ul>
+</li>
+<li>Arguments and return values will be <code>cloned</code> in the process of insertion and retrieval. Except for Redis
+where arguments are formatted into <code>Strings</code> and values are de/serialized.</li>
+<li>Macro-defined functions should not be used to produce side-effectual results!</li>
+<li>Macro-defined functions cannot live directly under <code>impl</code> blocks since macros expand to a
+<code>once_cell</code>/<code>lazy_static</code> initialization and one or more function definitions.</li>
+<li>Macro-defined functions cannot accept <code>Self</code> types as a parameter.</li>
+</ul>
+</div></details><h2 id="reexports" class="small-section-header"><a href="#reexports">Re-exports</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left"><code>pub extern crate <a class="mod" href="../async_once/index.html" title="mod async_once">async_once</a>;</code></div></div><div class="item-row"><div class="item-left"><code>pub extern crate <a class="mod" href="../lazy_static/index.html" title="mod lazy_static">lazy_static</a>;</code></div></div><div class="item-row"><div class="item-left"><code>pub extern crate <a class="mod" href="../once_cell/index.html" title="mod once_cell">once_cell</a>;</code></div></div><div class="item-row"><div class="item-left import-item" id="reexport.instant"><code>pub use <a class="mod" href="../instant/index.html" title="mod instant">instant</a>;</code></div><div class="item-right docblock-short"></div></div></div><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="async_sync/index.html" title="cached::async_sync mod">async_sync</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="macros/index.html" title="cached::macros mod">macros</a></div><div class="item-right docblock-short"><p>Declarative macros for defining functions that wrap a static-ref cache object.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="proc_macro/index.html" title="cached::proc_macro mod">proc_macro</a></div><div class="item-right docblock-short"><p>Procedural macros for defining functions that wrap a static-ref cache object.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="stores/index.html" title="cached::stores mod">stores</a></div><div class="item-right docblock-short"></div></div></div><h2 id="macros" class="small-section-header"><a href="#macros">Macros</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.cached.html" title="cached::cached macro">cached</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.cached_control.html" title="cached::cached_control macro">cached_control</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.cached_key.html" title="cached::cached_key macro">cached_key</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.cached_key_result.html" title="cached::cached_key_result macro">cached_key_result</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="macro" href="macro.cached_result.html" title="cached::cached_result macro">cached_result</a></div><div class="item-right docblock-short"></div></div></div><h2 id="structs" class="small-section-header"><a href="#structs">Structs</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.ExpiringValueCache.html" title="cached::ExpiringValueCache struct">ExpiringValueCache</a></div><div class="item-right docblock-short"><p>Expiring Value Cache</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.Return.html" title="cached::Return struct">Return</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.SizedCache.html" title="cached::SizedCache struct">SizedCache</a></div><div class="item-right docblock-short"><p>Least Recently Used / <code>Sized</code> Cache</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.TimedCache.html" title="cached::TimedCache struct">TimedCache</a></div><div class="item-right docblock-short"><p>Cache store bound by time</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.TimedSizedCache.html" title="cached::TimedSizedCache struct">TimedSizedCache</a></div><div class="item-right docblock-short"><p>Timed LRU Cache</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="struct" href="struct.UnboundCache.html" title="cached::UnboundCache struct">UnboundCache</a></div><div class="item-right docblock-short"><p>Default unbounded cache</p>
+</div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Cached.html" title="cached::Cached trait">Cached</a></div><div class="item-right docblock-short"><p>Cache operations</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.CachedAsync.html" title="cached::CachedAsync trait">CachedAsync</a></div><div class="item-right docblock-short"></div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.CanExpire.html" title="cached::CanExpire trait">CanExpire</a></div><div class="item-right docblock-short"><p>The CanExpire trait defines a function for implementations to determine if
+the value has expired.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.IOCached.html" title="cached::IOCached trait">IOCached</a></div><div class="item-right docblock-short"><p>Cache operations on an io-connected store</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.IOCachedAsync.html" title="cached::IOCachedAsync trait">IOCachedAsync</a></div><div class="item-right docblock-short"></div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../" data-current-crate="cached" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>
+</body></html>

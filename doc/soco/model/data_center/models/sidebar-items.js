@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["delay","Delay model."],["energy_consumption","Energy consumption model."],["energy_cost","Energy cost model."],["revenue_loss","Revenue loss model."],["switching_cost","Switching cost model."]]});

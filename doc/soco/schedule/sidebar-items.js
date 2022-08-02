@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Schedule","Includes all configurations from time $1$ to time $t_end$."]],"type":[["FractionalSchedule",""],["IntegralSchedule",""]]});

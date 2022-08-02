@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["PyObjectBoolProtocol",""],["PyObjectDelAttrProtocol",""],["PyObjectGetAttrProtocol",""],["PyObjectHashProtocol",""],["PyObjectProtocol","Basic Python class customization"],["PyObjectReprProtocol",""],["PyObjectRichcmpProtocol",""],["PyObjectSetAttrProtocol",""],["PyObjectStrProtocol",""]]});

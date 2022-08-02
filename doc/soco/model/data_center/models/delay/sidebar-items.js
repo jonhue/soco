@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["average_delay","Average delay of a job processed on a server handling a total of $number_of_jobs$ jobs with average duration $mean_job_duration$ using the model of a M/GI/1 Processor Sharing Queue. $\\delta$ is the duration of a time slot. Referred to as $d$ in the paper."]]});

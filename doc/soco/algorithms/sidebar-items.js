@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["offline","Offline Algorithms."],["online","Online Algorithms."]],"trait":[["Options","Options of an algorithm."]]});

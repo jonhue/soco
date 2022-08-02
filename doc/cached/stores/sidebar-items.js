@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["ExpiringValueCache","Expiring Value Cache"],["SizedCache","Least Recently Used / `Sized` Cache"],["TimedCache","Cache store bound by time"],["TimedSizedCache","Timed LRU Cache"],["UnboundCache","Default unbounded cache"]],"trait":[["CanExpire","The CanExpire trait defines a function for implementations to determine if the value has expired."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Config","Assigns each dimension $k \\in [d]$ a unique value."]],"type":[["FractionalConfig",""],["IntegralConfig",""]]});

@@ -1,0 +1,4 @@
+(function() {var implementors = {};
+implementors["pyo3_macros_backend"] = [{"text":"impl <a class=\"trait\" href=\"syn/parse/trait.Parse.html\" title=\"trait syn::parse::Parse\">Parse</a> for <a class=\"struct\" href=\"pyo3_macros_backend/struct.PyFunctionOptions.html\" title=\"struct pyo3_macros_backend::PyFunctionOptions\">PyFunctionOptions</a>","synthetic":false,"types":["pyo3_macros_backend::pyfunction::PyFunctionOptions"]},{"text":"impl <a class=\"trait\" href=\"syn/parse/trait.Parse.html\" title=\"trait syn::parse::Parse\">Parse</a> for <a class=\"struct\" href=\"pyo3_macros_backend/struct.WrapPyFunctionArgs.html\" title=\"struct pyo3_macros_backend::WrapPyFunctionArgs\">WrapPyFunctionArgs</a>","synthetic":false,"types":["pyo3_macros_backend::wrap::WrapPyFunctionArgs"]}];
+implementors["syn"] = [];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

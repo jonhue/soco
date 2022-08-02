@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["hermite",""],["lagrange","Create a Lagrange interpolating polynomial."],["spline_clamped","Create a clamped cubic spline interpolating the given points."],["spline_free","Create a free cubic spline interpolating the given points."]],"struct":[["CubicSpline",""]]});

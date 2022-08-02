@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["static_integral","Algorithm computing the static integral optimum."]]});

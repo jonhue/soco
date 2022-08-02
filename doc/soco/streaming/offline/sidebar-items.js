@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["solve","Generates problem instance from model and solves it using an offline algorithm."]]});

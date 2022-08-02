@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["make_pow_of_2","Utility to transform a problem instance where $m$ is not a power of $2$ to an instance that is accepted by `optimal_graph_search`."],["optimal_graph_search","Graph-Based Optimal Algorithm"]],"struct":[["Options",""],["Vertice","Vertice in the graph denoting time $t$ and the value $j$ at time $t$."]]});

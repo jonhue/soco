@@ -1,0 +1,1 @@
+initSidebarItems({"mod":[["dual",""],["greedy",""],["meta",""],["primal",""],["regularized",""]]});
