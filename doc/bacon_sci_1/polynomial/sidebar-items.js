@@ -1,0 +1,1 @@
+initSidebarItems({"struct":[["Polynomial","Polynomial on a ComplexField."]]});

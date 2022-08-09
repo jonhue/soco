@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Failure","Interface errors."]],"type":[["Result","Wrapper type for values returned by the public interface."]]});

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["static_fractional","Algorithm computing the static fractional optimum."]]});

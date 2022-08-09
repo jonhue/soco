@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["curve_fit","Fit a curve using the Levenberg-Marquardt algorithm."],["curve_fit_jac","Fit a curve using the Levenberg-Marquardt algorithm."],["linear_fit","Linear least-squares regression"]],"struct":[["CurveFitParams",""]]});

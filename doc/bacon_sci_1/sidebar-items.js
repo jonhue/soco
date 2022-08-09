@@ -1,0 +1,1 @@
+initSidebarItems({"macro":[["polynomial",""]],"mod":[["constants",""],["differentiate",""],["integrate",""],["interp",""],["ivp",""],["optimize",""],["polynomial",""],["roots",""],["special",""]]});

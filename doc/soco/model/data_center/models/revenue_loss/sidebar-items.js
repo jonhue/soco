@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["RevenueLossModel","Revenue loss model. Parameters are provided separately for each job type."]],"struct":[["MinimalDetectableDelayRevenueLossModel",""]]});

@@ -1,0 +1,188 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Declarative macros for defining functions that wrap a static-ref cache object."><meta name="keywords" content="rust, rustlang, rust-lang, macros"><title>cached::macros - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../cached/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../cached/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Module macros</a></h2><div class="sidebar-elems"><div id="sidebar-vars" data-name="macros" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../cached/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Module <a href="../index.html">cached</a>::<wbr><a class="mod" href="#">macros</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/cached/macros.rs.html#1-497">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Declarative macros for defining functions that wrap a static-ref cache object.</p>
+<h4 id="cached-and-cached_key-usage--options"><a href="#cached-and-cached_key-usage--options"><code>cached!</code> and <code>cached_key!</code> Usage &amp; Options:</a></h4>
+<p>There are several options depending on how explicit you want to be. See below for a full syntax breakdown.</p>
+<p>1.) Using the shorthand will use an unbounded cache.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">cached</span>;
+
+<span class="doccomment">/// Defines a function named `fib` that uses a cache named `FIB`</span>
+<span class="macro">cached!</span>{
+    <span class="ident">FIB</span>;
+    <span class="kw">fn</span> <span class="ident">fib</span>(<span class="ident">n</span>: <span class="ident">u64</span>) -&gt; <span class="ident">u64</span> <span class="op">=</span> {
+        <span class="kw">if</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">n</span> <span class="op">==</span> <span class="number">1</span> { <span class="kw">return</span> <span class="ident">n</span> }
+        <span class="ident">fib</span>(<span class="ident">n</span><span class="op">-</span><span class="number">1</span>) <span class="op">+</span> <span class="ident">fib</span>(<span class="ident">n</span><span class="op">-</span><span class="number">2</span>)
+    }
+}</code></pre></div>
+<p>2.) Using the full syntax requires specifying the full cache type and providing
+an instance of the cache to use. Note that the cache’s key-type is a tuple
+of the function argument types. If you would like fine grained control over
+the key, you can use the <code>cached_key!</code> macro.
+The following example uses a <code>SizedCache</code> (LRU):</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">cached</span>;
+
+<span class="kw">use</span> <span class="ident">std::thread::sleep</span>;
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use</span> <span class="ident">cached::SizedCache</span>;
+
+<span class="doccomment">/// Defines a function `compute` that uses an LRU cache named `COMPUTE` which has a</span>
+<span class="doccomment">/// size limit of 50 items. The `cached!` macro will implicitly combine</span>
+<span class="doccomment">/// the function arguments into a tuple to be used as the cache key.</span>
+<span class="macro">cached!</span>{
+    <span class="ident">COMPUTE</span>: <span class="ident">SizedCache</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="ident">u64</span>), <span class="ident">u64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">SizedCache::with_size</span>(<span class="number">50</span>);
+    <span class="kw">fn</span> <span class="ident">compute</span>(<span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>) -&gt; <span class="ident">u64</span> <span class="op">=</span> {
+        <span class="ident">sleep</span>(<span class="ident">Duration::new</span>(<span class="number">2</span>, <span class="number">0</span>));
+        <span class="kw">return</span> <span class="ident">a</span> <span class="op">*</span> <span class="ident">b</span>;
+    }
+}</code></pre></div>
+<p>3.) The <code>cached_key</code> macro functions identically, but allows you to define the
+cache key as an expression.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">cached</span>;
+
+<span class="kw">use</span> <span class="ident">std::thread::sleep</span>;
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use</span> <span class="ident">cached::SizedCache</span>;
+
+<span class="doccomment">/// Defines a function named `length` that uses an LRU cache named `LENGTH`.</span>
+<span class="doccomment">/// The `Key = ` expression is used to explicitly define the value that</span>
+<span class="doccomment">/// should be used as the cache key. Here the borrowed arguments are converted</span>
+<span class="doccomment">/// to an owned string that can be stored in the global function cache.</span>
+<span class="macro">cached_key!</span>{
+    <span class="ident">LENGTH</span>: <span class="ident">SizedCache</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">usize</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">SizedCache::with_size</span>(<span class="number">50</span>);
+    <span class="ident">Key</span> <span class="op">=</span> { <span class="macro">format!</span>(<span class="string">&quot;{}{}&quot;</span>, <span class="ident">a</span>, <span class="ident">b</span>) };
+    <span class="kw">fn</span> <span class="ident">length</span>(<span class="ident">a</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">b</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="ident">usize</span> <span class="op">=</span> {
+        <span class="kw">let</span> <span class="ident">size</span> <span class="op">=</span> <span class="ident">a</span>.<span class="ident">len</span>() <span class="op">+</span> <span class="ident">b</span>.<span class="ident">len</span>();
+        <span class="ident">sleep</span>(<span class="ident">Duration::new</span>(<span class="ident">size</span> <span class="kw">as</span> <span class="ident">u64</span>, <span class="number">0</span>));
+        <span class="ident">size</span>
+    }
+}</code></pre></div>
+<p>4.) The <code>cached_result</code> and <code>cached_key_result</code> macros function similarly to <code>cached</code>
+and <code>cached_key</code> respectively but the cached function needs to return <code>Result</code>
+(or some type alias like <code>io::Result</code>). If the function returns <code>Ok(val)</code> then <code>val</code>
+is cached, but errors are not. Note that only the success type needs to implement
+<code>Clone</code>, <em>not</em> the error type. When using <code>cached_result</code> and <code>cached_key_result</code>,
+the cache type cannot be derived and must always be explicitly specified.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">cached</span>;
+
+<span class="kw">use</span> <span class="ident">cached::UnboundCache</span>;
+
+<span class="doccomment">/// Cache the successes of a function.</span>
+<span class="doccomment">/// To use `cached_key_result` add a key function as in `cached_key`.</span>
+<span class="macro">cached_result!</span>{
+   <span class="ident">MULT</span>: <span class="ident">UnboundCache</span><span class="op">&lt;</span>(<span class="ident">u64</span>, <span class="ident">u64</span>), <span class="ident">u64</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">UnboundCache::new</span>(); <span class="comment">// Type must always be specified</span>
+   <span class="kw">fn</span> <span class="ident">mult</span>(<span class="ident">a</span>: <span class="ident">u64</span>, <span class="ident">b</span>: <span class="ident">u64</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">u64</span>, ()<span class="op">&gt;</span> <span class="op">=</span> {
+        <span class="kw">if</span> <span class="ident">a</span> <span class="op">==</span> <span class="number">0</span> <span class="op">|</span><span class="op">|</span> <span class="ident">b</span> <span class="op">==</span> <span class="number">0</span> {
+            <span class="kw">return</span> <span class="prelude-val">Err</span>(());
+        } <span class="kw">else</span> {
+            <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">a</span> <span class="op">*</span> <span class="ident">b</span>);
+        }
+   }
+}</code></pre></div>
+<hr />
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">cached</span>;
+<span class="kw">use</span> <span class="ident">std::thread::sleep</span>;
+<span class="kw">use</span> <span class="ident">std::time::Duration</span>;
+<span class="kw">use</span> <span class="ident">cached::RedisCache</span>;
+
+<span class="macro">cached!</span> {
+    <span class="ident">UNBOUND_REDIS</span>: <span class="ident">RedisCache</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RedisCache::new</span>();
+    <span class="kw">fn</span> <span class="ident">cached_redis</span>(<span class="ident">n</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> <span class="op">=</span> {
+        <span class="ident">sleep</span>(<span class="ident">Duration::new</span>(<span class="number">3</span>, <span class="number">0</span>));
+        <span class="ident">n</span>
+    }
+}
+
+<span class="macro">cached!</span> {
+    <span class="ident">TIMED_REDIS</span>: <span class="ident">RedisCache</span><span class="op">&lt;</span><span class="ident">u32</span>, <span class="ident">u32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">RedisCache::with_lifespan</span>(<span class="number">2</span>);
+    <span class="kw">fn</span> <span class="ident">cached_timed_redis</span>(<span class="ident">n</span>: <span class="ident">u32</span>) -&gt; <span class="ident">u32</span> <span class="op">=</span> {
+        <span class="ident">sleep</span>(<span class="ident">Duration::new</span>(<span class="number">3</span>, <span class="number">0</span>));
+        <span class="ident">n</span>
+    }
+}</code></pre></div>
+<hr />
+<h3 id="syntax"><a href="#syntax">Syntax</a></h3>
+<p>The common macro syntax is:</p>
+
+<div class='information'><div class='tooltip ignore'>ⓘ</div></div><div class="example-wrap"><pre class="rust rust-example-rendered ignore"><code><span class="macro">cached_key!</span>{
+    <span class="ident">CACHE_NAME</span>: <span class="ident">CacheType</span> <span class="op">=</span> <span class="ident">CacheInstance</span>;
+    <span class="ident">Key</span> <span class="op">=</span> <span class="ident">KeyExpression</span>;
+    <span class="kw">fn</span> <span class="ident">func_name</span>(<span class="ident">arg1</span>: <span class="ident">arg_type</span>, <span class="ident">arg2</span>: <span class="ident">arg_type</span>) -&gt; <span class="ident">return_type</span> <span class="op">=</span> {
+        <span class="comment">// do stuff like normal</span>
+        <span class="ident">return_type</span>
+    }
+}</code></pre></div>
+<p>Where:</p>
+<ul>
+<li><code>CACHE_NAME</code> is the unique name used to hold a <code>static ref</code> to the cache</li>
+<li><code>CacheType</code> is the full type of the cache</li>
+<li><code>CacheInstance</code> is any expression that yields an instance of <code>CacheType</code> to be used
+as the cache-store, followed by <code>;</code></li>
+<li>When using the <code>cached_key!</code> macro, the “Key” line must be specified. This line must start with
+the literal tokens <code>Key = </code>, followed by an expression that evaluates to the key, followed by <code>;</code></li>
+<li><code>fn func_name(arg1: arg_type) -&gt; return_type</code> is the same form as a regular function signature, with the exception
+that functions with no return value must be explicitly stated (e.g. <code>fn func_name(arg: arg_type) -&gt; ()</code>)</li>
+<li>The expression following <code>=</code> is the function body assigned to <code>func_name</code>. Note, the function
+body can make recursive calls to its cached-self (<code>func_name</code>).</li>
+</ul>
+<h2 id="fine-grained-control-using-cached_control"><a href="#fine-grained-control-using-cached_control">Fine grained control using <code>cached_control!</code></a></h2>
+<p>The <code>cached_control!</code> macro allows you to provide expressions that get plugged into key areas
+of the memoized function. While the <code>cached</code> and <code>cached_result</code> variants are adequate for most
+scenarios, it can be useful to have the ability to customize the macro’s functionality.</p>
+
+<div class="example-wrap"><pre class="rust rust-example-rendered"><code><span class="attribute">#[<span class="ident">macro_use</span>]</span> <span class="kw">extern</span> <span class="kw">crate</span> <span class="ident">cached</span>;
+
+<span class="kw">use</span> <span class="ident">cached::UnboundCache</span>;
+
+<span class="doccomment">/// The following usage plugs in expressions to make the macro behave like</span>
+<span class="doccomment">/// the `cached_result!` macro.</span>
+<span class="macro">cached_control!</span>{
+    <span class="ident">CACHE</span>: <span class="ident">UnboundCache</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">UnboundCache::new</span>();
+
+    <span class="comment">// Use an owned copy of the argument `input` as the cache key</span>
+    <span class="ident">Key</span> <span class="op">=</span> { <span class="ident">input</span>.<span class="ident">to_owned</span>() };
+
+    <span class="comment">// If a cached value exists, it will bind to `cached_val` and</span>
+    <span class="comment">// a `Result` will be returned containing a copy of the cached</span>
+    <span class="comment">// evaluated body. This will return before the function body</span>
+    <span class="comment">// is executed.</span>
+    <span class="ident">PostGet</span>(<span class="ident">cached_val</span>) <span class="op">=</span> { <span class="kw">return</span> <span class="prelude-val">Ok</span>(<span class="ident">cached_val</span>.<span class="ident">clone</span>()) };
+
+    <span class="comment">// The result of executing the function body will be bound to</span>
+    <span class="comment">// `body_result`. In this case, the function body returns a `Result`.</span>
+    <span class="comment">// We match on the `Result`, returning an early `Err` if the function errored.</span>
+    <span class="comment">// Otherwise, we pass on the function&#39;s result to be cached.</span>
+    <span class="ident">PostExec</span>(<span class="ident">body_result</span>) <span class="op">=</span> {
+        <span class="kw">match</span> <span class="ident">body_result</span> {
+            <span class="prelude-val">Ok</span>(<span class="ident">v</span>) =&gt; <span class="ident">v</span>,
+            <span class="prelude-val">Err</span>(<span class="ident">e</span>) =&gt; <span class="kw">return</span> <span class="prelude-val">Err</span>(<span class="ident">e</span>),
+        }
+    };
+
+    <span class="comment">// When inserting the value into the cache we bind</span>
+    <span class="comment">// the to-be-set-value to `set_value` and give back a copy</span>
+    <span class="comment">// of it to be inserted into the cache</span>
+    <span class="ident">Set</span>(<span class="ident">set_value</span>) <span class="op">=</span> { <span class="ident">set_value</span>.<span class="ident">clone</span>() };
+
+    <span class="comment">// Before returning, print the value that will be returned</span>
+    <span class="ident">Return</span>(<span class="ident">return_value</span>) <span class="op">=</span> {
+        <span class="macro">println!</span>(<span class="string">&quot;{}&quot;</span>, <span class="ident">return_value</span>);
+        <span class="prelude-val">Ok</span>(<span class="ident">return_value</span>)
+    };
+
+    <span class="kw">fn</span> <span class="ident">can_fail</span>(<span class="ident">input</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) -&gt; <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">String</span>, <span class="ident">String</span><span class="op">&gt;</span> <span class="op">=</span> {
+        <span class="kw">let</span> <span class="ident">len</span> <span class="op">=</span> <span class="ident">input</span>.<span class="ident">len</span>();
+        <span class="kw">if</span> <span class="ident">len</span> <span class="op">&lt;</span> <span class="number">3</span> { <span class="prelude-val">Ok</span>(<span class="macro">format!</span>(<span class="string">&quot;{}-{}&quot;</span>, <span class="ident">input</span>, <span class="ident">len</span>)) }
+        <span class="kw">else</span> { <span class="prelude-val">Err</span>(<span class="string">&quot;too big&quot;</span>.<span class="ident">to_string</span>()) }
+    }
+}</code></pre></div>
+</div></details></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="cached" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>
+</body></html>

@@ -1,0 +1,1 @@
+initSidebarItems({"fn":[["derivative","Numerically find the derivative of a function at a point."],["second_derivative","Numerically find the second derivative of a function at a point."]]});

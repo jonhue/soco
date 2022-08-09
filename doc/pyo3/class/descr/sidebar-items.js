@@ -1,0 +1,1 @@
+initSidebarItems({"trait":[["PyDescrGetProtocol",""],["PyDescrProtocol","Descriptor interface"],["PyDescrSetProtocol",""]]});

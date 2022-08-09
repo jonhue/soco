@@ -1,0 +1,93 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="generator" content="rustdoc"><meta name="description" content="Offline and Online Algorithms."><meta name="keywords" content="rust, rustlang, rust-lang, algorithms"><title>soco::algorithms - Rust</title><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Regular.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../FiraSans-Medium.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Regular.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceSerif4-Bold.ttf.woff2"><link rel="preload" as="font" type="font/woff2" crossorigin href="../../SourceCodePro-Semibold.ttf.woff2"><link rel="stylesheet" type="text/css" href="../../normalize.css"><link rel="stylesheet" type="text/css" href="../../rustdoc.css" id="mainThemeStyle"><link rel="stylesheet" type="text/css" href="../../ayu.css" disabled><link rel="stylesheet" type="text/css" href="../../dark.css" disabled><link rel="stylesheet" type="text/css" href="../../light.css" id="themeStyle"><script id="default-settings" ></script><script src="../../storage.js"></script><script src="../../crates.js"></script><script defer src="../../main.js"></script>
+    <noscript><link rel="stylesheet" href="../../noscript.css"></noscript><link rel="alternate icon" type="image/png" href="../../favicon-16x16.png"><link rel="alternate icon" type="image/png" href="../../favicon-32x32.png"><link rel="icon" type="image/svg+xml" href="../../favicon.svg"></head><body class="rustdoc mod"><!--[if lte IE 11]><div class="warning">This old browser is unsupported and will most likely display funky things.</div><![endif]--><nav class="mobile-topbar"><button class="sidebar-menu-toggle">&#9776;</button><a class="sidebar-logo" href="../../soco/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"></h2>
+    </nav>
+    <nav class="sidebar"><a class="sidebar-logo" href="../../soco/index.html"><div class="logo-container"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></div>
+        </a><h2 class="location"><a href="#">Module algorithms</a></h2><div class="sidebar-elems"><section><div class="block"><ul><li><a href="#modules">Modules</a></li><li><a href="#traits">Traits</a></li></ul></div></section><div id="sidebar-vars" data-name="algorithms" data-ty="mod" data-relpath="./"></div><script defer src="./sidebar-items.js"></script></div></nav><main><div class="width-limiter"><div class="sub-container"><a class="sub-logo-container" href="../../soco/index.html"><img class="rust-logo" src="../../rust-logo.svg" alt="logo"></a><nav class="sub"><div class="theme-picker hidden"><button id="theme-picker" aria-label="Pick another theme!" aria-haspopup="menu" title="themes"><img width="22" height="22" alt="Pick another theme!" src="../../brush.svg"></button><div id="theme-choices" role="menu"></div></div><form class="search-form"><div class="search-container"><span></span><input class="search-input" name="search" autocomplete="off" spellcheck="false" placeholder="Click or press ‘S’ to search, ‘?’ for more options…" type="search"><button type="button" id="help-button" title="help">?</button><a id="settings-menu" href="../../settings.html" title="settings"><img width="22" height="22" alt="Change settings" src="../../wheel.svg"></a></div></form></nav></div><section id="main-content" class="content"><div class="main-heading">
+    <h1 class="fqn"><span class="in-band">Module <a href="../index.html">soco</a>::<wbr><a class="mod" href="#">algorithms</a><button id="copy-path" onclick="copy_path(this)" title="Copy item path to clipboard"><img src="../../clipboard.svg" width="19" height="18" alt="Copy item path"></button></span></h1><span class="out-of-band"><a class="srclink" href="../../src/soco/algorithms/mod.rs.html#1-181">source</a> · <a id="toggle-all-docs" href="javascript:void(0)" title="collapse all docs">[<span class="inner">&#x2212;</span>]</a></span></div><details class="rustdoc-toggle top-doc" open><summary class="hideme"><span>Expand description</span></summary><div class="docblock"><p>Offline and Online Algorithms.</p>
+<h2 id="algorithms"><a href="#algorithms">Algorithms</a></h2><h3 id="offline"><a href="#offline">Offline</a></h3><h4 id="backward-recurrent-capacity-provisioning-1"><a href="#backward-recurrent-capacity-provisioning-1">Backward-Recurrent Capacity Provisioning [1]</a></h4>
+<p>SSCO - Fractional - Uni-Dimensional</p>
+<p>Stays within bounds on the optimal solution moving backwards in time.</p>
+<h4 id="convex-optimization"><a href="#convex-optimization">Convex Optimization</a></h4>
+<p>SCO - Fractional</p>
+<p>Finds the minimizer of a convex objective.</p>
+<h4 id="graph-based-optimal-algorithm-in-one-dimension-5"><a href="#graph-based-optimal-algorithm-in-one-dimension-5">Graph-Based Optimal Algorithm (in one dimension) [5]</a></h4>
+<p>SSCO - Integral - Uni-Dimensional</p>
+<p>Finds a shortest path in a graph using dynamic programming (in polynomial time).</p>
+<h4 id="graph-based-optimal-algorithm-9"><a href="#graph-based-optimal-algorithm-9">Graph-Based Optimal Algorithm [9]</a></h4>
+<p>SSCO - Integral</p>
+<p>Finds a shortest path in a graph using dynamic programming (<strong>not</strong> in polynomial time).</p>
+<h4 id="graph-based-polynomial-time-approximation-scheme-9"><a href="#graph-based-polynomial-time-approximation-scheme-9">Graph-Based Polynomial-Time Approximation Scheme [9]</a></h4>
+<p>SSCO - Integral</p>
+<p>Extends the graph-based optimal algorithm by only considering a subset of the decision space to achieve a better performance.</p>
+<h4 id="static-fractional-optimum"><a href="#static-fractional-optimum">Static Fractional Optimum</a></h4>
+<p>SCO - Fractional</p>
+<p>Solves a smaller problem than <em>Convex Optimization</em> to obtain an optimal static solution.</p>
+<h4 id="static-integral-optimum"><a href="#static-integral-optimum">Static Integral Optimum</a></h4>
+<p>SCO - Integral</p>
+<p>Cycles through <em>all</em> possible configurations to find the optimal static integral solution. Convexity is used to stop the search of the decision space quickly in practice, however, the worst-case runtime is exponential.</p>
+<h3 id="online"><a href="#online">Online</a></h3><h4 id="lazy-capacity-provisioning-1"><a href="#lazy-capacity-provisioning-1">Lazy Capacity Provisioning [1]</a></h4>
+<p>SSCO - Fractional - Uni-Dimensional - $3$-competitive</p>
+<p>Lazily stays within fractional bounds on the decision space.</p>
+<h4 id="lazy-capacity-provisioning-5"><a href="#lazy-capacity-provisioning-5">Lazy Capacity Provisioning [5]</a></h4>
+<p>SSCO - Integral - Uni-Dimensional - $3$-competitive (optimal for a deterministic algorithm)</p>
+<p>Lazily stays within integral bounds on the decision space.</p>
+<h4 id="memoryless-algorithm-3"><a href="#memoryless-algorithm-3">Memoryless algorithm [3]</a></h4>
+<p>SSCO - Fractional - Uni-Dimensional - $3$-competitive (optimal for a memoryless algorithm)</p>
+<p>Moves towards the minimizer of the hitting cost balancing the paid movement cost. Special case of Primal Online Balanced Descent.</p>
+<h4 id="probabilistic-algorithm-3"><a href="#probabilistic-algorithm-3">Probabilistic Algorithm [3]</a></h4>
+<p>SSCO - Fractional - Uni-Dimensional - $2$-competitive (optimal)</p>
+<p>Constructs a probability distribution of well-performing configurations over time.</p>
+<h4 id="randmoly-biased-greedy-4"><a href="#randmoly-biased-greedy-4">Randmoly Biased Greedy [4]</a></h4>
+<p>SCO - Fractional - Uni-Dimensional - $2$-competitive (optimal)</p>
+<p>Uses a work function to balance hitting and movement costs.</p>
+<h4 id="randomized-integral-relaxation-5"><a href="#randomized-integral-relaxation-5">Randomized Integral Relaxation [5]</a></h4>
+<p>SSCO - Integral - Uni-Dimensional - $2$-competitive (optimal)</p>
+<p>Randomly rounds solutions of any $2$-competitive fractional algorithm.</p>
+<h4 id="lazy-budgeting-for-slo-8"><a href="#lazy-budgeting-for-slo-8">Lazy Budgeting for SLO [8]</a></h4>
+<p>SLO - Integral - $2d$-competitive (optimal for a deterministic algorithm)</p>
+<p>Keeps servers active for some minimum time delta even when they are not use to balance hitting costs and movement costs.</p>
+<h4 id="lazy-budgeting-for-slo-randomized-8"><a href="#lazy-budgeting-for-slo-randomized-8">Lazy Budgeting for SLO (randomized) [8]</a></h4>
+<p>SLO - Integral - $(e / (e - 1))d$-competitive</p>
+<p>Keeps servers active for some minimum time delta even when they are not use to balance hitting costs and movement costs.</p>
+<h4 id="lazy-budgeting-for-sblo-9"><a href="#lazy-budgeting-for-sblo-9">Lazy Budgeting for SBLO [9]</a></h4>
+<p>SBLO - Integral - $2d + 1 + \epsilon$-competitive</p>
+<p>Keeps servers active for some minimum time delta even when they are not use to balance hitting costs and movement costs.</p>
+<h4 id="online-gradient-descent-4"><a href="#online-gradient-descent-4">Online Gradient Descent [4]</a></h4>
+<p>SCO - Fractional</p>
+<p>Achieves sublinear regret by <em>learning</em> the static offline optimum.</p>
+<h4 id="primal-online-balanced-descent-6"><a href="#primal-online-balanced-descent-6">Primal Online Balanced Descent [6]</a></h4>
+<p>SCO - Fractional - $3+\mathcal{O}(1/\alpha)$-competitive for the $\ell_2$ norm and locally $\alpha$-polyhedral hitting costs, $\mathcal{O}(\sqrt{d})$-competitive for the $\ell_1$ norm; mirror map must be $m$-strongly convex and $M$-Lipschitz smooth in the switching cost norm</p>
+<p>Takes a gradient step orthogonal to some landing level set balancing costs in the primal space.</p>
+<h4 id="dual-online-balanced-descent-6"><a href="#dual-online-balanced-descent-6">Dual Online Balanced Descent [6]</a></h4>
+<p>SCO - Fractional - mirror map must be $m$-strongly convex and $M$-Lipschitz smooth in the switching cost norm</p>
+<p>Takes a gradient step orthogonal to some landing level set balancing costs in the dual space. Achieves sublinear regret.</p>
+<h4 id="greedy-online-balanced-descent-7"><a href="#greedy-online-balanced-descent-7">Greedy Online Balanced Descent [7]</a></h4>
+<p>SCO - Fractional - $\mathcal{O}(1 / \sqrt{m})$-competitive for $m$-quasiconvex hitting costs and $\ell_2$-squared switching costs</p>
+<p>Takes a normal OBD-step and then an additional step directly towards the minimizer of the hitting cost depending on the convexity parameter $m$.</p>
+<h4 id="regularized-online-balanced-descent-7"><a href="#regularized-online-balanced-descent-7">Regularized Online Balanced Descent [7]</a></h4>
+<p>SCO - Fractional - $\mathcal{O}(1 / \sqrt{m})$-competitive (optimal) for $m$-strongly convex and differentiable hitting costs and switching costs modeled as the Bregman divergence where the potential function is $\alpha$-strongly convex, $\beta$-strongly smooth, differentiable, and its Fenchel Conjugate is differentiable; $\Omega(1/m)$-competitive for $m$-quasiconvex hitting costs and $\ell_2$-squared switching costs</p>
+<p>Using a computationally simpler local view.</p>
+<h4 id="receding-horizon-control-2"><a href="#receding-horizon-control-2">Receding Horizon Control [2]</a></h4>
+<p>SSCO - Fractional - $(1 + \Omega(\beta/e_0))$-competitive where $e_0$ is the idle cost and $\beta$ is the scaling of the Manhattan distance; when uni-dimensional the competitive ratio is $1 + \mathcal{O}(1/w)$</p>
+<h4 id="averaging-fixed-horizon-control-2"><a href="#averaging-fixed-horizon-control-2">Averaging Fixed Horizon Control [2]</a></h4>
+<p>SSCO - Fractional - $1 + \mathcal{O}(1/w)$-competitive</p>
+<h2 id="references"><a href="#references">References</a></h2>
+<ol>
+<li>Minghong Lin and Adam Wierman and Lachlan L. H. Andrew and Eno Thereska. <em>Dynamic right-sizing for power-proportional data centers</em>. 2011.</li>
+<li>Minghong Lin and Zhenhua Liu and Adam Wierman and Lachlan L. H. Andrew. <em>Online Algorithms for Geographical Load Balancing</em>. 2012.</li>
+<li>Nikhil Bansal and Anupam Gupta and Ravishankar Krishnaswamy and Kirk Pruhs and Kevin Schewior and Cliff Stein. <em>A 2-Competitive Algorithm For Online Convex Optimization With Switching Costs</em>. 2015.</li>
+<li>Lachlan L. H. Andrew and Siddharth Barman and Katrina Ligett and Minghong Lin and Adam Myerson and Alan Roytman and Adam Wierman. <em>A Tale of Two Metrics: Simultaneous Bounds on Competitiveness and Regret</em>. 2015.</li>
+<li>Susanne Albers and Jens Quedenfeld. <em>Optimal Algorithms for Right-Sizing Data Centers</em>. 2018.</li>
+<li>Niangjun Chen and Gautam Goel and Adam Wierman. <em>Smoothed Online Convex Optimization in High Dimensions via Online Balanced Descent</em>. 2018.</li>
+<li>Gautam Goel and Yiheng Lin and Haoyuan Sun and Adam Wierman. <em>Beyond Online Balanced Descent: An Optimal Algorithm for Smoothed Online Optimization</em>. 2019.</li>
+<li>Susanne Albers and Jens Quedenfeld. <em>Algorithms for Energy Conservation in Heterogeneous Data Centers</em>. 2021.</li>
+<li>Susanne Albers and Jens Quedenfeld. <em>Algorithms for Right-Sizing Heterogeneous Data Centers</em>. 2021.</li>
+</ol>
+</div></details><h2 id="modules" class="small-section-header"><a href="#modules">Modules</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="mod" href="offline/index.html" title="soco::algorithms::offline mod">offline</a></div><div class="item-right docblock-short"><p>Offline Algorithms.</p>
+</div></div><div class="item-row"><div class="item-left module-item"><a class="mod" href="online/index.html" title="soco::algorithms::online mod">online</a></div><div class="item-right docblock-short"><p>Online Algorithms.</p>
+</div></div></div><h2 id="traits" class="small-section-header"><a href="#traits">Traits</a></h2>
+<div class="item-table"><div class="item-row"><div class="item-left module-item"><a class="trait" href="trait.Options.html" title="soco::algorithms::Options trait">Options</a></div><div class="item-right docblock-short"><p>Options of an algorithm.</p>
+</div></div></div></section></div></main><div id="rustdoc-vars" data-root-path="../../" data-current-crate="soco" data-themes="ayu,dark,light" data-resource-suffix="" data-rustdoc-version="1.62.1 (e092d0b6b 2022-07-16)" ></div>
+</body></html>

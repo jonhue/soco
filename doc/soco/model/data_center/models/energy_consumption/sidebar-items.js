@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["EnergyConsumptionModel","Energy consumption model. Parameters are provided separately for each server type."]],"struct":[["LinearEnergyConsumptionModel",""],["NonLinearEnergyConsumptionModel",""],["SimplifiedLinearEnergyConsumptionModel",""]]});
