@@ -41,7 +41,7 @@ nalgebra = "0.31.1"
 nlopt = "0.6.0"
 noisy_float = "0.2.0"
 num = "0.4.0"
-pyo3 = { version = "0.16.5", features = ["extension-module"] }
+pyo3 = { version = "0.16.6", features = ["extension-module"] }
 pyo3-log = "0.6.0"
 rand = "0.8.5"
 rand_pcg = "0.3.1"
