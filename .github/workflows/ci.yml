@@ -11,7 +11,7 @@ jobs:
     - uses: actions-rs/toolchain@v1.0.7
       with:
         toolchain: stable
-    - uses: Swatinem/rust-cache@v1
+    - uses: Swatinem/rust-cache@v2
       with:
         working-directory: implementation
     - name: Format
